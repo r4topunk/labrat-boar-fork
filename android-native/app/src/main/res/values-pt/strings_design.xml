@@ -3,4 +3,11 @@
 <resources>
     <string name="design_install_now" formatted="false">Baixando {{name}}</string>
     <string name="design_install_organizing" formatted="false">Organizando sua biblioteca</string>
+    <string name="design_chat_emptyTitle" formatted="false">O que você quer saber?</string>
+    <string name="design_drawer_recent" formatted="false">Conversas recentes</string>
+    <string name="design_drawer_today" formatted="false">Hoje</string>
+    <string name="design_drawer_yesterday" formatted="false">Ontem</string>
+    <string name="design_drawer_week" formatted="false">Últimos 7 dias</string>
+    <string name="design_drawer_older" formatted="false">Mais antigas</string>
+    <string name="design_tone_deepResearchNote" formatted="false">Pesquisa cada parte da sua pergunta e depois escreve uma resposta. Mais lenta; funciona com qualquer estilo.</string>
 </resources>

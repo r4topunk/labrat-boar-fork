@@ -1,5 +1,7 @@
 package team.sopa.boar.ui.chat
 
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.foundation.layout.offset
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -180,8 +182,9 @@ fun ChatScreen(
             FixedSizeChrome { Header(state, onMenu, onNewChat, barScroll) }
             state.loadingKey?.let { LoadingBanner(t(it)) }
             state.loadNote?.let { LoadNoteBanner(it, onDismissLoadNote, onRetryLessMemory, onLoadAnyway, onOpenModels) }
-            // Deep Research on: the chat area takes a light tint of its color, so the mode shows at a glance.
-            val researchTint = if (state.deepResearch) scheme.tertiary.copy(alpha = 0.06f) else Color.Transparent
+            // Deep Research shows in the composer (outline, placeholder, chip), not as a tint over the whole chat: the tint
+            // washed out the tonal rows on it.
+            val researchTint = Color.Transparent
             if (state.messages.isEmpty()) {
                 Box(Modifier.weight(1f).fillMaxWidth().background(researchTint)) {
                     EmptyState(state.suggestions, onAsk = { onSend(it) }, onFill = { input = it })
@@ -190,8 +193,8 @@ fun ChatScreen(
                 LazyColumn(
                     // A readable line length on a wide screen (landscape, tablets), centred; a phone held upright is narrower.
                     Modifier.weight(1f).background(researchTint).widthIn(max = MAX_CHAT_WIDTH).fillMaxWidth().align(Alignment.CenterHorizontally), state = list,
-                    contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
                     items(state.messages, key = { it.id }) { m ->
                         Bubble(m, state, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, modifier = Modifier.animateItem())
@@ -243,11 +246,21 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
     Column {
         TopAppBar(
             title = {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Image(painterResource(R.drawable.mascot), null, Modifier.size(40.dp).clip(CircleShape), contentScale = ContentScale.Fit)
+                // One tappable identity block: the mascot, the name, and one quiet line with the on-device claim and the
+                // model. Tapping it opens what working offline means (it was a separate chip that crowded the bar).
+                Row(
+                    Modifier.clip(MaterialTheme.shapes.medium).clickable(onClickLabel = t(if (state.online) "chatHeader.onlineTitle" else "chatHeader.offlineTitle"), role = Role.Button) { info = true }
+                        .padding(end = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Image(painterResource(R.drawable.mascot), null, Modifier.size(36.dp).clip(CircleShape).background(scheme.surfaceContainerHigh), contentScale = ContentScale.Fit)
                     Column {
-                        Text("BOAR", style = MaterialTheme.typography.titleLarge, maxLines = 1)
-                        Text(subtitle, style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("BOAR", style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = scheme.primary, modifier = Modifier.size(12.dp))
+                            Text(t("clean.chat.worksOffline") + " · " + subtitle, style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
                     }
                 }
             },
@@ -255,19 +268,10 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
                 IconButton(onMenu) { Icon(Icons.Filled.Menu, contentDescription = t("chatHeader.openDrawer")) }
             },
             actions = {
-                // The same on-device claim in every state; the chip opens what being online means for BOAR.
-                AssistChip(
-                    onClick = { info = true },
-                    label = { Text(t("clean.chat.worksOffline"), maxLines = 1, softWrap = false) },
-                    leadingIcon = { Icon(Icons.Filled.CheckCircle, contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize)) },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = scheme.secondaryContainer, labelColor = scheme.onSecondaryContainer, leadingIconContentColor = scheme.onSecondaryContainer),
-                    border = null,
-                )
-                FilledTonalIconButton(onNewChat) { Icon(Icons.Filled.Add, contentDescription = t("clean.drawer.newChat")) }
-                Spacer(Modifier.width(4.dp))
+                IconButton(onNewChat) { Icon(Icons.Filled.Add, contentDescription = t("clean.drawer.newChat")) }
             },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = scheme.surface, scrolledContainerColor = scheme.surfaceContainer),
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = scheme.surface, scrolledContainerColor = scheme.surfaceContainer,
+                actionIconContentColor = scheme.onSurfaceVariant),
             scrollBehavior = scrollBehavior,
         )
         // Live speed in the header is a technical detail (Advanced tweaks → Show technical details).
@@ -301,25 +305,27 @@ private fun LoadNoteBanner(
     onOpenModels: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
+    // The same short model name as the header ("Qwen2.5 · 1.5B"), so the title fits on one line.
+    val name = modelName(note.label, technical = false)
     val change = t("clean.chat.loadNote.changeModel") to onOpenModels
     data class Copy(val title: String, val body: String, val actions: List<Pair<String, () -> Unit>>)
     val copy = when (note) {
         is team.sopa.boar.chat.LoadNote.Crashed -> {
             val retry = t("clean.chat.loadNote.lessMemory") to { onRetryLessMemory(note.modelId) }
-            val title = t("clean.chat.loadNote.crashedTitle", "model" to note.label)
+            val title = t("clean.chat.loadNote.crashedTitle", "model" to name)
             if (note.fallbackLabel != null) Copy(title, t("clean.chat.loadNote.crashedFallback", "fallback" to note.fallbackLabel), listOf(change, retry))
             else Copy(title, t("clean.chat.loadNote.crashedBody"), listOf(change, retry))
         }
-        is team.sopa.boar.chat.LoadNote.Risky -> Copy(t("clean.chat.loadNote.riskyTitle", "model" to note.label), t("clean.chat.loadNote.riskyBody"),
+        is team.sopa.boar.chat.LoadNote.Risky -> Copy(t("clean.chat.loadNote.riskyTitle", "model" to name), t("clean.chat.loadNote.riskyBody"),
             listOf(change, t("native.chat.loadAnyway") to { onLoadAnyway(note.modelId) }))
     }
     Card(
-        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
-        shape = MaterialTheme.shapes.large,
+        Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerHigh, contentColor = scheme.onSurface),
     ) {
         Row(Modifier.padding(start = 16.dp, top = 16.dp, end = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
-            Icon(BoarIcons.Memory, contentDescription = null, tint = scheme.tertiary, modifier = Modifier.padding(top = 2.dp).size(24.dp))
+            Icon(BoarIcons.Memory, contentDescription = null, tint = scheme.tertiary, modifier = Modifier.size(24.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(copy.title, style = MaterialTheme.typography.titleSmall, color = scheme.onSurface)
                 Text(copy.body, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
@@ -363,36 +369,41 @@ private fun LoadingBanner(text: String) {
     }
 }
 
-/** components/ChatEmptyState.tsx: the boar, the name and tagline, then the suggested questions (tap asks, long-press fills). */
+/**
+ * components/ChatEmptyState.tsx: one focal point (the boar and one question) in the middle of the free space, and the
+ * suggested questions as a grouped tonal list at the bottom, next to the thumb and the input (tap asks, long-press
+ * fills). The topic labels over each question are gone: the questions read on their own.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun EmptyState(suggestions: List<String>, onAsk: (String) -> Unit, onFill: (String) -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val type = MaterialTheme.typography
     // Scrolls: with a large font size (or a small screen) the last ideas were below the input and out of reach.
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp).padding(top = 20.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Column(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Image(painterResource(R.drawable.mascot), null, Modifier.size(96.dp), contentScale = ContentScale.Fit)
-            Text("BOAR", style = type.headlineMedium, color = scheme.onSurface)
-            Text(t("chat.empty.tagline"), style = type.bodyMedium, color = scheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        }
-        if (suggestions.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(t("chat.empty.suggestionsLabel"), style = type.labelMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 4.dp))
-            for (k in suggestions) {
-                val q = t("chat.suggestions.$k")
-                // Tap asks right away, long-press puts it in the input to edit: both are named for TalkBack.
-                val ask = t("chat.empty.ask", "question" to q)
-                val fill = t("chat.empty.fill")
-                Card(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow)) {
-                    Column(
-                        Modifier.fillMaxWidth().combinedClickable(onClickLabel = ask, onLongClickLabel = fill, role = Role.Button, onClick = { onAsk(q) }, onLongClick = { onFill(q) })
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(t("chat.suggestionTopics.$k"), style = type.labelMedium, color = scheme.primary)
-                        // Two lines at most, so five ideas don't crowd the empty chat.
-                        Text(q, style = type.bodyMedium, color = scheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val minH = maxHeight
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            Column(Modifier.fillMaxWidth().heightIn(min = minH).padding(horizontal = 16.dp).padding(top = 8.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.SpaceBetween) {
+                Spacer(Modifier.height(0.dp))
+                Column(Modifier.fillMaxWidth().padding(vertical = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Image(painterResource(R.drawable.mascot), null, Modifier.size(88.dp), contentScale = ContentScale.Fit)
+                    Spacer(Modifier.height(16.dp))
+                    Text(t("design.chat.emptyTitle"), style = type.headlineSmall, color = scheme.onSurface, textAlign = TextAlign.Center)
+                    Spacer(Modifier.height(8.dp))
+                    Text(t("chat.empty.tagline"), style = type.bodyMedium, color = scheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                }
+                if (suggestions.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(t("chat.empty.suggestionsLabel"), style = type.labelLarge, color = scheme.onSurfaceVariant, modifier = Modifier.padding(start = 4.dp, bottom = 6.dp))
+                    suggestions.forEachIndexed { i, k ->
+                        val q = t("chat.suggestions.$k")
+                        // Tap asks right away, long-press puts it in the input to edit: both are named for TalkBack.
+                        val ask = t("chat.empty.ask", "question" to q)
+                        val fill = t("chat.empty.fill")
+                        Text(q, style = type.bodyLarge, color = scheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth().clip(groupedShape(i, suggestions.size, outer = 20.dp)).background(scheme.surfaceContainer)
+                                .combinedClickable(onClickLabel = ask, onLongClickLabel = fill, role = Role.Button, onClick = { onAsk(q) }, onLongClick = { onFill(q) })
+                                .heightIn(min = 56.dp).wrapContentHeight(Alignment.CenterVertically).padding(horizontal = 16.dp, vertical = 12.dp))
                     }
                 }
             }
@@ -424,24 +435,28 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
     val streaming = state.answeringId == m.id
     var reasoningShown by remember { mutableStateOf(false) }
     val clipboard = LocalClipboardManager.current
-    val shape = if (user) RoundedCornerShape(20.dp, 20.dp, 8.dp, 20.dp) else RoundedCornerShape(20.dp, 20.dp, 20.dp, 8.dp)
-    BoxWithConstraints(modifier.fillMaxWidth()) {
-        val maxW = maxWidth * 0.92f
-        var mod = Modifier.align(if (user) Alignment.CenterEnd else Alignment.CenterStart).widthIn(min = if (user) 0.dp else 200.dp, max = maxW).clip(shape)
-            .background(if (user) c.bgCardHover else c.bgSurface)
-        // A Deep Research answer keeps its mark in the history: the border and the header in the mode's color.
-        val researched = !user && m.receipt?.path == "deep"
-        if (!user) mod = mod.border(if (researched) 1.5.dp else 1.dp, if (researched) scheme.tertiary else scheme.outlineVariant, shape)
-        if (user) mod = mod.combinedClickable(onClick = {}, onLongClick = { onReuse(m.text) })
-        Column(mod.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(Modifier.padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (!user) Image(painterResource(R.drawable.mascot), null, Modifier.size(20.dp).clip(RoundedCornerShape(4.dp)), contentScale = ContentScale.Fit)
-                Text(if (user) t("chatScreen.roleYou") else if (researched) t("native.chat.roleDeepResearch") else t("chatScreen.roleAssistant"), style = type.labelMedium,
-                    color = if (user) scheme.onSurfaceVariant else if (researched) scheme.tertiary else scheme.primary)
-            }
-            if (user) {
-                Text(m.text, style = type.bodyLarge, color = scheme.onSurface)
-                return@Column
+    val researched = !user && m.receipt?.path == "deep"
+    // The question: a tonal bubble at the end (surfaceContainerHigh, the corner at its speaker squared a little), up to
+    // 85 % of the width; held, it goes back to the input. The answer: no bubble, the text straight on the surface at
+    // the full readable width, under a small byline (the boar, or Deep Research in its tertiary color).
+    if (user) {
+        BoxWithConstraints(modifier.fillMaxWidth()) {
+            Text(m.text, style = type.bodyLarge, color = scheme.onSurface,
+                modifier = Modifier.align(Alignment.CenterEnd).widthIn(max = maxWidth * 0.85f).padding(start = 32.dp)
+                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 6.dp, bottomEnd = 20.dp, bottomStart = 20.dp))
+                    .background(scheme.surfaceContainerHigh)
+                    .combinedClickable(onClick = {}, onLongClick = { onReuse(m.text) })
+                    .padding(horizontal = 16.dp, vertical = 10.dp))
+        }
+        return
+    }
+    Box(modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(Modifier.padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (researched) Icon(BoarIcons.ScienceFilled, null, tint = scheme.tertiary, modifier = Modifier.size(20.dp))
+                else Image(painterResource(R.drawable.mascot), null, Modifier.size(24.dp).clip(CircleShape).background(scheme.surfaceContainerHigh), contentScale = ContentScale.Fit)
+                Text(if (researched) t("native.chat.roleDeepResearch") else t("chatScreen.roleAssistant"), style = type.labelLarge,
+                    color = if (researched) scheme.tertiary else scheme.onSurfaceVariant)
             }
             val split = AnswerText.splitThinking(m.text)
             // Sources are attached when the reply finishes, so invented citations are cleaned only then.
@@ -484,24 +499,24 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
             }
             var receiptOpen by remember { mutableStateOf(false) }
             if (m.text.isNotEmpty() && !streaming) {
-                // The sources block has its own rule above it; a second one right under would stack.
-                if (m.sources.isEmpty()) HorizontalDivider(Modifier.padding(top = 8.dp), color = scheme.outlineVariant)
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-                    // The receipt fills the gap before the reasoning and copy buttons (main's ReceiptToggle), tapped open below.
-                    Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                        // Everyone sees time and speed; the measured details open only with technical details on.
-                        m.receipt?.let { r -> if (state.technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
-                    }
-                    if (split.thinking != null) IconToggleButton(reasoningShown, { reasoningShown = !reasoningShown }) {
-                        Icon(BoarIcons.Psychology, contentDescription = t(if (reasoningShown) "chatScreen.hideReasoning" else "chatScreen.showReasoning"))
-                    }
+                // The actions first, the icon lined up with the text edge; the receipt after them, quiet, never cut.
+                Row(Modifier.fillMaxWidth().padding(top = 4.dp).offset(x = (-12).dp), horizontalArrangement = Arrangement.spacedBy(0.dp), verticalAlignment = Alignment.CenterVertically) {
                     var copied by remember { mutableStateOf(false) }
                     LaunchedEffect(copied) { if (copied) { delay(2000); copied = false } }
                     // With the reasoning open, it is copied too: reviewing a thinking model needs both.
                     IconButton({
                         clipboard.setText(AnnotatedString(if (reasoningShown && split.thinking != null) "💭 ${split.thinking}\n\n---\n\n$shown" else shown)); copied = true
                     }) {
-                        Icon(if (copied) Icons.Filled.Check else BoarIcons.ContentCopy, contentDescription = t("chatScreen.copyResponse"))
+                        Icon(if (copied) Icons.Filled.Check else BoarIcons.ContentCopy, contentDescription = t("chatScreen.copyResponse"),
+                            tint = scheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                    }
+                    if (split.thinking != null) IconToggleButton(reasoningShown, { reasoningShown = !reasoningShown }) {
+                        Icon(BoarIcons.Psychology, contentDescription = t(if (reasoningShown) "chatScreen.hideReasoning" else "chatScreen.showReasoning"),
+                            tint = if (reasoningShown) scheme.primary else scheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                    }
+                    // Everyone sees time and speed; the measured details open only with technical details on.
+                    Box(Modifier.weight(1f, fill = false)) {
+                        m.receipt?.let { r -> if (state.technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
                     }
                 }
                 if (receiptOpen && state.technicalDetails) m.receipt?.let { r -> ReceiptDetails(r) }
@@ -620,8 +635,9 @@ private fun NoteBadge(icon: ImageVector, text: String) {
 }
 
 /**
- * The input bar: a chip row on top (the answer style, which opens the style sheet; Deep Research while it is on, with
- * a close icon that turns it off), then the text field with send or stop at its end.
+ * The composer: one rounded surfaceContainerHigh block on the page surface (no slab of a second color under it). The
+ * text field on top; under it the answer style as a quiet text button with a drop-down mark (it opens the style sheet),
+ * the Deep Research chip while it is on (its close icon turns it off), and send or stop at the end.
  */
 @Composable
 private fun InputBar(
@@ -629,40 +645,59 @@ private fun InputBar(
     personalityId: String, stopping: Boolean, deepResearch: Boolean, onSetDeepResearch: (Boolean) -> Unit, onOpenStyles: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    // The background runs under the gesture bar (navigationBarsPadding comes after it).
-    Column(Modifier.fillMaxWidth().background(scheme.surfaceContainer).navigationBarsPadding().padding(horizontal = 8.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            AssistChip(
-                onClick = onOpenStyles,
-                label = { Text(t("personalities.$personalityId.label"), maxLines = 1) },
-                leadingIcon = { Icon(toneVector(personalityId), contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize)) },
+    val shape = RoundedCornerShape(28.dp)
+    val hint = t(if (deepResearch) "native.chat.deepResearchPlaceholder" else "chatScreen.inputPlaceholder")
+    val canSend = text.isNotBlank() && !answering
+    // After Stop, the button pulses until the answer really ends: a library search or a chunk of prompt finishes first.
+    val transition = rememberInfiniteTransition(label = "stopping")
+    val blink by transition.animateFloat(1f, 0.35f, infiniteRepeatable(tween<Float>(500), RepeatMode.Reverse), label = "pulse")
+    val pulse = if (stopping) blink else 1f
+    // The gesture bar inset sits under the page background; the block itself keeps 12 dp from the edges.
+    Column(Modifier.fillMaxWidth().background(scheme.background).navigationBarsPadding().padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 8.dp)) {
+        Column(
+            Modifier.fillMaxWidth().clip(shape).background(scheme.surfaceContainerHigh)
+                // Deep Research on: the block's outline in the mode's color and its own placeholder, right where you type.
+                .then(if (deepResearch) Modifier.border(1.5.dp, scheme.tertiary, shape) else Modifier),
+        ) {
+            TextField(
+                text, onText,
+                Modifier.fillMaxWidth().describe(hint),
+                placeholder = { Text(hint, maxLines = 1, overflow = TextOverflow.Ellipsis, color = if (deepResearch) scheme.tertiary else scheme.onSurfaceVariant) },
+                textStyle = MaterialTheme.typography.bodyLarge,
+                maxLines = 6,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, disabledIndicatorColor = Color.Transparent,
+                    cursorColor = scheme.primary),
             )
-            if (deepResearch) InputChip(
-                selected = true,
-                onClick = { onSetDeepResearch(false) },
-                label = { Text(t("chatHeader.deepResearch"), maxLines = 1) },
-                leadingIcon = { Icon(BoarIcons.ScienceFilled, contentDescription = null, modifier = Modifier.size(InputChipDefaults.IconSize)) },
-                trailingIcon = { Icon(Icons.Filled.Close, contentDescription = t("common.close"), modifier = Modifier.size(InputChipDefaults.IconSize)) },
-                colors = InputChipDefaults.inputChipColors(
-                    selectedContainerColor = scheme.tertiaryContainer, selectedLabelColor = scheme.onTertiaryContainer,
-                    selectedLeadingIconColor = scheme.onTertiaryContainer, selectedTrailingIconColor = scheme.onTertiaryContainer),
-            )
-        }
-        val shape = MaterialTheme.shapes.extraLarge
-        val hint = t(if (deepResearch) "native.chat.deepResearchPlaceholder" else "chatScreen.inputPlaceholder")
-        val canSend = text.isNotBlank() && !answering
-        // After Stop, the button pulses until the answer really ends: a library search or a chunk of prompt finishes first.
-        val transition = rememberInfiniteTransition(label = "stopping")
-        val blink by transition.animateFloat(1f, 0.35f, infiniteRepeatable(tween<Float>(500), RepeatMode.Reverse), label = "pulse")
-        val pulse = if (stopping) blink else 1f
-        // Deep Research on: the field's border in the mode's color and its own placeholder, right where you type.
-        TextField(
-            text, onText,
-            Modifier.fillMaxWidth().then(if (deepResearch) Modifier.border(1.5.dp, scheme.tertiary, shape) else Modifier).describe(hint),
-            placeholder = { Text(hint, maxLines = 1, overflow = TextOverflow.Ellipsis, color = if (deepResearch) scheme.tertiary else scheme.onSurfaceVariant) },
-            // Stop is error/onError, send is primary/onPrimary: real scheme pairs in both themes. The disabled send state is
-            // the stock one (onSurface at 12 % / 38 %); the pulse after Stop applies only while the button is live.
-            trailingIcon = {
+            Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                TextButton(onOpenStyles, colors = ButtonDefaults.textButtonColors(contentColor = scheme.onSurfaceVariant),
+                    contentPadding = PaddingValues(start = 12.dp, end = 8.dp)) {
+                    // With the Deep Research chip beside it, the style shows as its icon only (named for TalkBack), so the
+                    // row never pushes send off the edge or cuts a label.
+                    val styleLabel = t("personalities.$personalityId.label")
+                    Icon(toneVector(personalityId), contentDescription = if (deepResearch) styleLabel else null, modifier = Modifier.size(18.dp))
+                    if (!deepResearch) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(styleLabel, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    Icon(Icons.Filled.ArrowDropDown, contentDescription = null, modifier = Modifier.size(20.dp))
+                }
+                if (deepResearch) InputChip(
+                    selected = true,
+                    onClick = { onSetDeepResearch(false) },
+                    label = { Text(t("chatHeader.deepResearch"), maxLines = 1) },
+                    leadingIcon = { Icon(BoarIcons.ScienceFilled, contentDescription = null, modifier = Modifier.size(InputChipDefaults.IconSize)) },
+                    trailingIcon = { Icon(Icons.Filled.Close, contentDescription = t("common.close"), modifier = Modifier.size(InputChipDefaults.IconSize)) },
+                    colors = InputChipDefaults.inputChipColors(
+                        selectedContainerColor = scheme.tertiaryContainer, selectedLabelColor = scheme.onTertiaryContainer,
+                        selectedLeadingIconColor = scheme.onTertiaryContainer, selectedTrailingIconColor = scheme.onTertiaryContainer),
+                    border = null,
+                )
+                Spacer(Modifier.weight(1f))
+                // Stop is error/onError, send is primary/onPrimary: real scheme pairs in both themes. The disabled send state is
+                // the stock one (onSurface at 12 % / 38 %); the pulse after Stop applies only while the button is live.
                 FilledIconButton(
                     { if (answering) onStop() else onSend() },
                     Modifier.alpha(if (answering || canSend) pulse else 1f),
@@ -671,14 +706,9 @@ private fun InputBar(
                         containerColor = if (answering) scheme.error else scheme.primary, contentColor = if (answering) scheme.onError else scheme.onPrimary),
                 ) {
                     Icon(if (answering) BoarIcons.Stop else Icons.AutoMirrored.Filled.Send,
-                        contentDescription = t(if (answering) "chatScreen.stopGeneration" else "chatScreen.sendMessage"))
+                        contentDescription = t(if (answering) "chatScreen.stopGeneration" else "chatScreen.sendMessage"), modifier = Modifier.size(20.dp))
                 }
-            },
-            maxLines = 5, shape = shape,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = scheme.surfaceContainerHighest, unfocusedContainerColor = scheme.surfaceContainerHighest,
-                focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, disabledIndicatorColor = Color.Transparent,
-                cursorColor = scheme.primary),
-        )
+            }
+        }
     }
 }

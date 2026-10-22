@@ -3,4 +3,11 @@
 <resources>
     <string name="design_install_now" formatted="false">Downloading {{name}}</string>
     <string name="design_install_organizing" formatted="false">Organizing your library</string>
+    <string name="design_chat_emptyTitle" formatted="false">What do you want to know?</string>
+    <string name="design_drawer_recent" formatted="false">Recent chats</string>
+    <string name="design_drawer_today" formatted="false">Today</string>
+    <string name="design_drawer_yesterday" formatted="false">Yesterday</string>
+    <string name="design_drawer_week" formatted="false">Previous 7 days</string>
+    <string name="design_drawer_older" formatted="false">Older</string>
+    <string name="design_tone_deepResearchNote" formatted="false">Researches each part of your question, then writes one answer. Slower; works with any style.</string>
 </resources>

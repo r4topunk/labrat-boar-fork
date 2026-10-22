@@ -1,5 +1,16 @@
 package team.sopa.boar.ui.drawer
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -68,6 +79,7 @@ class DrawerItem(val key: String, val label: String, val icon: ImageVector? = nu
  * Material You and the light/dark choice. Everything lines up at 28 dp: the sheet's 12 dp item padding plus the 16 dp
  * inset the item text, the header and the section label share.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BoarDrawer(
     sessions: List<ChatSession>,
@@ -118,29 +130,40 @@ fun BoarDrawer(
                     onClick = item.onClick,
                 )
             }
-            HorizontalDivider(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-            Text(t("drawer.recentSessions"), style = type.titleSmall, color = scheme.onSurfaceVariant, modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 6.dp))
-            if (answering) Text(t("native.drawer.answeringHint"), style = type.bodySmall, color = scheme.tertiary, modifier = Modifier.padding(start = 16.dp, bottom = 6.dp))
+            HorizontalDivider(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), color = scheme.outlineVariant)
+            if (answering) Text(t("native.drawer.answeringHint"), style = type.bodySmall, color = scheme.tertiary, modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp))
+            // The history grouped by day (Today, Yesterday, Previous 7 days, Older) instead of a time under every row: one
+            // line per chat. Delete is in each row's long-press menu (and TalkBack's actions), so the list isn't a column
+            // of trash cans; the Undo bar still follows a delete.
+            val groups = remember(sessions) { sessions.groupBy { dayGroup(it.updatedAt) }.toSortedMap() }
+            val deleteLabel = t("clean.nav.deleteChat")
             LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
-                items(sessions, key = { it.id }) { s ->
-                    val active = s.id == activeSessionId
-                    NavigationDrawerItem(
-                        label = {
-                            Column {
-                                Text(s.title, style = type.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Text(relativeTime(s.updatedAt), style = type.bodySmall, color = scheme.onSurfaceVariant)
+                groups.forEach { (group, list) ->
+                    item(key = "group-$group") {
+                        Text(t(GROUP_KEYS[group]), style = type.titleSmall, color = scheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp))
+                    }
+                    items(list, key = { it.id }) { s ->
+                        val active = s.id == activeSessionId
+                        var menu by remember { mutableStateOf(false) }
+                        Box {
+                            Text(s.title.removePrefix("Title:").trim(), style = type.bodyLarge, color = if (active) scheme.onSecondaryContainer else scheme.onSurface,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.fillMaxWidth().height(48.dp).clip(CircleShape)
+                                    .background(if (active) scheme.secondaryContainer else Color.Transparent)
+                                    .semantics {
+                                        selected = active
+                                        if (!answering) customActions = listOf(CustomAccessibilityAction(deleteLabel) { onDelete(s.id); true })
+                                    }
+                                    .combinedClickable(enabled = !answering, onLongClickLabel = deleteLabel, onLongClick = { menu = true }) { onSelect(s.id) }
+                                    .wrapContentHeight(Alignment.CenterVertically).padding(horizontal = 16.dp)
+                                    .alpha(if (answering && !active) 0.4f else 1f))
+                            DropdownMenu(menu, onDismissRequest = { menu = false }, offset = DpOffset(16.dp, 0.dp)) {
+                                DropdownMenuItem(text = { Text(deleteLabel) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) },
+                                    onClick = { menu = false; onDelete(s.id) })
                             }
-                        },
-                        selected = active,
-                        onClick = { if (!answering) onSelect(s.id) },
-                        // A 48 dp target of its own (the glyph pulled into the item's end padding), not a tap on an emoji.
-                        badge = if (answering) null else ({
-                            IconButton(onClick = { onDelete(s.id) }, modifier = Modifier.offset(x = 12.dp)) {
-                                Icon(Icons.Outlined.Delete, t("clean.nav.deleteChat"), tint = scheme.onSurfaceVariant)
-                            }
-                        }),
-                        modifier = Modifier.alpha(if (answering && !active) 0.4f else 1f),
-                    )
+                        }
+                    }
                 }
             }
         }
@@ -148,15 +171,15 @@ fun BoarDrawer(
     }
 }
 
-@Composable
-private fun relativeTime(ms: Long): String {
-    val min = (System.currentTimeMillis() - ms) / 60000.0
-    return when {
-        min < 1 -> t("time.justNow")
-        min < 60 -> t("time.minutesAgo", "count" to min.toInt())
-        min < 60 * 24 -> t("time.hoursAgo", "count" to (min / 60).toInt())
-        else -> t("time.daysAgo", "count" to (min / 60 / 24).toInt())
-    }
+private val GROUP_KEYS = listOf("design.drawer.today", "design.drawer.yesterday", "design.drawer.week", "design.drawer.older")
+
+/** 0 today, 1 yesterday, 2 the 7 days before, 3 older: calendar days in the phone's time zone. */
+private fun dayGroup(ms: Long): Int {
+    val zone = java.time.ZoneId.systemDefault()
+    val day = java.time.Instant.ofEpochMilli(ms).atZone(zone).toLocalDate()
+    val today = java.time.LocalDate.now(zone)
+    val days = java.time.temporal.ChronoUnit.DAYS.between(day, today)
+    return when { days <= 0 -> 0; days == 1L -> 1; days <= 7 -> 2; else -> 3 }
 }
 
 /** "1.8/12GB": one decimal, a whole number without it, the unit once. */
