@@ -433,7 +433,7 @@
     <string name="evaluation_shareProgress_exportTitle" formatted="false">Keep a copy</string>
     <string name="evaluation_shareProgress_exportFooter" formatted="false">Save the whole run as a file, whatever happened: JSONL for tools, CSV for spreadsheets.</string>
     <string name="chat_suggestions_q1" formatted="false">Why do we have seasons on Earth?</string>
-    <string name="chat_suggestions_q2" formatted="false">What is the difference between a pandemic and an epidemic?</string>
+    <string name="chat_suggestions_q2" formatted="false">What makes an epidemic a pandemic?</string>
     <string name="chat_suggestions_q3" formatted="false">What is 30 °C in Fahrenheit?</string>
     <string name="chat_suggestions_q4" formatted="false">How do I stop a nosebleed?</string>
     <string name="chat_suggestions_q7" formatted="false">What causes the greenhouse effect?</string>

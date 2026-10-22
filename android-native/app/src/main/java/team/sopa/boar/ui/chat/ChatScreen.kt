@@ -253,7 +253,8 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
                         .padding(end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Image(painterResource(R.drawable.mascot), null, Modifier.size(36.dp).clip(CircleShape).background(scheme.surfaceContainerHigh), contentScale = ContentScale.Fit)
+                    // The empty chat already shows the boar large in the middle: one brand mark per screen.
+                    if (state.messages.isNotEmpty()) Image(painterResource(R.drawable.mascot), null, Modifier.size(36.dp), contentScale = ContentScale.Fit)
                     Column {
                         Text("BOAR", style = MaterialTheme.typography.titleMedium, maxLines = 1)
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -393,15 +394,17 @@ private fun EmptyState(suggestions: List<String>, onAsk: (String) -> Unit, onFil
                     Spacer(Modifier.height(8.dp))
                     Text(t("chat.empty.tagline"), style = type.bodyMedium, color = scheme.onSurfaceVariant, textAlign = TextAlign.Center)
                 }
-                if (suggestions.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(t("chat.empty.suggestionsLabel"), style = type.labelLarge, color = scheme.onSurfaceVariant, modifier = Modifier.padding(start = 4.dp, bottom = 6.dp))
-                    suggestions.forEachIndexed { i, k ->
+                // Three short ideas, one line each: enough to show what to ask without outweighing the focal point.
+                val ideas = suggestions.take(3)
+                if (ideas.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(t("chat.empty.suggestionsLabel"), style = type.labelLarge, color = scheme.onSurfaceVariant, modifier = Modifier.padding(start = 16.dp, bottom = 8.dp))
+                    ideas.forEachIndexed { i, k ->
                         val q = t("chat.suggestions.$k")
                         // Tap asks right away, long-press puts it in the input to edit: both are named for TalkBack.
                         val ask = t("chat.empty.ask", "question" to q)
                         val fill = t("chat.empty.fill")
-                        Text(q, style = type.bodyLarge, color = scheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.fillMaxWidth().clip(groupedShape(i, suggestions.size, outer = 20.dp)).background(scheme.surfaceContainer)
+                        Text(q, style = type.bodyLarge, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth().clip(groupedShape(i, ideas.size, outer = 20.dp)).background(scheme.surfaceContainer)
                                 .combinedClickable(onClickLabel = ask, onLongClickLabel = fill, role = Role.Button, onClick = { onAsk(q) }, onLongClick = { onFill(q) })
                                 .heightIn(min = 56.dp).wrapContentHeight(Alignment.CenterVertically).padding(horizontal = 16.dp, vertical = 12.dp))
                     }
@@ -454,7 +457,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
         Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(Modifier.padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (researched) Icon(BoarIcons.ScienceFilled, null, tint = scheme.tertiary, modifier = Modifier.size(20.dp))
-                else Image(painterResource(R.drawable.mascot), null, Modifier.size(24.dp).clip(CircleShape).background(scheme.surfaceContainerHigh), contentScale = ContentScale.Fit)
+                else Image(painterResource(R.drawable.mascot), null, Modifier.size(24.dp), contentScale = ContentScale.Fit)
                 Text(if (researched) t("native.chat.roleDeepResearch") else t("chatScreen.roleAssistant"), style = type.labelLarge,
                     color = if (researched) scheme.tertiary else scheme.onSurfaceVariant)
             }
@@ -527,10 +530,10 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
 
 private fun receiptShort(r: Receipt, rate: String) = listOf(ReceiptFormat.seconds(r.totalMs), rate).joinToString(" · ")
 
-/** The receipt everyone sees: "18 s · 10.4 tok/s", nothing to open. */
+/** The receipt everyone sees: how long the answer took ("18 s"), quiet; the speed is a technical detail. */
 @Composable
 private fun ReceiptShort(r: Receipt) =
-    Text(receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+    Text(ReceiptFormat.seconds(r.totalMs), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
         // Two lines with Large text rather than losing "tok/s" off the end.
         maxLines = 2, textAlign = TextAlign.Start, modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp))
 

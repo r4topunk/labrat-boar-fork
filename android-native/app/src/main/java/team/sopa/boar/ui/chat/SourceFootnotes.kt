@@ -50,8 +50,24 @@ private fun sourceName(s: Source, yourDocuments: String, technicalDetails: Boole
     return if (technicalDetails) raw else raw.replace(URL, "").trim().ifEmpty { s.title }
 }
 
-/** The extraction leaves "Mount Kilimanjaro () is…" where the pronunciation was; drop the empty brackets. */
-private fun cleanBody(body: String) = body.replace(EMPTY_PARENS, "").replace(SPACES, " ").trim()
+private val REDIRECT = Regex("""(?m)^[^.\n]{1,80}\b(redirects|redirect) here\.?[^\n]*$""")
+private val LONE_GAP = Regex("""\s*\n\s*(…|\.\.\.)\s*\n\s*""")
+
+/**
+ * The passage as prose: no empty brackets where the pronunciation was ("Mount Kilimanjaro () is…"), no wiki
+ * "X redirects here." lead-ins, a gap "…" kept inline instead of on its own line, and cut at the last full sentence
+ * within [max] characters, so it never ends mid-word.
+ */
+internal fun cleanBody(body: String, max: Int = 520): String {
+    val s = body.replace(REDIRECT, "").replace(LONE_GAP, " … ").replace(EMPTY_PARENS, "").replace(SPACES, " ").trim()
+    if (s.length <= max) return s
+    val cut = s.take(max)
+    val end = cut.lastIndexOfAny(charArrayOf('.', '!', '?'))
+    return if (end > max / 3) cut.take(end + 1) else cut.substringBeforeLast(' ') + " …"
+}
+
+/** The source's name is worth a line only when the title doesn't already start with it ("Wikivoyage — Canberra"). */
+private fun showName(name: String, title: String) = name.isNotBlank() && !title.startsWith(name, ignoreCase = true) && name != title
 
 /** The corners of a row in a grouped list: the group is one rounded block, the rows inside meet at small corners. */
 internal fun groupedShape(index: Int, count: Int, outer: Dp = 16.dp, inner: Dp = 4.dp) = RoundedCornerShape(
@@ -79,7 +95,7 @@ fun SourceFootnotes(sources: List<Source>, title: String? = null, technicalDetai
         sources.forEachIndexed { i, s ->
             val open = expanded == i
             val rotation by animateFloatAsState(if (open) 180f else 0f, label = "sourceCaret")
-            Column(Modifier.fillMaxWidth().clip(groupedShape(i, sources.size)).background(if (open) scheme.surfaceContainerHigh else scheme.surfaceContainer)) {
+            Column(Modifier.fillMaxWidth().clip(groupedShape(i, sources.size)).background(scheme.surfaceContainer)) {
                 Row(
                     Modifier.fillMaxWidth().heightIn(min = 48.dp)
                         .semantics { stateDescription = if (open) expandedState else collapsedState }
@@ -97,10 +113,13 @@ fun SourceFootnotes(sources: List<Source>, title: String? = null, technicalDetai
                     Icon(BoarIcons.ExpandMore, contentDescription = null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(20.dp).rotate(rotation))
                 }
                 AnimatedVisibility(open, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-                    Column(Modifier.fillMaxWidth().padding(start = 48.dp, end = 16.dp, bottom = 14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(sourceName(s, yourDocuments, technicalDetails), style = type.labelMedium, color = scheme.primary,
-                            maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        Text(cleanBody(s.body), style = type.bodyMedium, color = scheme.onSurfaceVariant, maxLines = 8, overflow = TextOverflow.Ellipsis)
+                    // The passage in an inset block a step up in tone, a size under the answer, so it reads as a quote, not as more answer.
+                    Column(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
+                        .clip(MaterialTheme.shapes.medium).background(scheme.surfaceContainerHighest).padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        val name = sourceName(s, yourDocuments, technicalDetails)
+                        if (showName(name, s.title)) Text(name, style = type.labelMedium, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(cleanBody(s.body), style = type.bodySmall.copy(lineHeight = type.bodySmall.fontSize * 1.45f), color = scheme.onSurface)
                     }
                 }
             }

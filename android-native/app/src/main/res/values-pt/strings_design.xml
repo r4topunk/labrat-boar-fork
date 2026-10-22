@@ -10,4 +10,10 @@
     <string name="design_drawer_week" formatted="false">Últimos 7 dias</string>
     <string name="design_drawer_older" formatted="false">Mais antigas</string>
     <string name="design_tone_deepResearchNote" formatted="false">Pesquisa cada parte da sua pergunta e depois escreve uma resposta. Mais lenta; funciona com qualquer estilo.</string>
+    <string name="design_settings_about" formatted="false">Sobre</string>
+    <string name="design_knowledge_summary" formatted="false">Bibliotecas que o BOAR busca offline quando você faz uma pergunta.</string>
+    <string name="design_knowledge_notOnPhone" formatted="false">Não baixado</string>
+    <string name="design_knowledge_failed" formatted="false">O download falhou. Toque em baixar para tentar de novo.</string>
+    <string name="design_knowledge_remove" formatted="false">Remover do celular</string>
+    <string name="design_onboarding_installedNote" formatted="false">Já está no celular. Você pode removê-lo depois em Conhecimento.</string>
 </resources>

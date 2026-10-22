@@ -27,8 +27,8 @@
     <string name="clean_settings_model_summary_one" formatted="false">{{model}} · {{count}} installed</string>
     <string name="clean_settings_model_summary_other" formatted="false">{{model}} · {{count}} installed</string>
     <string name="clean_settings_knowledge_title" formatted="false">Packs and documents</string>
-    <string name="clean_settings_knowledge_packs_one" formatted="false">{{count}} pack on this phone</string>
-    <string name="clean_settings_knowledge_packs_other" formatted="false">{{count}} packs on this phone</string>
+    <string name="clean_settings_knowledge_packs_one" formatted="false">{{count}} pack</string>
+    <string name="clean_settings_knowledge_packs_other" formatted="false">{{count}} packs</string>
     <string name="clean_settings_knowledge_noPacks" formatted="false">No packs yet</string>
     <string name="clean_settings_knowledge_docs_one" formatted="false">{{count}} document</string>
     <string name="clean_settings_knowledge_docs_other" formatted="false">{{count}} documents</string>
@@ -63,8 +63,8 @@
     <string name="clean_onboarding_tag_accurate" formatted="false">Accurate</string>
     <string name="clean_onboarding_caveat" formatted="false">AI-reviewed, not clinically reviewed.</string>
     <string name="clean_onboarding_file_searchModel" formatted="false">Search model</string>
-    <string name="clean_onboarding_file_wikiEssentials1" formatted="false">Wikipedia essentials · 1,000 topics</string>
-    <string name="clean_onboarding_file_wikiEssentials2" formatted="false">Wikipedia essentials · 4,000 more topics</string>
+    <string name="clean_onboarding_file_wikiEssentials1" formatted="false">Wikipedia essentials, part 1</string>
+    <string name="clean_onboarding_file_wikiEssentials2" formatted="false">Wikipedia essentials, part 2</string>
     <string name="clean_onboarding_pack_wikiEssentials_name" formatted="false">Wikipedia essentials</string>
     <string name="clean_onboarding_pack_wikiEssentials_desc" formatted="false">5,000 core topics every answer can lean on.</string>
     <string name="clean_onboarding_pack_wikiVital_name" formatted="false">Wikipedia Vital Articles</string>
@@ -113,7 +113,7 @@
     <string name="clean_onboarding_device_free" formatted="false">{{size}} free</string>
     <string name="clean_onboarding_tag_recommended" formatted="false">Recommended</string>
     <string name="clean_onboarding_tag_fits" formatted="false">Fits this phone</string>
-    <string name="clean_onboarding_tag_heavy" formatted="false">Heavy for this phone</string>
+    <string name="clean_onboarding_tag_heavy" formatted="false">Slower on this phone</string>
     <string name="clean_onboarding_tag_discovered" formatted="false">From Hugging Face</string>
     <string name="clean_onboarding_models_heavyWarning" formatted="false">May run slowly or close on this phone.</string>
     <string name="clean_onboarding_models_selected_one" formatted="false">{{count}} model selected</string>

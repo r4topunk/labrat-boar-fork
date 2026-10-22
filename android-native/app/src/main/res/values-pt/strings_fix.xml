@@ -27,8 +27,8 @@
     <string name="clean_settings_model_summary_one" formatted="false">{{model}} · {{count}} instalado</string>
     <string name="clean_settings_model_summary_other" formatted="false">{{model}} · {{count}} instalados</string>
     <string name="clean_settings_knowledge_title" formatted="false">Pacotes e documentos</string>
-    <string name="clean_settings_knowledge_packs_one" formatted="false">{{count}} pacote no celular</string>
-    <string name="clean_settings_knowledge_packs_other" formatted="false">{{count}} pacotes no celular</string>
+    <string name="clean_settings_knowledge_packs_one" formatted="false">{{count}} pacote</string>
+    <string name="clean_settings_knowledge_packs_other" formatted="false">{{count}} pacotes</string>
     <string name="clean_settings_knowledge_noPacks" formatted="false">Nenhum pacote ainda</string>
     <string name="clean_settings_knowledge_docs_one" formatted="false">{{count}} documento</string>
     <string name="clean_settings_knowledge_docs_other" formatted="false">{{count}} documentos</string>
@@ -63,8 +63,8 @@
     <string name="clean_onboarding_tag_accurate" formatted="false">Preciso</string>
     <string name="clean_onboarding_caveat" formatted="false">Revisado por IA, sem revisão clínica.</string>
     <string name="clean_onboarding_file_searchModel" formatted="false">Modelo de busca</string>
-    <string name="clean_onboarding_file_wikiEssentials1" formatted="false">Wikipédia essencial · 1.000 temas</string>
-    <string name="clean_onboarding_file_wikiEssentials2" formatted="false">Wikipédia essencial · mais 4.000 temas</string>
+    <string name="clean_onboarding_file_wikiEssentials1" formatted="false">Wikipédia essencial, parte 1</string>
+    <string name="clean_onboarding_file_wikiEssentials2" formatted="false">Wikipédia essencial, parte 2</string>
     <string name="clean_onboarding_pack_wikiEssentials_name" formatted="false">Wikipédia essencial</string>
     <string name="clean_onboarding_pack_wikiEssentials_desc" formatted="false">5.000 temas centrais para qualquer resposta.</string>
     <string name="clean_onboarding_pack_wikiVital_name" formatted="false">Artigos vitais da Wikipédia</string>
@@ -113,7 +113,7 @@
     <string name="clean_onboarding_device_free" formatted="false">{{size}} livres</string>
     <string name="clean_onboarding_tag_recommended" formatted="false">Recomendado</string>
     <string name="clean_onboarding_tag_fits" formatted="false">Cabe neste celular</string>
-    <string name="clean_onboarding_tag_heavy" formatted="false">Pesado para este celular</string>
+    <string name="clean_onboarding_tag_heavy" formatted="false">Mais lento neste celular</string>
     <string name="clean_onboarding_tag_discovered" formatted="false">Do Hugging Face</string>
     <string name="clean_onboarding_models_heavyWarning" formatted="false">Pode ficar lento ou fechar neste celular.</string>
     <string name="clean_onboarding_models_selected_one" formatted="false">{{count}} modelo selecionado</string>

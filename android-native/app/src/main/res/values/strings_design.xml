@@ -10,4 +10,10 @@
     <string name="design_drawer_week" formatted="false">Previous 7 days</string>
     <string name="design_drawer_older" formatted="false">Older</string>
     <string name="design_tone_deepResearchNote" formatted="false">Researches each part of your question, then writes one answer. Slower; works with any style.</string>
+    <string name="design_settings_about" formatted="false">About</string>
+    <string name="design_knowledge_summary" formatted="false">Libraries BOAR searches offline when you ask a question.</string>
+    <string name="design_knowledge_notOnPhone" formatted="false">Not downloaded</string>
+    <string name="design_knowledge_failed" formatted="false">Download failed. Tap download to try again.</string>
+    <string name="design_knowledge_remove" formatted="false">Remove from phone</string>
+    <string name="design_onboarding_installedNote" formatted="false">Already on this phone. You can remove it later in Knowledge.</string>
 </resources>

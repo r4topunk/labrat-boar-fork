@@ -22,6 +22,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.style.BaselineShift
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.dp
 
 /**
@@ -34,7 +36,7 @@ private sealed interface MdBlock {
 }
 
 private val FENCE = Regex("```([a-zA-Z0-9_-]*)\\n([\\s\\S]*?)```")
-private val INLINE = Regex("(`[^`]+`|\\*\\*[^*]+\\*\\*)")
+private val INLINE = Regex("(`[^`]+`|\\*\\*[^*]+\\*\\*| ?\\[\\d{1,2}(?:,\\s*\\d{1,2})*\\])")
 
 private fun parseBlocks(text: String): List<MdBlock> {
     val out = ArrayList<MdBlock>()
@@ -61,6 +63,11 @@ private fun inline(text: String): AnnotatedString {
                     withStyle(SpanStyle(fontFamily = FontFamily.Monospace, background = scheme.surfaceContainerHighest)) { append(part.substring(1, part.length - 1)) }
                 part.startsWith("**") && part.length > 4 ->
                     withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append(part.substring(2, part.length - 2)) }
+                // A citation "[1]" or "[1, 2]": a small raised number in primary that matches the numbered sources below.
+                part.trimStart().startsWith("[") ->
+                    withStyle(SpanStyle(fontSize = 0.72.em, baselineShift = BaselineShift(0.35f), color = scheme.primary, fontWeight = FontWeight.Medium)) {
+                        append("\u2009" + part.trim().removePrefix("[").removeSuffix("]").replace(Regex(",\\s*"), ","))
+                    }
                 else -> append(part)
             }
             last = m.range.last + 1

@@ -107,14 +107,15 @@ fun BoarDrawer(
         // it, so the menu doesn't move when the sessions load.
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)) {
-                Image(painterResource(R.drawable.boar), null, Modifier.size(36.dp).clip(MaterialTheme.shapes.medium))
+                Image(painterResource(R.drawable.mascot), null, Modifier.size(40.dp))
                 Column {
                     Text("BOAR", style = type.titleMedium, color = scheme.onSurface)
                     // The same line the setup welcome carries: one product, one tagline.
                     Text(t("flows.onboarding.brandSub"), style = type.bodySmall, color = scheme.onSurfaceVariant)
                 }
             }
-            FilledTonalButton(onClick = onNewChat, enabled = !answering, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+            // The button's edge on the same 16 dp inset as the header and the destinations' icons.
+            FilledTonalButton(onClick = onNewChat, enabled = !answering, modifier = Modifier.padding(start = 16.dp, bottom = 8.dp).height(48.dp)) {
                 Icon(Icons.Filled.Add, null, Modifier.size(ButtonDefaults.IconSize))
                 Spacer(Modifier.width(ButtonDefaults.IconSpacing))
                 Text(t("clean.drawer.newChat"))
@@ -147,7 +148,7 @@ fun BoarDrawer(
                         val active = s.id == activeSessionId
                         var menu by remember { mutableStateOf(false) }
                         Box {
-                            Text(s.title.removePrefix("Title:").trim(), style = type.bodyLarge, color = if (active) scheme.onSecondaryContainer else scheme.onSurface,
+                            Text(displayTitle(s.title), style = type.bodyLarge, color = if (active) scheme.onSecondaryContainer else scheme.onSurface,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.fillMaxWidth().height(48.dp).clip(CircleShape)
                                     .background(if (active) scheme.secondaryContainer else Color.Transparent)
@@ -169,6 +170,20 @@ fun BoarDrawer(
         }
         if (showStats) FooterStats(lastTokPerSec, storageUsed, downloading, storageBudgetBytes)
     }
+}
+
+/**
+ * A chat title as the list shows it: no "Title:" prefix, quotes or trailing period, and sentence case when the model
+ * wrote it in Title Case ("Australia's Capital" -> "Australia's capital"; acronyms such as "DNA" stay).
+ */
+internal fun displayTitle(raw: String): String {
+    var s = raw.removePrefix("Title:").trim().trim('"', '\u201C', '\u201D', '*').trim().trimEnd('.').trim()
+    val words = s.split(" ")
+    val long = words.drop(1).filter { it.length >= 3 }
+    if (long.isNotEmpty() && long.all { it.first().isUpperCase() }) {
+        s = words.mapIndexed { i, w -> if (i == 0 || w.length > 1 && w.all { !it.isLetter() || it.isUpperCase() }) w else w.lowercase() }.joinToString(" ")
+    }
+    return s.ifEmpty { raw }
 }
 
 private val GROUP_KEYS = listOf("design.drawer.today", "design.drawer.yesterday", "design.drawer.week", "design.drawer.older")

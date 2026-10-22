@@ -28,6 +28,9 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Create
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PlayArrow
@@ -112,9 +115,9 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 KnowledgeSection(services, onOpen)
                 Section(t("modelSetupScreen.sections.memory")) {
                     var titles by remember { mutableStateOf(s.autoGenerateTitles) }
-                    SwitchRow(t("memorySettings.autoTitlesLabel"), t("memorySettings.autoTitlesValue"), titles) { titles = it; s.autoGenerateTitles = it }
+                    SwitchRow(t("memorySettings.autoTitlesLabel"), t("memorySettings.autoTitlesValue"), titles, icon = Icons.Outlined.Edit) { titles = it; s.autoGenerateTitles = it }
                     var summarize by remember { mutableStateOf(s.autoSummarize) }
-                    SwitchRow(t("clean.settings.chats.remember"), t("clean.settings.chats.rememberNote"), summarize) { summarize = it; s.autoSummarize = it }
+                    SwitchRow(t("clean.settings.chats.remember"), t("clean.settings.chats.rememberNote"), summarize, icon = BoarIcons.Psychology) { summarize = it; s.autoSummarize = it }
                     PinRow(services, onPin)
                     ClearChats(services)
                 }
@@ -136,8 +139,8 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 AnimatedVisibility(dev, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
                     DeveloperSection(services, styleId, { styleId = it }, tech, { tech = it }) { dev = false }
                 }
-                // One row, no header of its own: the version is the supporting line.
-                Section(null) {
+                // About under its own header, like every other group; the version is the supporting line.
+                Section(t("design.settings.about")) {
                     val version = remember { runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }.getOrNull() }
                     ActionRow(t("aboutScreen.title"), note = version, icon = Icons.Outlined.Info, chevron = true) { onOpen("about") }
                 }
@@ -162,7 +165,7 @@ private fun ModelsSection(services: BoarServices, onOpen: (String) -> Unit) {
         val emb = services.catalog.models.firstOrNull { it.kind == AssetKind.EMBEDDING }
         if (emb != null && !services.fileOf(emb).isFile) Info(t("native.settings.embeddingMissing", "model" to emb.shortName), MaterialTheme.colorScheme.error)
         var free by remember { mutableStateOf(services.settings.freeMemoryInBackground) }
-        SwitchRow(t("native.settings.freeMemory"), t("native.settings.freeMemoryNote"), free) { free = it; services.settings.freeMemoryInBackground = it }
+        SwitchRow(t("native.settings.freeMemory"), t("native.settings.freeMemoryNote"), free, icon = Icons.AutoMirrored.Outlined.ExitToApp) { free = it; services.settings.freeMemoryInBackground = it }
     }
 }
 
@@ -259,8 +262,8 @@ private fun TelemetrySection(services: BoarServices) {
 @Composable
 private fun PinRow(services: BoarServices, onPin: (String) -> Unit) {
     val on = services.pinLock.isSet
-    SwitchRow(t("native.settings.security"), t(if (on) "native.settings.pinOn" else "native.settings.pinOff"), on) { turnOn -> onPin(if (turnOn) "NEW" else "REMOVE") }
-    if (on) ActionRow(t("native.settings.pinChange"), icon = Icons.Outlined.Lock) { onPin("CHANGE") }
+    SwitchRow(t("native.settings.security"), t(if (on) "native.settings.pinOn" else "native.settings.pinOff"), on, icon = Icons.Outlined.Lock) { turnOn -> onPin(if (turnOn) "NEW" else "REMOVE") }
+    if (on) ActionRow(t("native.settings.pinChange"), icon = Icons.Outlined.Create) { onPin("CHANGE") }
 }
 
 /** MemorySettings.tsx: Clear All Chat History, after a confirmation. */
@@ -318,25 +321,21 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
         dismissButton = { TextButton({ purging = false }) { Text(t("common.cancel")) } })
 }
 
-/** The answer styles as radio rows, each with its own description (Custom only through Developer options), and Deep Research. */
+/**
+ * The answer styles and Deep Research: the chat's style sheet list itself (ToneChoices), same rows, icons and copy, so
+ * the one choice looks the same in both places. Custom only through Developer options.
+ */
 @Composable
 private fun ToneSection(services: BoarServices, id: String, onStyle: (String) -> Unit) {
     val s = services.settings
-    Section(t("modelSetupScreen.sections.tone")) {
-        Column(Modifier.selectableGroup()) {
-            for (p in services.personalities.personalities.filter { it.id != "custom" || BoarServices.SHOW_CUSTOM_STYLE }) {
-                ListItem(
-                    headlineContent = { Text(t("personalities.${p.id}.label")) },
-                    supportingContent = { Text(t("personalities.${p.id}.description")) },
-                    leadingContent = { RadioButton(selected = p.id == id, onClick = null) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    modifier = Modifier.selectable(selected = p.id == id, role = Role.RadioButton) { onStyle(p.id); s.personalityId = p.id },
-                )
-            }
-        }
-        var deep by remember { mutableStateOf(s.deepResearchMode) }
-        SwitchRow(t("personalitySettings.deepResearchTitle"), t("personalitySettings.deepResearchNote"), deep) { deep = it; s.deepResearchMode = it }
-    }
+    var deep by remember { mutableStateOf(s.deepResearchMode) }
+    SectionHeader(t("modelSetupScreen.sections.tone"))
+    team.sopa.boar.ui.chat.ToneChoices(
+        tones = services.personalities.personalities.filter { it.id != "custom" || BoarServices.SHOW_CUSTOM_STYLE }.map { it.id },
+        selectedId = id, deepResearch = deep,
+        onSetTone = { onStyle(it); s.personalityId = it },
+        onSetDeepResearch = { deep = it; s.deepResearchMode = it },
+    )
 }
 
 /**
@@ -383,13 +382,17 @@ private fun DeveloperSection(services: BoarServices, styleId: String, onStyle: (
     }
 }
 
+/** A settings group's title: labelLarge in primary, on the rows' 16 dp inset. */
+@Composable
+private fun SectionHeader(title: String) = Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary,
+    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp))
+
 /** A Material settings group: the title in the primary color over its rows on one rounded container ([title] null: no header). */
 @Composable
 private fun Section(title: String?, content: @Composable ColumnScope.() -> Unit) {
     val scheme = MaterialTheme.colorScheme
     Column(Modifier.fillMaxWidth().padding(top = if (title == null) 24.dp else 0.dp)) {
-        if (title != null) Text(title, style = MaterialTheme.typography.labelLarge, color = scheme.primary,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp))
+        if (title != null) SectionHeader(title)
         Column(Modifier.fillMaxWidth().clip(MaterialTheme.shapes.extraLarge).background(scheme.surfaceContainer).padding(vertical = 8.dp), content = content)
     }
 }
@@ -457,10 +460,11 @@ private fun <T> Choices(label: String?, options: List<Pair<T, String>>, selected
 
 /** A switch row: the whole row toggles, as in Android's own settings. */
 @Composable
-private fun SwitchRow(label: String, note: String?, checked: Boolean, onChange: (Boolean) -> Unit) {
+private fun SwitchRow(label: String, note: String?, checked: Boolean, icon: ImageVector? = null, onChange: (Boolean) -> Unit) {
     ListItem(
         headlineContent = { Text(label) },
         supportingContent = if (note != null) { { Text(note) } } else null,
+        leadingContent = if (icon != null) { { Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) } } else null,
         trailingContent = { Switch(checked, onCheckedChange = null) },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.toggleable(checked, role = Role.Switch, onValueChange = onChange),

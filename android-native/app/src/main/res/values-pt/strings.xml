@@ -432,7 +432,7 @@
     <string name="evaluation_shareProgress_exportTitle" formatted="false">Guardar uma cópia</string>
     <string name="evaluation_shareProgress_exportFooter" formatted="false">Salve a avaliação inteira em um arquivo, aconteça o que acontecer: JSONL para ferramentas, CSV para planilhas.</string>
     <string name="chat_suggestions_q1" formatted="false">Por que existem estações do ano na Terra?</string>
-    <string name="chat_suggestions_q2" formatted="false">Qual a diferença entre pandemia e epidemia?</string>
+    <string name="chat_suggestions_q2" formatted="false">O que torna uma epidemia uma pandemia?</string>
     <string name="chat_suggestions_q3" formatted="false">Quanto é 30 °C em Fahrenheit?</string>
     <string name="chat_suggestions_q4" formatted="false">Como estancar um sangramento nasal?</string>
     <string name="chat_suggestions_q7" formatted="false">O que causa o efeito estufa?</string>
