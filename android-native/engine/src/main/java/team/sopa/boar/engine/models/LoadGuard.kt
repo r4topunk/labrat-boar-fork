@@ -49,6 +49,13 @@ class LoadGuard(private val store: MarkerStore, private val ledger: Ledger, priv
 
     private var checked = false
 
+    /**
+     * True when Android says the last process ended for a reason that isn't a load kill: the user swiped BOAR away or
+     * force-stopped it, or the app was updated (issue #89). Given the marker's time, so an older exit doesn't count. Such
+     * an exit only clears the marker; unknown (older Android, no record) keeps counting it as a kill, as before.
+     */
+    var exitWasNotLoadKill: (markerAt: Long) -> Boolean = { false }
+
     /** Once per process, before any new marker: a marker left over means the last load killed the app. */
     @Synchronized
     fun ensureChecked() {
@@ -57,6 +64,7 @@ class LoadGuard(private val store: MarkerStore, private val ledger: Ledger, priv
         val raw = runCatching { store.read() }.getOrNull() ?: return
         runCatching {
             val m = json.decodeFromString(Marker.serializer(), raw)
+            if (runCatching { exitWasNotLoadKill(m.at) }.getOrDefault(false)) return@runCatching
             val id = m.modelId ?: m.filename
             // Repacked or mapped, the load closed the app: never again on its own (one kill, not two).
             ledger.crashedIds = (ledger.crashedIds + id).distinct()

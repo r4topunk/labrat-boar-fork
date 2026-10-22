@@ -153,4 +153,28 @@ class LoadGuardTest {
         assertFalse(LoadGuard.isDecodeStall(12, 10_000.0)) // 1.2 tok/s
         assertTrue(LoadGuard.isDecodeStall(0, 10_000.0))
     }
+
+    // Issue #89: a process the user swiped away, force-stopped or updated isn't a load kill.
+    @Test fun `an exit Android records as the user's or an update clears the marker without blocking`() {
+        val store = Mem(); val ledger = L()
+        LoadGuard(store, ledger) { 1000 }.begin(big, small, repacked = true)
+        val g = LoadGuard(store, ledger).apply { exitWasNotLoadKill = { at -> at == 1000L } }
+        assertFalse(g.isBlocked("qwen3-4b"))
+        assertNull(g.consume())
+        assertNull(store.v)
+    }
+
+    @Test fun `an unknown exit still counts as a load kill`() {
+        val store = Mem(); val ledger = L()
+        val g = killedDuring(store, ledger, big, repacked = true, previous = small)
+        assertTrue(g.isBlocked("qwen3-4b"))
+        assertEquals("qwen3-4b", g.consume()?.crashedModelId)
+    }
+
+    @Test fun `a failing exit check counts as a load kill`() {
+        val store = Mem(); val ledger = L()
+        LoadGuard(store, ledger) { 1000 }.begin(big, small, repacked = true)
+        val g = LoadGuard(store, ledger).apply { exitWasNotLoadKill = { error("no record") } }
+        assertTrue(g.isBlocked("qwen3-4b"))
+    }
 }
