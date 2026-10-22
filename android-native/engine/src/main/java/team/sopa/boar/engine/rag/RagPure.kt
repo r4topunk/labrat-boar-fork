@@ -165,6 +165,18 @@ object RagPure {
         " Use the context below when relevant, and cite a source you used by its number, like [1] or [2]. " +
             "If the context doesn't cover it, say so, then answer briefly from general knowledge, without specific figures or names you're unsure of."
 
+    /**
+     * Sources = My files: the context instruction for the user's own files only, quoted as written, and a fixed line
+     * when they don't hold the answer, never an answer from general knowledge. Its last sentence ends with
+     * PersonalFiles.NOT_FOUND, which PersonalFiles.dropHedge matches.
+     */
+    const val FILES_ONLY_INSTRUCTION =
+        " Use only the context below, from the user's own files, and cite it by its number, like [1]. " +
+            "Quote numbers, names and dates exactly as the file writes them. " +
+            "If the context doesn't contain the answer, say exactly: I couldn't find this in your files."
+
+    private fun contextInstruction(filesOnly: Boolean) = if (filesOnly) FILES_ONLY_INSTRUCTION else CONTEXT_INSTRUCTION
+
     /** Who BOAR is and what it can't do; every answer gets it, Deep Research's write-up included. */
     const val GROUNDING_INSTRUCTION =
         "You are BOAR, an offline AI research app running on this phone; \"Boar\" is the app's name, never the animal, so never describe yourself as one. " +
@@ -184,31 +196,37 @@ object RagPure {
 
     private fun contextOf(chunks: List<Chunk>) = chunks.mapIndexed { i, c -> "[${i + 1}] ${c.title}\n${c.body}" }.joinToString("\n\n")
 
-    /** The completion-style prompt ("Question: …\n\nAnswer:"). */
-    fun assemblePrompt(userQuery: String, chunks: List<Chunk>, systemPrompt: String? = null, history: ConversationHistory? = null, styleReminder: String? = null): String {
+    /** The completion-style prompt ("Question: …\n\nAnswer:"). [filesOnly]: the Sources = My files instruction. */
+    fun assemblePrompt(
+        userQuery: String, chunks: List<Chunk>, systemPrompt: String? = null, history: ConversationHistory? = null, styleReminder: String? = null,
+        filesOnly: Boolean = false,
+    ): String {
         val instruction = instructionOf(systemPrompt)
         val summary = history?.summary?.trim()?.takeIf { it.isNotEmpty() }?.let { "Summary of earlier conversation:\n$it\n\n" } ?: ""
         val turns = history?.turns?.takeIf { it.isNotEmpty() }?.let { t ->
             "Recent conversation:\n${t.joinToString("\n") { "${if (it.role == "user") "User" else "Assistant"}: ${it.text}" }}\n\n"
         } ?: ""
         val hasContext = chunks.isNotEmpty()
-        val ctxInstr = if (hasContext) CONTEXT_INSTRUCTION else ""
+        val ctxInstr = if (hasContext) contextInstruction(filesOnly) else ""
         val ctx = if (hasContext) "Context:\n${contextOf(chunks)}\n\n" else ""
         return "$instruction$ctxInstr $GROUNDING_INSTRUCTION\n\n$summary$turns${ctx}Question: $userQuery${styleSection(styleReminder)}\n\nAnswer:"
     }
 
     /** The fixed start of every sourced answer prompt for a tone, kept prefilled in the KV cache. */
-    fun answerPromptPrefix(systemPrompt: String? = null, withContext: Boolean = true): Pair<String, String> {
+    fun answerPromptPrefix(systemPrompt: String? = null, withContext: Boolean = true, filesOnly: Boolean = false): Pair<String, String> {
         // Without sources the prompt has no context instruction, so the two start differently right after the tone.
-        val head = "${instructionOf(systemPrompt)}${if (withContext) CONTEXT_INSTRUCTION else ""} $GROUNDING_INSTRUCTION"
+        val head = "${instructionOf(systemPrompt)}${if (withContext) contextInstruction(filesOnly) else ""} $GROUNDING_INSTRUCTION"
         return head to "$head\n\n"
     }
 
     /** The same content as role-separated messages, for the model's own chat template. */
-    fun assembleChatMessages(userQuery: String, chunks: List<Chunk>, systemPrompt: String? = null, history: ConversationHistory? = null, styleReminder: String? = null): List<PromptMessage> {
+    fun assembleChatMessages(
+        userQuery: String, chunks: List<Chunk>, systemPrompt: String? = null, history: ConversationHistory? = null, styleReminder: String? = null,
+        filesOnly: Boolean = false,
+    ): List<PromptMessage> {
         val instruction = instructionOf(systemPrompt)
         val hasContext = chunks.isNotEmpty()
-        val ctxInstr = if (hasContext) CONTEXT_INSTRUCTION else ""
+        val ctxInstr = if (hasContext) contextInstruction(filesOnly) else ""
         val ctx = if (hasContext) "\n\nContext:\n${contextOf(chunks)}" else ""
         val summary = history?.summary?.trim()?.takeIf { it.isNotEmpty() }?.let { "\n\nSummary of earlier conversation:\n$it" } ?: ""
         val system = PromptMessage("system", "$instruction$ctxInstr $GROUNDING_INSTRUCTION$summary$ctx")

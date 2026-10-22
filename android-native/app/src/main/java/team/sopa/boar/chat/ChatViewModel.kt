@@ -29,6 +29,7 @@ import team.sopa.boar.engine.answer.AnswerText
 import team.sopa.boar.engine.answer.SourceGroups
 import team.sopa.boar.engine.answer.DeepResearch
 import team.sopa.boar.engine.answer.HistoryBudget
+import team.sopa.boar.engine.answer.PersonalFiles
 import team.sopa.boar.engine.answer.PipelineInput
 import team.sopa.boar.engine.answer.PlanExecutor
 import team.sopa.boar.engine.answer.ResearchStage
@@ -543,6 +544,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val conversation = prior.zipWithNext().filter { (u, a) -> u.role == "user" && a.role == "assistant" && a.text.isNotBlank() }
                 .map { (u, a) -> DeepResearch.Companion.Exchange(u.text, AnswerText.stripThinking(a.text)) }
             var timedOut = false
+            // Sources = My files, as this question started: answers only from the user's files (PersonalFiles).
+            val filesOnly = _state.value.sourcesOwn
+            val notFoundLine = team.sopa.boar.ui.I18n.t(getApplication(), "design.chat.filesNotFound")
+            // The fixed line was written without the model: no receipt (no speed to show).
+            var notFound = false
             var firstAt = 0L
             var tokens = 0
             // The limit the answer could hit, set once the model is loaded; the adaptive router picks its own.
@@ -581,8 +587,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 limited = budget
                 // Small talk never starts a Deep Research or the router (AnswerPath): "hi" took minutes on a big model.
+                // My files answers through the plain pipeline only: Deep Research's and the router's write-ups have no
+                // files-only prompt or not-found line, so they could answer from memory. A recap of this chat still runs.
                 val way = team.sopa.boar.engine.routing.AnswerPath.of(_state.value.deepResearch, aboutConversation(q, history, conversation),
-                    settings.adaptiveRoutingEnabled, team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q))
+                    settings.adaptiveRoutingEnabled, team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)).let {
+                        if (filesOnly && (it == team.sopa.boar.engine.routing.AnswerPath.RESEARCH || it == team.sopa.boar.engine.routing.AnswerPath.ADAPTIVE))
+                            team.sopa.boar.engine.routing.AnswerPath.PIPELINE else it
+                    }
                 if (stopRequested) {
                     // Stop pressed while the model loaded: the load can't be interrupted, the answer can be skipped.
                 } else if (session == null) {
@@ -612,12 +623,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     metrics = r.third
                 } else {
                     val pipeline = AnswerPipeline(session, retrieve, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
-                    pipeline.answer(AnswerRequest(q, systemPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)).collect { e ->
+                    val base = AnswerRequest(q, systemPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)
+                    val req = if (filesOnly) PersonalFiles.request(base, services.host.openedContext ?: AnswerPipeline.FALLBACK_CONTEXT, notFoundLine) else base
+                    pipeline.answer(req).collect { e ->
                         when (e) {
                             is AnswerEvent.Stage -> _state.update { it.copy(activity = when (e.stage) { AnswerStage.RETRIEVING -> Activity.Retrieving; AnswerStage.THINKING -> Activity.Thinking; AnswerStage.GENERATING -> Activity.Generating }) }
                             is AnswerEvent.Sources -> sources = e.chunks
                             is AnswerEvent.Piece -> onPiece(e.text)
-                            is AnswerEvent.Done -> { metrics = e.metrics; retrievalMs = e.retrievalMs }
+                            is AnswerEvent.Done -> { metrics = e.metrics; retrievalMs = e.retrievalMs; notFound = e.notFound }
                         }
                     }
                 }
@@ -634,10 +647,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
             val shown = reusedSources ?: grouped.items
             if (reusedSources == null) SourceGroups.renumber(text.toString(), grouped.renumber).let { if (it != text.toString()) { text.setLength(0); text.append(it) } }
+            // My files: a not-found line the model opened with goes when a cited answer from the files follows it (the
+            // instruction's English line, or the chat's own language's).
+            if (filesOnly) PersonalFiles.dropHedge(PersonalFiles.dropHedge(text.toString()), notFoundLine).let { if (it != text.toString()) { text.setLength(0); text.append(it) } }
             val stopped = stopRequested
             // The failure line goes with this answer, so it's still there after the next question and when the chat opens again.
             val errorKey = _state.value.error?.takeIf { !stopped }?.let(team.sopa.boar.engine.UserErrors::chatKey)
-            val receipt = receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)?.let { r ->
+            val receipt = receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)?.takeIf { !notFound }?.let { r ->
                 val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
                 r.copy(style = style, path = path, task = task, checked = checked, styleNote = shortReason?.takeIf { it != team.sopa.boar.engine.routing.ShortAnswer.SMALL_TALK })
             }

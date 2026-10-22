@@ -187,6 +187,33 @@ class KnowledgeDeviceTest {
         assertTrue("its passages go with the collection", kb.collectionDocs(col.id).isEmpty())
     }
 
+    /** After an import the screen offers "Ask about your files": Sources = My files on, and a new chat. */
+    @Test fun afterAnImportAskAboutYourFilesTurnsOnMyFilesAndOpensANewChat() {
+        val prefs = ctx.getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE)
+        val wasOwn = prefs.getBoolean("sourcesOwnOnly", false)
+        prefs.edit().putBoolean("sourcesOwnOnly", false).commit()
+        try {
+            val scenario = launchApp(opened)
+            compose.openFromDrawer(tr("nav.knowledge"))
+            compose.waitForText(tr("clean.library.yourDocs"))
+            // The screen's own view model (the system picker can't be driven): the activity's, as viewModel() gets it.
+            var vm: DocumentsViewModel? = null
+            scenario.onActivity { vm = androidx.lifecycle.ViewModelProvider(it)[DocumentsViewModel::class.java] }
+            import(vm!!, collection, file("invite.md", "# Invite\nThe QA invite marker is amber-otter-$stamp."))
+            assertNull("import failed: ${vm!!.state.value.error}", vm!!.state.value.error)
+            val ask = tr("design.documents.askFiles")
+            compose.waitForText(ask, 10_000)
+            assertTrue(compose.shows(tr("design.documents.imported", "name" to collection)))
+            compose.scrollTo(hasText(ask))
+            compose.press(ask)
+            compose.waitForChat()
+            assertTrue("Sources = My files is on", prefs.getBoolean("sourcesOwnOnly", false))
+            assertTrue("a new, empty chat", compose.shows(tr("design.chat.emptyTitle")))
+        } finally {
+            prefs.edit().putBoolean("sourcesOwnOnly", wasOwn).commit()
+        }
+    }
+
     @Test fun withNoDocumentsTheScreenSaysSoAndOffersAddDocuments() {
         assumeTrue("this install has documents", services.knowledgeBase.collections().isEmpty())
         openKnowledge()

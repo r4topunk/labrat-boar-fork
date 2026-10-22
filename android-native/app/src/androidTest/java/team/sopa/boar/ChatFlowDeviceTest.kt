@@ -179,6 +179,39 @@ class ChatFlowDeviceTest {
         }
     }
 
+    /**
+     * Sources = My files and a question no file holds: the fixed not-found line, written without the model (no answer
+     * from memory), and no sources under it.
+     */
+    @Test fun withMyFilesAQuestionNotInTheFilesGetsTheNotFoundLineAndNoSources() {
+        assumeTrue("needs a model and no PIN", services.activeModel() != null && !services.pinLock.isSet)
+        val prefs = ctx.getSharedPreferences("answer_options", Context.MODE_PRIVATE)
+        val wasOwn = prefs.getBoolean("sourcesOwnOnly", false)
+        val wasDeep = services.settings.deepResearchMode
+        prefs.edit().putBoolean("sourcesOwnOnly", true).commit()
+        // On: My files answers through the plain pipeline anyway (no Deep Research write-up from memory).
+        services.settings.deepResearchMode = true
+        try {
+            launchApp(opened)
+            compose.waitForChat()
+            compose.pressIcon(tr("clean.drawer.newChat"))
+            // Not ask(): with no model run the answer can end before the Stop button is ever seen.
+            compose.onNode(hasSetTextAction()).performTextInput("What is the capital of Bhutan?")
+            compose.pressNode(send)
+            val line = tr("design.chat.filesNotFound")
+            compose.waitForText(line, 240_000)
+            compose.waitUntil(30_000) { compose.exists(send) && !compose.exists(stop) }
+            val stored = services.chats.messages(services.chats.listSessions().first().id)
+            assertEquals(listOf("user", "assistant"), stored.map { it.role })
+            assertEquals("the fixed line, nothing from memory", line, stored[1].text)
+            assertFalse("a not-found answer shows no sources", compose.shows(tr("sourceFootnotes.title")))
+            assertFalse("no answer from memory", screenText().contains("Thimphu"))
+        } finally {
+            prefs.edit().putBoolean("sourcesOwnOnly", wasOwn).commit()
+            services.settings.deepResearchMode = wasDeep
+        }
+    }
+
     /** With a PIN: unlock on the lock screen first, then an answer must still show. The PIN is removed after. */
     @Test fun withAPinTheChatOpensAfterTheLockScreenAndAnswers() {
         assumeTrue("needs a model and no PIN yet", services.activeModel() != null && !services.pinLock.isSet)

@@ -16,4 +16,7 @@
     <string name="design_knowledge_failed" formatted="false">O download falhou. Toque em baixar para tentar de novo.</string>
     <string name="design_knowledge_remove" formatted="false">Remover do celular</string>
     <string name="design_onboarding_installedNote" formatted="false">Já está no celular. Você pode removê-lo depois em Conhecimento.</string>
+    <string name="design_chat_filesNotFound" formatted="false">Não encontrei isso nos seus arquivos.</string>
+    <string name="design_documents_imported" formatted="false">“{{name}}” adicionado. Para respostas só dos seus arquivos, pergunte com Fontes em Meus arquivos.</string>
+    <string name="design_documents_askFiles" formatted="false">Perguntar sobre seus arquivos</string>
 </resources>

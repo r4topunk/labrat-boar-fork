@@ -23,6 +23,8 @@ data class DocumentsState(
     val done: Int = 0,
     val total: Int = 0,
     val error: String? = null,
+    /** The collection just imported, for "Ask about your files" (Sources = My files); null once used or on the next import. */
+    val imported: String? = null,
 )
 
 /** My Documents (port of PersonalDocumentsManager.tsx): import files into a collection, switch it on or off, remove it. */
@@ -33,11 +35,13 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
 
     init { refresh() }
 
+    fun dismissImported() = _state.update { it.copy(imported = null) }
+
     fun refresh() = _state.update { it.copy(collections = services.knowledgeBase.collections()) }
 
     fun import(uris: List<Uri>, name: String) {
         if (uris.isEmpty() || _state.value.stage != null) return
-        _state.update { it.copy(stage = "reading", error = null, done = 0, total = 0) }
+        _state.update { it.copy(stage = "reading", error = null, done = 0, total = 0, imported = null) }
         safeScope.launch(Dispatchers.IO) {
             try {
                 val resolver = getApplication<Application>().contentResolver
@@ -64,6 +68,7 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
                 DocumentImport.import(services.knowledgeBase, services::embed, files, name, onProgress = { d, t ->
                     _state.update { it.copy(stage = "embedding", done = d, total = t) }
                 })
+                _state.update { it.copy(imported = name) }
             } catch (e: TooLarge) {
                 _state.update { it.copy(error = tooLarge(e.fileName)) }
             } catch (e: DocumentImport.TooLarge) {

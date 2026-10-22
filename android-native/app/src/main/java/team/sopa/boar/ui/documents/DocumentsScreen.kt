@@ -52,7 +52,7 @@ import team.sopa.boar.ui.t
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Composable () -> Unit = {}, onBack: () -> Unit) {
+fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Composable () -> Unit = {}, onAskFiles: () -> Unit = {}, onBack: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     var removing by remember { mutableStateOf<KnowledgeBase.Collection?>(null) }
     var exportError by remember { mutableStateOf<String?>(null) }
@@ -121,6 +121,9 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
                     Text(t("clean.library.pdfNote"), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                 }
             }
+            // After an import: All sources can rank the library above files just added, so offer a chat that answers
+            // only from the user's files (Sources = My files).
+            if (!busy) state.imported?.let { col -> ImportedInvite(col) { vm.dismissImported(); onAskFiles() } }
             FilledTonalButton(
                 onClick = { picker.launch(arrayOf("text/plain", "text/markdown", "text/csv", "text/comma-separated-values", "application/json", "application/pdf", "text/*")) },
                 enabled = !busy, modifier = Modifier.padding(top = 12.dp).height(48.dp),
@@ -140,6 +143,24 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
             dismissButton = { TextButton({ removing = null }) { Text(t("common.cancel")) } },
             title = { Text(t("personalDocumentsManager.removeConfirmTitle")) },
             text = { Text(t("personalDocumentsManager.removeConfirmMessage", "name" to col.name, "count" to col.chunkCount)) })
+    }
+}
+
+/** The import's result: what was added, and a chat that answers only from the user's files. */
+@Composable
+private fun ImportedInvite(collection: String, onAsk: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    Surface(color = scheme.secondaryContainer, contentColor = scheme.onSecondaryContainer, shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(t("design.documents.imported", "name" to collection), style = MaterialTheme.typography.bodyMedium)
+            FilledTonalButton(onClick = onAsk, colors = ButtonDefaults.filledTonalButtonColors(containerColor = scheme.surface, contentColor = scheme.primary),
+                modifier = Modifier.height(48.dp)) {
+                Icon(BoarIcons.Description, contentDescription = null, Modifier.size(ButtonDefaults.IconSize))
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                Text(t("design.documents.askFiles"))
+            }
+        }
     }
 }
 
