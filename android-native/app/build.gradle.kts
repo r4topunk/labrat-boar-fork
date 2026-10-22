@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    jacoco
 }
 
 android {
@@ -36,7 +37,9 @@ android {
         versionName = (findProperty("boar.versionName") as String?)?.takeIf { it.isNotBlank() } ?: "2.0.0-dev"
         val gitSha = runCatching { providers.exec { commandLine("git", "rev-parse", "--short=8", "HEAD"); isIgnoreExitValue = true }.standardOutput.asText.get().trim() }.getOrNull().orEmpty()
         val gitDirty = runCatching { providers.exec { commandLine("git", "status", "--porcelain", "--untracked-files=no", "--ignore-submodules=all"); isIgnoreExitValue = true }.standardOutput.asText.get().isNotBlank() }.getOrDefault(false)
-        buildConfigField("String", "GIT_SHA", "\"${gitSha}${if (gitDirty) "+" else ""}\"")
+        // A tree synced without .git (a build machine) names its commit with -Pboar.gitSha=<sha>[+].
+        val gitShaOverride = providers.gradleProperty("boar.gitSha").orNull?.trim()?.takeIf { it.isNotEmpty() }
+        buildConfigField("String", "GIT_SHA", "\"${gitShaOverride ?: (gitSha + if (gitDirty && gitSha.isNotEmpty()) "+" else "")}\"")
         buildConfigField("String", "BUILD_DATE", "\"${LocalDate.now()}\"")
         ndk { abiFilters += listOf("arm64-v8a") }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -63,6 +66,8 @@ android {
         create("devtest") {
             initWith(getByName("debug"))
             applicationIdSuffix = ".devtest"
+            // JaCoCo line coverage of the on-device test runs (adb am instrument -e coverage true; qaCoverageReport).
+            enableAndroidTestCoverage = true
             versionNameSuffix = "-devtest"
             matchingFallbacks += listOf("debug")
         }
@@ -112,8 +117,25 @@ dependencies {
     // On-device checks (the PIN, its Keystore key, the sealed database, the PIN screens), run with adb am instrument.
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
+    // Compose ui-test brings espresso-core 3.5.0, which calls InputManager.getInstance (gone on Android 16+): every
+    // device test failed on a Pixel 8a on Android 17 (Oct 21). 3.7.0 with androidx.test 1.7.0 does not.
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+    androidTestImplementation("androidx.test:core:1.7.0")
+    androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)
     "devtestImplementation"(libs.compose.ui.test.manifest)
+}
+
+// Line coverage of the app module from the device test runs' .ec files (pulled from the phone into build/qa-ec, or
+// -Pqa.ecDir=<dir>): ./gradlew :app:qaCoverageReport after assembleDevtest.
+tasks.register<JacocoReport>("qaCoverageReport") {
+    val ec = providers.gradleProperty("qa.ecDir").orElse(layout.buildDirectory.dir("qa-ec").get().asFile.path)
+    executionData.setFrom(fileTree(ec) { include("*.ec") })
+    classDirectories.setFrom(fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/devtest")) {
+        exclude("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/*ComposableSingletons*")
+    })
+    sourceDirectories.setFrom("src/main/java")
+    reports { csv.required.set(true); html.required.set(true); xml.required.set(false) }
 }
