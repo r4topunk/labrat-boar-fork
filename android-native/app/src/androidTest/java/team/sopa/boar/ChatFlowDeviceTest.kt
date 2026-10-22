@@ -28,7 +28,7 @@ import org.junit.runner.RunWith
 import team.sopa.boar.app.BoarServices
 
 /**
- * The chat on the real MainActivity: the empty state, the style sheet and Deep Research in the composer, and a question
+ * The chat on the real MainActivity: the empty state, the Answer options sheet (style, sources, Deep Research, reset), and a question
  * sent and answered by the installed model (bounded waits) with its numbered sources opening and closing. Needs an
  * installed model and no PIN (the devtest install after setup or a seed).
  */
@@ -65,7 +65,7 @@ class ChatFlowDeviceTest {
         catch (e: Throwable) { throw AssertionError("the answer did not end within 240 s", e) }
     }
 
-    @Test fun theEmptyChatOffersSuggestionsAndTheStyleSheetSwitchesStyleAndDeepResearch() {
+    @Test fun theEmptyChatOffersSuggestionsAndAnswerOptionsChangeStyleSourcesAndDeepResearch() {
         assumeTrue("needs a model and no PIN", services.activeModel() != null && !services.pinLock.isSet)
         val wasStyle = services.settings.personalityId
         val wasDeep = services.settings.deepResearchMode
@@ -80,32 +80,41 @@ class ChatFlowDeviceTest {
             // The send button waits for text.
             assertTrue(compose.onNode(send).fetchSemanticsNode().config.contains(SemanticsProperties.Disabled))
 
-            // The style chip in the composer opens the sheet; Detailed replaces Succinct and the sheet closes.
-            val succinct = tr("personalities.succinct.label")
+            // The composer's options button opens Answer options. Style → Detailed comes back to the list with the new value.
             val detailed = tr("personalities.detailed.label")
-            compose.press(succinct)
-            compose.waitForText(tr("modelSetupScreen.sections.tone"))
-            assertTrue(compose.shows(tr("personalities.summary.label")))
+            val title = tr("design.options.title")
+            assertTrue("defaults: the plain options button", compose.exists(hasContentDescription(tr("design.options.button"))))
+            compose.pressIcon(tr("design.options.button"))
+            compose.waitForText(title)
+            compose.press(tr("design.options.style"))
+            compose.waitForText(tr("personalities.summary.label"))
             compose.press(detailed)
-            compose.waitForTextGone(tr("modelSetupScreen.sections.tone"))
+            compose.waitForText(title)
             assertEquals("detailed", services.settings.personalityId)
-            assertTrue("the composer shows the new style", compose.exists(hasText(detailed) and hasClickAction()))
+            assertTrue("the Style row shows the new value", compose.shows(detailed))
 
-            // Deep Research from the same sheet: the composer's placeholder and chip say so; the chip's ✕ turns it off.
-            compose.press(detailed)
-            compose.waitForText(tr("personalitySettings.deepResearchTitle"))
+            // Sources → My files: back on the composer, the button reads changed and the placeholder asks about your files.
+            compose.press(tr("design.options.sources"))
+            compose.waitForText(tr("design.options.sourcesOwnNote"))
+            compose.press(tr("design.options.sourcesOwn"))
+            compose.waitForText(title)
+            androidx.test.espresso.Espresso.pressBack()
+            compose.waitForTextGone(title)
+            assertTrue("changed options button", compose.exists(hasContentDescription(tr("design.options.buttonChanged"))))
+            assertTrue("My files placeholder", compose.exists(hasContentDescription(tr("design.options.placeholderOwn"))))
+
+            // Deep Research is the sheet's switch (it doesn't close the sheet); Reset to defaults puts everything back.
+            compose.pressIcon(tr("design.options.buttonChanged"))
+            compose.waitForText(title)
             compose.press(tr("personalitySettings.deepResearchTitle"))
             compose.waitUntil(5_000) { services.settings.deepResearchMode }
-            assertTrue("the switch doesn't close the sheet", compose.shows(tr("modelSetupScreen.sections.tone")))
-            // With Deep Research on the composer shows the style as an icon only, so the sheet's row is the only
-            // "Detailed" text: picking it again closes the sheet.
-            compose.press(detailed)
-            compose.waitForTextGone(tr("modelSetupScreen.sections.tone"))
-            compose.waitForText(tr("chatHeader.deepResearch"))
-            assertTrue("Deep Research placeholder", compose.exists(hasContentDescription(tr("native.chat.deepResearchPlaceholder"))))
-            compose.pressIcon(tr("common.close"))
-            compose.waitForTextGone(tr("chatHeader.deepResearch"))
-            assertFalse(services.settings.deepResearchMode)
+            assertTrue("the switch doesn't close the sheet", compose.shows(title))
+            compose.press(tr("design.options.reset"))
+            compose.waitUntil(5_000) { services.settings.personalityId == "succinct" && !services.settings.deepResearchMode }
+            androidx.test.espresso.Espresso.pressBack()
+            compose.waitForTextGone(title)
+            assertTrue("defaults again", compose.exists(hasContentDescription(tr("design.options.button"))))
+            assertTrue("default placeholder", compose.exists(hasContentDescription(tr("chatScreen.inputPlaceholder"))))
 
             // A suggestion held down fills the composer instead of asking.
             val suggestion = compose.onAllNodes(hasClickAction() and hasText("?", substring = true)).fetchSemanticsNodes()
@@ -120,6 +129,7 @@ class ChatFlowDeviceTest {
         } finally {
             services.settings.personalityId = wasStyle
             services.settings.deepResearchMode = wasDeep
+            ctx.getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE).edit().clear().apply()
         }
     }
 

@@ -152,6 +152,10 @@ fun ChatScreen(
     onOpenModels: () -> Unit = {},
     onReused: () -> Unit = {},
     onToastHidden: () -> Unit = {},
+    /** Answer options: the model to answer with, Sources (true = only the user's files), and Reset to defaults. */
+    onSetModel: (String) -> Unit = {},
+    onSetSourcesOwn: (Boolean) -> Unit = {},
+    onResetOptions: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
     val list = rememberLazyListState()
@@ -164,7 +168,7 @@ fun ChatScreen(
     var toneSheet by remember { mutableStateOf(false) }
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     val focus = androidx.compose.ui.platform.LocalFocusManager.current
-    if (toneSheet) ToneSheet(state, onSetTone, onSetDeepResearch) { toneSheet = false }
+    if (toneSheet) AnswerOptionsSheet(state, AnswerOptionsActions(onSetTone, onSetModel, onSetSourcesOwn, onSetDeepResearch, onResetOptions)) { toneSheet = false }
     val last = state.messages.lastOrNull()
     // Follow the end of the answer while it streams, unless the user scrolled up to read: a drag that ends short of
     // the bottom stops following, reaching the bottom again resumes it, and a new message always does.
@@ -209,7 +213,7 @@ fun ChatScreen(
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
                 // The answer gets the whole screen: the keyboard closes on send.
                 send(input); input = ""; keyboard?.hide(); focus.clearFocus()
-            }, onStop, state.personalityId, state.stopping, state.deepResearch, onSetDeepResearch) { toneSheet = true }
+            }, onStop, state.stopping, state.deepResearch, state.sourcesOwn, state.optionsChanged) { toneSheet = true }
         }
     }
     state.toast?.let { Toast(it, onToastHidden) }
@@ -643,33 +647,50 @@ private fun NoteBadge(icon: ImageVector, text: String) {
 }
 
 /**
- * The composer: one rounded surfaceContainerHigh block on the page surface (no slab of a second color under it). The
- * text field on top; under it the answer style as a quiet text button with a drop-down mark (it opens the style sheet),
- * the Deep Research chip while it is on (its close icon turns it off), and send or stop at the end.
+ * The composer: one rounded surfaceContainerHigh block on one line: the Answer options button (it opens the sheet with
+ * Style, Model, Sources and Deep Research), the text field, and send or stop. No chips: anything not at its default
+ * shows as the options button's tonal fill and dot ("Answer options, changed"); Deep Research keeps the block's tertiary
+ * outline and its own placeholder, and My files its own placeholder. Canvas F1–F5 (V4 field without chips, r4to Oct 22).
  */
 @Composable
 private fun InputBar(
     text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit,
-    personalityId: String, stopping: Boolean, deepResearch: Boolean, onSetDeepResearch: (Boolean) -> Unit, onOpenStyles: () -> Unit,
+    stopping: Boolean, deepResearch: Boolean, sourcesOwn: Boolean, optionsChanged: Boolean, onOpenOptions: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(28.dp)
-    val hint = t(if (deepResearch) "native.chat.deepResearchPlaceholder" else "chatScreen.inputPlaceholder")
+    val hint = t(when {
+        deepResearch -> "native.chat.deepResearchPlaceholder"
+        sourcesOwn -> "design.options.placeholderOwn"
+        else -> "chatScreen.inputPlaceholder"
+    })
     val canSend = text.isNotBlank() && !answering
     // After Stop, the button pulses until the answer really ends: a library search or a chunk of prompt finishes first.
     val transition = rememberInfiniteTransition(label = "stopping")
     val blink by transition.animateFloat(1f, 0.35f, infiniteRepeatable(tween<Float>(500), RepeatMode.Reverse), label = "pulse")
     val pulse = if (stopping) blink else 1f
+    val optionsLabel = t(if (optionsChanged) "design.options.buttonChanged" else "design.options.button")
     // The gesture bar inset sits under the page background; the block itself keeps 12 dp from the edges.
     Column(Modifier.fillMaxWidth().background(scheme.background).navigationBarsPadding().padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 8.dp)) {
-        Column(
+        Row(
             Modifier.fillMaxWidth().clip(shape).background(scheme.surfaceContainerHigh)
                 // Deep Research on: the block's outline in the mode's color and its own placeholder, right where you type.
-                .then(if (deepResearch) Modifier.border(1.5.dp, scheme.tertiary, shape) else Modifier),
+                .then(if (deepResearch) Modifier.border(1.5.dp, scheme.tertiary, shape) else Modifier)
+                .padding(horizontal = 6.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.Bottom,
         ) {
+            Box {
+                IconButton(onOpenOptions,
+                    colors = if (optionsChanged) IconButtonDefaults.filledTonalIconButtonColors() else IconButtonDefaults.iconButtonColors(contentColor = scheme.onSurfaceVariant)) {
+                    Icon(BoarIcons.Tune, contentDescription = optionsLabel)
+                }
+                // The dot: something differs from the defaults (the sheet's Reset to defaults puts it back).
+                if (optionsChanged) Box(Modifier.align(Alignment.TopEnd).padding(top = 8.dp, end = 8.dp).size(8.dp)
+                    .clip(androidx.compose.foundation.shape.CircleShape).background(scheme.primary))
+            }
             TextField(
                 text, onText,
-                Modifier.fillMaxWidth().describe(hint),
+                Modifier.weight(1f).describe(hint),
                 placeholder = { Text(hint, maxLines = 1, overflow = TextOverflow.Ellipsis, color = if (deepResearch) scheme.tertiary else scheme.onSurfaceVariant) },
                 textStyle = MaterialTheme.typography.bodyLarge,
                 maxLines = 6,
@@ -678,44 +699,17 @@ private fun InputBar(
                     focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, disabledIndicatorColor = Color.Transparent,
                     cursorColor = scheme.primary),
             )
-            Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                TextButton(onOpenStyles, colors = ButtonDefaults.textButtonColors(contentColor = scheme.onSurfaceVariant),
-                    contentPadding = PaddingValues(start = 12.dp, end = 8.dp)) {
-                    // With the Deep Research chip beside it, the style shows as its icon only (named for TalkBack), so the
-                    // row never pushes send off the edge or cuts a label.
-                    val styleLabel = t("personalities.$personalityId.label")
-                    Icon(toneVector(personalityId), contentDescription = if (deepResearch) styleLabel else null, modifier = Modifier.size(18.dp))
-                    if (!deepResearch) {
-                        Spacer(Modifier.width(8.dp))
-                        Text(styleLabel, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    Icon(Icons.Filled.ArrowDropDown, contentDescription = null, modifier = Modifier.size(20.dp))
-                }
-                if (deepResearch) InputChip(
-                    selected = true,
-                    onClick = { onSetDeepResearch(false) },
-                    label = { Text(t("chatHeader.deepResearch"), maxLines = 1) },
-                    leadingIcon = { Icon(BoarIcons.ScienceFilled, contentDescription = null, modifier = Modifier.size(InputChipDefaults.IconSize)) },
-                    trailingIcon = { Icon(Icons.Filled.Close, contentDescription = t("common.close"), modifier = Modifier.size(InputChipDefaults.IconSize)) },
-                    colors = InputChipDefaults.inputChipColors(
-                        selectedContainerColor = scheme.tertiaryContainer, selectedLabelColor = scheme.onTertiaryContainer,
-                        selectedLeadingIconColor = scheme.onTertiaryContainer, selectedTrailingIconColor = scheme.onTertiaryContainer),
-                    border = null,
-                )
-                Spacer(Modifier.weight(1f))
-                // Stop is error/onError, send is primary/onPrimary: real scheme pairs in both themes. The disabled send state is
-                // the stock one (onSurface at 12 % / 38 %); the pulse after Stop applies only while the button is live.
-                FilledIconButton(
-                    { if (answering) onStop() else onSend() },
-                    Modifier.alpha(if (answering || canSend) pulse else 1f),
-                    enabled = answering || canSend,
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = if (answering) scheme.error else scheme.primary, contentColor = if (answering) scheme.onError else scheme.onPrimary),
-                ) {
-                    Icon(if (answering) BoarIcons.Stop else Icons.AutoMirrored.Filled.Send,
-                        contentDescription = t(if (answering) "chatScreen.stopGeneration" else "chatScreen.sendMessage"), modifier = Modifier.size(20.dp))
-                }
+            // Stop is error/onError, send is primary/onPrimary: real scheme pairs in both themes. The disabled send state is
+            // the stock one (onSurface at 12 % / 38 %); the pulse after Stop applies only while the button is live.
+            FilledIconButton(
+                { if (answering) onStop() else onSend() },
+                Modifier.alpha(if (answering || canSend) pulse else 1f),
+                enabled = answering || canSend,
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = if (answering) scheme.error else scheme.primary, contentColor = if (answering) scheme.onError else scheme.onPrimary),
+            ) {
+                Icon(if (answering) BoarIcons.Stop else Icons.AutoMirrored.Filled.Send,
+                    contentDescription = t(if (answering) "chatScreen.stopGeneration" else "chatScreen.sendMessage"), modifier = Modifier.size(20.dp))
             }
         }
     }

@@ -92,15 +92,22 @@ fun ToneChoices(tones: List<String>, selectedId: String?, deepResearch: Boolean,
         }
         Spacer(Modifier.height(16.dp))
         // Deep Research is not a style (it runs with any of them): its own block under the list.
-        ListItem(
-            headlineContent = { Text(t("personalitySettings.deepResearchTitle")) },
-            supportingContent = { Text(t("design.tone.deepResearchNote")) },
-            leadingContent = { Icon(if (deepResearch) BoarIcons.ScienceFilled else BoarIcons.Science, contentDescription = null,
-                tint = if (deepResearch) scheme.tertiary else scheme.onSurfaceVariant) },
-            trailingContent = { Switch(deepResearch, onCheckedChange = null) },
-            colors = ListItemDefaults.colors(containerColor = scheme.surfaceContainerHigh),
-            modifier = Modifier.clip(RoundedCornerShape(20.dp))
-                .toggleable(deepResearch, role = Role.Switch, onValueChange = onSetDeepResearch),
-        )
+        DeepResearchRow(deepResearch, onSetDeepResearch)
     }
+}
+
+/** Deep Research as one switch block: in Settings, and in the chat's Answer options sheet. */
+@Composable
+fun DeepResearchRow(deepResearch: Boolean, onSetDeepResearch: (Boolean) -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    ListItem(
+        headlineContent = { Text(t("personalitySettings.deepResearchTitle")) },
+        supportingContent = { Text(t("design.tone.deepResearchNote")) },
+        leadingContent = { Icon(if (deepResearch) BoarIcons.ScienceFilled else BoarIcons.Science, contentDescription = null,
+            tint = if (deepResearch) scheme.tertiary else scheme.onSurfaceVariant) },
+        trailingContent = { Switch(deepResearch, onCheckedChange = null) },
+        colors = ListItemDefaults.colors(containerColor = scheme.surfaceContainerHigh),
+        modifier = Modifier.clip(RoundedCornerShape(20.dp))
+            .toggleable(deepResearch, role = Role.Switch, onValueChange = onSetDeepResearch),
+    )
 }

@@ -119,7 +119,24 @@ data class ChatState(
     val online: Boolean = false,
     /** Suggested question keys for the empty chat (chat.suggestions.*). */
     val suggestions: List<String> = emptyList(),
-)
+    /** Answer options → Sources: only the user's own files (Retriever ownOnly), not the library and packs. */
+    val sourcesOwn: Boolean = false,
+    /** Answer options → Model: the answer models on the phone, the one answering, and the one recommended for it. */
+    val models: List<ModelChoice> = emptyList(),
+    val activeModelId: String? = null,
+    val defaultModelId: String? = null,
+    /** The answer model switch in progress (Answer options → Model): its id until it has loaded. */
+    val switchingModelId: String? = null,
+    val defaultPersonalityId: String = BoarServices.DEFAULT_PERSONALITY_ID,
+) {
+    /** Anything the composer's options button must flag: a style, model or sources other than the defaults, or Deep Research. */
+    val optionsChanged: Boolean
+        get() = personalityId != defaultPersonalityId || sourcesOwn || deepResearch ||
+            (defaultModelId != null && activeModelId != null && activeModelId != defaultModelId)
+}
+
+/** An installed answer model as Answer options → Model lists it. */
+data class ModelChoice(val id: String, val name: String, val sizeBytes: Long, val recommended: Boolean)
 
 /** The history title until the model writes one: the question trimmed, cut at a word with "…" when it runs past 60 characters. */
 internal fun provisionalTitle(q: String): String {
@@ -143,7 +160,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private val safeScope = viewModelScope + team.sopa.boar.app.Safe.handler(app) { _ ->
         _state.update { it.copy(answeringId = null, answeringModel = null, activity = null, stopping = false, error = "generic") }
     }
-    private val _state = MutableStateFlow(ChatState(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats))
+    private val _state = MutableStateFlow(ChatState(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats,
+        sourcesOwn = app.getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE).getBoolean(SOURCES_OWN, false),
+        defaultPersonalityId = services.personalities.defaultId))
     val state: StateFlow<ChatState> = _state
     private var job: Job? = null
     /** A chat title or summary still being written; a new question stops it (one model, one generation). */
@@ -334,6 +353,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         // Plus the short questions of BOAR's own 17-question evaluation, so each new chat shows a different few.
         ideaPool = (tested + BENCH_IDEAS).distinct()
         _state.update { it.copy(modelLabel = label, noModel = m == null, suggestions = pickIdeas()) }
+        refreshModelChoices()
         // A note that no longer holds (the model was loaded, unblocked or replaced) goes away.
         val note = _state.value.loadNote
         val holds = when (note) {
@@ -356,6 +376,55 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     fun setDeepResearch(on: Boolean) {
         services.settings.deepResearchMode = on
         _state.update { it.copy(deepResearch = on) }
+    }
+
+    // --- Answer options (the composer's one sheet: Style, Model, Sources, Deep Research) ---------------------------------
+
+    private val optionPrefs get() = getApplication<Application>().getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE)
+
+    /** Every search of an answer goes through here, so Sources = My files reaches Deep Research and plans too. */
+    private val retrieve: (String, Int) -> List<team.sopa.boar.engine.rag.Chunk> =
+        { query, k -> services.retriever.retrieve(query, k, ownOnly = _state.value.sourcesOwn) }
+
+    /** Answer options → Sources: My files (true) searches only the documents the user added. Kept across launches. */
+    fun setSourcesOwn(own: Boolean) {
+        optionPrefs.edit().putBoolean(SOURCES_OWN, own).apply()
+        _state.update { it.copy(sourcesOwn = own) }
+    }
+
+    /** The installed answer models, and the default: the one setup recommends for this phone's memory, if it is here. */
+    private fun refreshModelChoices() {
+        val installed = services.installed(team.sopa.boar.engine.models.AssetKind.LLM)
+        val rec = team.sopa.boar.engine.models.SetupModel.recommended(services.catalog.answerModels, services.totalRamBytes)?.id
+        val default = rec?.takeIf { id -> installed.any { it.id == id } } ?: installed.minByOrNull { it.sizeBytes }?.id
+        val choices = installed.sortedBy { it.sizeBytes }.map { ModelChoice(it.id, it.shortName, it.sizeBytes, it.id == rec) }
+        _state.update { it.copy(models = choices, activeModelId = services.answerModel()?.id, defaultModelId = default) }
+    }
+
+    /**
+     * Answer options → Model: answer with [id] from now on. Same steps as Models → Use (the user's pick confirms a model
+     * that closed the app before, or may not fit): the next model loads right away, with the loading line meanwhile.
+     */
+    fun setModel(id: String) {
+        val a = services.catalog.byId(id) ?: return
+        if (_state.value.switchingModelId != null || id == _state.value.activeModelId || job?.isActive == true) return
+        _state.update { it.copy(switchingModelId = id, loadingKey = "chatScreen.mountingWeights") }
+        safeScope.launch(Dispatchers.Default) {
+            services.settings.setActiveModelId("llm", id)
+            services.loadGuard.confirm(id)
+            if (services.isRisky(a)) services.rememberLoadAnyway(id)
+            runCatching { services.host.unload(); services.activeSession() }
+            _state.update { it.copy(switchingModelId = null, loadingKey = null) }
+            refreshModel()
+        }
+    }
+
+    /** Answer options → Reset to defaults: the default style, all sources, the recommended model, Deep Research off. */
+    fun resetOptions() {
+        setTone(services.personalities.defaultId)
+        setSourcesOwn(false)
+        setDeepResearch(false)
+        _state.value.defaultModelId?.let { if (it != _state.value.activeModelId) setModel(it) }
     }
 
     private fun pickIdeas() = ideaPool.shuffled().take(IDEAS_SHOWN)
@@ -521,7 +590,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 } else if (way == team.sopa.boar.engine.routing.AnswerPath.RESEARCH || way == team.sopa.boar.engine.routing.AnswerPath.RECAP) {
                     val research = way == team.sopa.boar.engine.routing.AnswerPath.RESEARCH
                     path = if (research) "deep" else "chat"
-                    val r = DeepResearch(SessionEngine(session, settings.engineTweaks.thinkingEnabled), services.retriever::retrieve, settings.engineTweaks::stageTimeoutMs, settings.engineTweaks::writeUpTimeoutMs).run(
+                    val r = DeepResearch(SessionEngine(session, settings.engineTweaks.thinkingEnabled), retrieve, settings.engineTweaks::stageTimeoutMs, settings.engineTweaks::writeUpTimeoutMs).run(
                         q, systemPrompt, history, budget,
                         onProgress = { p -> _state.update { it.copy(activity = if (research) Activity.Researching(p.stage, p.subQuestionIndex?.plus(1), p.subQuestionCount) else Activity.Thinking) } },
                         onToken = ::onPiece,
@@ -542,7 +611,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     timedOut = r.second
                     metrics = r.third
                 } else {
-                    val pipeline = AnswerPipeline(session, services.retriever::retrieve, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
+                    val pipeline = AnswerPipeline(session, retrieve, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
                     pipeline.answer(AnswerRequest(q, systemPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)).collect { e ->
                         when (e) {
                             is AnswerEvent.Stage -> _state.update { it.copy(activity = when (e.stage) { AnswerStage.RETRIEVING -> Activity.Retrieving; AnswerStage.THINKING -> Activity.Thinking; AnswerStage.GENERATING -> Activity.Generating }) }
@@ -684,7 +753,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val overrides = s.modelRoleAssignments().mapNotNull { (k, v) -> runCatching { ModelRole.of(k) to v }.getOrNull() }.toMap()
         val plan = AdaptivePlan.plan(q, statuses, preset, overrides, services.answerModel()?.id ?: s.activeModelId("llm"), totalRamBytes(), budget)
         lastAdaptive = plan.taskType.value to plan.plan.steps.any { it.type == team.sopa.boar.engine.routing.RoutingStepType.VERIFY }
-        val r = PlanExecutor(services.host, services.retriever::retrieve, { Classify.classifyTask(it).value }, timeoutFor = s.engineTweaks::stageTimeoutMs)
+        val r = PlanExecutor(services.host, retrieve, { Classify.classifyTask(it).value }, timeoutFor = s.engineTweaks::stageTimeoutMs)
             .execute(plan.plan, PipelineInput(q, systemPrompt, styleReminder, history), onToken = onPiece, onStepStart = { step ->
                 if (step.type == team.sopa.boar.engine.routing.RoutingStepType.GENERATE && step.modelId != null) {
                     routedModelId = step.modelId
@@ -745,6 +814,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }.getOrDefault(emptyList())
 
     companion object {
+        /** Answer options → Sources = My files, in the "answer_options" preferences. */
+        const val SOURCES_OWN = "sourcesOwnOnly"
         /** Messages sent verbatim as history (ChatScreen.tsx VERBATIM_MESSAGE_COUNT). */
         const val VERBATIM_MESSAGE_COUNT = 6
         /** How often an answer being written is saved (savePartial). */

@@ -180,4 +180,20 @@
     <string name="clean_chat_loadNote_riskyBody" formatted="false">It needs most of this phone\'s memory. A smaller model will answer faster.</string>
     <string name="clean_chat_loadNote_lessMemory" formatted="false">Use less memory</string>
     <string name="clean_chat_loadNote_changeModel" formatted="false">Change model</string>
+    <string name="design_options_title" formatted="false">Answer options</string>
+    <string name="design_options_button" formatted="false">Answer options</string>
+    <string name="design_options_buttonChanged" formatted="false">Answer options, changed</string>
+    <string name="design_options_style" formatted="false">Style</string>
+    <string name="design_options_model" formatted="false">Model</string>
+    <string name="design_options_sources" formatted="false">Sources</string>
+    <string name="design_options_noModel" formatted="false">No model yet</string>
+    <string name="design_options_sourcesAll" formatted="false">All</string>
+    <string name="design_options_sourcesAllNote" formatted="false">Knowledge packs and your files</string>
+    <string name="design_options_sourcesOwn" formatted="false">My files</string>
+    <string name="design_options_sourcesOwnNote" formatted="false">Only the documents you added</string>
+    <string name="design_options_recommended" formatted="false">Recommended for this phone</string>
+    <string name="design_options_modelFoot" formatted="false">Switching loads the model first. Installed models only.</string>
+    <string name="design_options_reset" formatted="false">Reset to defaults</string>
+    <string name="design_options_back" formatted="false">Back to options</string>
+    <string name="design_options_placeholderOwn" formatted="false">Ask about your files</string>
 </resources>
