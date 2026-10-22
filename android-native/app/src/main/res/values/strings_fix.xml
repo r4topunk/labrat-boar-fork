@@ -50,4 +50,6 @@
     <string name="clean_library_more" formatted="false">More options</string>
     <string name="clean_library_expanded" formatted="false">Expanded</string>
     <string name="clean_library_collapsed" formatted="false">Collapsed</string>
+    <string name="flows_onboarding_package_research_name" formatted="false">Research</string>
+    <string name="flows_onboarding_package_research_body" formatted="false">Encyclopedia plus offline first aid, health, country facts, travel guides and crypto reference.</string>
 </resources>

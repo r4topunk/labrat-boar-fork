@@ -46,7 +46,8 @@ data class AssetProgress(
 }
 
 /** The two knowledge packages of the setup (port of src/ui/flows/packages.ts): each is a catalog tier. */
-enum class SetupPackage(val id: String, val tierId: String) { ESSENTIAL("essential", "full"), ENCYCLOPEDIA("encyclopedia", "encyclopedia") }
+/** Smallest first: the recommendation is the biggest that fits, so Research (Encyclopedia + our knowledge packs) leads when there is room. */
+enum class SetupPackage(val id: String, val tierId: String) { ESSENTIAL("essential", "full"), ENCYCLOPEDIA("encyclopedia", "encyclopedia"), RESEARCH("research", "research") }
 
 /** A package as its card shows it: what it adds, what is left to download, and whether it fits the free space. */
 data class PackagePlan(val pkg: SetupPackage, val assets: List<CatalogAsset>, val downloadBytes: Long, val installedBytes: Long, val shortfallBytes: Long)

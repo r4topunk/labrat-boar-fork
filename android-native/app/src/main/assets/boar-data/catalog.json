@@ -162,6 +162,149 @@
       "license": "CC BY-SA 4.0 (Wikipedia)",
       "description": "Introductions to about 50,000 key Wikipedia articles, searchable offline.",
       "required": false
+    },
+    {
+      "id": "boar-crypto",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "Crypto & Ethereum reference",
+      "filename": "corpus/boar-crypto.sqlite",
+      "sizeBytes": 36093952,
+      "sha256": "ae9fbd2c7a46a46a815d46d0283e7b192adb4c342b38a2adc4881e8f9d8831fb",
+      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/topics/boar-crypto.sqlite",
+      "license": "Mixed: CC0, public domain, BSD, MIT, FSFAP, CC BY 4.0, CC BY-SA 4.0 (per-source map in pack meta)",
+      "description": "EIPs, BIPs, Ethereum specs and ethereum.org docs, searchable offline.",
+      "required": false
+    },
+    {
+      "id": "boar-wikivoyage-en",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "Wikivoyage travel guides",
+      "filename": "corpus/boar-wikivoyage-en.sqlite",
+      "sizeBytes": 351092736,
+      "sha256": "ff8595e32f56b8b84e20464afd8bf88532d47d2d82d799e3df8489440004b66e",
+      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/wiki/en/boar-wikivoyage-en.sqlite",
+      "license": "CC BY-SA 4.0 (Wikivoyage)",
+      "description": "34,000 English Wikivoyage travel guides, full text.",
+      "required": false
+    },
+    {
+      "id": "boar-factbook",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "CIA World Factbook",
+      "filename": "corpus/boar-factbook.sqlite",
+      "sizeBytes": 11624448,
+      "sha256": "c585435354a413d04790882c4e2263f725b1024c067febad3f2a99783e663447",
+      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/topics/boar-factbook/boar-factbook.sqlite",
+      "license": "CC0 (CIA World Factbook archive)",
+      "description": "Country facts: population, area, capitals, economy, government.",
+      "required": false
+    },
+    {
+      "id": "boar-firstaid-en",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "First aid and emergency",
+      "filename": "corpus/boar-firstaid-en.sqlite",
+      "sizeBytes": 20987904,
+      "sha256": "8cfab0b47ec8c5cb32840b24df1054c4df1a08d600d063c95c022c58eb5bf558",
+      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/topics/boar-firstaid-en/boar-firstaid-en.sqlite",
+      "license": "CC BY-SA 4.0; US public domain (ATP 4-02.11, FM 21-76, federal works)",
+      "description": "First aid and emergency guidance from US public-domain manuals, Wikibooks and agencies. AI-reviewed, not clinically reviewed.",
+      "required": false
+    },
+    {
+      "id": "boar-medlineplus-en",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "MedlinePlus health topics",
+      "filename": "corpus/boar-medlineplus-en.sqlite",
+      "sizeBytes": 4268032,
+      "sha256": "c9ac4dcfdae367d4502c3360bf0ffc9596d55290c0a49e0835aeedf990ba227a",
+      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/topics/boar-medlineplus-en/boar-medlineplus-en.sqlite",
+      "license": "Public domain (NLM). Courtesy of MedlinePlus from the National Library of Medicine",
+      "description": "Consumer health topic summaries. AI-reviewed, not clinically reviewed.",
+      "required": false
+    },
+    {
+      "id": "qa-health-se",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "Medical Sciences Q&A",
+      "filename": "corpus/qa-health-se.sqlite",
+      "sizeBytes": 23797760,
+      "sha256": "687e4994de254704d49c1433821febf043b05e17d111c618f3134497dcbde930",
+      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/qa/qa-health-se/qa-health-se.sqlite",
+      "license": "CC BY-SA 3.0/4.0 per post (Stack Exchange), attribution per row",
+      "description": "Medical Sciences Stack Exchange questions with answers. AI-reviewed, not clinically reviewed.",
+      "required": false
+    },
+    {
+      "id": "qa-outdoors-se",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "Outdoors Q&A",
+      "filename": "corpus/qa-outdoors-se.sqlite",
+      "sizeBytes": 31555584,
+      "sha256": "ff733e4f587c2e16f802b8213de21b986924dd76c22e29d61e494b2587e6272a",
+      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/qa/qa-outdoors-se/qa-outdoors-se.sqlite",
+      "license": "CC BY-SA 3.0/4.0 per post (Stack Exchange), attribution per row",
+      "description": "The Great Outdoors Stack Exchange: hiking, camping, wild-weather questions with answers. AI-reviewed, not clinically reviewed.",
+      "required": false
+    },
+    {
+      "id": "qa-travel-se",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "Travel Q&A",
+      "filename": "corpus/qa-travel-se.sqlite",
+      "sizeBytes": 148324352,
+      "sha256": "a85521ceaa30b176116f2a827d8652fddc6c0cf704da9874c138eff7d5217427",
+      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/qa/qa-travel-se/qa-travel-se.sqlite",
+      "license": "CC BY-SA 3.0/4.0 per post (Stack Exchange), attribution per row",
+      "description": "Travel Stack Exchange: practical travel questions with answers.",
+      "required": false
+    },
+    {
+      "id": "qa-ethereum-se",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "Ethereum Q&A",
+      "filename": "corpus/qa-ethereum-se.sqlite",
+      "sizeBytes": 102473728,
+      "sha256": "f16b258f87c0f4253360b45d86de2a94c7f9fba45f91571aec2c97588f858d56",
+      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/qa/qa-ethereum-se/qa-ethereum-se.sqlite",
+      "license": "CC BY-SA 3.0/4.0 per post (Stack Exchange), attribution per row",
+      "description": "Ethereum Stack Exchange questions with answers.",
+      "required": false
+    },
+    {
+      "id": "qa-bitcoin-se",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "Bitcoin Q&A",
+      "filename": "corpus/qa-bitcoin-se.sqlite",
+      "sizeBytes": 77889536,
+      "sha256": "35b7a3ce3cdd7d31a20e968337a530e8679c1702ca0dbc0538e7a30bad2342c8",
+      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/qa/qa-bitcoin-se/qa-bitcoin-se.sqlite",
+      "license": "CC BY-SA 3.0/4.0 per post (Stack Exchange), attribution per row",
+      "description": "Bitcoin Stack Exchange questions with answers.",
+      "required": false
+    },
+    {
+      "id": "boar-simplewiki-en",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "Simple English Wikipedia",
+      "filename": "corpus/boar-simplewiki-en.sqlite",
+      "sizeBytes": 481017856,
+      "sha256": "e14bdff1a56dabb2df8ef0ce0c817467f856473febbc0bf9c1d2021b2b68b14b",
+      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/topics/boar-simplewiki-en/r2/boar-simplewiki-en.sqlite",
+      "license": "CC BY-SA 4.0 (Simple English Wikipedia)",
+      "description": "All 208,711 Simple English Wikipedia articles, full text (2026-10-01 dump, r2).",
+      "required": false
     }
   ],
   "tiers": [
@@ -196,6 +339,21 @@
         "corpus-standard",
         "corpus-full",
         "wiki-vital5"
+      ]
+    },
+    {
+      "id": "research",
+      "label": "Research",
+      "description": "Encyclopedia, plus offline first aid, health, country facts, travel guides and crypto reference (~424MB extra download).",
+      "corpusPackIds": [
+        "corpus-standard",
+        "corpus-full",
+        "wiki-vital5",
+        "boar-firstaid-en",
+        "boar-medlineplus-en",
+        "boar-factbook",
+        "boar-wikivoyage-en",
+        "boar-crypto"
       ]
     }
   ]

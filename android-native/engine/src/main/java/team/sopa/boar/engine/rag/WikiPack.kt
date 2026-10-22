@@ -17,7 +17,7 @@ import kotlin.math.log10
  * BOAR's additions: title candidates taken from the question itself, action/explain/travel handling, lay sources.
  */
 
-enum class PackSource { ENWIKI, ENWIKIVOYAGE, ENWIKIBOOKS, APPROPEDIA, USGOV, EIPS, ETHSPECS, ETHEREUMORG, BIPS;
+enum class PackSource { ENWIKI, ENWIKIVOYAGE, ENWIKIBOOKS, APPROPEDIA, USGOV, EIPS, ETHSPECS, ETHEREUMORG, BIPS, STACKEXCHANGE, MEDLINEPLUS, FACTBOOK, SIMPLEWIKI;
     /** The id the TS uses ("enwiki", "enwikivoyage", …). */
     val key: String get() = name.lowercase()
 }
@@ -671,6 +671,8 @@ class WikiPack private constructor(
         val SOURCES = listOf(
             PackSource.ENWIKI, PackSource.ENWIKIVOYAGE, PackSource.ENWIKIBOOKS, PackSource.APPROPEDIA, PackSource.USGOV,
             PackSource.EIPS, PackSource.ETHSPECS, PackSource.ETHEREUMORG, PackSource.BIPS,
+            // Codes 9-12: the r4topunk/boar-packs packs (Stack Exchange Q&A, MedlinePlus, CIA World Factbook, Simple English Wikipedia).
+            PackSource.STACKEXCHANGE, PackSource.MEDLINEPLUS, PackSource.FACTBOOK, PackSource.SIMPLEWIKI,
         )
         private val DISAMBIG = Regex("(?i)\\(disambiguation\\)\\z")
         private val UPPER_START = Regex("^\\p{Lu}")

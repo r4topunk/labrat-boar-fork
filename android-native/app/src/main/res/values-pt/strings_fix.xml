@@ -50,4 +50,6 @@
     <string name="clean_library_more" formatted="false">Mais opções</string>
     <string name="clean_library_expanded" formatted="false">Expandido</string>
     <string name="clean_library_collapsed" formatted="false">Recolhido</string>
+    <string name="flows_onboarding_package_research_name" formatted="false">Pesquisa</string>
+    <string name="flows_onboarding_package_research_body" formatted="false">Enciclopédia mais primeiros socorros, saúde, dados de países, guias de viagem e referência de cripto, tudo offline.</string>
 </resources>

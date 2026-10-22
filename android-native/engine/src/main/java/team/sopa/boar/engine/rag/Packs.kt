@@ -20,6 +20,10 @@ object Packs {
         PackSource.ETHSPECS to "Ethereum specs",
         PackSource.ETHEREUMORG to "ethereum.org",
         PackSource.BIPS to "Bitcoin BIPs",
+        PackSource.STACKEXCHANGE to "Stack Exchange",
+        PackSource.MEDLINEPLUS to "MedlinePlus",
+        PackSource.FACTBOOK to "CIA World Factbook",
+        PackSource.SIMPLEWIKI to "Simple English Wikipedia",
     )
 
     /** Format of a pack from its meta table, or null when it isn't a pack for this app's embedding model. */
@@ -44,6 +48,7 @@ object Packs {
         val host = when (source) {
             PackSource.ENWIKIVOYAGE -> "en.wikivoyage.org"
             PackSource.ENWIKIBOOKS -> "en.wikibooks.org"
+            PackSource.SIMPLEWIKI -> "simple.wikipedia.org"
             else -> "en.wikipedia.org"
         }
         return "https://$host/wiki/${JsUri.encodeURIComponent(title.replace(" ", "_"))}"
