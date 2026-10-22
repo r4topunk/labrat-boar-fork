@@ -65,7 +65,9 @@ internal fun InstallStep(state: SetupState, vm: SetupViewModel, onBack: () -> Un
         state.indexTotal > 0 -> (state.indexDone.toFloat() / state.indexTotal).coerceIn(0f, 1f)
         else -> 0f
     }
-    val overall by animateFloatAsState(target, if (motion) tween(400) else snap(), label = "overall")
+    // Never a full bar (or 100 %) while the library is still being organized: full means done.
+    val capped = if (state.finished) 1f else minOf(target, 0.99f)
+    val overall by animateFloatAsState(capped, if (motion) tween(400) else snap(), label = "overall")
     // Back is offered only where leaving is safe: never while the library is being organized or once finished.
     val canBack = state.indexPhase != IndexPhase.BUILDING && !state.finished
     StepScaffold(progress = PROGRESS_KNOWLEDGE + (1f - PROGRESS_KNOWLEDGE) * overall, onBack = if (canBack) onBack else null) {
