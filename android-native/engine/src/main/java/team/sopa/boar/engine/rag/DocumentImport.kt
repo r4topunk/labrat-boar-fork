@@ -8,7 +8,8 @@ import kotlinx.serialization.json.JsonPrimitive
 /**
  * The user's own documents as a searchable collection (port of src/services/documentImporter.ts): text, Markdown, CSV
  * and JSON (a list of { title, body } documents, or any JSON as text) cut into overlapping ~500-token chunks and embedded
- * into the knowledge base. Same ids, titles and chunks as the TS (golden test). PDF text is extracted by the caller.
+ * into the knowledge base; Markdown is cut at its headings first. Same ids, titles and chunks as the TS for everything
+ * but Markdown (golden test). PDF text is extracted by the caller.
  */
 object DocumentImport {
     private const val CHARS_PER_TOKEN = 4
@@ -28,7 +29,8 @@ object DocumentImport {
     /** [sizeBytes] as the picker reports it; unknown (0 or less) is read, and an out-of-memory then caught. */
     fun tooLargeToRead(sizeBytes: Long): Boolean = sizeBytes > READ_LIMIT
 
-    data class Doc(val title: String, val source: String, val body: String)
+    /** [markdown]: a .md file, cut at its headings first ([markdownSections]). */
+    data class Doc(val title: String, val source: String, val body: String, val markdown: Boolean = false)
     data class File(val name: String, val sizeBytes: Long, val text: String)
     data class Planned(val chunks: List<Chunk>, val docCount: Int)
 
@@ -51,6 +53,29 @@ object DocumentImport {
     }
 
     private val NEWLINE = Regex("\\r?\\n")
+    /** A line that opens a Markdown section: "# " or "## " (deeper headings stay inside their section). */
+    private val SECTION_HEADING = Regex("^#{1,2} ")
+
+    /**
+     * A Markdown file's sections, each starting with its "# " or "## " heading line; text before the first heading is a
+     * section of its own. A part then holds one whole section, so a fact and the heading that names it stay together
+     * (the X6's notes, Oct 21: a fixed slice cut the line with the number away from its title).
+     */
+    fun markdownSections(text: String): List<String> {
+        val out = ArrayList<String>()
+        val current = StringBuilder()
+        fun close() { Js.trim(current.toString()).takeIf { it.isNotEmpty() }?.let(out::add); current.setLength(0) }
+        for (line in text.split(NEWLINE)) {
+            if (SECTION_HEADING.containsMatchIn(line)) close()
+            current.append(line).append('\n')
+        }
+        close()
+        return out
+    }
+
+    /** The pieces of one document: Markdown by section (a long section sliced as [chunkText] does), the rest as before. */
+    fun pieces(doc: Doc): List<String> =
+        if (!doc.markdown) chunkText(doc.body) else markdownSections(doc.body).flatMap { if (it.length <= CHUNK_CHARS) listOf(it) else chunkText(it) }
 
     /** csvToText: one line per row, cells joined with " | ". */
     fun csvToText(raw: String): String = raw.split(NEWLINE).filter { Js.trim(it).isNotEmpty() }.joinToString("\n") { it.split(",").joinToString(" | ") }
@@ -96,7 +121,7 @@ object DocumentImport {
             return listOf(Doc(title, file.name, file.text))
         }
         if (ext == "csv") return listOf(Doc(title, file.name, csvToText(file.text)))
-        return listOf(Doc(title, file.name, file.text))
+        return listOf(Doc(title, file.name, file.text, markdown = ext == "md" || ext == "markdown"))
     }
 
     /** The collection's chunks: ids "<collection>-doc<i>-<slug>-c<j>", titles "<title> (part j/n)" when a doc splits. */
@@ -104,7 +129,7 @@ object DocumentImport {
         val chunks = ArrayList<Chunk>()
         docs.forEachIndexed { di, doc ->
             val docId = "$collectionId-doc$di-${slug(doc.title)}"
-            val pieces = chunkText(doc.body)
+            val pieces = pieces(doc)
             pieces.forEachIndexed { i, body ->
                 chunks += Chunk("$docId-c$i", docId, if (pieces.size > 1) "${doc.title} (part ${i + 1}/${pieces.size})" else doc.title, body,
                     source = doc.source, collectionId = collectionId)
