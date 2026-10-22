@@ -309,6 +309,8 @@ private fun ChatHost(services: BoarServices, vm: ChatViewModel, onNavigate: (Str
     val devOptions = team.sopa.boar.app.DevOptions.enabled(androidx.compose.ui.platform.LocalContext.current)
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    // Back with the menu open closes the menu; it used to leave BOAR (smoke drawer-back, Oct 22).
+    BackHandler(enabled = drawer.isOpen) { scope.launch { drawer.close() } }
     var sessions by remember { mutableStateOf<List<ChatSession>>(emptyList()) }
     // Chats the user just deleted whose Undo is still open: out of the list, still in the database.
     val pendingDelete = remember { mutableSetOf<String>() }
