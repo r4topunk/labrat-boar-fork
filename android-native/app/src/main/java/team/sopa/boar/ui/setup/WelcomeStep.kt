@@ -104,17 +104,11 @@ internal fun WelcomeStep(state: SetupState, onSkip: (() -> Unit)?, onStart: () -
     }
 }
 
-/** The mascot: one clean circle on a soft tonal ring, sized to sit under the headline, not compete with it. */
+/** The mascot: the same transparent 3D boar as the chat, no disc, sized to sit under the headline, not compete with it. */
 @Composable
 private fun Hero() {
-    val cs = MaterialTheme.colorScheme
-    Box(
-        Modifier.padding(top = 8.dp).size(136.dp).clip(CircleShape).background(cs.surfaceContainerLowest.copy(alpha = 0.7f)),
-        contentAlignment = Alignment.Center,
-    ) {
-        Image(painterResource(R.drawable.brand_pfp), contentDescription = t("clean.onboarding.welcome.mascotA11y"),
-            modifier = Modifier.size(120.dp).clip(CircleShape))
-    }
+    Image(painterResource(R.drawable.mascot), contentDescription = t("clean.onboarding.welcome.mascotA11y"),
+        modifier = Modifier.padding(top = 8.dp).size(128.dp), contentScale = androidx.compose.ui.layout.ContentScale.Fit)
 }
 
 @Composable

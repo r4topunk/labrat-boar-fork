@@ -73,7 +73,7 @@ private fun PinPad(title: String, subtitle: String?, error: String?, busy: Boole
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             Column(Modifier.fillMaxWidth().heightIn(min = this@BoxWithConstraints.maxHeight).windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)).padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically)) {
-                Image(painterResource(R.drawable.brand_pfp), null, Modifier.size(64.dp).clip(CircleShape))
+                Image(painterResource(R.drawable.mascot), null, Modifier.size(64.dp).clip(CircleShape))
                 Text(title, style = Boar.type.titleLg, color = c.textHeading, textAlign = TextAlign.Center)
                 subtitle?.let { Text(it, style = Boar.type.body, color = c.textSecondary, textAlign = TextAlign.Center) }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(vertical = 8.dp)) {
@@ -228,7 +228,7 @@ fun PinOffer(onSet: () -> Unit, onSkip: () -> Unit) {
     val c = Boar.colors
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically)) {
-        Image(painterResource(R.drawable.brand_pfp), null, Modifier.size(72.dp).clip(CircleShape))
+        Image(painterResource(R.drawable.mascot), null, Modifier.size(72.dp).clip(CircleShape))
         Text(t("native.pin.offerTitle"), style = Boar.type.titleLg, color = c.textHeading, textAlign = TextAlign.Center)
         Text(t("native.pin.offerBody"), style = Boar.type.body, color = c.textSecondary, textAlign = TextAlign.Center)
         Spacer(Modifier.height(8.dp))

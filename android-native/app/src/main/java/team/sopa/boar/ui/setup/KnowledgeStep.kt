@@ -6,6 +6,12 @@
 
 package team.sopa.boar.ui.setup
 
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.Box
+import team.sopa.boar.setup.KnowledgeTheme
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -78,7 +84,8 @@ internal fun KnowledgeStep(state: SetupState, vm: SetupViewModel, onBack: () -> 
         onBack = onBack,
         bottomBar = {
             val plan = state.plan
-            val libraries = t("clean.onboarding.knowledge.libraries", "count" to state.selectedKnowledgeCount)
+            // Libraries already on the phone count as chosen: setup never removes them.
+            val libraries = t("clean.onboarding.knowledge.libraries", "count" to allItems.count { it.installed || state.isSelected(it) })
             ActionBar(
                 summary = if (plan.downloadBytes > 0) t("clean.onboarding.knowledge.summary", "size" to sizeText(plan.downloadBytes), "count" to plan.estimatedMinutes)
                     else t("clean.onboarding.knowledge.nothingToDownload"),
@@ -98,18 +105,18 @@ internal fun KnowledgeStep(state: SetupState, vm: SetupViewModel, onBack: () -> 
         item(key = "presets") { PresetChips(state.knowledgePreset, vm::applyPreset) }
         state.knowledge.forEach { section ->
             stickyHeader(key = "section-${section.theme}") { _ -> SectionTitle(t(section.titleKey)) }
-            // The clinical caveat once per section when every library in it carries it (Health), not on every card.
-            if (section.items.isNotEmpty() && section.items.all { it.clinicalCaveat }) {
-                item(key = "caveat-${section.theme}") { Caveat() }
-            }
+            // The clinical caveat once, right under the Health header (and for any other section where every library carries it).
+            val sectionCaveat = section.theme == KnowledgeTheme.HEALTH || section.items.all { it.clinicalCaveat }
+            if (sectionCaveat) item(key = "caveat-${section.theme}") { CaveatNote() }
             items(section.items, key = { it.id }) { item ->
-                KnowledgeCard(item, state.isSelected(item), sectionCaveat = section.items.all { it.clinicalCaveat }, onToggle = { vm.toggleKnowledge(item) }, onPreview = { previewId = item.id })
+                KnowledgeCard(item, state.isSelected(item), sectionCaveat = sectionCaveat, showStar = state.knowledgePreset != KnowledgePreset.RECOMMENDED,
+                    onToggle = { vm.toggleKnowledge(item) }, onPreview = { previewId = item.id })
             }
         }
     }
 
     allItems.firstOrNull { it.id == previewId }?.let { item ->
-        PreviewSheet(item, state.isSelected(item), onToggle = { vm.toggleKnowledge(item) }, onDismiss = { previewId = null })
+        PreviewSheet(item, state.isSelected(item), health = item.theme == KnowledgeTheme.HEALTH, onToggle = { vm.toggleKnowledge(item) }, onDismiss = { previewId = null })
     }
 }
 
@@ -123,10 +130,14 @@ private fun PresetChips(current: KnowledgePreset?, onPick: (KnowledgePreset) -> 
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         presets.forEach { (p, key) ->
             val selected = current == p
+            // Tonal chips for all three (no outline on the unselected ones): one visual style in the row.
             FilterChip(
                 selected = selected,
                 onClick = { onPick(p) },
-                label = { Text(t(key)) },
+                label = { Text(t(key), style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp)) },
+                leadingIcon = if (selected) { { Icon(Icons.Filled.Check, null, Modifier.size(FilterChipDefaults.IconSize)) } } else null,
+                colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                border = null,
             )
         }
     }
@@ -139,15 +150,21 @@ private fun itemName(item: KnowledgeItem) = item.nameKey?.let { t(it) } ?: item.
 private fun itemDescription(item: KnowledgeItem) = item.descriptionKey?.let { t(it) } ?: item.catalogDescription
 
 @Composable
-private fun KnowledgeCard(item: KnowledgeItem, selected: Boolean, sectionCaveat: Boolean, onToggle: () -> Unit, onPreview: () -> Unit) {
+private fun KnowledgeCard(item: KnowledgeItem, selected: Boolean, sectionCaveat: Boolean, showStar: Boolean, onToggle: () -> Unit, onPreview: () -> Unit) {
     val cs = MaterialTheme.colorScheme
-    SelectCard(selected, Modifier.toggleable(selected, role = Role.Checkbox, onValueChange = { onToggle() }), bottom = 6.dp) {
-        Checkbox(selected, onCheckedChange = null, modifier = Modifier.padding(12.dp))
+    // A library already on the phone stays whatever is picked (setup never deletes): no checkbox, a check, and the card opens its preview.
+    val on = selected || item.installed
+    val selection = if (item.installed) Modifier.clickable(onClick = onPreview) else Modifier.toggleable(selected, role = Role.Checkbox, onValueChange = { onToggle() })
+    SelectCard(on, selection, bottom = 6.dp) {
+        if (item.installed) Box(Modifier.padding(12.dp).size(24.dp), contentAlignment = Alignment.Center) {
+            Icon(Icons.Filled.CheckCircle, contentDescription = t("clean.onboarding.onPhone"), tint = cs.primary)
+        } else Checkbox(selected, onCheckedChange = null, modifier = Modifier.padding(12.dp))
         Column(Modifier.weight(1f).padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             val muted = LocalContentColor.current.copy(alpha = 0.78f)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(itemName(item), style = MaterialTheme.typography.titleMedium, color = LocalContentColor.current, modifier = Modifier.weight(1f))
-                if (item.recommended) Tag(t("clean.onboarding.tag.recommended"), cs.primary, cs.onPrimary, Icons.Filled.Star)
+                // Recommended as a small star, and only when the Recommended preset isn't the one active (then it says it already).
+                if (item.recommended && showStar) Icon(Icons.Filled.Star, contentDescription = t("clean.onboarding.tag.recommended"), Modifier.size(18.dp), tint = cs.primary)
             }
             Text(itemDescription(item), style = MaterialTheme.typography.bodyMedium, color = muted, maxLines = 2, overflow = TextOverflow.Ellipsis)
             if (item.clinicalCaveat && !sectionCaveat) Caveat()
@@ -168,6 +185,17 @@ private fun KnowledgeCard(item: KnowledgeItem, selected: Boolean, sectionCaveat:
 }
 
 @Composable
+private fun CaveatNote() {
+    val cs = MaterialTheme.colorScheme
+    Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = cs.surfaceContainerHighest, contentColor = cs.onSurfaceVariant) {
+        Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Icon(Icons.Outlined.Info, null, Modifier.size(20.dp))
+            Text(t("clean.onboarding.caveat"), style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+
+@Composable
 private fun Caveat() {
     val cs = MaterialTheme.colorScheme
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -183,11 +211,14 @@ private fun withoutCaveat(text: String, caveat: String): String =
 
 /** What a library holds: articles, sources with counts, license, the catalog text and a few of its titles. */
 @Composable
-private fun PreviewSheet(item: KnowledgeItem, selected: Boolean, onToggle: () -> Unit, onDismiss: () -> Unit) {
+private fun PreviewSheet(item: KnowledgeItem, selected: Boolean, health: Boolean, onToggle: () -> Unit, onDismiss: () -> Unit) {
     val cs = MaterialTheme.colorScheme
     val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     val preview = item.preview
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheet, containerColor = cs.surfaceContainerLow) {
+    val dark = cs.surface.luminance() < 0.5f
+    // In dark the default scrim barely dims the page: a deeper scrim and a container a step up keep the sheet's edge.
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheet, containerColor = if (dark) cs.surfaceContainer else cs.surfaceContainerLow,
+        scrimColor = cs.scrim.copy(alpha = if (dark) 0.6f else 0.32f)) {
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = Gutter).navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(Gap),
@@ -200,7 +231,7 @@ private fun PreviewSheet(item: KnowledgeItem, selected: Boolean, onToggle: () ->
                 )
                 Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant)
             }
-            if (item.clinicalCaveat) {
+            if (item.clinicalCaveat || health) {
                 // Calm, not alarming: a high tonal surface with the note in onSurfaceVariant.
                 Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = cs.surfaceContainerHighest, contentColor = cs.onSurfaceVariant) {
                     Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -242,8 +273,13 @@ private fun PreviewSheet(item: KnowledgeItem, selected: Boolean, onToggle: () ->
             SheetLabel(t("clean.onboarding.sheet.license"))
             Text(item.license, style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant)
 
-            // Selected: a quiet outlined way out; not selected: the one filled action of the sheet.
-            if (selected) OutlinedButton(onToggle, Modifier.fillMaxWidth().height(52.dp)) { Text(t("clean.onboarding.sheet.remove")) }
+            // On the phone already: nothing to add or remove here, say where it's managed. Selected: a quiet outlined way
+            // out; not selected: the one filled action of the sheet.
+            if (item.installed) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Icon(Icons.Filled.CheckCircle, null, Modifier.size(20.dp), tint = cs.primary)
+                Text(t("design.onboarding.installedNote"), style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant)
+            }
+            else if (selected) OutlinedButton(onToggle, Modifier.fillMaxWidth().height(52.dp)) { Text(t("clean.onboarding.sheet.remove")) }
             else Button(onToggle, Modifier.fillMaxWidth().height(52.dp)) {
                 Icon(Icons.Filled.Add, null, Modifier.size(ButtonDefaults.IconSize))
                 Spacer(Modifier.width(ButtonDefaults.IconSpacing))

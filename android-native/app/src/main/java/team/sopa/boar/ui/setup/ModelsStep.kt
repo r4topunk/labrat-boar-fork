@@ -114,18 +114,12 @@ private fun ModelCard(m: ModelOption, selected: Boolean, onToggle: () -> Unit) {
                 Text(if (m.installed) t("clean.onboarding.onPhone") else sizeText(m.sizeBytes),
                     style = MaterialTheme.typography.labelLarge, color = LocalContentColor.current.copy(alpha = 0.78f))
             }
-            // Speed tier and licence as one supporting line; the chips are kept for what decides the pick.
-            val support = listOfNotNull(t(m.tier.labelKey), m.license, if (m.discovered) t("clean.onboarding.tag.discovered") else null)
+            // Speed tier and how it runs here as one neutral supporting line (advice, not an error); the licence lives in
+            // the model's details. Only the recommended pick carries a chip.
+            val support = listOfNotNull(t(m.tier.labelKey), if (m.fit == RamFit.HEAVY) t("clean.onboarding.tag.heavy") else null,
+                if (m.discovered) t("clean.onboarding.tag.discovered") else null)
             Text(support.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = LocalContentColor.current.copy(alpha = 0.78f))
-            FlowRow(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
-                itemVerticalAlignment = Alignment.CenterVertically) {
-                if (m.recommended) Tag(t("clean.onboarding.tag.recommended"), cs.primary, cs.onPrimary, Icons.Filled.Star)
-                when (m.fit) {
-                    RamFit.FITS -> FitLine(Icons.Filled.CheckCircle, t("clean.onboarding.tag.fits"), if (selected) LocalContentColor.current else cs.tertiary)
-                    RamFit.HEAVY -> FitLine(Icons.Outlined.Warning, t("clean.onboarding.tag.heavy"), cs.error)
-                    RamFit.UNKNOWN -> Unit
-                }
-            }
+            if (m.recommended) Box(Modifier.padding(top = 6.dp, bottom = 2.dp)) { Tag(t("clean.onboarding.tag.recommended"), cs.primary, cs.onPrimary, Icons.Filled.Star) }
         }
     }
 }

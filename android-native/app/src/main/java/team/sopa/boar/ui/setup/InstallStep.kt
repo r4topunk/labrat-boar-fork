@@ -260,7 +260,8 @@ private fun ProgressRow(
             }
             Text(name, style = MaterialTheme.typography.titleSmall, color = cs.onSurface, modifier = Modifier.weight(1f),
                 maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(status, style = MaterialTheme.typography.labelMedium, color = tone)
+            // A ready row's check already says it: the status word only while something is happening.
+            if (!ready) Text(status, style = MaterialTheme.typography.labelMedium, color = tone)
         }
         Column(Modifier.padding(start = 36.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             if (!ready) {
