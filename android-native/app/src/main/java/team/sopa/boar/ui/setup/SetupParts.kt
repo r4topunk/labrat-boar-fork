@@ -1,6 +1,7 @@
 package team.sopa.boar.ui.setup
 
 import android.provider.Settings
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -39,9 +40,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -52,6 +57,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
@@ -97,8 +103,9 @@ internal fun displayStyle(scale: Float = 1.45f): TextStyle {
 }
 
 /**
- * A setup step after the welcome: a slim top row (Back + where we are in the flow), a list that scrolls under the
- * system bars, and a bottom action bar. [progress] is 0..1 through the flow; [onBack] null hides the arrow.
+ * A setup step after the welcome: a pinned top row (Back + where we are in the flow) that lifts to a tonal container
+ * once the list scrolls under it, the list (clipped below the bar, so sticky headers stop under it), and a bottom
+ * action bar. [progress] is 0..1 through the flow; [onBack] null hides the arrow.
  */
 @Composable
 internal fun StepScaffold(
@@ -109,39 +116,59 @@ internal fun StepScaffold(
     content: LazyListScope.() -> Unit,
 ) {
     val cs = MaterialTheme.colorScheme
+    val scrolled by remember(listState) { derivedStateOf { listState.canScrollBackward } }
+    val barColor by animateColorAsState(if (scrolled) cs.surfaceContainer else cs.surface, tween(200), label = "stepBar")
     Scaffold(
         containerColor = cs.surface,
         contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
-            Row(
-                Modifier.fillMaxWidth().statusBarsPadding().padding(start = 4.dp, end = Gutter).heightIn(min = 56.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (onBack != null) {
-                    IconButton(onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = t("clean.onboarding.back")) }
-                } else Spacer(Modifier.width(48.dp))
-                Spacer(Modifier.width(8.dp))
-                val label = t("clean.onboarding.progressA11y", "pct" to (progress * 100).toInt())
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier.weight(1f).height(6.dp).semantics { contentDescription = label },
-                    trackColor = cs.surfaceContainerHighest,
-                )
+            Surface(color = barColor) {
+                Row(
+                    Modifier.fillMaxWidth().statusBarsPadding().padding(start = 4.dp, end = Gutter).height(64.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (onBack != null) {
+                        IconButton(onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = t("clean.onboarding.back")) }
+                    } else Spacer(Modifier.width(48.dp))
+                    Spacer(Modifier.width(12.dp))
+                    val label = t("clean.onboarding.progressA11y", "pct" to (progress * 100).toInt())
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.weight(1f).semantics { contentDescription = label },
+                        trackColor = cs.surfaceContainerHighest,
+                        drawStopIndicator = {},
+                    )
+                }
             }
         },
         bottomBar = { bottomBar?.invoke() },
     ) { inner ->
         LazyColumn(
-            Modifier.fillMaxSize(),
+            Modifier.fillMaxSize().padding(top = inner.calculateTopPadding()).clipToBounds(),
             state = listState,
             contentPadding = PaddingValues(
                 start = Gutter, end = Gutter,
-                top = inner.calculateTopPadding() + 8.dp,
+                top = 8.dp,
                 bottom = inner.calculateBottomPadding() + Gutter,
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             content = content,
         )
+    }
+}
+
+/**
+ * A selectable card on a tonal surface (no outline): surfaceContainerLow at rest, secondaryContainer when picked, with
+ * the matching content colour. [selection] carries toggleable/selectable; the whole card is the target.
+ */
+@Composable
+internal fun SelectCard(selected: Boolean, selection: Modifier, modifier: Modifier = Modifier, bottom: Dp = 14.dp, content: @Composable RowScope.() -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    val shape = MaterialTheme.shapes.large
+    val container by animateColorAsState(if (selected) cs.secondaryContainer else cs.surfaceContainerLow, tween(180), label = "selectCard")
+    Surface(modifier.fillMaxWidth(), shape = shape, color = container,
+        contentColor = if (selected) cs.onSecondaryContainer else cs.onSurface) {
+        Row(Modifier.fillMaxWidth().clip(shape).then(selection).padding(start = 4.dp, end = 16.dp, top = 6.dp, bottom = bottom), content = content)
     }
 }
 
@@ -161,7 +188,7 @@ internal fun SectionTitle(text: String, modifier: Modifier = Modifier) {
     Surface(modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface) {
         Text(
             text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(top = 12.dp, bottom = 4.dp).semantics { heading() },
+            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp).semantics { heading() },
         )
     }
 }
@@ -188,7 +215,6 @@ internal fun ActionBar(summary: String, detail: String?, detailColor: Color = Ma
     val cs = MaterialTheme.colorScheme
     Surface(color = cs.surfaceContainer) {
         Column {
-            HorizontalDivider(color = cs.outlineVariant.copy(alpha = 0.6f))
             Row(
                 Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = Gutter, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,

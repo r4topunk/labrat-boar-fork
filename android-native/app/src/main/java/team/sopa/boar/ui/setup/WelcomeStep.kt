@@ -69,7 +69,7 @@ internal fun WelcomeStep(state: SetupState, onSkip: (() -> Unit)?, onStart: () -
                 verticalArrangement = Arrangement.spacedBy(Gap),
             ) {
                 Staggered(0, motion) { Hero() }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(16.dp))
                 Staggered(1, motion) {
                     Text(t("clean.onboarding.welcome.title"), style = displayStyle(), color = cs.onSurface,
                         modifier = Modifier.semantics { heading() })
@@ -86,7 +86,7 @@ internal fun WelcomeStep(state: SetupState, onSkip: (() -> Unit)?, onStart: () -
             Staggered(6, motion, Modifier.padding(horizontal = Gutter, vertical = Gap)) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(BoarIcons.Download, null, Modifier.size(16.dp), tint = cs.onSurfaceVariant)
+                        Icon(if (state.recommendedDownloadBytes > 0) BoarIcons.Download else BoarIcons.CloudDone, null, Modifier.size(18.dp), tint = cs.onSurfaceVariant)
                         Text(
                             if (state.recommendedDownloadBytes > 0) t("clean.onboarding.welcome.download", "size" to sizeText(state.recommendedDownloadBytes))
                             else t("clean.onboarding.welcome.downloadNone"),
@@ -104,17 +104,16 @@ internal fun WelcomeStep(state: SetupState, onSkip: (() -> Unit)?, onStart: () -
     }
 }
 
-/** The mascot, large, inside a soft tonal halo. */
+/** The mascot: one clean circle on a soft tonal ring, sized to sit under the headline, not compete with it. */
 @Composable
 private fun Hero() {
     val cs = MaterialTheme.colorScheme
     Box(
-        Modifier.padding(top = 8.dp).size(176.dp).clip(CircleShape).background(cs.surface.copy(alpha = 0.55f))
-            .border(1.dp, cs.primary.copy(alpha = 0.18f), CircleShape),
+        Modifier.padding(top = 8.dp).size(136.dp).clip(CircleShape).background(cs.surfaceContainerLowest.copy(alpha = 0.7f)),
         contentAlignment = Alignment.Center,
     ) {
         Image(painterResource(R.drawable.brand_pfp), contentDescription = t("clean.onboarding.welcome.mascotA11y"),
-            modifier = Modifier.size(148.dp).clip(CircleShape))
+            modifier = Modifier.size(120.dp).clip(CircleShape))
     }
 }
 

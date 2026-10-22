@@ -104,7 +104,7 @@
     <string name="clean_onboarding_welcome_cited_title" formatted="false">Com fontes</string>
     <string name="clean_onboarding_welcome_cited_body" formatted="false">Toda resposta mostra as fontes.</string>
     <string name="clean_onboarding_welcome_download" formatted="false">Um único download pelo Wi-Fi · cerca de {{size}}</string>
-    <string name="clean_onboarding_welcome_downloadNone" formatted="false">Tudo o que ele precisa já está no celular</string>
+    <string name="clean_onboarding_welcome_downloadNone" formatted="false">Tudo já está no celular</string>
     <string name="clean_onboarding_welcome_start" formatted="false">Começar</string>
     <string name="clean_onboarding_welcome_mascotA11y" formatted="false">Mascote do BOAR</string>
     <string name="clean_onboarding_models_title" formatted="false">Escolha seus modelos</string>
@@ -146,7 +146,7 @@
     <string name="clean_onboarding_sheet_samples_one" formatted="false">Seu {{value}} artigo</string>
     <string name="clean_onboarding_sheet_samples_other" formatted="false">Alguns dos {{value}} artigos</string>
     <string name="clean_onboarding_sheet_add" formatted="false">Incluir no download</string>
-    <string name="clean_onboarding_sheet_remove" formatted="false">Selecionado · toque para remover</string>
+    <string name="clean_onboarding_sheet_remove" formatted="false">Tirar do download</string>
     <string name="clean_onboarding_install_title" formatted="false">Instalando</string>
     <string name="clean_onboarding_install_subtitle" formatted="false">Aqui está tudo o que o BOAR está baixando. Isso acontece uma vez só.</string>
     <string name="clean_onboarding_install_doneTitle" formatted="false">Tudo pronto</string>

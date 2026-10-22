@@ -104,7 +104,7 @@
     <string name="clean_onboarding_welcome_cited_title" formatted="false">Cited</string>
     <string name="clean_onboarding_welcome_cited_body" formatted="false">Every answer shows its sources.</string>
     <string name="clean_onboarding_welcome_download" formatted="false">One download over Wi-Fi · about {{size}}</string>
-    <string name="clean_onboarding_welcome_downloadNone" formatted="false">Everything it needs is already on this phone</string>
+    <string name="clean_onboarding_welcome_downloadNone" formatted="false">Everything is already on this phone</string>
     <string name="clean_onboarding_welcome_start" formatted="false">Get started</string>
     <string name="clean_onboarding_welcome_mascotA11y" formatted="false">BOAR mascot</string>
     <string name="clean_onboarding_models_title" formatted="false">Choose your models</string>
@@ -146,7 +146,7 @@
     <string name="clean_onboarding_sheet_samples_one" formatted="false">Its {{value}} article</string>
     <string name="clean_onboarding_sheet_samples_other" formatted="false">A few of the {{value}} articles</string>
     <string name="clean_onboarding_sheet_add" formatted="false">Add to download</string>
-    <string name="clean_onboarding_sheet_remove" formatted="false">Selected · tap to remove</string>
+    <string name="clean_onboarding_sheet_remove" formatted="false">Remove from download</string>
     <string name="clean_onboarding_install_title" formatted="false">Installing</string>
     <string name="clean_onboarding_install_subtitle" formatted="false">Here is everything BOAR is downloading. This happens only once.</string>
     <string name="clean_onboarding_install_doneTitle" formatted="false">All set</string>

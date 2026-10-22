@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -108,48 +109,50 @@ internal fun InstallStep(state: SetupState, vm: SetupViewModel, onBack: () -> Un
 private fun OverallCard(state: SetupState, fraction: Float) {
     val cs = MaterialTheme.colorScheme
     val pct = (fraction * 100).toInt()
-    Card(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(containerColor = cs.primaryContainer, contentColor = cs.onPrimaryContainer)) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text("$pct%", style = displayStyle(1.3f), modifier = Modifier.weight(1f))
-                if (state.finished) Icon(Icons.Filled.CheckCircle, null, Modifier.size(36.dp))
+    Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = cs.surfaceContainer) {
+        Column(Modifier.padding(horizontal = 20.dp, vertical = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("$pct%", style = MaterialTheme.typography.displaySmall, color = cs.primary, modifier = Modifier.weight(1f))
+                if (state.finished) Icon(Icons.Filled.CheckCircle, null, Modifier.size(32.dp), tint = cs.primary)
+                else state.etaSeconds?.takeIf { !state.allPresent }?.let {
+                    Text(t("flows.onboarding.minutesLeft", "count" to minutesLeft(it)), style = MaterialTheme.typography.titleSmall, color = cs.onSurfaceVariant)
+                }
             }
             LinearProgressIndicator(
                 progress = { fraction },
                 modifier = Modifier.fillMaxWidth().height(8.dp),
                 color = cs.primary,
-                trackColor = cs.surface.copy(alpha = 0.6f),
+                trackColor = cs.surfaceContainerHighest,
+                drawStopIndicator = {},
             )
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    if (state.totalBytes > 0) t("clean.onboarding.install.bytes", "done" to sizeText(state.doneBytes), "total" to sizeText(state.totalBytes))
-                    else t("clean.onboarding.index.title"),
-                    style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f),
-                )
-                val right = listOfNotNull(
-                    state.speedBytesPerSec?.let { t("clean.onboarding.install.speed", "speed" to sizeText(it)) },
-                    state.etaSeconds?.takeIf { !state.allPresent }?.let { t("flows.onboarding.minutesLeft", "count" to minutesLeft(it)) },
-                )
-                if (right.isNotEmpty()) Text(right.joinToString(" · "), style = MaterialTheme.typography.bodyMedium)
+            val line = listOfNotNull(
+                if (state.totalBytes > 0) t("clean.onboarding.install.bytes", "done" to sizeText(state.doneBytes), "total" to sizeText(state.totalBytes))
+                else t("clean.onboarding.index.title"),
+                state.speedBytesPerSec?.takeIf { !state.finished }?.let { t("clean.onboarding.install.speed", "speed" to sizeText(it)) },
+            )
+            Text(line.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant)
+            // What is moving right now, so the card says it even when that row is below the fold.
+            val now = state.downloads.firstOrNull { it.status == FileStatus.DOWNLOADING || it.status == FileStatus.CHECKING }
+            val nowText = when {
+                state.finished -> null
+                now != null -> t("design.install.now", "name" to (now.nameKey?.let { t(it) } ?: now.asset.shortName))
+                state.indexPhase == IndexPhase.BUILDING -> t("design.install.organizing")
+                else -> null
             }
+            nowText?.let { Text(it, style = MaterialTheme.typography.titleSmall, color = cs.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
     }
 }
 
-/** One outlined card per group, rows divided by hairlines; [indexRow] closes the knowledge group. */
+/** One tonal card per group (no outline, no hairlines): the rows' own spacing separates them; [indexRow] closes it. */
 @Composable
 private fun FileGroup(files: List<AssetProgress>, vm: SetupViewModel, onBack: () -> Unit, indexRow: (@Composable () -> Unit)? = null) {
-    OutlinedCard(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
-        Column {
-            files.forEachIndexed { i, f ->
-                if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                FileRow(f, vm, onBack)
-            }
-            if (indexRow != null) {
-                if (files.isNotEmpty()) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                indexRow()
-            }
+    Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLow) {
+        Column(Modifier.padding(vertical = 4.dp)) {
+            // Moving and failed rows first, then waiting, then ready: what changes stays near the top.
+            files.sortedBy { when (it.status) { FileStatus.FAILED, FileStatus.DOWNLOADING, FileStatus.CHECKING -> 0; FileStatus.QUEUED -> 1; FileStatus.READY -> 2 } }
+                .forEach { f -> FileRow(f, vm, onBack) }
+            indexRow?.invoke()
         }
     }
 }
@@ -247,7 +250,7 @@ private fun ProgressRow(
         else -> cs.onSurfaceVariant
     }
     val a11y = "$name, $status"
-    Column(Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(horizontal = 16.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(Modifier.fillMaxWidth().clearAndSetSemantics { contentDescription = a11y }, verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
@@ -258,8 +261,11 @@ private fun ProgressRow(
             Text(status, style = MaterialTheme.typography.labelMedium, color = tone)
         }
         Column(Modifier.padding(start = 36.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            if (indeterminate) LinearProgressIndicator(Modifier.fillMaxWidth(), color = tone, trackColor = cs.surfaceContainerHighest)
-            else LinearProgressIndicator(progress = { shown }, modifier = Modifier.fillMaxWidth(), color = tone, trackColor = cs.surfaceContainerHighest)
+            if (!ready) {
+                if (indeterminate) LinearProgressIndicator(Modifier.fillMaxWidth(), color = tone, trackColor = cs.surfaceContainerHighest)
+                else LinearProgressIndicator(progress = { shown }, modifier = Modifier.fillMaxWidth(), color = tone, trackColor = cs.surfaceContainerHighest,
+                    drawStopIndicator = {})
+            }
             Text(meta, style = MaterialTheme.typography.bodySmall, color = if (failed) cs.error else cs.onSurfaceVariant, maxLines = 3)
             detail?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis) }
             AnimatedVisibility(failed) {

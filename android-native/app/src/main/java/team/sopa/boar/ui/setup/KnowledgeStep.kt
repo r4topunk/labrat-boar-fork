@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,8 +39,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -93,8 +98,12 @@ internal fun KnowledgeStep(state: SetupState, vm: SetupViewModel, onBack: () -> 
         item(key = "presets") { PresetChips(state.knowledgePreset, vm::applyPreset) }
         state.knowledge.forEach { section ->
             stickyHeader(key = "section-${section.theme}") { _ -> SectionTitle(t(section.titleKey)) }
+            // The clinical caveat once per section when every library in it carries it (Health), not on every card.
+            if (section.items.isNotEmpty() && section.items.all { it.clinicalCaveat }) {
+                item(key = "caveat-${section.theme}") { Caveat() }
+            }
             items(section.items, key = { it.id }) { item ->
-                KnowledgeCard(item, state.isSelected(item), onToggle = { vm.toggleKnowledge(item) }, onPreview = { previewId = item.id })
+                KnowledgeCard(item, state.isSelected(item), sectionCaveat = section.items.all { it.clinicalCaveat }, onToggle = { vm.toggleKnowledge(item) }, onPreview = { previewId = item.id })
             }
         }
     }
@@ -118,7 +127,6 @@ private fun PresetChips(current: KnowledgePreset?, onPick: (KnowledgePreset) -> 
                 selected = selected,
                 onClick = { onPick(p) },
                 label = { Text(t(key)) },
-                leadingIcon = if (selected) ({ Icon(Icons.Filled.Check, null, Modifier.size(FilterChipDefaults.IconSize)) }) else null,
             )
         }
     }
@@ -131,36 +139,30 @@ private fun itemName(item: KnowledgeItem) = item.nameKey?.let { t(it) } ?: item.
 private fun itemDescription(item: KnowledgeItem) = item.descriptionKey?.let { t(it) } ?: item.catalogDescription
 
 @Composable
-private fun KnowledgeCard(item: KnowledgeItem, selected: Boolean, onToggle: () -> Unit, onPreview: () -> Unit) {
+private fun KnowledgeCard(item: KnowledgeItem, selected: Boolean, sectionCaveat: Boolean, onToggle: () -> Unit, onPreview: () -> Unit) {
     val cs = MaterialTheme.colorScheme
-    val shape = MaterialTheme.shapes.large
-    OutlinedCard(
-        Modifier.fillMaxWidth(), shape = shape,
-        colors = CardDefaults.outlinedCardColors(containerColor = if (selected) cs.secondaryContainer.copy(alpha = 0.55f) else cs.surface),
-        border = selectableBorder(selected),
-    ) {
-        Row(
-            Modifier.fillMaxWidth().clip(shape).toggleable(selected, role = Role.Checkbox, onValueChange = { onToggle() })
-                .padding(start = 4.dp, end = 16.dp, top = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Checkbox(selected, onCheckedChange = null, modifier = Modifier.padding(12.dp))
-            Column(Modifier.weight(1f).padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(itemName(item), style = MaterialTheme.typography.titleMedium, color = cs.onSurface)
-                Text(itemDescription(item), style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis)
-                FlowRow(Modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    if (item.recommended) Tag(t("clean.onboarding.tag.recommended"), cs.primary, cs.onPrimary, Icons.Filled.Star)
-                    Tag(if (item.installed) t("clean.onboarding.onPhone") else sizeText(item.sizeBytes), cs.secondaryContainer, cs.onSecondaryContainer)
-                    item.preview?.takeIf { it.articles > 0 }?.let {
-                        Tag(t("clean.onboarding.articles", "count" to it.articles, "value" to countText(it.articles)), cs.surface, cs.onSurfaceVariant, outlined = true)
-                    }
-                }
-                if (item.clinicalCaveat) Caveat()
+    SelectCard(selected, Modifier.toggleable(selected, role = Role.Checkbox, onValueChange = { onToggle() }), bottom = 6.dp) {
+        Checkbox(selected, onCheckedChange = null, modifier = Modifier.padding(12.dp))
+        Column(Modifier.weight(1f).padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            val muted = LocalContentColor.current.copy(alpha = 0.78f)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(itemName(item), style = MaterialTheme.typography.titleMedium, color = LocalContentColor.current, modifier = Modifier.weight(1f))
+                if (item.recommended) Tag(t("clean.onboarding.tag.recommended"), cs.primary, cs.onPrimary, Icons.Filled.Star)
             }
-        }
-        Row(Modifier.fillMaxWidth().padding(start = 52.dp, end = 8.dp, bottom = 4.dp)) {
-            TextButton(onPreview) { Text(t("clean.onboarding.preview")) }
+            Text(itemDescription(item), style = MaterialTheme.typography.bodyMedium, color = muted, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (item.clinicalCaveat && !sectionCaveat) Caveat()
+            // Facts in one quiet line (articles, then size or "on this phone"), Preview at its end.
+            val facts = listOfNotNull(
+                item.preview?.takeIf { it.articles > 0 }?.let { t("clean.onboarding.articles", "count" to it.articles, "value" to countText(it.articles)) },
+                if (item.installed) t("clean.onboarding.onPhone") else sizeText(item.sizeBytes),
+            )
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(facts.joinToString(" · "), style = MaterialTheme.typography.labelMedium, color = muted, maxLines = 1,
+                    overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                TextButton(onPreview, contentPadding = PaddingValues(horizontal = 12.dp), modifier = Modifier.height(40.dp)) {
+                    Text(t("clean.onboarding.preview"))
+                }
+            }
         }
     }
 }
@@ -169,10 +171,15 @@ private fun KnowledgeCard(item: KnowledgeItem, selected: Boolean, onToggle: () -
 private fun Caveat() {
     val cs = MaterialTheme.colorScheme
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Icon(Icons.Outlined.Info, null, Modifier.size(16.dp), tint = cs.tertiary)
-        Text(t("clean.onboarding.caveat"), style = MaterialTheme.typography.bodySmall, color = cs.tertiary)
+        Icon(Icons.Outlined.Info, null, Modifier.size(16.dp), tint = cs.onSurfaceVariant)
+        Text(t("clean.onboarding.caveat"), style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
     }
 }
+
+/** The catalog text without the caveat sentence when the sheet already shows the caveat once. */
+private fun withoutCaveat(text: String, caveat: String): String =
+    text.split(Regex("(?<=[.!?])\\s+")).filterNot { it.contains("clinically reviewed", ignoreCase = true) || it.trim() == caveat.trim() }
+        .joinToString(" ").trim()
 
 /** What a library holds: articles, sources with counts, license, the catalog text and a few of its titles. */
 @Composable
@@ -194,16 +201,20 @@ private fun PreviewSheet(item: KnowledgeItem, selected: Boolean, onToggle: () ->
                 Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant)
             }
             if (item.clinicalCaveat) {
-                Card(colors = CardDefaults.cardColors(containerColor = cs.tertiaryContainer, contentColor = cs.onTertiaryContainer)) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(Icons.Outlined.Info, null, Modifier.size(18.dp))
+                // Calm, not alarming: a high tonal surface with the note in onSurfaceVariant.
+                Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = cs.surfaceContainerHighest, contentColor = cs.onSurfaceVariant) {
+                    Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Icon(Icons.Outlined.Info, null, Modifier.size(20.dp))
                         Text(t("clean.onboarding.caveat"), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
-            Text(item.catalogDescription, style = MaterialTheme.typography.bodyMedium, color = cs.onSurface)
+            val caveat = t("clean.onboarding.caveat")
+            val description = if (item.clinicalCaveat) withoutCaveat(item.catalogDescription, caveat) else item.catalogDescription
+            if (description.isNotEmpty()) Text(description, style = MaterialTheme.typography.bodyLarge, color = cs.onSurface)
 
-            if (preview != null && preview.sources.isNotEmpty()) {
+            // One source that is the library itself says nothing new: the list shows only for mixed libraries.
+            if (preview != null && preview.sources.size > 1) {
                 SheetLabel(t("clean.onboarding.sheet.sources"))
                 Column {
                     preview.sources.forEachIndexed { i, s ->
@@ -219,7 +230,7 @@ private fun PreviewSheet(item: KnowledgeItem, selected: Boolean, onToggle: () ->
             if (preview != null && preview.samples.isNotEmpty()) {
                 SheetLabel(t("clean.onboarding.sheet.samples", "count" to preview.articles, "value" to countText(preview.articles)))
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    preview.samples.forEach { title ->
+                    preview.samples.take(6).forEach { title ->
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Icon(BoarIcons.Description, null, Modifier.size(18.dp).padding(top = 2.dp), tint = cs.primary)
                             Text(title, style = MaterialTheme.typography.bodyMedium, color = cs.onSurface)
@@ -231,12 +242,12 @@ private fun PreviewSheet(item: KnowledgeItem, selected: Boolean, onToggle: () ->
             SheetLabel(t("clean.onboarding.sheet.license"))
             Text(item.license, style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant)
 
-            FilledTonalButton(onToggle, Modifier.fillMaxWidth().height(52.dp)) {
-                if (selected) {
-                    Icon(Icons.Filled.Check, null, Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                }
-                Text(t(if (selected) "clean.onboarding.sheet.remove" else "clean.onboarding.sheet.add"))
+            // Selected: a quiet outlined way out; not selected: the one filled action of the sheet.
+            if (selected) OutlinedButton(onToggle, Modifier.fillMaxWidth().height(52.dp)) { Text(t("clean.onboarding.sheet.remove")) }
+            else Button(onToggle, Modifier.fillMaxWidth().height(52.dp)) {
+                Icon(Icons.Filled.Add, null, Modifier.size(ButtonDefaults.IconSize))
+                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                Text(t("clean.onboarding.sheet.add"))
             }
             Spacer(Modifier.height(8.dp))
         }

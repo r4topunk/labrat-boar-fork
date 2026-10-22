@@ -101,16 +101,16 @@
    }
   ],
   "samples": [
-   "A1C",
-   "Abdominal Pain",
-   "Abortion",
-   "Abscess",
-   "Acne",
-   "Acoustic Neuroma",
-   "Acupuncture",
-   "Acute Bronchitis",
-   "Acute Flaccid Myelitis",
-   "Acute Lymphocytic Leukemia"
+   "Asthma",
+   "Diabetes",
+   "Flu",
+   "High Blood Pressure",
+   "Migraine",
+   "Common Cold",
+   "Back Pain",
+   "Allergy",
+   "Concussion",
+   "Dehydration"
   ]
  },
  "boar-wikivoyage-en": {
@@ -149,14 +149,14 @@
   "samples": [
    "Is it normal to feel your heart beat in your chest?",
    "Is it dangerous to eat bananas and eggs together?",
-   "Is saliva safe as a sexual lubricant for male masturbation?",
    "What is the difference between cal and Kcal?",
    "How many Calories Deficit Equals 1 KG Loss, approximately",
    "What is this dot on the iris?",
-   "Do you bleed to death after your penis is cut off?",
    "Is it better to sleep without a pillow?",
    "Why does my antibiotic make my urine yellow?",
-   "Can you cauterize a wound with gunpowder?"
+   "Are there any symptoms of Vitamin D deficiency?",
+   "Are there any hazards associated with changing sleep schedules (shift work)?",
+   "Air flossers vs. water flossers: which cleans teeth better?"
   ]
  },
  "qa-outdoors-se": {
@@ -168,16 +168,16 @@
    }
   ],
   "samples": [
-   "How far would you need to fall for it to be fatal?",
    "How do you determine how long a hike will take?",
    "How much should your backpack weigh?",
    "What is this knee pain when going downhill?",
    "How to avoid exploding rocks",
    "How dangerous is a band of coyotes to a lone, unarmed human?",
-   "How to humanely kill an injured bird?",
-   "Is it safe to fire 38 caliber rounds in a 357 magnum pistol?",
    "How to warm up your cold toes and fingers?",
-   "How do I tie a sleeping bag to my backpack?"
+   "How do I tie a sleeping bag to my backpack?",
+   "How do I treat a blister? How can I prevent getting them in the first place?",
+   "How should we protect ourselves from a lightning strike?",
+   "Are Icelandic deserts so dry I need to worry about drinking water?"
   ]
  },
  "qa-travel-se": {

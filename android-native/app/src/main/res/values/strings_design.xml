@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Texts added by the on-device design pass (judge/clean-native). -->
+<resources>
+    <string name="design_install_now" formatted="false">Downloading {{name}}</string>
+    <string name="design_install_organizing" formatted="false">Organizing your library</string>
+</resources>
