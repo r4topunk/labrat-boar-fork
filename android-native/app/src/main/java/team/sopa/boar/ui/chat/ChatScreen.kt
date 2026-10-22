@@ -530,10 +530,10 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
 
 private fun receiptShort(r: Receipt, rate: String) = listOf(ReceiptFormat.seconds(r.totalMs), rate).joinToString(" · ")
 
-/** The receipt everyone sees: how long the answer took ("18 s"), quiet; the speed is a technical detail. */
+/** The receipt everyone sees, quiet: "18 s · 10.4 tok/s" (time and speed stay visible by r4to's choice, c1). */
 @Composable
 private fun ReceiptShort(r: Receipt) =
-    Text(ReceiptFormat.seconds(r.totalMs), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+    Text(receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
         // Two lines with Large text rather than losing "tok/s" off the end.
         maxLines = 2, textAlign = TextAlign.Start, modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp))
 
