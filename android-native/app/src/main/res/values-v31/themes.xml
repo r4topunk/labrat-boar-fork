@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+: the splash and the first frame take the wallpaper's neutral (the dynamic scheme's surface family),
+         so the color doesn't jump when Compose draws (review theme-4). -->
+    <style name="Theme.Boar" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/system_neutral1_10</item>
+        <item name="android:windowSplashScreenBackground">@android:color/system_neutral1_10</item>
+    </style>
+</resources>

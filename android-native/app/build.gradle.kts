@@ -105,6 +105,8 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
+    // Icons.* (core set only; the few extended icons we need are copied into ui/icons/BoarIcons.kt: no minify in release).
+    implementation(libs.compose.material.icons.core)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     // On-device checks (the PIN, its Keystore key, the sealed database, the PIN screens), run with adb am instrument.

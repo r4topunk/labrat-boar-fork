@@ -121,6 +121,14 @@ data class ChatState(
     val suggestions: List<String> = emptyList(),
 )
 
+/** The history title until the model writes one: the question trimmed, cut at a word with "…" when it runs past 60 characters. */
+internal fun provisionalTitle(q: String): String {
+    val t = q.trim().replace(Regex("\\s+"), " ")
+    if (t.length <= 60) return t
+    val cut = t.take(60)
+    return (cut.substringBeforeLast(' ', cut).ifBlank { cut }).trimEnd(',', ';', ':', '-') + "…"
+}
+
 /**
  * The chat (port of ChatScreen.tsx's send flow): Deep Research when it's on, adaptive routing when that's on, the
  * default answer path otherwise; the answer streams into its message, and both turns are saved with the answer's
@@ -425,7 +433,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             // A failed write (disk full) shows as a failed answer instead of closing the app.
             val sessionId = try {
                 // The question stands in as the title until the model writes one.
-                (_state.value.sessionId ?: chats.createSession().also { s -> chats.setTitle(s.id, q.take(60)) }.id)
+                (_state.value.sessionId ?: chats.createSession().also { s -> chats.setTitle(s.id, provisionalTitle(q)) }.id)
                     .also { chats.addMessage(it, "user", q, userId) }
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e

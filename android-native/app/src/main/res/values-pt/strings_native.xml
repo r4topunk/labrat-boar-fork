@@ -67,9 +67,9 @@
     <string name="native_about_tagline" formatted="false">Suas perguntas.\nSeu celular. Sua IA.</string>
     <string name="native_about_bio" formatted="false">Pesquisa com IA offline no seu celular. Respostas com fontes, sem precisar de sinal. Código aberto (MIT).</string>
     <string name="native_about_post_why" formatted="false">Quando a IA vive só no servidor de outra pessoa, quem roda o servidor tem um interruptor.\n\nPreferimos que ninguém tenha. Por isso o modelo vive no seu celular, e nenhum servidor recebe suas perguntas.</string>
-    <string name="native_about_post_offline" formatted="false">Um download na configuração. Depois, modo avião tudo bem: o BOAR responde com a biblioteca do seu celular, com o llama.cpp embutido, e mostra os artigos que usou.</string>
-    <string name="native_about_post_receipt" formatted="false">Cada resposta registra como rodou: o modelo, o tempo até a primeira palavra, tokens por segundo, memória e fontes. Meça o seu celular em Menu → Avaliação.</string>
-    <string name="native_about_post_budget" formatted="false">Antes de carregar um modelo, o BOAR confere se ele cabe na memória do seu celular. Os downloads ficam dentro de um limite de 50 GB.</string>
+    <string name="native_about_post_offline" formatted="false">Um download na configuração. Depois, modo avião tudo bem: o BOAR responde com a biblioteca do seu celular e mostra os artigos que usou.</string>
+    <string name="native_about_post_receipt" formatted="false">Cada resposta mostra quanto tempo levou e quais artigos usou.</string>
+    <string name="native_about_post_budget" formatted="false">Antes de carregar um modelo, o BOAR confere se ele cabe na memória do seu celular.</string>
     <string name="native_about_post_open" formatted="false">Código aberto, MIT. O código, a lista de modelos e os scripts que montam os pacotes de conhecimento:</string>
     <string name="native_about_post_verify" formatted="false">As novidades saem só destes endereços. Confira o endereço antes de baixar qualquer coisa que diga ser o BOAR.</string>
     <string name="native_about_post_packs" formatted="false">Pacotes de conhecimento do R&amp;D Lab do R4to:</string>
@@ -219,7 +219,7 @@
     <string name="native_chat_errorEmpty" formatted="false">O modelo parou sem escrever uma resposta.</string>
     <string name="native_chat_errorInterrupted" formatted="false">Interrompida: o BOAR foi fechado enquanto respondia.</string>
     <string name="native_chat_deepResearchPlaceholder" formatted="false">Pergunta para o Deep Research…</string>
-    <string name="native_chat_roleDeepResearch" formatted="false">BOAR · 🔬 DEEP RESEARCH</string>
+    <string name="native_chat_roleDeepResearch" formatted="false">BOAR · Deep Research</string>
     <string name="native_answering_channel" formatted="false">Respondendo</string>
     <string name="native_answering_title" formatted="false">O BOAR está respondendo…</string>
     <string name="native_answering_text" formatted="false">A resposta continua enquanto você usa outros apps.</string>
@@ -325,7 +325,7 @@
     <string name="native_download_errorGeneric" formatted="false">O download parou. Tente de novo.</string>
     <string name="native_common_ok" formatted="false">OK</string>
     <string name="native_settings_freeMemory" formatted="false">Liberar memória quando eu sair do BOAR</string>
-    <string name="native_settings_freeMemoryNote" formatted="false">Logo depois que você sai, quando nada está sendo respondido, o BOAR descarrega o modelo, para o celular não fechar o BOAR para recuperar a memória. A próxima resposta demora alguns segundos a mais para começar.</string>
+    <string name="native_settings_freeMemoryNote" formatted="false">Libera memória alguns segundos depois que você sai. A próxima resposta começa um pouco mais devagar.</string>
     <string name="native_tweaks_freeMemoryAfter" formatted="false">Liberar memória depois de</string>
     <string name="native_tweaks_freeMemoryAfterNote" formatted="false">Quanto tempo o BOAR espera em segundo plano antes de descarregar o modelo, quando Liberar memória quando eu sair do BOAR está ligado. Auto descarrega assim que você sai, depois de terminar uma resposta em andamento; a próxima pergunta carrega de novo.</string>
     <string name="native_tweaks_immediately" formatted="false">Na hora</string>

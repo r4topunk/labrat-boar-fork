@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Boar" parent="@android:style/Theme.Material.NoActionBar" />
+    <!-- Dark window before Compose draws: the brand night surface (MaterialYou.kt brandDark). -->
+    <style name="Theme.Boar" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#FF0E1330</item>
+    </style>
 </resources>

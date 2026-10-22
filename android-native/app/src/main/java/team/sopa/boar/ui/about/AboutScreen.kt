@@ -1,10 +1,10 @@
 package team.sopa.boar.ui.about
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,10 +31,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,6 +46,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -53,13 +61,16 @@ import androidx.compose.ui.unit.dp
 import team.sopa.boar.R
 import team.sopa.boar.app.DevOptions
 import team.sopa.boar.engine.BoarEngine
+import team.sopa.boar.ui.components.BoarTopBar
+import team.sopa.boar.ui.icons.BoarIcons
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 
 /**
  * About BOAR as a short thread from @boar_app (brand book, manifesto register): what BOAR is, its addresses, and the
- * open work it stands on, with the brand mark (direction A, "Tusk moon") as the avatar. Addresses copy on press and hold; nothing opens from
- * here. The version, build and engine line closes the thread; seven taps on it turn Developer options on or off.
+ * open work it stands on, with the brand mark (direction A, "Tusk moon") as the avatar. An address opens in the browser
+ * on tap and has its own copy button. The version and build line closes the thread (the engine joins it once Developer
+ * options are on); seven taps on it turn Developer options on or off.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,17 +79,13 @@ fun AboutScreen(onClose: () -> Unit) {
     val ctx = LocalContext.current
     val info = versionName(ctx)
     val debug = (ctx.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+    val scroll = TopAppBarDefaults.pinnedScrollBehavior()
     // The top bar takes the status bar; the bottom inset is a spacer at the end of the scroll, so the thread draws behind the navigation bar.
     Scaffold(
-        containerColor = c.bgSurface,
+        modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.surface,
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
-        topBar = {
-            TopAppBar(
-                title = { Text(t("aboutScreen.title"), style = Boar.type.title) },
-                actions = { TextButton(onClose) { Text(t("common.done"), style = Boar.type.body) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = c.bgCardElevated),
-            )
-        },
+        topBar = { BoarTopBar(t("aboutScreen.title"), onBack = onClose, scrollBehavior = scroll) },
     ) { inner ->
         Column(Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 16.dp)) {
             Profile()
@@ -103,16 +110,20 @@ fun AboutScreen(onClose: () -> Unit) {
                 Text(t("native.about.post.credits"), style = Boar.type.body, color = c.textPrimary)
                 Credits()
             }
-            Text(t("native.about.holdToCopy"), style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.padding(start = 56.dp, top = 4.dp))
             // Seven taps in a row on the version toggle Developer options, as on Android's own build number.
             var taps by remember { mutableStateOf(0) }
             var lastTap by remember { mutableStateOf(0L) }
             val devOn = t("clean.about.devOn")
             val devOff = t("clean.about.devOff")
+            var devShown by remember { mutableStateOf(DevOptions.enabled(ctx)) }
+            val versionLine = t("aboutScreen.versionBadge", "version" to info, "build" to t(if (debug) "aboutScreen.buildDevelopment" else "aboutScreen.buildRelease")) +
+                // The engine is a developer detail: it shows once Developer options are on.
+                if (devShown) " • llama.cpp · ${BoarEngine.loadedVariant ?: "—"}" else ""
             Text(
-                t("aboutScreen.versionBadge", "version" to info, "build" to t(if (debug) "aboutScreen.buildDevelopment" else "aboutScreen.buildRelease")) + " • llama.cpp · ${BoarEngine.loadedVariant ?: "—"}",
+                versionLine,
                 style = Boar.type["mono.xs"], color = c.textSecondary,
                 modifier = Modifier.padding(start = 56.dp, top = 12.dp).clip(RoundedCornerShape(4.dp)).background(c.bgSubtle)
+                    .semantics { contentDescription = versionLine }
                     .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
                         val now = android.os.SystemClock.elapsedRealtime()
                         taps = if (now - lastTap > TAP_WINDOW_MS) 1 else taps + 1
@@ -121,6 +132,7 @@ fun AboutScreen(onClose: () -> Unit) {
                             taps = 0
                             val on = !DevOptions.enabled(ctx)
                             DevOptions.setEnabled(ctx, on)
+                            devShown = on
                             android.widget.Toast.makeText(ctx, if (on) devOn else devOff, android.widget.Toast.LENGTH_SHORT).show()
                         }
                     }
@@ -142,16 +154,18 @@ private fun Profile() {
         Box(Modifier.fillMaxWidth()) {
             Box(Modifier.fillMaxWidth().aspectRatio(3f).clip(RoundedCornerShape(12.dp))) {
                 Image(painterResource(R.drawable.boar_banner), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                // The moon sits behind the tagline: a dark scrim fading to the right keeps the text readable.
+                Box(Modifier.fillMaxHeight().fillMaxWidth(0.7f).background(Brush.horizontalGradient(listOf(Color.Black.copy(alpha = 0.6f), Color.Transparent))))
                 Text(t("native.about.tagline"), style = Boar.type.titleSm, color = Color(0xFFF3ECDC), fontWeight = FontWeight.ExtraBold, maxLines = 2,
                     modifier = Modifier.fillMaxWidth(0.62f).padding(start = 14.dp, top = 12.dp))
             }
             Image(painterResource(R.drawable.boar_mark), null,
                 Modifier.align(Alignment.BottomStart).padding(start = 12.dp).offset(y = 40.dp).size(80.dp).clip(CircleShape)
-                    .border(3.dp, c.bgSurface, CircleShape), contentScale = ContentScale.Crop)
+                    .border(3.dp, MaterialTheme.colorScheme.surface, CircleShape), contentScale = ContentScale.Crop)
         }
         Column(Modifier.padding(top = 48.dp, start = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text("Boar", style = Boar.type.title, color = c.textHeading, fontWeight = FontWeight.Bold)
-            Text("@boar_app", style = Boar.type["mono.xs"], color = c.textDim)
+            Text("@boar_app", style = Boar.type["mono.xs"], color = c.textSecondary)
             Text(t("native.about.bio"), style = Boar.type.body, color = c.textSecondary, modifier = Modifier.padding(top = 6.dp))
         }
     }
@@ -170,7 +184,7 @@ private fun Post(last: Boolean, content: @Composable () -> Unit) {
         Column(Modifier.weight(1f).padding(bottom = 18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Boar", style = Boar.type.titleSm, color = c.textHeading, fontWeight = FontWeight.Bold)
-                Text("@boar_app", style = Boar.type.caption, color = c.textDim)
+                Text("@boar_app", style = Boar.type.caption, color = c.textSecondary)
             }
             content()
         }
@@ -192,15 +206,14 @@ private fun Credits() {
     }
     val all = AboutCredits.libraries + AboutCredits.extra() + models
     val shown = if (open) all else all.take(4)
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(Modifier.animateContentSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         shown.forEach { (name, license) ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(name, style = Boar.type.caption, color = c.textSecondary, modifier = Modifier.weight(1f))
-                Text(license, style = Boar.type["mono.xs"], color = c.textDim)
+                Text(license, style = Boar.type["mono.xs"], color = c.textSecondary)
             }
         }
-        Text(if (open) t("native.about.creditsLess") else t("native.about.creditsAll", "n" to all.size), style = Boar.type.caption, color = c.textAccentCyan,
-            fontWeight = FontWeight.SemiBold, modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { open = !open }.padding(vertical = 4.dp))
+        TextButton({ open = !open }) { Text(if (open) t("native.about.creditsLess") else t("native.about.creditsAll", "n" to all.size)) }
     }
 }
 
@@ -219,19 +232,29 @@ private const val TAP_WINDOW_MS = 1500L
 private val TEAM = listOf("Bielcx" to "bielthegoat", "Jasper" to "btcjasper", "r4to" to "r4topunk", "Sopa" to "sopaagency",
     "vaipraonde" to "arferrari", "vlad" to "sk8ordao")
 
-/** An address to type or paste, never opened from here; press and hold copies [copy] (the text itself by default). */
-@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+/**
+ * An address: a tap opens https://[copy] in the browser, the trailing button copies it (the text itself by default).
+ * [text] is what shows, so a team member reads as a name and the copy is the X address.
+ */
 @Composable
 private fun Link(text: String, copy: String = text) {
     val c = Boar.colors
     val ctx = LocalContext.current
+    val uri = LocalUriHandler.current
     val copied = t("native.about.copied")
-    Text(text, style = Boar.type["mono.sm"], color = c.textAccentCyan,
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(c.bgTerminal, RoundedCornerShape(6.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(6.dp))
-            .combinedClickable(onClick = {}, onLongClick = {
+    val copyLabel = t("clean.settings.about.copyAddress")
+    Surface(
+        onClick = { runCatching { uri.openUri("https://$copy") } },
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text, style = Boar.type["mono.sm"], color = c.textAccentCyan, modifier = Modifier.weight(1f).padding(start = 12.dp, top = 8.dp, bottom = 8.dp))
+            IconButton({
                 (ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager)
                     .setPrimaryClip(android.content.ClipData.newPlainText("BOAR", copy))
                 android.widget.Toast.makeText(ctx, copied, android.widget.Toast.LENGTH_SHORT).show()
-            })
-            .padding(10.dp))
+            }) { Icon(BoarIcons.ContentCopy, contentDescription = copyLabel, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+        }
+    }
 }

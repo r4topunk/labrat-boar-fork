@@ -3,6 +3,7 @@ package team.sopa.boar.ui.theme
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.graphics.drawable.ColorDrawable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +15,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
@@ -144,6 +146,9 @@ fun BoarTheme(themeId: String? = null, fontScale: String = "standard", content: 
     if (!view.isInEditMode) SideEffect {
         view.context.findActivity()?.window?.let { w ->
             WindowCompat.getInsetsController(w, view).apply { isAppearanceLightStatusBars = !dark; isAppearanceLightNavigationBars = !dark }
+            // The window behind Compose (seen on IME resizes and rotation) takes the scheme's surface, not the
+            // platform theme's, which follows the phone's mode and not the in-app Light/Dark.
+            w.setBackgroundDrawable(ColorDrawable(scheme.surface.toArgb()))
         }
     }
     // Stock M3 parts (dialogs, text buttons, menus, chips) read MaterialTheme.typography: without this they fall back to
@@ -155,9 +160,17 @@ fun BoarTheme(themeId: String? = null, fontScale: String = "standard", content: 
     }
 }
 
-/** The M3 type roles mapped onto the brand scale, so stock components match the rest of the app. */
+/**
+ * All 15 M3 type roles mapped onto the brand scale, so stock components match the rest of the app: a role left out
+ * falls back to Roboto. The brand has one size above titleLg, so display and headline share it. labelLarge (button
+ * text) is Baloo titleSm, as the app's own buttons; labelMedium/Small (chips, badges, nav labels) are Lexend.
+ */
 private fun boarTypography(type: BoarType) = Typography(
+    displayLarge = type.headline,
+    displayMedium = type.headline,
     displaySmall = type.headline,
+    headlineLarge = type.headline,
+    headlineMedium = type.headline,
     headlineSmall = type.headline,
     titleLarge = type.titleLg,
     titleMedium = type.title,

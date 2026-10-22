@@ -34,7 +34,7 @@
     <string name="modelBrowser_downloadsLikes" formatted="false">{{downloads}} downloads · {{likes}} curtidas</string>
     <string name="modelBrowser_noChecksum" formatted="false">checksum não disponível</string>
     <string name="modelBrowser_adding" formatted="false">Adicionando…</string>
-    <string name="modelBrowser_addButton" formatted="false">➕ Adicionar</string>
+    <string name="modelBrowser_addButton" formatted="false">Adicionar</string>
     <string name="modelBrowser_noGgufFiles" formatted="false">Nenhum arquivo .gguf encontrado neste repositório.</string>
     <string name="modelBrowser_offlineNote" formatted="false">Você está offline. Conecte-se à internet para buscar mais modelos no Hugging Face; todo o resto funciona offline.</string>
     <string name="catalogItemCard_calculating" formatted="false">Calculando…</string>
@@ -49,22 +49,22 @@
     <string name="catalogItemCard_kind_embedding" formatted="false">EMBEDDING</string>
     <string name="catalogItemCard_kind_corpus" formatted="false">CORPUS</string>
     <string name="catalogItemCard_default" formatted="false">PADRÃO</string>
-    <string name="catalogItemCard_compat_green" formatted="false">Funciona muito bem neste aparelho</string>
-    <string name="catalogItemCard_compat_yellow" formatted="false">RAM alta / 12GB necessários</string>
-    <string name="catalogItemCard_compat_red" formatted="false">Incompatível (excede a RAM do aparelho)</string>
+    <string name="catalogItemCard_compat_green" formatted="false">Roda bem neste celular</string>
+    <string name="catalogItemCard_compat_yellow" formatted="false">Pode ficar lento neste celular</string>
+    <string name="catalogItemCard_compat_red" formatted="false">Grande demais para este celular</string>
     <string name="catalogItemCard_downloadingAsset" formatted="false">Baixando</string>
     <string name="catalogItemCard_eta" formatted="false">Tempo restante: {{eta}}</string>
-    <string name="catalogItemCard_retryDownload" formatted="false">🔄 Repetir Download</string>
+    <string name="catalogItemCard_retryDownload" formatted="false">Tentar de novo</string>
     <string name="catalogItemCard_downloadAsset" formatted="false">Baixar</string>
     <string name="catalogItemCard_loadingModel" formatted="false">Carregando modelo…</string>
-    <string name="catalogItemCard_selectUse" formatted="false">🔘 Selecionar e Usar</string>
-    <string name="catalogItemCard_indexedNote" formatted="false">Indexado na base de conhecimento offline</string>
-    <string name="catalogItemCard_activeNote" formatted="false">Modelo de inferência ativo</string>
+    <string name="catalogItemCard_selectUse" formatted="false">Usar este modelo</string>
+    <string name="catalogItemCard_indexedNote" formatted="false">Pronto para buscar offline</string>
+    <string name="catalogItemCard_activeNote" formatted="false">Em uso nas respostas</string>
     <string name="catalogItemCard_deleteAccessibility" formatted="false">Excluir recurso do modelo</string>
-    <string name="catalogItemCard_badge_downloading" formatted="false">BAIXANDO</string>
-    <string name="catalogItemCard_badge_notOnDisk" formatted="false">NÃO INSTALADO</string>
-    <string name="catalogItemCard_badge_active" formatted="false">ATIVO</string>
-    <string name="catalogItemCard_badge_cached" formatted="false">EM CACHE</string>
+    <string name="catalogItemCard_badge_downloading" formatted="false">Baixando</string>
+    <string name="catalogItemCard_badge_notOnDisk" formatted="false">Não baixado</string>
+    <string name="catalogItemCard_badge_active" formatted="false">Em uso</string>
+    <string name="catalogItemCard_badge_cached" formatted="false">Baixado</string>
     <string name="modelLoadErrorCard_corrupt_title" formatted="false">Falha na verificação de integridade</string>
     <string name="modelLoadErrorCard_corrupt_detail" formatted="false">O arquivo do modelo baixado está truncado ou corrompido (provavelmente por uma interrupção de rede em segundo plano).</string>
     <string name="modelLoadErrorCard_corrupt_recommendation" formatted="false">Baixe o arquivo do modelo novamente ou troque para um modelo já em cache nas Configurações.</string>
@@ -252,7 +252,7 @@
     <string name="chatScreen_mountingWeights" formatted="false">Preparando o BOAR…</string>
     <string name="chatScreen_indexingKnowledgeBase" formatted="false">Indexando base de conhecimento offline…</string>
     <string name="chatScreen_reasoningElapsed" formatted="false">💭 Raciocinando… {{seconds}}s</string>
-    <string name="chatScreen_reasoningUnfinished" formatted="false">O raciocínio não terminou antes do fim da resposta (interrompido ou sem tokens). Toque em 💭 para ler.</string>
+    <string name="chatScreen_reasoningUnfinished" formatted="false">O raciocínio não terminou antes do fim da resposta (interrompido ou sem tokens). Toque no botão de raciocínio para lê-lo.</string>
     <string name="chatScreen_showReasoning" formatted="false">Mostrar raciocínio</string>
     <string name="chatScreen_hideReasoning" formatted="false">Ocultar raciocínio</string>
     <string name="chatScreen_messageReused" formatted="false">Mensagem copiada para a caixa de texto</string>
@@ -264,12 +264,12 @@
     <string name="chatScreen_drawerItems_settings" formatted="false">Configurações</string>
     <string name="chatScreen_drawerItems_telemetry" formatted="false">Telemetria de Execução</string>
     <string name="chatScreen_drawerItems_about" formatted="false">Sobre &amp; Informações</string>
-    <string name="chatScreen_inputPlaceholder" formatted="false">Pergunta de pesquisa…</string>
+    <string name="chatScreen_inputPlaceholder" formatted="false">Faça uma pergunta</string>
     <string name="chatScreen_stopGeneration" formatted="false">Parar geração</string>
     <string name="chatScreen_sendMessage" formatted="false">Enviar mensagem</string>
-    <string name="chatScreen_research_decomposing" formatted="false">🔬 Dividindo a pergunta em subperguntas…</string>
-    <string name="chatScreen_research_researching" formatted="false">🔬 Pesquisando subpergunta {{index}}/{{count}}…</string>
-    <string name="chatScreen_research_synthesizing" formatted="false">🔬 Sintetizando descobertas offline…</string>
+    <string name="chatScreen_research_decomposing" formatted="false">Dividindo a pergunta em partes menores…</string>
+    <string name="chatScreen_research_researching" formatted="false">Pesquisando parte {{index}} de {{count}}…</string>
+    <string name="chatScreen_research_synthesizing" formatted="false">Reunindo as descobertas…</string>
     <string name="chatScreen_roleYou" formatted="false">Você</string>
     <string name="chatScreen_roleAssistant" formatted="false">BOAR</string>
     <string name="chatScreen_stoppedByUser" formatted="false">Interrompido pelo usuário</string>
@@ -295,15 +295,15 @@
     <string name="aboutScreen_benchmarkBody" formatted="false">O BOAR mede cada resposta no seu próprio celular: tempo de carregamento do modelo, tempo até o primeiro token, tokens/s, pico de memória e quais fontes foram usadas. Rode a avaliação embutida em Telemetria de Execução → 🧪 Avaliar para comparar qualquer modelo instalado nas mesmas perguntas, ou comande pelo computador com npm run eval:device.</string>
     <string name="aboutScreen_repoTitle" formatted="false">Repositório de código aberto</string>
     <string name="aboutScreen_repoBody" formatted="false">O código-fonte, os manifestos de modelos quantizados e os scripts de indexação offline estão disponíveis em:</string>
-    <string name="sourceFootnotes_title" formatted="false">Fontes consultadas</string>
+    <string name="sourceFootnotes_title" formatted="false">Fontes</string>
     <string name="sourceFootnotes_localIndex" formatted="false">ÍNDICE LOCAL</string>
     <string name="promptIdeasCarousel_title" formatted="false">Prompts de pesquisa de referência</string>
     <string name="promptIdeasCarousel_prev" formatted="false">Anterior</string>
     <string name="promptIdeasCarousel_usePrompt" formatted="false">Usar Este Prompt de Pesquisa</string>
     <string name="promptIdeasCarousel_next" formatted="false">Próximo</string>
-    <string name="processingIndicator_retrieving" formatted="false">🔍 Buscando no seu conhecimento…</string>
-    <string name="processingIndicator_thinking" formatted="false">🧠 Raciocinando sobre o contexto local…</string>
-    <string name="processingIndicator_generating" formatted="false">⚡ Transmitindo tokens…</string>
+    <string name="processingIndicator_retrieving" formatted="false">Buscando na biblioteca…</string>
+    <string name="processingIndicator_thinking" formatted="false">Lendo as fontes…</string>
+    <string name="processingIndicator_generating" formatted="false">Escrevendo a resposta…</string>
     <string name="personalities_succinct_label" formatted="false">Sucinto e Direto</string>
     <string name="personalities_succinct_description" formatted="false">Mais rápido — 2–3 parágrafos curtos ou tópicos, sem introdução. Padrão para celular.</string>
     <string name="personalities_detailed_label" formatted="false">Completo e Detalhado</string>

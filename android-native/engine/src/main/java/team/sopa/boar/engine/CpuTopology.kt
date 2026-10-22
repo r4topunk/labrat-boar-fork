@@ -31,6 +31,15 @@ data class CpuTopology(val cores: List<Core>) {
         return keep.map { it.id }.sorted()
     }
 
+    /**
+     * The [n] fastest of [autoCores] (never a little core), for work that wants a fixed thread count such as the setup
+     * index: Tensor G3 (1 X3 + 4 A715 + 4 A510) gives the X3 and three A715. Empty when sysfs said nothing.
+     */
+    fun fastest(n: Int): List<Int> {
+        val auto = autoCores.toSet()
+        return cores.filter { it.id in auto }.sortedWith(compareByDescending<Core> { it.maxKhz }.thenBy { it.id }).take(n).map { it.id }.sorted()
+    }
+
     /** "4-7" style list for [EngineParams.cpus]. */
     fun cpuList(ids: List<Int>): String = ids.sorted().joinToString(",")
 

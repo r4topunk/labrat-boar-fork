@@ -126,6 +126,21 @@ int sync_prompt(Session * s, const std::vector<llama_token> & tokens) {
     return (int) (tokens.size() - keep);
 }
 
+// Tokens one embedded text may keep: the context, and never past the model's trained positions, so an embedder loaded
+// with a larger context still cuts each text where the 512-token one does.
+int embed_limit(Session * s) {
+    int n = (int) llama_n_ctx(s->ctx);
+    int train = (int) llama_model_n_ctx_train(s->model);
+    return train > 0 ? std::min(n, train) : n;
+}
+
+void l2_normalize(float * v, int n) {
+    double sum = 0;
+    for (int i = 0; i < n; i++) sum += (double) v[i] * v[i];
+    float inv = sum > 0 ? (float) (1.0 / std::sqrt(sum)) : 0.f;
+    for (int i = 0; i < n; i++) v[i] *= inv;
+}
+
 }  // namespace
 
 extern "C" {
@@ -183,6 +198,9 @@ Java_team_sopa_boar_engine_BoarNative_load(JNIEnv * env, jobject, jstring jpath,
     cp.type_v = (ggml_type) p.value("typeV", (int) GGML_TYPE_F16);
     cp.flash_attn_type = (llama_flash_attn_type) p.value("flashAttn", (int) LLAMA_FLASH_ATTN_TYPE_AUTO);
     cp.embeddings = s->embeddings;
+    // Several sequences per call (embedBatch): a unified buffer keeps each one's limit at n_ctx, as a single call has.
+    cp.n_seq_max = (uint32_t) std::max(1, p.value("nSeqMax", 1));
+    if (cp.n_seq_max > 1) cp.kv_unified = true;
     cp.no_perf = false;
     s->ctx = llama_init_from_model(model, cp);
     if (!s->ctx) { LOGE("context init failed"); llama_model_free(model); delete s; return 0; }
@@ -382,7 +400,7 @@ Java_team_sopa_boar_engine_BoarNative_embed(JNIEnv * env, jobject, jlong h, jbyt
     std::string text(len, '\0');
     env->GetByteArrayRegion(jtext, 0, len, reinterpret_cast<jbyte *>(&text[0]));
     std::vector<llama_token> tokens = common_tokenize(s->vocab, text, true, true);
-    int n_ctx = (int) llama_n_ctx(s->ctx);
+    int n_ctx = embed_limit(s);
     if ((int) tokens.size() > n_ctx) tokens.resize(n_ctx);
     llama_memory_clear(llama_get_memory(s->ctx), true);
     s->cached.clear();
@@ -404,6 +422,63 @@ Java_team_sopa_boar_engine_BoarNative_embed(JNIEnv * env, jobject, jlong h, jbyt
     }
     env->SetFloatArrayRegion(out, 0, n_embd, v.data());
     return out;
+}
+
+// Several embeddings per llama_decode: each text is its own sequence (seq id = its slot in the call), packed until the
+// micro-batch is full (non-causal encoders must fit one ubatch) or n_seq_max sequences. Fuller matrix multiplies make the
+// setup index faster than one text per call. Returns n * n_embd floats in input order, or an empty array when a decode
+// failed or the model gave no pooled vector; the caller then falls back to embed().
+JNIEXPORT jfloatArray JNICALL
+Java_team_sopa_boar_engine_BoarNative_embedBatch(JNIEnv * env, jobject, jlong h, jobjectArray jtexts, jboolean normalize) {
+    Session * s = S(h);
+    jsize n = jtexts ? env->GetArrayLength(jtexts) : 0;
+    if (!s || n == 0) return env->NewFloatArray(0);
+    const int n_embd = llama_model_n_embd(s->model);
+    const int n_ub = (int) llama_n_ubatch(s->ctx);
+    const int n_seq = (int) std::max<uint32_t>(1, llama_n_seq_max(s->ctx));
+    const int limit = std::min(embed_limit(s), n_ub);
+
+    std::vector<std::vector<llama_token>> toks(n);
+    for (jsize i = 0; i < n; i++) {
+        auto jt = (jbyteArray) env->GetObjectArrayElement(jtexts, i);
+        jsize len = jt ? env->GetArrayLength(jt) : 0;
+        std::string text(len, '\0');
+        if (len > 0) env->GetByteArrayRegion(jt, 0, len, reinterpret_cast<jbyte *>(&text[0]));
+        if (jt) env->DeleteLocalRef(jt);
+        toks[i] = common_tokenize(s->vocab, text, true, true);
+        if ((int) toks[i].size() > limit) toks[i].resize(limit);
+        if (toks[i].empty()) return env->NewFloatArray(0);
+    }
+
+    std::vector<float> out((size_t) n * n_embd);
+    llama_batch batch = llama_batch_init(n_ub, 0, 1);
+    bool ok = true;
+    for (int first = 0; first < n && ok;) {
+        common_batch_clear(batch);
+        int last = first;
+        while (last < n && last - first < n_seq && batch.n_tokens + (int) toks[last].size() <= n_ub) {
+            const auto & t = toks[last];
+            for (size_t j = 0; j < t.size(); j++) common_batch_add(batch, t[j], (llama_pos) j, { (llama_seq_id) (last - first) }, true);
+            last++;
+        }
+        if (last == first) { ok = false; break; }
+        llama_memory_clear(llama_get_memory(s->ctx), true);
+        if (llama_decode(s->ctx, batch) != 0) { ok = false; break; }
+        for (int k = first; k < last; k++) {
+            const float * e = llama_get_embeddings_seq(s->ctx, k - first);
+            if (!e) { ok = false; break; }
+            float * dst = out.data() + (size_t) k * n_embd;
+            std::copy(e, e + n_embd, dst);
+            if (normalize) l2_normalize(dst, n_embd);
+        }
+        first = last;
+    }
+    llama_batch_free(batch);
+    s->cached.clear();
+    if (!ok) return env->NewFloatArray(0);
+    jfloatArray arr = env->NewFloatArray((jsize) out.size());
+    env->SetFloatArrayRegion(arr, 0, (jsize) out.size(), out.data());
+    return arr;
 }
 
 // llama-bench style: pp = prompt processing of nPp random tokens, tg = nTg tokens one at a time.

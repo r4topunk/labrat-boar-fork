@@ -5,17 +5,19 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,30 +27,55 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FilledTonalIconToggleButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,16 +88,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -78,27 +108,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.delay
 import team.sopa.boar.R
 import team.sopa.boar.chat.Activity
 import team.sopa.boar.chat.ChatState
-import androidx.compose.ui.platform.LocalContext
-import team.sopa.boar.ui.I18n
 import team.sopa.boar.chat.Receipt
 import team.sopa.boar.chat.ReceiptFormat
-import team.sopa.boar.chat.Source
 import team.sopa.boar.chat.UiMessage
 import team.sopa.boar.engine.UserErrors
 import team.sopa.boar.engine.answer.AnswerText
 import team.sopa.boar.engine.answer.ResearchStage
+import team.sopa.boar.ui.I18n
+import team.sopa.boar.ui.icons.BoarIcons
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
-import team.sopa.boar.ui.theme.BrandType
+import team.sopa.boar.ui.theme.FixedSizeChrome
 
 /**
- * The chat, laid out as src/ui-android/ChatScreen.tsx and ChatHeader.tsx with their style values: the ambient light,
- * header and sub-bar, the loading strip, the empty state, the bubbles and the input bar.
+ * The chat on Material 3: a TopAppBar with the mascot, the bubbles, the loading strip, the empty state and the input
+ * bar (style chip, text field, send or stop). Chrome text uses the typography roles and the colour scheme; tertiary is
+ * kept for Deep Research, error for failures.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     state: ChatState,
@@ -119,7 +150,7 @@ fun ChatScreen(
     onReused: () -> Unit = {},
     onToastHidden: () -> Unit = {},
 ) {
-    val c = Boar.colors
+    val scheme = MaterialTheme.colorScheme
     val list = rememberLazyListState()
     var input by remember { mutableStateOf("") }
     var toneSheet by remember { mutableStateOf(false) }
@@ -139,16 +170,17 @@ fun ChatScreen(
         // runs on every streamed token.
         if (follow && !list.isScrollInProgress && state.messages.isNotEmpty()) list.scrollToItem(state.messages.size - 1, Int.MAX_VALUE / 2)
     }
-    Box(Modifier.fillMaxSize().background(c.bgTerminal)) {
-        Ambient()
-        // The status and navigation bar insets are applied inside Header and InputBar, under their backgrounds, so the bars
-        // show the bar's own surface instead of a band of the page color; the keyboard still lifts the whole column.
-        Column(Modifier.fillMaxSize().imePadding()) {
-            team.sopa.boar.ui.theme.FixedSizeChrome { Header(state, onMenu, onNewChat, onSetDeepResearch) }
+    // The bar tints to surfaceContainer once the messages scroll under it.
+    val barScroll = TopAppBarDefaults.pinnedScrollBehavior()
+    Box(Modifier.fillMaxSize().background(scheme.background)) {
+        // The status and navigation bar insets are applied inside the TopAppBar and InputBar, under their backgrounds, so the
+        // bars show their own surface instead of a band of the page color; the keyboard still lifts the whole column.
+        Column(Modifier.fillMaxSize().imePadding().nestedScroll(barScroll.nestedScrollConnection)) {
+            FixedSizeChrome { Header(state, onMenu, onNewChat, barScroll) }
             state.loadingKey?.let { LoadingBanner(t(it)) }
             state.loadNote?.let { LoadNoteBanner(it, onDismissLoadNote, onRetryLessMemory, onLoadAnyway, onOpenModels) }
             // Deep Research on: the chat area takes a light tint of its color, so the mode shows at a glance.
-            val researchTint = if (state.deepResearch) Boar.colors.frontierText.copy(alpha = 0.06f) else Color.Transparent
+            val researchTint = if (state.deepResearch) scheme.tertiary.copy(alpha = 0.06f) else Color.Transparent
             if (state.messages.isEmpty()) {
                 Box(Modifier.weight(1f).fillMaxWidth().background(researchTint)) {
                     EmptyState(state.suggestions, onAsk = { onSend(it) }, onFill = { input = it })
@@ -160,13 +192,15 @@ fun ChatScreen(
                     contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry) }
+                    items(state.messages, key = { it.id }) { m ->
+                        Bubble(m, state, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, modifier = Modifier.animateItem())
+                    }
                 }
             }
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
                 // The answer gets the whole screen: the keyboard closes on send.
                 onSend(input); input = ""; keyboard?.hide(); focus.clearFocus()
-            }, onStop, state.toneIcon, state.stopping, deepResearch = state.deepResearch) { toneSheet = true }
+            }, onStop, state.personalityId, state.stopping, state.deepResearch, onSetDeepResearch) { toneSheet = true }
         }
     }
     state.toast?.let { Toast(it, onToastHidden) }
@@ -175,121 +209,82 @@ fun ChatScreen(
 /** The chat column's widest: about 75 characters of body text. */
 private val MAX_CHAT_WIDTH = 720.dp
 
-/** Material You has no ember glow; only the faint moon stays, and only in the dark theme. */
-@Composable
-private fun Ambient() {
-    val c = Boar.colors
-    if (c.id != "dark") return
-    Box(Modifier.fillMaxSize()) {
-        Box(Modifier.align(Alignment.TopEnd).offset(x = 40.dp, y = 120.dp).size(110.dp).alpha(0.13f).background(c.cyan500, CircleShape))
-    }
-}
-
-/** ChatHeader.tsx */
-@Composable
-private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, onSetDeepResearch: (Boolean) -> Unit) {
-    val c = Boar.colors
-    val type = Boar.type
-    Column(Modifier.fillMaxWidth().background(c.bgSurface).statusBarsPadding().padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // Stock icon buttons: 48 dp touch target, button role, and a name for TalkBack (the glyph itself is hidden from it).
-            IconButton(onMenu, Modifier.describe(t("drawer.recentSessions"))) { Glyph("☰", 18.sp, FontWeight.Bold) }
-            Row(Modifier.weight(1f).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Image(painterResource(R.drawable.mascot), null, Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Fit)
-                Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("BOAR", style = type.titleLg.copy(letterSpacing = 0.5.sp), color = c.textHeading)
-                        StatusPill(state.online)
-                    }
-                    // While adaptive routing has another model write the answer: "→ that model", then back to the pick.
-                    val headerModel = state.answeringModel?.takeIf { state.answeringId != null }?.let { "→ $it" } ?: state.modelLabel
-                    Text((headerModel ?: t("chatHeader.localLlmCore")).uppercase(), style = type["mono.xs"], color = c.textDim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(top = 1.dp))
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                DeepResearchButton(state.deepResearch, onSetDeepResearch)
-                FilledTonalIconButton(onNewChat, Modifier.describe(t("clean.drawer.newChat"))) { Glyph("+", 18.sp, FontWeight.Bold) }
-            }
-        }
-        // Live speed in the header is a technical detail (Advanced tweaks → Show technical details).
-        val tps = if (state.activity == Activity.Generating && state.technicalDetails) state.liveTokPerSec else null
-        if (tps != null) Row(verticalAlignment = Alignment.CenterVertically) {
-            Spacer(Modifier.weight(1f))
-            tps?.let {
-                Row(
-                    Modifier.background(c.cyanBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
-                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
-                ) {
-                    Text("●", fontSize = 8.sp, color = c.cyan400)
-                    Text("%.1f".format(it), style = type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.Bold)
-                    Text("tok/s", style = type["mono.xs"], color = c.textMuted)
-                }
-            }
-        }
-    }
-    Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
+/** "Qwen2.5-1.5B-Instruct" reads "Qwen2.5 · 1.5B": the suffixes that only mean "tuned for chat" or "file format" are dropped. */
+private fun modelName(raw: String, technical: Boolean): String {
+    if (technical) return raw
+    val parts = raw.split('-').filter { p -> p.isNotBlank() && !p.equals("instruct", true) && !p.equals("it", true) && !p.equals("chat", true) && !p.equals("gguf", true) && !Regex("(?i)q\\d.*").matches(p) }
+    return if (parts.isEmpty()) raw else parts.take(3).joinToString(" · ")
 }
 
 /**
- * Deep Research beside New chat: 🔬 lit when on, dim when off. A tap opens what it does and its switch, so it's found
- * and understood in one place (the style sheet has the same switch).
+ * ChatHeader.tsx as a small TopAppBar: menu, mascot with the name and the model, the constant "Works offline" chip
+ * (it opens what online/offline means) and New chat. Deep Research lives in the style sheet and the input bar.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DeepResearchButton(on: Boolean, onSet: (Boolean) -> Unit) {
-    val c = Boar.colors
-    var open by remember { mutableStateOf(false) }
-    Box {
-        // Tonal toggle: the tertiary container when on, a visible surface when off (white at 5 % vanished on light).
-        FilledTonalIconToggleButton(on, { open = true }, Modifier.describe(t("chatHeader.deepResearch")), colors = IconButtonDefaults.filledTonalIconToggleButtonColors(
-            containerColor = c.bgCardElevated, contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            checkedContainerColor = MaterialTheme.colorScheme.tertiaryContainer, checkedContentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-        )) {
-            Glyph("🔬", 17.sp, modifier = Modifier.alpha(if (on) 1f else 0.45f))
-        }
-        androidx.compose.material3.DropdownMenu(open, { open = false }, Modifier.background(c.bgCardElevated).widthIn(max = 300.dp)) {
-            Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text("🔬 " + t("personalitySettings.deepResearchTitle"), style = Boar.type.titleSm, color = c.textHeading)
-                        Text(t(if (on) "native.chat.deepResearchOn" else "native.chat.deepResearchOff"), style = Boar.type["mono.xs"], color = if (on) c.frontierText else c.textDim, fontWeight = FontWeight.Bold)
+private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, scrollBehavior: TopAppBarScrollBehavior) {
+    val scheme = MaterialTheme.colorScheme
+    var info by remember { mutableStateOf(false) }
+    if (info) AlertDialog(
+        onDismissRequest = { info = false },
+        confirmButton = { TextButton({ info = false }) { Text(t("common.close")) } },
+        title = { Text(t(if (state.online) "chatHeader.onlineTitle" else "chatHeader.offlineTitle")) },
+        text = { Text(t(if (state.online) "chatHeader.onlineBody" else "chatHeader.offlineBody")) },
+    )
+    // While adaptive routing has another model write the answer: "→ that model", then back to the pick.
+    val routed = state.answeringModel?.takeIf { state.answeringId != null }
+    val picked = state.modelLabel
+    val subtitle = when {
+        routed != null -> "→ " + modelName(routed, state.technicalDetails)
+        picked != null -> modelName(picked, state.technicalDetails)
+        else -> t("chatHeader.localLlmCore")
+    }
+    Column {
+        TopAppBar(
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Image(painterResource(R.drawable.mascot), null, Modifier.size(40.dp).clip(CircleShape), contentScale = ContentScale.Fit)
+                    Column {
+                        Text("BOAR", style = MaterialTheme.typography.titleLarge, maxLines = 1)
+                        Text(subtitle, style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    androidx.compose.material3.Switch(on, onSet, colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
                 }
-                Text(t("native.chat.deepResearchExplain"), style = Boar.type.subtext, color = c.textSecondary)
+            },
+            navigationIcon = {
+                IconButton(onMenu) { Icon(Icons.Filled.Menu, contentDescription = t("chatHeader.openDrawer")) }
+            },
+            actions = {
+                // The same on-device claim in every state; the chip opens what being online means for BOAR.
+                AssistChip(
+                    onClick = { info = true },
+                    label = { Text(t("clean.chat.worksOffline"), maxLines = 1, softWrap = false) },
+                    leadingIcon = { Icon(Icons.Filled.CheckCircle, contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize)) },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = scheme.secondaryContainer, labelColor = scheme.onSecondaryContainer, leadingIconContentColor = scheme.onSecondaryContainer),
+                    border = null,
+                )
+                FilledTonalIconButton(onNewChat) { Icon(Icons.Filled.Add, contentDescription = t("clean.drawer.newChat")) }
+                Spacer(Modifier.width(4.dp))
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = scheme.surface, scrolledContainerColor = scheme.surfaceContainer),
+            scrollBehavior = scrollBehavior,
+        )
+        // Live speed in the header is a technical detail (Advanced tweaks → Show technical details).
+        val tps = if (state.activity == Activity.Generating && state.technicalDetails) state.liveTokPerSec else null
+        if (tps != null) Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Spacer(Modifier.weight(1f))
+            Row(
+                Modifier.background(scheme.secondaryContainer, MaterialTheme.shapes.small).padding(horizontal = 8.dp, vertical = 3.dp),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                Box(Modifier.size(6.dp).background(scheme.primary, CircleShape))
+                Text("%.1f tok/s".format(tps), style = MaterialTheme.typography.labelSmall, color = scheme.onSecondaryContainer)
             }
         }
     }
 }
 
-/** A text glyph inside an icon button: the button carries the name, so TalkBack doesn't also read "trigram for heaven". */
-@Composable
-private fun Glyph(glyph: String, size: androidx.compose.ui.unit.TextUnit, weight: FontWeight? = null, modifier: Modifier = Modifier) =
-    Text(glyph, fontSize = size, fontWeight = weight, modifier = modifier.clearAndSetSemantics {})
-
 private fun Modifier.describe(text: String): Modifier = semantics { contentDescription = text }
-
-/** The brand's moon blue (brand book: moonlight means no signal), for the OFFLINE pill; light blue only reads on dark. */
-private val MOON = Color(0xFF9EC7F0)
-
-@Composable
-private fun StatusPill(online: Boolean) {
-    val c = Boar.colors
-    // The word shows only when it fits: with Large text and Labs badges the header is tight ("ONLIN / E", then "ONL").
-    // Without room the pill is just its dot. Told apart by hue and by shape (Oct 16, both were yellow in Moonlight):
-    // OFFLINE is a moon-blue outline, the calm state; ONLINE is a filled gold pill, noticed without reading "danger".
-    var fits by remember { mutableStateOf(true) }
-    val tint = if (online) c.amber400 else if (c.id == "dark") MOON else MaterialTheme.colorScheme.tertiary
-    Row(
-        Modifier.background(if (online) c.amber400.copy(alpha = 0.22f) else Color.Transparent, RoundedCornerShape(4.dp))
-            .border(1.dp, tint.copy(alpha = if (online) 0.9f else 0.6f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = if (fits) 1.dp else 4.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp),
-    ) {
-        Box(Modifier.size(5.dp).background(tint, CircleShape))
-        if (fits) Text(t(if (online) "chatHeader.online" else "chatHeader.offline"), fontFamily = BrandType.familyFor("monospace", 800).first, fontSize = 8.sp,
-            fontWeight = FontWeight.ExtraBold, color = tint, maxLines = 1, softWrap = false,
-            onTextLayout = { if (it.hasVisualOverflow) fits = false })
-    }
-}
 
 /**
  * The answer model and the phone's memory: it closed the app last time (with "Try again with less memory" and a way
@@ -304,6 +299,7 @@ private fun LoadNoteBanner(
     onOpenModels: () -> Unit,
 ) {
     val c = Boar.colors
+    val scheme = MaterialTheme.colorScheme
     val catalog = t("native.chat.pickAnother")
     val (text, actions) = when (note) {
         is team.sopa.boar.chat.LoadNote.Crashed -> {
@@ -323,29 +319,27 @@ private fun LoadNoteBanner(
     }
     Column(Modifier.fillMaxWidth().background(c.amberBgSubtle).padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
-            Text(text, style = Boar.type.subtext, color = c.amber400, modifier = Modifier.weight(1f))
-            IconButton(onDismiss, Modifier.describe(t("common.close")), colors = IconButtonDefaults.iconButtonColors(contentColor = c.amber400)) {
-                Text("✕", style = Boar.type["mono.sm"], modifier = Modifier.clearAndSetSemantics {})
+            Text(text, style = MaterialTheme.typography.bodySmall, color = c.amber400, modifier = Modifier.weight(1f))
+            IconButton(onDismiss, colors = IconButtonDefaults.iconButtonColors(contentColor = c.amber400)) {
+                Icon(Icons.Filled.Close, contentDescription = t("common.close"))
             }
         }
         // The first action is the recommended one: filled. Both share the width and the height of the taller label.
-        // Amber is not a scheme role, so its filled button carries its own on-color: dark text on the light amber of
-        // the dark theme, white on the deep amber of the light one (onPrimary is only the pair of primary).
-        val onAmber = if (c.id == "dark") Color(0xFF261A00) else Color.White
-        val shape = RoundedCornerShape(8.dp)
+        // The amber tokens are the tertiary role, so the filled button's text is onTertiary.
+        val shape = MaterialTheme.shapes.small
         val pad = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
-        Row(Modifier.height(androidx.compose.foundation.layout.IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             actions.forEachIndexed { i, (label, action) ->
                 val mod = Modifier.weight(1f).fillMaxHeight()
-                val labelText = @Composable { Text(label, style = Boar.type.subtext, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) }
+                val labelText = @Composable { Text(label, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center) }
                 if (i == 0) Button(action, mod, shape = shape, contentPadding = pad, content = { labelText() },
-                    colors = ButtonDefaults.buttonColors(containerColor = c.amber400, contentColor = onAmber))
+                    colors = ButtonDefaults.buttonColors(containerColor = scheme.tertiary, contentColor = scheme.onTertiary))
                 else OutlinedButton(action, mod, shape = shape, contentPadding = pad, content = { labelText() },
                     border = BorderStroke(1.dp, c.amberBorder), colors = ButtonDefaults.outlinedButtonColors(contentColor = c.amber400))
             }
         }
     }
-    Box(Modifier.fillMaxWidth().height(1.dp).background(c.amberBorder))
+    HorizontalDivider(color = c.amberBorder)
 }
 
 /** Toast.tsx: below the header, fades in, gone after 1.8 s. Also on the Models and Hugging Face pages. */
@@ -354,13 +348,13 @@ internal fun Toast(message: String, onHide: () -> Unit) {
     val alpha = remember(message) { androidx.compose.animation.core.Animatable(0f) }
     LaunchedEffect(message) {
         alpha.animateTo(1f, androidx.compose.animation.core.tween(150))
-        kotlinx.coroutines.delay(1800)
+        delay(1800)
         alpha.animateTo(0f, androidx.compose.animation.core.tween(200))
         onHide()
     }
     Box(Modifier.fillMaxSize().statusBarsPadding().padding(top = 96.dp), contentAlignment = Alignment.TopCenter) {
         // Material's snackbar pair: inverseSurface with inverseOnSurface, so it follows the wallpaper and the theme.
-        Text(message, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.inverseOnSurface,
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.inverseOnSurface,
             modifier = Modifier.graphicsLayer { this.alpha = alpha.value }.clip(MaterialTheme.shapes.extraSmall)
                 .background(MaterialTheme.colorScheme.inverseSurface)
                 .padding(horizontal = 16.dp, vertical = 10.dp))
@@ -369,40 +363,44 @@ internal fun Toast(message: String, onHide: () -> Unit) {
 
 @Composable
 private fun LoadingBanner(text: String) {
-    val c = Boar.colors
-    Row(Modifier.fillMaxWidth().background(c.emeraldBgSubtle).padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        androidx.compose.material3.CircularProgressIndicator(Modifier.size(12.dp), color = c.textAccentEmerald, strokeWidth = 1.5.dp)
-        Text(text, style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.SemiBold)
+    val scheme = MaterialTheme.colorScheme
+    Row(Modifier.fillMaxWidth().background(scheme.secondaryContainer).padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        CircularProgressIndicator(Modifier.size(16.dp), color = scheme.onSecondaryContainer, strokeWidth = 2.dp)
+        Text(text, style = MaterialTheme.typography.labelLarge, color = scheme.onSecondaryContainer)
     }
-    Box(Modifier.fillMaxWidth().height(1.dp).background(c.emeraldBorder))
 }
 
 /** components/ChatEmptyState.tsx: the boar, the name and tagline, then the suggested questions (tap asks, long-press fills). */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun EmptyState(suggestions: List<String>, onAsk: (String) -> Unit, onFill: (String) -> Unit) {
-    val c = Boar.colors
-    val type = Boar.type
+    val scheme = MaterialTheme.colorScheme
+    val type = MaterialTheme.typography
     // Scrolls: with a large font size (or a small screen) the last ideas were below the input and out of reach.
-    Column(Modifier.fillMaxSize().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(horizontal = 12.dp).padding(top = 20.dp, bottom = 16.dp),
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp).padding(top = 20.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Image(painterResource(R.drawable.mascot), null, Modifier.size(96.dp), contentScale = ContentScale.Fit)
-            Text("BOAR", style = type.headline, color = c.textHeading)
-            Text(t("chat.empty.tagline"), style = type.subtext.copy(fontFamily = BrandType.familyFor(null, 500).first), color = c.textAccentEmerald, textAlign = TextAlign.Center)
+            Text("BOAR", style = type.headlineMedium, color = scheme.onSurface)
+            Text(t("chat.empty.tagline"), style = type.bodyMedium, color = scheme.onSurfaceVariant, textAlign = TextAlign.Center)
         }
         if (suggestions.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(t("chat.empty.suggestionsLabel"), style = type.caption, color = c.textSecondary, modifier = Modifier.padding(horizontal = 4.dp))
+            Text(t("chat.empty.suggestionsLabel"), style = type.labelMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 4.dp))
             for (k in suggestions) {
                 val q = t("chat.suggestions.$k")
-                Column(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(c.bgCard).combinedClickable(onClick = { onAsk(q) }, onLongClick = { onFill(q) })
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text(t("chat.suggestionTopics.$k"), style = type.caption.copy(fontFamily = BrandType.familyFor(null, 600).first), color = c.textAccentEmerald)
-                    // Two lines at most, so five ideas don't crowd the empty chat.
-                    Text(q, style = type.body, color = c.textPrimary, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                // Tap asks right away, long-press puts it in the input to edit: both are named for TalkBack.
+                val ask = t("chat.empty.ask", "question" to q)
+                val fill = t("chat.empty.fill")
+                Card(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow)) {
+                    Column(
+                        Modifier.fillMaxWidth().combinedClickable(onClickLabel = ask, onLongClickLabel = fill, role = Role.Button, onClick = { onAsk(q) }, onLongClick = { onFill(q) })
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(t("chat.suggestionTopics.$k"), style = type.labelMedium, color = scheme.primary)
+                        // Two lines at most, so five ideas don't crowd the empty chat.
+                        Text(q, style = type.bodyMedium, color = scheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    }
                 }
             }
         }
@@ -425,30 +423,31 @@ private fun activityLabel(a: Activity?): String = when (a) {
 /** A message bubble (ChatScreen.tsx styles.bubble / userBubble / assistantBubble). */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit) {
+private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit, modifier: Modifier = Modifier) {
     val c = Boar.colors
-    val type = Boar.type
+    val scheme = MaterialTheme.colorScheme
+    val type = MaterialTheme.typography
     val user = m.role == "user"
     val streaming = state.answeringId == m.id
     var reasoningShown by remember { mutableStateOf(false) }
     val clipboard = LocalClipboardManager.current
     val shape = if (user) RoundedCornerShape(20.dp, 20.dp, 8.dp, 20.dp) else RoundedCornerShape(20.dp, 20.dp, 20.dp, 8.dp)
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
+    BoxWithConstraints(modifier.fillMaxWidth()) {
         val maxW = maxWidth * 0.92f
         var mod = Modifier.align(if (user) Alignment.CenterEnd else Alignment.CenterStart).widthIn(min = if (user) 0.dp else 200.dp, max = maxW).clip(shape)
             .background(if (user) c.bgCardHover else c.bgSurface)
         // A Deep Research answer keeps its mark in the history: the border and the header in the mode's color.
         val researched = !user && m.receipt?.path == "deep"
-        if (!user) mod = mod.border(if (researched) 1.5.dp else 1.dp, if (researched) c.frontierBadgeBorder else c.borderDefault, shape)
+        if (!user) mod = mod.border(if (researched) 1.5.dp else 1.dp, if (researched) scheme.tertiary else scheme.outlineVariant, shape)
         if (user) mod = mod.combinedClickable(onClick = {}, onLongClick = { onReuse(m.text) })
         Column(mod.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(Modifier.padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (!user) Image(painterResource(R.drawable.mascot), null, Modifier.size(20.dp).clip(RoundedCornerShape(4.dp)), contentScale = ContentScale.Fit)
-                Text(if (user) t("chatScreen.roleYou") else if (researched) t("native.chat.roleDeepResearch") else t("chatScreen.roleAssistant"), style = type["mono.xs"].copy(letterSpacing = 0.5.sp),
-                    color = if (user) c.textAccentCyan else c.textAccentEmerald, fontWeight = FontWeight.SemiBold)
+                Text(if (user) t("chatScreen.roleYou") else if (researched) t("native.chat.roleDeepResearch") else t("chatScreen.roleAssistant"), style = type.labelMedium,
+                    color = if (user) scheme.onSurfaceVariant else if (researched) scheme.tertiary else scheme.primary)
             }
             if (user) {
-                Text(m.text, style = type.bodyLg, color = c.textPrimary)
+                Text(m.text, style = type.bodyLarge, color = scheme.onSurface)
                 return@Column
             }
             val split = AnswerText.splitThinking(m.text)
@@ -458,12 +457,12 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
             when {
                 m.text.isEmpty() && streaming -> ProcessingIndicator(if (state.stopping) t("native.chat.stopping") else activityLabel(state.activity))
                 split.thinkingInProgress && split.answer.isEmpty() && streaming -> ThinkingTail(split.thinking.orEmpty(), reasoningStyle)
-                // The reasoning used the whole answer budget: the note says "tap 💭", so 💭 shows what it reasoned.
+                // The reasoning used the whole answer budget: the note points at the reasoning button, which shows what it reasoned.
                 split.thinkingInProgress && split.answer.isEmpty() ->
-                    Text(if (reasoningShown && split.thinking != null) split.thinking!! else "💭 " + t("chatScreen.reasoningUnfinished"),
-                        fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
+                    Text(if (reasoningShown && split.thinking != null) split.thinking!! else t("chatScreen.reasoningUnfinished"),
+                        fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = scheme.onSurfaceVariant, modifier = reasoningStyle)
                 else -> {
-                    if (reasoningShown && split.thinking != null) Text(split.thinking!!, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
+                    if (reasoningShown && split.thinking != null) Text(split.thinking!!, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = scheme.onSurfaceVariant, modifier = reasoningStyle)
                     MarkdownMessage(shown, streaming)
                 }
             }
@@ -472,38 +471,44 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
             // before the answer could be saved.
             val errorKey = m.error ?: state.error?.takeIf { state.messages.lastOrNull()?.id == m.id }?.let(UserErrors::chatKey)
             if (!streaming && !m.stopped && errorKey != null) {
-                Text(t(errorKey), style = type.bodyLg, color = c.crimson400)
+                Text(t(errorKey), style = type.bodyLarge, color = scheme.error)
                 if ((errorKey == UserErrors.chatKey(UserErrors.EMPTY_ANSWER) || errorKey == UserErrors.INTERRUPTED_KEY) && state.answeringId == null)
-                    FooterButton("↻", t("native.chat.tryAgain"), null, true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRetry(m.id) }
+                    RedoButton(t("native.chat.tryAgain")) { onRetry(m.id) }
                 // Holding a question already copies it back to the input (onReuse); say so where it helps.
-                Text(t("native.chat.holdToReuse"), style = Boar.type.subtext, color = c.textPrimary, modifier = Modifier.padding(top = 2.dp))
+                Text(t("native.chat.holdToReuse"), style = type.bodySmall, color = scheme.onSurface, modifier = Modifier.padding(top = 2.dp))
             }
             // Stopped before writing anything: these are what the search found, not what the answer cites.
             // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
-            if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 2.dp)) }
-            if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null)
-            if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
-            if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
+            if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = type.bodySmall, color = scheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp)) }
+            if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, state.technicalDetails)
+            if (m.stopped) NoteBadge(BoarIcons.StopCircle, t("chatScreen.stoppedByUser"))
+            if (m.timedOut) NoteBadge(BoarIcons.Timer, t("chatScreen.stageTimedOut"))
             m.cutAt?.let { limit ->
                 Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Badge("✂ " + t("native.chat.cutAtLimit", "limit" to limit))
-                    if (m.nextLimit != null && state.answeringId == null) FooterButton("↻", t("native.chat.allowMore", "limit" to m.nextLimit), null, true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRedo(m.id, m.nextLimit) }
+                    NoteBadge(BoarIcons.ContentCut, t("native.chat.cutAtLimit", "limit" to limit))
+                    if (m.nextLimit != null && state.answeringId == null) RedoButton(t("native.chat.allowMore", "limit" to m.nextLimit)) { onRedo(m.id, m.nextLimit) }
                 }
             }
             var receiptOpen by remember { mutableStateOf(false) }
             if (m.text.isNotEmpty() && !streaming) {
-                Box(Modifier.padding(top = 8.dp).fillMaxWidth().height(0.5.dp).background(c.borderSubtle))
-                Row(Modifier.padding(top = 6.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                // The sources block has its own rule above it; a second one right under would stack.
+                if (m.sources.isEmpty()) HorizontalDivider(Modifier.padding(top = 8.dp), color = scheme.outlineVariant)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
                     // The receipt fills the gap before the reasoning and copy buttons (main's ReceiptToggle), tapped open below.
                     Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                         // Everyone sees time and speed; the measured details open only with technical details on.
                         m.receipt?.let { r -> if (state.technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
                     }
-                    if (split.thinking != null) FooterButton("💭", null, t(if (reasoningShown) "chatScreen.hideReasoning" else "chatScreen.showReasoning"), reasoningShown, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { reasoningShown = !reasoningShown }
+                    if (split.thinking != null) IconToggleButton(reasoningShown, { reasoningShown = !reasoningShown }) {
+                        Icon(BoarIcons.Psychology, contentDescription = t(if (reasoningShown) "chatScreen.hideReasoning" else "chatScreen.showReasoning"))
+                    }
                     var copied by remember { mutableStateOf(false) }
-                    // With 💭 open, the reasoning is copied too: reviewing a thinking model needs both.
-                    FooterButton("⧉", null, t("chatScreen.copyResponse"), copied, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) {
+                    LaunchedEffect(copied) { if (copied) { delay(2000); copied = false } }
+                    // With the reasoning open, it is copied too: reviewing a thinking model needs both.
+                    IconButton({
                         clipboard.setText(AnnotatedString(if (reasoningShown && split.thinking != null) "💭 ${split.thinking}\n\n---\n\n$shown" else shown)); copied = true
+                    }) {
+                        Icon(if (copied) Icons.Filled.Check else BoarIcons.ContentCopy, contentDescription = t("chatScreen.copyResponse"))
                     }
                 }
                 if (receiptOpen && state.technicalDetails) m.receipt?.let { r -> ReceiptDetails(r) }
@@ -517,7 +522,7 @@ private fun receiptShort(r: Receipt, rate: String) = listOf(ReceiptFormat.second
 /** The receipt everyone sees: "18 s · 10.4 tok/s", nothing to open. */
 @Composable
 private fun ReceiptShort(r: Receipt) =
-    Text(receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))), style = Boar.type["mono.xs"], color = Boar.colors.textMuted,
+    Text(receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
         // Two lines with Large text rather than losing "tok/s" off the end.
         maxLines = 2, textAlign = TextAlign.Start, modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp))
 
@@ -525,14 +530,18 @@ private fun ReceiptShort(r: Receipt) =
 @Composable
 private fun ReceiptToggle(r: Receipt, open: Boolean, onToggle: () -> Unit) {
     val short = receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec)))
-    Text("$short " + if (open) "▴" else "▾", style = Boar.type["mono.xs"], color = Boar.colors.textMuted, maxLines = 2, textAlign = TextAlign.Start,
-        modifier = Modifier.clickable(onClickLabel = t("chat.receipt.details"), onClick = onToggle).padding(vertical = 8.dp, horizontal = 4.dp))
+    val tint = MaterialTheme.colorScheme.onSurfaceVariant
+    Row(Modifier.minimumInteractiveComponentSize().clickable(onClickLabel = t("chat.receipt.details"), role = Role.Button, onClick = onToggle).padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        Text(short, style = MaterialTheme.typography.labelSmall, color = tint, maxLines = 2, textAlign = TextAlign.Start, modifier = Modifier.weight(1f, fill = false))
+        Icon(if (open) BoarIcons.ExpandLess else BoarIcons.ExpandMore, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
+    }
 }
 
 @Composable
 private fun ReceiptDetails(r: Receipt) {
     Column(Modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        receiptRows(r).forEach { (label, value) -> Text("$label: $value", style = Boar.type["mono.xs"], color = Boar.colors.textSecondary) }
+        receiptRows(r).forEach { (label, value) -> Text("$label: $value", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
 }
 
@@ -572,15 +581,15 @@ private fun receiptRows(r: Receipt): List<Pair<String, String>> {
  */
 @Composable
 private fun ThinkingTail(thinking: String, modifier: Modifier) {
-    val c = Boar.colors
+    val tint = MaterialTheme.colorScheme.onSurfaceVariant
     val tail = thinking.takeLast(400).let { t -> if (t.length < thinking.length) t.substringAfter(' ', t) else t }.replace(Regex("\\s+"), " ").trim()
     val box = with(androidx.compose.ui.platform.LocalDensity.current) { (17.sp * 3).toDp() }
-    // 💭 stays put at the top left while it reasons; only the text beside it scrolls.
+    // The icon stays put at the top left while it reasons; only the text beside it scrolls.
     Row(modifier.fillMaxWidth().height(box), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("💭", fontSize = 12.sp, lineHeight = 17.sp)
+        Icon(BoarIcons.Psychology, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
         Box(Modifier.weight(1f).fillMaxHeight().clipToBounds()) {
             // Taller than the box and bottom-aligned: the newest line stays at the bottom, older ones slide out at the top.
-            Text(tail, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim,
+            Text(tail, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = tint,
                 modifier = Modifier.align(Alignment.BottomStart).wrapContentHeight(Alignment.Bottom, unbounded = true))
         }
     }
@@ -589,77 +598,94 @@ private fun ThinkingTail(thinking: String, modifier: Modifier) {
 /** ProcessingIndicator.tsx: the stage line while nothing has streamed yet. */
 @Composable
 private fun ProcessingIndicator(label: String) {
-    val c = Boar.colors
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        androidx.compose.material3.CircularProgressIndicator(Modifier.size(12.dp), color = c.textAccentEmerald, strokeWidth = 1.5.dp)
-        Text(label, style = Boar.type.body, color = c.textMuted)
+    val scheme = MaterialTheme.colorScheme
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        CircularProgressIndicator(Modifier.size(18.dp), color = scheme.primary, strokeWidth = 2.dp)
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
     }
 }
 
+/** "Try again" and "Allow more and redo": a tonal button with the refresh icon. */
 @Composable
-private fun FooterButton(glyph: String, label: String?, desc: String?, on: Boolean, onColor: Color, onBg: Color, onBorder: Color, onClick: () -> Unit) {
-    val c = Boar.colors
-    // The chip stays compact, but its touch target is the 48 dp minimum, and a glyph-only button is named for TalkBack.
-    Row(
-        Modifier.minimumInteractiveComponentSize().clip(RoundedCornerShape(4.dp)).background(if (on) onBg else c.bgSubtle).border(1.dp, if (on) onBorder else c.borderSubtle, RoundedCornerShape(4.dp))
-            .then(if (desc != null) Modifier.describe(desc) else Modifier)
-            .clickable(role = Role.Button, onClick = onClick).padding(horizontal = 7.dp, vertical = 3.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(glyph, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Bold, color = if (on) onColor else c.textDim, modifier = Modifier.clearAndSetSemantics {})
-        label?.let { Text(it, style = Boar.type.micro.copy(fontSize = 10.sp, letterSpacing = 0.2.sp), fontWeight = FontWeight.SemiBold, color = onColor) }
+private fun RedoButton(label: String, onClick: () -> Unit) {
+    FilledTonalButton(onClick, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
+        Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Text(label)
     }
 }
 
+/** A note under the answer (stopped, timed out, cut at the limit): a small container with its icon. */
 @Composable
-private fun Badge(text: String) {
-    val c = Boar.colors
-    Text(text, style = Boar.type["mono.xs"], color = c.textAccentAmber, fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(top = 4.dp).background(c.amberBgSubtle, RoundedCornerShape(4.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp))
+private fun NoteBadge(icon: ImageVector, text: String) {
+    val scheme = MaterialTheme.colorScheme
+    Row(Modifier.padding(top = 4.dp).background(scheme.secondaryContainer, MaterialTheme.shapes.small).padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Icon(icon, contentDescription = null, tint = scheme.onSecondaryContainer, modifier = Modifier.size(16.dp))
+        Text(text, style = MaterialTheme.typography.labelMedium, color = scheme.onSecondaryContainer)
+    }
 }
 
 /**
- * The input bar (styles.inputContainer / input / sendBtn / stopBtn): the answer style on the left (opens the style
- * sheet), the field, send or stop.
+ * The input bar: a chip row on top (the answer style, which opens the style sheet; Deep Research while it is on, with
+ * a close icon that turns it off), then the text field with send or stop at its end.
  */
 @Composable
-private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, toneIcon: String, stopping: Boolean, deepResearch: Boolean = false, onOpenStyles: () -> Unit) {
-    val c = Boar.colors
-    Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
-    // Tight gaps, full-size buttons: the field gets the room, and the round buttons keep a 48 dp tap target.
+private fun InputBar(
+    text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit,
+    personalityId: String, stopping: Boolean, deepResearch: Boolean, onSetDeepResearch: (Boolean) -> Unit, onOpenStyles: () -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
     // The background runs under the gesture bar (navigationBarsPadding comes after it).
-    Row(Modifier.fillMaxWidth().background(c.bgCardElevated).navigationBarsPadding().padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        FilledTonalIconButton(onOpenStyles, Modifier.size(48.dp).describe(t("chatHeader.cycleTone"))) { Glyph(toneIcon, 18.sp) }
-        // A pill on one line; a rounded box once the question wraps (a pill's ends cut into the text).
-        var lines by remember { mutableStateOf(1) }
-        val fieldShape = if (lines > 1) RoundedCornerShape(16.dp) else RoundedCornerShape(50)
-        // Deep Research on: the field's border in the mode's color and its own placeholder, right where you type.
-        Row(Modifier.weight(1f).clip(fieldShape).background(c.bgInput).border(if (deepResearch) 1.5.dp else 1.dp, if (deepResearch) c.frontierBadgeBorder else c.borderDefault, fieldShape)
-            .padding(horizontal = 18.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.weight(1f).padding(vertical = 12.dp)) {
-                val style = Boar.type.body.copy(fontSize = 14.sp, color = c.textPrimary)
-                val hint = t(if (deepResearch) "native.chat.deepResearchPlaceholder" else "chatScreen.inputPlaceholder")
-                if (text.isEmpty()) Text(hint, style = style, color = if (deepResearch) c.frontierText else c.textDim,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
-                BasicTextField(text, onText, textStyle = style, cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth().describe(hint), maxLines = 5,
-                    onTextLayout = { lines = it.lineCount })
-            }
+    Column(Modifier.fillMaxWidth().background(scheme.surfaceContainer).navigationBarsPadding().padding(horizontal = 8.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            AssistChip(
+                onClick = onOpenStyles,
+                label = { Text(t("personalities.$personalityId.label"), maxLines = 1) },
+                leadingIcon = { Icon(toneVector(personalityId), contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize)) },
+            )
+            if (deepResearch) InputChip(
+                selected = true,
+                onClick = { onSetDeepResearch(false) },
+                label = { Text(t("chatHeader.deepResearch"), maxLines = 1) },
+                leadingIcon = { Icon(BoarIcons.ScienceFilled, contentDescription = null, modifier = Modifier.size(InputChipDefaults.IconSize)) },
+                trailingIcon = { Icon(Icons.Filled.Close, contentDescription = t("common.close"), modifier = Modifier.size(InputChipDefaults.IconSize)) },
+                colors = InputChipDefaults.inputChipColors(
+                    selectedContainerColor = scheme.tertiaryContainer, selectedLabelColor = scheme.onTertiaryContainer,
+                    selectedLeadingIconColor = scheme.onTertiaryContainer, selectedTrailingIconColor = scheme.onTertiaryContainer),
+            )
         }
+        val shape = MaterialTheme.shapes.extraLarge
+        val hint = t(if (deepResearch) "native.chat.deepResearchPlaceholder" else "chatScreen.inputPlaceholder")
         val canSend = text.isNotBlank() && !answering
         // After Stop, the button pulses until the answer really ends: a library search or a chunk of prompt finishes first.
         val transition = rememberInfiniteTransition(label = "stopping")
         val blink by transition.animateFloat(1f, 0.35f, infiniteRepeatable(tween<Float>(500), RepeatMode.Reverse), label = "pulse")
         val pulse = if (stopping) blink else 1f
-        // Stop is error/onError, send is primary/onPrimary: real scheme pairs in both themes. The disabled send state is
-        // the stock one (onSurface at 12 % / 38 %); the pulse after Stop applies only while the button is live.
-        val scheme = MaterialTheme.colorScheme
-        FilledIconButton(
-            { if (answering) onStop() else onSend() },
-            Modifier.size(48.dp).alpha(if (answering || canSend) pulse else 1f).describe(t(if (answering) "chatScreen.stopGeneration" else "chatScreen.sendMessage")),
-            enabled = answering || canSend,
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = if (answering) scheme.error else scheme.primary, contentColor = if (answering) scheme.onError else scheme.onPrimary),
-        ) { Glyph(if (answering) "■" else "➤", if (answering) 14.sp else 16.sp, FontWeight.ExtraBold) }
+        // Deep Research on: the field's border in the mode's color and its own placeholder, right where you type.
+        TextField(
+            text, onText,
+            Modifier.fillMaxWidth().then(if (deepResearch) Modifier.border(1.5.dp, scheme.tertiary, shape) else Modifier).describe(hint),
+            placeholder = { Text(hint, maxLines = 1, overflow = TextOverflow.Ellipsis, color = if (deepResearch) scheme.tertiary else scheme.onSurfaceVariant) },
+            // Stop is error/onError, send is primary/onPrimary: real scheme pairs in both themes. The disabled send state is
+            // the stock one (onSurface at 12 % / 38 %); the pulse after Stop applies only while the button is live.
+            trailingIcon = {
+                FilledIconButton(
+                    { if (answering) onStop() else onSend() },
+                    Modifier.alpha(if (answering || canSend) pulse else 1f),
+                    enabled = answering || canSend,
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = if (answering) scheme.error else scheme.primary, contentColor = if (answering) scheme.onError else scheme.onPrimary),
+                ) {
+                    Icon(if (answering) BoarIcons.Stop else Icons.AutoMirrored.Filled.Send,
+                        contentDescription = t(if (answering) "chatScreen.stopGeneration" else "chatScreen.sendMessage"))
+                }
+            },
+            maxLines = 5, shape = shape,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = scheme.surfaceContainerHighest, unfocusedContainerColor = scheme.surfaceContainerHighest,
+                focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, disabledIndicatorColor = Color.Transparent,
+                cursorColor = scheme.primary),
+        )
     }
 }
-

@@ -67,9 +67,9 @@
     <string name="native_about_tagline" formatted="false">Your questions.\nYour phone. Your AI.</string>
     <string name="native_about_bio" formatted="false">Offline AI research on your phone. Answers with sources, no signal needed. Open source (MIT).</string>
     <string name="native_about_post_why" formatted="false">When AI lives only on someone else\'s server, whoever runs it holds a switch.\n\nWe\'d rather no one did. So the model lives on your phone, and no server receives your questions.</string>
-    <string name="native_about_post_offline" formatted="false">One download at setup. Then airplane mode is fine: BOAR answers from the library on your phone, with llama.cpp built in, and shows the articles it used.</string>
-    <string name="native_about_post_receipt" formatted="false">Every answer records how it ran: the model, time to the first word, tokens per second, memory and sources. Measure your own phone in Menu → Evaluation.</string>
-    <string name="native_about_post_budget" formatted="false">Before a model loads, BOAR checks it against your phone\'s memory. Downloads stay within a 50 GB storage budget.</string>
+    <string name="native_about_post_offline" formatted="false">One download at setup. Then airplane mode is fine: BOAR answers from the library on your phone and shows the articles it used.</string>
+    <string name="native_about_post_receipt" formatted="false">Every answer shows how long it took and which articles it used.</string>
+    <string name="native_about_post_budget" formatted="false">Before a model loads, BOAR checks that it fits your phone\'s memory.</string>
     <string name="native_about_post_open" formatted="false">Open source, MIT. The code, the model list and the scripts that build the knowledge packs:</string>
     <string name="native_about_post_verify" formatted="false">News comes only from these addresses. Check the address before you download anything that says it is BOAR.</string>
     <string name="native_about_post_packs" formatted="false">Knowledge packs from R4to\'s R&amp;D Lab:</string>
@@ -219,7 +219,7 @@
     <string name="native_chat_errorEmpty" formatted="false">The model stopped without writing an answer.</string>
     <string name="native_chat_errorInterrupted" formatted="false">Interrupted: BOAR was closed while answering.</string>
     <string name="native_chat_deepResearchPlaceholder" formatted="false">Deep Research question…</string>
-    <string name="native_chat_roleDeepResearch" formatted="false">BOAR · 🔬 DEEP RESEARCH</string>
+    <string name="native_chat_roleDeepResearch" formatted="false">BOAR · Deep Research</string>
     <string name="native_answering_channel" formatted="false">Answering</string>
     <string name="native_answering_title" formatted="false">BOAR is answering…</string>
     <string name="native_answering_text" formatted="false">The answer keeps going while you use other apps.</string>
@@ -325,7 +325,7 @@
     <string name="native_download_errorGeneric" formatted="false">The download stopped. Retry.</string>
     <string name="native_common_ok" formatted="false">OK</string>
     <string name="native_settings_freeMemory" formatted="false">Free memory when I leave BOAR</string>
-    <string name="native_settings_freeMemoryNote" formatted="false">Shortly after you leave, when nothing is being answered, BOAR unloads the model, so the phone doesn\'t close BOAR to get its memory back. The next answer takes a few seconds longer to start.</string>
+    <string name="native_settings_freeMemoryNote" formatted="false">Frees memory a few seconds after you leave. The next answer starts a little slower.</string>
     <string name="native_tweaks_freeMemoryAfter" formatted="false">Free memory after</string>
     <string name="native_tweaks_freeMemoryAfterNote" formatted="false">How long BOAR waits in the background before it unloads the model, when Free memory when I leave BOAR is on. Auto unloads it as soon as you leave, after an answer still being written; the next question loads it again.</string>
     <string name="native_tweaks_immediately" formatted="false">Immediately</string>

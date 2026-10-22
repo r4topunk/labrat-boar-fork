@@ -1,9 +1,8 @@
 package team.sopa.boar.ui.setup
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,17 +19,30 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -46,33 +58,40 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import team.sopa.boar.R
+import team.sopa.boar.engine.models.AnswerTier
 import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.engine.models.CatalogAsset
 import team.sopa.boar.engine.models.Units
 import team.sopa.boar.setup.AssetProgress
 import team.sopa.boar.setup.IndexPhase
 import team.sopa.boar.setup.PackagePlan
-import team.sopa.boar.setup.SetupPackage
 import team.sopa.boar.setup.SetupState
 import team.sopa.boar.setup.SetupViewModel
+import team.sopa.boar.ui.icons.BoarIcons
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
+import java.text.NumberFormat
 import kotlin.math.ceil
 import kotlin.math.roundToLong
 
 /** Download speed the package cards' time estimate assumes (packages.ts REFERENCE_BYTES_PER_SEC). */
 private const val REFERENCE_BYTES_PER_SEC = 5_000_000L
-private const val LOADING_LINES = 12
 
-/** The five stages the stepper names; the install step covers download and index. */
-private val STAGES = listOf("start", "model", "knowledge", "download", "index")
+/**
+ * The three stages the stepper names (string keys). Download and indexing are one screen, so one stage, and each
+ * screen's headline says the stage's own word. The welcome is not a step.
+ */
+private val STAGES = listOf("clean.setup.stage.assistant", "flows.onboarding.stage.knowledge", "flows.onboarding.stage.install")
 
 /**
  * First-run setup (port of src/ui/SetupWizardScreen.tsx): welcome, answer model, knowledge, download and index,
@@ -107,9 +126,6 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, onSkip: (() -> Unit)?, on
             text = { Text(t("flows.onboarding.backBody")) },
             confirmButton = { TextButton({ backOpen = false; vm.back() }) { Text(t("flows.onboarding.goBack")) } },
             dismissButton = { TextButton({ backOpen = false }) { Text(t("flows.onboarding.stay")) } },
-            containerColor = Boar.colors.bgCardElevated,
-            titleContentColor = Boar.colors.textHeading,
-            textContentColor = Boar.colors.textSecondary,
         )
     }
 }
@@ -118,17 +134,23 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, onSkip: (() -> Unit)?, on
 
 /**
  * A step: its content scrolls (under the system bars, edge to edge), the actions stay in a bottom bar (the mockup's
- * footer). [radioGroup] marks the page as one choice group for TalkBack (the model and package steps).
+ * footer). [radioGroup] marks the page as one choice group for TalkBack (the model and package steps); [footerVisible]
+ * false drops the bar (the install step has nothing to press while files arrive).
  */
 @Composable
-private fun StepScreen(radioGroup: Boolean = false, footer: @Composable ColumnScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
+private fun StepScreen(
+    radioGroup: Boolean = false,
+    footerVisible: Boolean = true,
+    footer: @Composable ColumnScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Scaffold(
-        containerColor = Boar.colors.bgTerminal,
+        containerColor = MaterialTheme.colorScheme.surface,
         contentWindowInsets = WindowInsets.safeDrawing,
         bottomBar = {
-            Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
-                Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally, content = footer)
+            if (footerVisible) Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
+                Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp), content = footer)
             }
         },
     ) { inner ->
@@ -138,86 +160,118 @@ private fun StepScreen(radioGroup: Boolean = false, footer: @Composable ColumnSc
     }
 }
 
+/**
+ * The wizard footer: Back at the start, the step's action at the end, both at the standard button height. With no Back
+ * the action fills the width (the welcome). [action] receives the modifier to apply.
+ */
 @Composable
-private fun Stepper(stage: Int) {
-    val c = Boar.colors
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            STAGES.indices.forEach { i ->
-                Box(Modifier.weight(1f).height(4.dp).background(if (i <= stage) c.emerald500 else c.bgSubtle, RoundedCornerShape(2.dp)))
+private fun FooterRow(back: (() -> Unit)? = null, backLabel: String = t("flows.onboarding.back"), action: (@Composable (Modifier) -> Unit)? = null) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = when {
+        back != null && action != null -> Arrangement.SpaceBetween
+        back != null -> Arrangement.Start
+        else -> Arrangement.End
+    }) {
+        back?.let {
+            TextButton(it) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, null, Modifier.size(ButtonDefaults.IconSize))
+                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                Text(backLabel)
             }
         }
-        Text(t("flows.onboarding.stageOf", "n" to stage + 1, "total" to STAGES.size, "name" to t("flows.onboarding.stage.${STAGES[stage]}")).uppercase(),
-            style = Boar.type.micro, color = c.textAccentEmerald, fontWeight = FontWeight.Bold)
+        action?.invoke(if (back == null) Modifier.fillMaxWidth() else Modifier)
     }
 }
 
+/** "Step 2 of 3: Knowledge" over a determinate bar, then the headline in the stage's own word. */
 @Composable
 private fun StepHeader(stage: Int, title: String, subtitle: String?) {
-    Stepper(stage)
+    val cs = MaterialTheme.colorScheme
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(t("flows.onboarding.stageOf", "n" to stage + 1, "total" to STAGES.size, "name" to t(STAGES[stage])),
+            style = MaterialTheme.typography.labelLarge, color = cs.onSurfaceVariant)
+        LinearProgressIndicator(progress = { (stage + 1f) / STAGES.size }, modifier = Modifier.fillMaxWidth())
+    }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(title, style = Boar.type.headline, color = Boar.colors.textHeading)
-        subtitle?.let { Text(it, style = Boar.type.body, color = Boar.colors.textSecondary) }
+        Text(title, style = MaterialTheme.typography.headlineSmall, color = cs.onSurface)
+        subtitle?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant) }
     }
 }
 
+/** A filled M3 card for info and summary blocks; the tinted ones (keep open, failures) pass their container pair. */
 @Composable
-private fun Card(modifier: Modifier = Modifier, background: Color = Boar.colors.bgCard, border: Color = Boar.colors.borderSubtle, content: @Composable ColumnScope.() -> Unit) {
-    Column(modifier.fillMaxWidth().background(background, RoundedCornerShape(16.dp)).border(1.dp, border, RoundedCornerShape(16.dp)).padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
+private fun InfoCard(
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = containerColor, contentColor = contentColor)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
+    }
 }
 
 // Real M3 buttons: TalkBack announces the button role, the shape is the M3 full round, and the disabled state is M3's.
 @Composable
-private fun PrimaryButton(label: String, enabled: Boolean = true, onClick: () -> Unit) =
-    Button(onClick, Modifier.fillMaxWidth().heightIn(min = 56.dp), enabled = enabled) { Text(label, style = Boar.type.title, textAlign = TextAlign.Center) }
-
-@Composable
-private fun SecondaryButton(label: String, onClick: () -> Unit) =
-    OutlinedButton(onClick, Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(label, style = Boar.type.titleSm, textAlign = TextAlign.Center) }
-
-@Composable
-private fun BackLink(label: String, onClick: () -> Unit) =
-    TextButton(onClick) { Text("← $label", style = Boar.type.body) }
-
-@Composable
-private fun Badge(label: String) {
-    val c = Boar.colors
-    Text(label.uppercase(), style = Boar.type.micro, color = c.textInverse, fontWeight = FontWeight.Bold,
-        modifier = Modifier.background(c.emerald500, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 2.dp))
-}
-
-/** A selectable card (OptionCard): title, a badge, the number that decides on the right, then details. A radio for TalkBack and the eye. */
-@Composable
-private fun OptionCard(title: String, selected: Boolean, trailing: String?, badge: String?, onClick: () -> Unit, details: @Composable ColumnScope.() -> Unit) {
-    val c = Boar.colors
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if (selected) c.emeraldBgSubtle else c.bgCard)
-        .border(if (selected) 2.dp else 1.dp, if (selected) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(16.dp))
-        .selectable(selected, onClick = onClick, role = Role.RadioButton).padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            RadioButton(selected, onClick = null)
-            Text(title, style = Boar.type.title, color = c.textHeading, modifier = Modifier.weight(1f))
-            trailing?.let { Text(it, style = Boar.type["mono.sm"], color = c.textSecondary) }
+private fun PrimaryButton(label: String, modifier: Modifier = Modifier, enabled: Boolean = true,
+                          icon: ImageVector? = Icons.AutoMirrored.Filled.ArrowForward, onClick: () -> Unit) =
+    Button(onClick, modifier, enabled = enabled) {
+        Text(label)
+        if (icon != null) {
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+            Icon(icon, null, Modifier.size(ButtonDefaults.IconSize))
         }
-        badge?.let { Badge(it) }
-        details()
+    }
+
+@Composable
+private fun SecondaryButton(label: String, icon: ImageVector? = null, onClick: () -> Unit) =
+    OutlinedButton(onClick) {
+        if (icon != null) {
+            Icon(icon, null, Modifier.size(ButtonDefaults.IconSize))
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        }
+        Text(label)
+    }
+
+/**
+ * A selectable card (OptionCard): the selected one is tinted (secondaryContainer) with a 2 dp primary border, the others
+ * are plain surface with a 1 dp outline. A radio for TalkBack and the eye; the number that decides sits on the right.
+ */
+@Composable
+private fun OptionCard(title: String, selected: Boolean, trailing: String?, onClick: () -> Unit, details: @Composable ColumnScope.() -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    val shape = MaterialTheme.shapes.large
+    OutlinedCard(
+        Modifier.fillMaxWidth().clip(shape).selectable(selected, onClick = onClick, role = Role.RadioButton),
+        shape = shape,
+        colors = CardDefaults.outlinedCardColors(containerColor = if (selected) cs.secondaryContainer else cs.surface),
+        border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) cs.primary else cs.outlineVariant),
+    ) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            RadioButton(selected, onClick = null)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(title, style = MaterialTheme.typography.titleMedium, color = if (selected) cs.onSecondaryContainer else cs.onSurface)
+                details()
+            }
+            trailing?.let { Text(it, style = MaterialTheme.typography.labelLarge, color = cs.onSurfaceVariant) }
+        }
     }
 }
 
 @Composable
-private fun Meta(text: String, color: Color = Boar.colors.textMuted) = Text(text, style = Boar.type.subtext, color = color)
+private fun Meta(text: String, color: Color = MaterialTheme.colorScheme.onSurfaceVariant) =
+    Text(text, style = MaterialTheme.typography.bodySmall, color = color)
 
 @Composable
 private fun SectionLabel(text: String) =
-    Text(text.uppercase(), style = Boar.type.micro, color = Boar.colors.textSecondary, fontWeight = FontWeight.Bold)
+    Text(text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-/** "More options ▾" / "Fewer options ▴": the choices beyond the recommended one. */
+/** "More options" / "Fewer options" with the chevron: the choices beyond the recommended one. */
 @Composable
 private fun MoreToggle(open: Boolean, onClick: () -> Unit) {
-    val c = Boar.colors
-    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button, onClick = onClick).padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-        Text(t(if (open) "clean.setup.fewerOptions" else "clean.setup.moreOptions") + (if (open) "  ▴" else "  ▾"), style = Boar.type.titleSm, color = c.textAccentEmerald)
+    val stateText = t(if (open) "clean.setup.expanded" else "clean.setup.collapsed")
+    TextButton(onClick, Modifier.fillMaxWidth().semantics { stateDescription = stateText }) {
+        Text(t(if (open) "clean.setup.fewerOptions" else "clean.setup.moreOptions"))
+        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Icon(if (open) BoarIcons.ExpandLess else BoarIcons.ExpandMore, null, Modifier.size(ButtonDefaults.IconSize))
     }
 }
 
@@ -228,6 +282,9 @@ private fun BrandDisc(size: Int) =
 private fun formatRam(bytes: Long): String =
     if (bytes >= 999.5 * 1024 * 1024) String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024)) else "${bytes / (1024 * 1024)} MB"
 
+/** 5300 -> "5,300" (the phone's separators): the same grouping on every screen that shows a count. */
+private fun formatCount(n: Int): String = NumberFormat.getIntegerInstance().format(n)
+
 private fun minutesLeft(seconds: Long) = maxOf(1, ceil(seconds / 60.0).toInt())
 private fun minutesAbout(seconds: Long) = maxOf(1, (seconds / 60.0).roundToLong().toInt())
 
@@ -235,34 +292,33 @@ private fun minutesAbout(seconds: Long) = maxOf(1, (seconds / 60.0).roundToLong(
 
 @Composable
 private fun Welcome(state: SetupState, onSkip: (() -> Unit)?, onNext: () -> Unit) {
-    val c = Boar.colors
+    val cs = MaterialTheme.colorScheme
     StepScreen(footer = {
-        PrimaryButton(t("flows.onboarding.start") + "  →", onClick = onNext)
-        onSkip?.let { BackLink(t("flows.onboarding.backToApp"), it) }
+        FooterRow(back = onSkip, backLabel = t("flows.onboarding.backToApp")) { m -> PrimaryButton(t("flows.onboarding.start"), m, onClick = onNext) }
     }) {
-        Stepper(0)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             BrandDisc(56)
             Column {
-                Text("boar", style = Boar.type.headline, color = c.textHeading)
-                Text(t("flows.onboarding.brandSub"), style = Boar.type.caption, color = c.textAccentAmber)
+                Text("BOAR", style = MaterialTheme.typography.headlineSmall, color = cs.onSurface)
+                Text(t("flows.onboarding.brandSub"), style = MaterialTheme.typography.labelMedium, color = cs.primary)
             }
         }
-        Card {
-            Text(t("flows.onboarding.introLabel").uppercase(), style = Boar.type.micro, color = c.textAccentAmber, fontWeight = FontWeight.Bold)
-            Text(t("flows.onboarding.introBody"), style = Boar.type.body, color = c.textPrimary)
+        InfoCard {
+            Text(t("flows.onboarding.introLabel"), style = MaterialTheme.typography.titleSmall, color = cs.onSurfaceVariant)
+            Text(t("flows.onboarding.introBody"), style = MaterialTheme.typography.bodyMedium, color = cs.onSurface)
         }
-        Card {
-            Text(t("flows.onboarding.phoneLabel").uppercase(), style = Boar.type.micro, color = c.textSecondary, fontWeight = FontWeight.Bold)
-            // Measured on this phone; a value the OS doesn't give is left out, never guessed.
-            listOfNotNull(
-                state.totalRamBytes.takeIf { it > 0 }?.let { "phoneMemory" to formatRam(it) },
-                state.freeDiskBytes.takeIf { it > 0 }?.let { "phoneFree" to Units.formatBytes(it) },
-                "phoneEngine" to t("flows.onboarding.phoneEngineValue"),
-            ).forEach { (key, value) ->
+        // Measured on this phone; a value the OS doesn't give is left out, never guessed.
+        val rows = listOfNotNull(
+            state.totalRamBytes.takeIf { it > 0 }?.let { "phoneMemory" to formatRam(it) },
+            state.freeDiskBytes.takeIf { it > 0 }?.let { "phoneFree" to Units.formatBytes(it) },
+        )
+        if (rows.isNotEmpty()) InfoCard {
+            Text(t("flows.onboarding.phoneLabel"), style = MaterialTheme.typography.titleSmall, color = cs.onSurfaceVariant)
+            rows.forEach { (key, value) ->
                 Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
-                    Text(t("flows.onboarding.$key"), style = Boar.type.body, color = c.textSecondary, modifier = Modifier.weight(1f))
-                    Text(value, style = Boar.type["mono.sm"], color = c.textPrimary)
+                    Text(t("flows.onboarding.$key"), style = MaterialTheme.typography.bodyLarge, color = cs.onSurfaceVariant,
+                        modifier = Modifier.weight(1f).alignByBaseline())
+                    Text(value, style = MaterialTheme.typography.bodyLarge, color = cs.onSurface, modifier = Modifier.alignByBaseline())
                 }
             }
         }
@@ -273,39 +329,45 @@ private fun Welcome(state: SetupState, onSkip: (() -> Unit)?, onNext: () -> Unit
 
 @Composable
 private fun ModelStep(state: SetupState, vm: SetupViewModel, onBrowse: () -> Unit) {
-    val c = Boar.colors
     val rec = state.models.firstOrNull { it.id == state.recommendedId } ?: state.models.firstOrNull()
     // Another model chosen earlier (from the list or Discover, before a restart) keeps the list open so the choice shows.
     var more by remember { mutableStateOf(rec == null || state.chosenId != rec.id) }
     StepScreen(radioGroup = true, footer = {
-        PrimaryButton(t("flows.onboarding.continue") + "  →", enabled = state.chosenId != null) { vm.next() }
-        BackLink(t("flows.onboarding.back")) { vm.back() }
+        FooterRow(back = { vm.back() }) { m -> PrimaryButton(t("flows.onboarding.continue"), m, enabled = state.chosenId != null) { vm.next() } }
     }) {
-        StepHeader(1, t("clean.setup.modelTitle"), t("clean.setup.modelSub"))
+        StepHeader(0, t("clean.setup.modelTitle"), t("clean.setup.modelSub"))
         if (rec != null) {
             SectionLabel(t("clean.setup.recommended"))
             ModelOption(rec, state, vm)
-            if (vm.tierOf(rec) == "compact") Meta(t("flows.onboarding.compactWhy"), c.textSecondary)
+            if (vm.tierOf(rec) == "compact") Meta(t("clean.setup.chosenFor", "ram" to formatRam(state.totalRamBytes)))
             MoreToggle(more) { more = !more }
         }
         if (more) {
-            for (m in state.models) if (m.id != rec?.id) ModelOption(m, state, vm)
+            // The memory warning is said once, above the models that need more memory than this phone has.
+            val (heavy, fits) = state.models.filter { it.id != rec?.id }.partition { vm.isHeavy(it) }
+            fits.forEach { ModelOption(it, state, vm) }
+            if (heavy.isNotEmpty()) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Outlined.Warning, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.tertiary)
+                    Meta(t("flows.row.fit.thrashing"), MaterialTheme.colorScheme.tertiary)
+                }
+                heavy.forEach { ModelOption(it, state, vm) }
+            }
             // The same card as Models: a model added there comes back here, listed and chosen.
             team.sopa.boar.ui.models.DiscoverGgufCard(onBrowse)
         }
     }
 }
 
+/** The two answer tiers read by their plain name ("Fast", "More accurate") with the model id as a supporting line. */
 @Composable
 private fun ModelOption(m: CatalogAsset, state: SetupState, vm: SetupViewModel) {
-    val c = Boar.colors
-    OptionCard(m.shortName, m.id == state.chosenId, Units.formatBytes(m.sizeBytes), null, { vm.choose(m.id) }) {
-        // The two answer tiers have translated lines; the other catalog models carry their manifest description.
-        if (m.answerTier != null) {
-            val tier = vm.tierOf(m)
-            Meta("${t("flows.onboarding.answerTier.$tier")} · ${t("flows.assistant.sub.$tier")}", c.textSecondary)
-        } else Meta(m.description, c.textSecondary)
-        if (vm.isHeavy(m)) Meta(t("flows.row.fit.thrashing"), c.textAccentAmber)
+    val tier = if (m.answerTier != null) vm.tierOf(m) else null
+    OptionCard(tier?.let { t("flows.onboarding.answerTier.$it") } ?: m.shortName, m.id == state.chosenId, Units.formatBytes(m.sizeBytes), { vm.choose(m.id) }) {
+        if (tier != null) {
+            Meta(t("flows.assistant.sub.$tier"))
+            Meta(m.shortName)
+        } else Meta(t(if (vm.isHeavy(m)) "clean.setup.modelLarge" else "clean.setup.modelOther"))
     }
 }
 
@@ -313,22 +375,23 @@ private fun ModelOption(m: CatalogAsset, state: SetupState, vm: SetupViewModel) 
 
 @Composable
 private fun PackageStep(state: SetupState, vm: SetupViewModel) {
-    val c = Boar.colors
+    val cs = MaterialTheme.colorScheme
     val chosen = state.plans.firstOrNull { it.pkg == state.packageId }
     val rec = state.plans.firstOrNull { it.pkg == state.recommendedPackage } ?: state.plans.firstOrNull()
     // The recommended package is preselected: another one chosen earlier keeps the list open so the choice shows.
     var more by remember { mutableStateOf(rec != null && state.packageId != rec.pkg) }
     StepScreen(radioGroup = true, footer = {
         val short = chosen?.shortfallBytes ?: 0
-        PrimaryButton(
-            if ((chosen?.downloadBytes ?: 0) > 0) t("flows.onboarding.install", "size" to Units.formatBytes(chosen!!.downloadBytes)) + "  →"
-            else t("flows.onboarding.continue") + "  →",
-            enabled = chosen != null && short == 0L,
-        ) { vm.install() }
-        if (short > 0) Meta(t("flows.onboarding.noSpace", "size" to Units.formatBytes(short)), c.crimson400)
-        BackLink(t("flows.onboarding.back")) { vm.back() }
+        if (short > 0) Meta(t("flows.onboarding.noSpace", "size" to Units.formatBytes(short)), cs.error)
+        val download = (chosen?.downloadBytes ?: 0) > 0
+        FooterRow(back = { vm.back() }) { m ->
+            PrimaryButton(
+                if (download) t("flows.onboarding.install", "size" to Units.formatBytes(chosen!!.downloadBytes)) else t("flows.onboarding.continue"),
+                m, enabled = chosen != null && short == 0L, icon = if (download) BoarIcons.Download else Icons.AutoMirrored.Filled.ArrowForward,
+            ) { vm.install() }
+        }
     }) {
-        StepHeader(2, t("flows.onboarding.knowledgeTitle"), t("clean.setup.knowledgeSub"))
+        StepHeader(1, t("clean.setup.knowledgeTitle"), t("clean.setup.knowledgeSub"))
         if (rec != null) {
             SectionLabel(t("clean.setup.recommended"))
             PackageOption(rec, state, vm)
@@ -340,10 +403,10 @@ private fun PackageStep(state: SetupState, vm: SetupViewModel) {
 
 @Composable
 private fun PackageOption(p: PackagePlan, state: SetupState, vm: SetupViewModel) {
-    val c = Boar.colors
+    val cs = MaterialTheme.colorScheme
     OptionCard(t("flows.onboarding.package.${p.pkg.id}.name"), p.pkg == state.packageId, p.downloadBytes.takeIf { it > 0 }?.let { Units.formatBytes(it) },
-        null, { vm.choosePackage(p.pkg) }) {
-        Text(t("flows.onboarding.package.${p.pkg.id}.body"), style = Boar.type.body, color = c.textSecondary)
+        { vm.choosePackage(p.pkg) }) {
+        Text(t("flows.onboarding.package.${p.pkg.id}.body"), style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant)
         val meta = listOfNotNull(
             if (p.downloadBytes == 0L) t("flows.onboarding.alreadyDownloaded") else null,
             if (Units.formatBytes(p.installedBytes) != Units.formatBytes(p.downloadBytes)) t("flows.onboarding.meta.onDisk", "size" to Units.formatBytes(p.installedBytes)) else null,
@@ -351,13 +414,19 @@ private fun PackageOption(p: PackagePlan, state: SetupState, vm: SetupViewModel)
                 "speed" to Units.formatBytes(REFERENCE_BYTES_PER_SEC)) else null,
         )
         if (meta.isNotEmpty()) Meta(meta.joinToString(" · "))
-        if (p.shortfallBytes > 0) Meta(t("flows.onboarding.noSpace", "size" to Units.formatBytes(p.shortfallBytes)), c.crimson400)
+        if (p.shortfallBytes > 0) Meta(t("flows.onboarding.noSpace", "size" to Units.formatBytes(p.shortfallBytes)), cs.error)
     }
 }
 
 // --- Step 4: download and index ------------------------------------------------------------------------------------
 
-private enum class Category(val key: String, val icon: String) { ANSWER("answer", "◆"), SEARCH("search", "⌕"), KNOWLEDGE("knowledge", "▤") }
+private enum class Category(val key: String) { ANSWER("answer"), SEARCH("search"), KNOWLEDGE("knowledge") }
+
+private fun iconOf(cat: Category): ImageVector = when (cat) {
+    Category.ANSWER -> BoarIcons.Psychology
+    Category.SEARCH -> Icons.Outlined.Search
+    Category.KNOWLEDGE -> BoarIcons.MenuBook
+}
 
 private fun categoryOf(d: AssetProgress) = when (d.asset.kind) {
     AssetKind.LLM -> Category.ANSWER
@@ -367,101 +436,116 @@ private fun categoryOf(d: AssetProgress) = when (d.asset.kind) {
 
 @Composable
 private fun InstallStep(state: SetupState, vm: SetupViewModel, onBack: () -> Unit) {
-    val c = Boar.colors
-    val indexing = state.indexPhase == IndexPhase.BUILDING || state.indexPhase == IndexPhase.ERROR
-    StepScreen(footer = {
-        // Disabled until every file is on the phone and indexed, and it says why.
-        PrimaryButton(t("flows.onboarding.open"), enabled = false) {}
-        Meta(t("flows.onboarding.openWhenReady"))
-        if (!state.transferring && state.indexPhase != IndexPhase.BUILDING) BackLink(t("flows.onboarding.back"), onBack)
-    }) {
-        StepHeader(if (state.indexPhase == IndexPhase.WAITING) 3 else 4,
-            t(if (indexing) "flows.onboarding.indexTitle" else "flows.onboarding.step3Title"),
-            t(if (indexing) "flows.onboarding.indexSub" else "flows.onboarding.step3Sub"))
+    val cs = MaterialTheme.colorScheme
+    // The index now builds while the answer model still downloads: the screen is about the index only once every file is here.
+    val indexing = state.allPresent && (state.indexPhase == IndexPhase.BUILDING || state.indexPhase == IndexPhase.ERROR)
+    // Nothing to press while files arrive (Open BOAR is on the Done screen): only Back, and only when leaving is safe.
+    val canBack = !state.transferring && state.indexPhase != IndexPhase.BUILDING
+    // The file being fetched: the one with bytes moving, else the first not finished, so the screen never reads "waiting" while bytes flow.
+    val current = if (state.transferring) {
+        state.downloads.indexOfFirst { it.moving }.takeIf { it >= 0 } ?: state.downloads.indexOfFirst { !it.done && it.error == null }
+    } else -1
+    val currentId = state.downloads.getOrNull(current)?.asset?.id
+    StepScreen(footerVisible = canBack, footer = { FooterRow(back = onBack) }) {
+        StepHeader(2, t(if (indexing) "clean.setup.indexTitle" else "flows.onboarding.step3Title"),
+            t(if (indexing) "clean.setup.indexSub" else "flows.onboarding.step3Sub"))
 
         // One hero: the download while files arrive, then the search index.
         val showIndexHero = indexing && state.indexTotal > 0
         if (!state.allPresent || showIndexHero) {
             val fraction = if (!state.allPresent) (if (state.totalBytes > 0) state.doneBytes.toFloat() / state.totalBytes else 0f)
                 else state.indexDone.toFloat() / state.indexTotal
-            Card(background = c.bgCardElevated) {
+            InfoCard {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text(t(if (!state.allPresent) "flows.onboarding.totalLabel" else "flows.onboarding.indexRow").uppercase(),
-                            style = Boar.type.micro, color = c.textSecondary, fontWeight = FontWeight.Bold)
-                        Text("${(fraction * 100).toInt()}%", style = Boar.type["mono.lg"], color = c.textHeading)
+                        Text(t(if (!state.allPresent) "flows.onboarding.totalLabel" else "clean.setup.indexLabel"),
+                            style = MaterialTheme.typography.titleSmall, color = cs.onSurfaceVariant)
+                        Text("${(fraction * 100).toInt()}%", style = Boar.type["mono.lg"], color = cs.onSurface)
                     }
                     BrandDisc(52)
                 }
-                LinearProgressIndicator(progress = { fraction.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
-                    color = c.emerald500, trackColor = c.bgSubtle)
+                LinearProgressIndicator(progress = { fraction.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
                 if (!state.allPresent) {
-                    val i = state.downloads.indexOfFirst { it.moving }
-                    if (i >= 0) Text(t("flows.onboarding.currentItem", "n" to i + 1, "total" to state.downloads.size, "name" to state.downloads[i].asset.shortName),
-                        style = Boar.type.body, color = c.textPrimary, maxLines = 2)
+                    if (current >= 0) Text(t("flows.onboarding.currentItem", "n" to current + 1, "total" to state.downloads.size, "name" to state.downloads[current].asset.shortName),
+                        style = MaterialTheme.typography.bodyMedium, color = cs.onSurface, maxLines = 2)
                 } else if (state.indexPhase == IndexPhase.BUILDING && state.indexTitle.isNotEmpty()) {
-                    Text(t("flows.onboarding.indexReading", "title" to state.indexTitle), style = Boar.type.body, color = c.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(t("flows.onboarding.indexReading", "title" to state.indexTitle), style = MaterialTheme.typography.bodyMedium, color = cs.onSurface,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
-                if (state.transferring || state.indexPhase == IndexPhase.BUILDING)
-                    Meta(t("flows.onboarding.loadingLines.l${(state.tick / 18) % LOADING_LINES + 1}"), c.textDim)
                 Row(Modifier.fillMaxWidth()) {
                     Meta(if (!state.allPresent) t("flows.onboarding.totalValue", "done" to Units.formatBytes(state.doneBytes), "total" to Units.formatBytes(state.totalBytes))
-                        else t("flows.onboarding.indexCounter", "done" to state.indexDone, "total" to state.indexTotal), c.textSecondary)
+                        else t("clean.setup.indexCounter", "done" to formatCount(state.indexDone), "total" to formatCount(state.indexTotal)))
                     Spacer(Modifier.weight(1f))
                     val eta = if (!state.allPresent) state.etaSeconds else state.indexEtaSeconds
-                    eta?.let { Meta(t("flows.onboarding.minutesLeft", "count" to minutesLeft(it)), c.textSecondary) }
+                    eta?.let { Meta(t("flows.onboarding.minutesLeft", "count" to minutesLeft(it))) }
                 }
+                if (!state.allPresent) Meta(t("clean.setup.openWhenReady"))
             }
         }
 
         // One row per category; a tap shows its files and, for a failed one, Try again.
         val expanded = remember { mutableStateMapOf<Category, Boolean>() }
-        Card(Modifier, c.bgCard) {
+        InfoCard {
             Category.entries.forEach { cat ->
                 val items = state.downloads.filter { categoryOf(it) == cat }
                 if (items.isEmpty()) return@forEach
                 val status = when {
                     items.any { it.error != null } -> "failed"
                     items.all { it.done } -> "ready"
-                    items.any { it.moving } -> "moving"
+                    items.any { it.moving || it.asset.id == currentId } -> "moving"
                     else -> "queued"
                 }
-                val tone = when (status) { "failed" -> c.crimson400; "moving" -> c.textAccentEmerald; "ready" -> c.textAccentEmerald; else -> c.textSecondary }
+                val tone = when (status) { "failed" -> cs.error; "moving", "ready" -> cs.primary; else -> cs.onSurfaceVariant }
                 val open = expanded[cat] == true
-                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable { expanded[cat] = !open }.padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(if (status == "ready") "✓" else if (status == "failed") "!" else cat.icon, style = Boar.type.title, color = tone)
-                    Text(t("flows.onboarding.category.${cat.key}"), style = Boar.type.title, color = c.textPrimary, modifier = Modifier.weight(1f))
-                    Text(t("flows.onboarding.categoryStatus.$status").uppercase(), style = Boar.type.micro, color = tone, fontWeight = FontWeight.Bold)
-                    Text(if (open) "▴" else "▾", style = Boar.type.body, color = c.textMuted)
+                val name = t("clean.setup.cat.${cat.key}")
+                val statusText = t("flows.onboarding.categoryStatus.$status")
+                val a11y = t("flows.onboarding.categoryA11y", "name" to name, "done" to items.count { it.done }, "total" to items.size,
+                    "pct" to (items.map { it.fraction }.average() * 100).toInt()) + ", " + statusText
+                val stateText = t(if (open) "clean.setup.expanded" else "clean.setup.collapsed")
+                Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(MaterialTheme.shapes.small)
+                    .clickable(role = Role.Button) { expanded[cat] = !open }
+                    .semantics { contentDescription = a11y; stateDescription = stateText },
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+                        Icon(when (status) { "ready" -> Icons.Filled.CheckCircle; "failed" -> BoarIcons.ErrorOutline; else -> iconOf(cat) }, null, tint = tone)
+                    }
+                    Text(name, style = MaterialTheme.typography.titleMedium, color = cs.onSurface, modifier = Modifier.weight(1f))
+                    Text(statusText, style = MaterialTheme.typography.labelMedium, color = tone)
+                    Icon(if (open) BoarIcons.ExpandLess else BoarIcons.ExpandMore, null, tint = cs.onSurfaceVariant)
                 }
-                items.firstOrNull { it.error != null }?.error?.let { Meta(it, c.crimson400) }
+                items.firstOrNull { it.error != null }?.error?.let { Meta(it, cs.error) }
                 if (open) items.forEach { d ->
-                    Row(Modifier.fillMaxWidth().padding(start = 28.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(d.asset.label, style = Boar.type.subtext, color = c.textSecondary, modifier = Modifier.weight(1f), maxLines = 2)
-                        if (d.error != null) Text(t("flows.row.retry"), style = Boar.type.caption, color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
-                            modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { vm.retry() }.padding(6.dp))
+                    Row(Modifier.fillMaxWidth().padding(start = 36.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(d.asset.label, style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant, modifier = Modifier.weight(1f), maxLines = 2)
+                        if (d.error != null) TextButton(onClick = { vm.retry() }) { Text(t("flows.row.retry")) }
                         else Text(when {
                             d.done -> t("flows.onboarding.ready")
                             d.verifying -> t("flows.onboarding.checking")
                             d.bytesDone > 0 -> "${(d.fraction * 100).toInt()}%"
                             else -> t("flows.onboarding.queued")
-                        }, style = Boar.type["mono.xs"], color = if (d.moving) c.textAccentEmerald else c.textMuted)
+                        }, style = MaterialTheme.typography.labelMedium, color = if (d.moving) cs.primary else cs.onSurfaceVariant)
                     }
                 }
             }
             // The index row; while the hero shows the index it would repeat it.
             if (!showIndexHero) {
-                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(if (state.indexPhase == IndexPhase.ERROR) "!" else "◷", style = Boar.type.title,
-                        color = if (state.indexPhase == IndexPhase.ERROR) c.crimson400 else c.textSecondary)
+                val failed = state.indexPhase == IndexPhase.ERROR
+                val ready = state.indexPhase == IndexPhase.READY
+                Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+                        Icon(when { failed -> BoarIcons.ErrorOutline; ready -> Icons.Filled.CheckCircle; else -> BoarIcons.Schedule }, null,
+                            tint = when { failed -> cs.error; ready -> cs.primary; else -> cs.onSurfaceVariant })
+                    }
                     Column(Modifier.weight(1f)) {
-                        Text(t("flows.onboarding.indexRow"), style = Boar.type.title, color = c.textPrimary)
-                        Meta(t(when (state.indexPhase) {
-                            IndexPhase.WAITING -> "flows.onboarding.waitingDownloads"
-                            IndexPhase.BUILDING -> "flows.onboarding.indexStarting"
-                            else -> "flows.onboarding.indexFailed"
-                        }), if (state.indexPhase == IndexPhase.ERROR) c.crimson400 else c.textSecondary)
+                        Text(t("clean.setup.indexTitle"), style = MaterialTheme.typography.titleMedium, color = cs.onSurface)
+                        // While the model downloads, the index runs here with its own count.
+                        Meta(when (state.indexPhase) {
+                            IndexPhase.WAITING -> t("flows.onboarding.waitingDownloads")
+                            IndexPhase.BUILDING -> if (state.indexTotal > 0) t("clean.setup.indexCounter", "done" to formatCount(state.indexDone), "total" to formatCount(state.indexTotal))
+                                else t("flows.onboarding.indexStarting")
+                            IndexPhase.READY -> t("flows.onboarding.ready")
+                            else -> t("flows.onboarding.indexFailed")
+                        }, if (failed) cs.error else cs.onSurfaceVariant)
                     }
                 }
             }
@@ -469,33 +553,35 @@ private fun InstallStep(state: SetupState, vm: SetupViewModel, onBack: () -> Uni
 
         if (state.transferring || state.indexPhase == IndexPhase.BUILDING) {
             val indexOnly = state.indexPhase == IndexPhase.BUILDING && !state.transferring
-            Card(background = c.amberBgSubtle, border = c.amberBorder) {
-                Text("ⓘ " + t(if (indexOnly) "flows.onboarding.canLeaveTitle" else "flows.onboarding.keepOpenTitle").uppercase(),
-                    style = Boar.type.micro, color = c.textAccentAmber, fontWeight = FontWeight.Bold)
-                Text(t(if (indexOnly) "flows.onboarding.keepOpenIndex" else "flows.onboarding.keepOpen"), style = Boar.type.body, color = c.textPrimary)
+            InfoCard(containerColor = cs.tertiaryContainer, contentColor = cs.onTertiaryContainer) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Outlined.Info, null, Modifier.size(20.dp))
+                    Text(t(if (indexOnly) "flows.onboarding.canLeaveTitle" else "flows.onboarding.keepOpenTitle"), style = MaterialTheme.typography.titleSmall)
+                }
+                Text(t(if (indexOnly) "flows.onboarding.keepOpenIndex" else "flows.onboarding.keepOpen"), style = MaterialTheme.typography.bodyMedium)
             }
         }
 
         if (state.failed.isNotEmpty()) {
-            Card(background = c.crimsonBgSubtle, border = c.crimsonBorder) {
-                Text(t("flows.onboarding.downloadFailed"), style = Boar.type.title, color = c.crimson400)
-                state.failed.forEach { f -> Text("${f.asset.shortName}: ${f.error}", style = Boar.type.body, color = c.textPrimary) }
-                PrimaryButton(t("flows.row.retry")) { vm.retry() }
+            InfoCard(containerColor = cs.errorContainer, contentColor = cs.onErrorContainer) {
+                Text(t("flows.onboarding.downloadFailed"), style = MaterialTheme.typography.titleMedium)
+                state.failed.forEach { f -> Text("${f.asset.shortName}: ${f.error}", style = MaterialTheme.typography.bodyMedium) }
+                PrimaryButton(t("flows.row.retry"), icon = null) { vm.retry() }
                 if (state.failed.any { it.storage }) SecondaryButton(t("flows.onboarding.smallerPackage")) { vm.back() }
             }
         }
 
         if (state.indexPhase == IndexPhase.ERROR) {
-            Card(background = c.crimsonBgSubtle, border = c.crimsonBorder) {
-                Text(t("flows.onboarding.indexFailed"), style = Boar.type.title, color = c.crimson400)
-                state.indexError?.let { Text(it, style = Boar.type.subtext, color = c.textSecondary) }
-                PrimaryButton(t("flows.row.retry")) { vm.retryIndex() }
+            InfoCard(containerColor = cs.errorContainer, contentColor = cs.onErrorContainer) {
+                Text(t("flows.onboarding.indexFailed"), style = MaterialTheme.typography.titleMedium)
+                state.indexError?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                PrimaryButton(t("flows.row.retry"), icon = null) { vm.retryIndex() }
             }
         }
 
         if (state.stalled) {
-            Meta(t("flows.onboarding.restartHint"), c.textSecondary)
-            SecondaryButton("↻ " + t("flows.onboarding.restart")) { vm.restartDownloads() }
+            Meta(t("flows.onboarding.restartHint"))
+            SecondaryButton(t("flows.onboarding.restart"), Icons.Filled.Refresh) { vm.restartDownloads() }
         }
     }
 }
@@ -504,27 +590,35 @@ private fun InstallStep(state: SetupState, vm: SetupViewModel, onBack: () -> Uni
 
 @Composable
 private fun Done(state: SetupState, onDone: () -> Unit) {
-    val c = Boar.colors
-    StepScreen(footer = { PrimaryButton(t("flows.onboarding.open"), onClick = onDone) }) {
+    val cs = MaterialTheme.colorScheme
+    StepScreen(footer = { FooterRow { m -> PrimaryButton(t("flows.onboarding.open"), m, icon = null, onClick = onDone) } }) {
         Spacer(Modifier.height(24.dp))
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             BrandDisc(120)
-            Text(t("flows.onboarding.doneTitle"), style = Boar.type.headline, color = c.textHeading, textAlign = TextAlign.Center)
-            Text(t("flows.onboarding.doneBody"), style = Boar.type.body, color = c.textSecondary, textAlign = TextAlign.Center)
+            Text(t("flows.onboarding.doneTitle"), style = MaterialTheme.typography.headlineSmall, color = cs.onSurface, textAlign = TextAlign.Center)
+            Text(t("flows.onboarding.doneBody"), style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant, textAlign = TextAlign.Center)
         }
         val answer = state.downloads.firstOrNull { it.asset.kind == AssetKind.LLM }?.asset
-        val collections = state.downloads.count { it.asset.kind == AssetKind.CORPUS }
+        val answerName = answer?.let { m ->
+            when (m.answerTier) {
+                null -> m.shortName
+                else -> "${t(if (m.answerTier == AnswerTier.COMPACT) "flows.onboarding.answerTier.compact" else "flows.onboarding.answerTier.default")} · ${m.shortName}"
+            }
+        }
+        // The package the person chose, by name: the same words the knowledge step used, so no count here contradicts its promise.
+        val hasKnowledge = state.downloads.any { it.asset.kind == AssetKind.CORPUS }
         val rows = listOfNotNull(
-            answer?.let { "doneAnswer" to it.shortName },
-            if (collections > 0) "doneKnowledge" to t("flows.onboarding.doneCollections", "count" to collections, "value" to collections) else null,
-            if (state.indexTotal > 0) "doneIndex" to t("flows.onboarding.doneArticles", "count" to state.indexTotal, "value" to state.indexTotal) else null,
+            answerName?.let { "doneAnswer" to it },
+            if (hasKnowledge) "doneKnowledge" to t("flows.onboarding.package.${state.packageId.id}.name") else null,
+            if (state.indexTotal > 0) "doneIndex" to t("flows.onboarding.doneArticles", "count" to state.indexTotal, "value" to formatCount(state.indexTotal)) else null,
         )
-        if (rows.isNotEmpty()) Card {
-            Text(t("flows.onboarding.doneSummary").uppercase(), style = Boar.type.micro, color = c.textSecondary, fontWeight = FontWeight.Bold)
+        if (rows.isNotEmpty()) InfoCard {
+            Text(t("flows.onboarding.doneSummary"), style = MaterialTheme.typography.titleSmall, color = cs.onSurfaceVariant)
             rows.forEach { (key, value) ->
                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    Text(t("flows.onboarding.$key"), style = Boar.type.body, color = c.textSecondary, modifier = Modifier.weight(1f))
-                    Text(value, style = Boar.type.body, color = c.textPrimary, textAlign = TextAlign.End)
+                    Text(t("flows.onboarding.$key"), style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant,
+                        modifier = Modifier.weight(1f).alignByBaseline())
+                    Text(value, style = MaterialTheme.typography.bodyMedium, color = cs.onSurface, textAlign = TextAlign.End, modifier = Modifier.alignByBaseline())
                 }
             }
         }

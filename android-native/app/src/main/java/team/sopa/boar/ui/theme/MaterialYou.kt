@@ -60,11 +60,13 @@ private val brandLight = lightColorScheme(
  * The app's color tokens taken from the Material scheme, so every screen that reads Boar.colors follows the wallpaper
  * and the light/dark choice without changes of its own. Each token keeps its old role: page and card backgrounds ->
  * surface and the surface containers (one step up per level), text -> onSurface / onSurfaceVariant / outline, the two
- * accents (emerald, cyan) -> primary and tertiary, danger (crimson) -> error. Amber stays a fixed warning color, darker
- * by day so it still reads on a light surface; Material has no warning role.
+ * accents (emerald, cyan) -> primary and tertiary, danger (crimson) -> error. Amber ("may be slow", "keep BOAR open",
+ * the brand subtitle) -> tertiary too: a fixed gold next to a wallpaper-blue primary read as a second, unrelated accent
+ * (review setup-5). Material has no warning role, so real failures use error and caution uses tertiary; the pair of
+ * a filled amber (amber400) is onTertiary.
  */
 fun boarColorsOf(s: ColorScheme, dark: Boolean): BoarColors {
-    val amber = if (dark) Triple(Color(0xFFF2C14E), Color(0xFFE0AE3A), Color(0xFFC79524)) else Triple(Color(0xFF7D5700), Color(0xFF6E4C00), Color(0xFF5E4100))
+    val amber = s.tertiary
     return BoarColors(
         id = if (dark) ThemeMode.DARK else ThemeMode.LIGHT, name = if (dark) "Dark" else "Light", icon = "",
         bgBlack = s.surfaceContainerLowest,
@@ -84,7 +86,7 @@ fun boarColorsOf(s: ColorScheme, dark: Boolean): BoarColors {
         borderFocus = s.primary,
         borderEmerald = s.primary.copy(alpha = 0.35f),
         borderCyan = s.tertiary.copy(alpha = 0.35f),
-        borderAmber = amber.first.copy(alpha = 0.4f),
+        borderAmber = amber.copy(alpha = 0.4f),
         borderDanger = s.error.copy(alpha = 0.4f),
         borderFrontier = s.tertiary.copy(alpha = 0.45f),
         textPrimary = s.onSurface,
@@ -96,7 +98,7 @@ fun boarColorsOf(s: ColorScheme, dark: Boolean): BoarColors {
         textInverse = s.onPrimary,
         textAccentEmerald = s.primary,
         textAccentCyan = s.tertiary,
-        textAccentAmber = amber.first,
+        textAccentAmber = amber,
         textAccentViolet = s.tertiary,
         emerald50 = s.onPrimaryContainer,
         emerald400 = s.primary,
@@ -117,11 +119,11 @@ fun boarColorsOf(s: ColorScheme, dark: Boolean): BoarColors {
         frontierText = s.tertiary,
         frontierGradientStart = s.surfaceContainerHigh,
         frontierGradientEnd = s.surface,
-        amber400 = amber.first,
-        amber500 = amber.second,
-        amber600 = amber.third,
-        amberBgSubtle = amber.first.copy(alpha = 0.12f),
-        amberBorder = amber.first.copy(alpha = 0.35f),
+        amber400 = amber,
+        amber500 = amber,
+        amber600 = amber,
+        amberBgSubtle = amber.copy(alpha = 0.12f),
+        amberBorder = amber.copy(alpha = 0.35f),
         crimson400 = s.error,
         crimson500 = s.error,
         crimson600 = s.error,

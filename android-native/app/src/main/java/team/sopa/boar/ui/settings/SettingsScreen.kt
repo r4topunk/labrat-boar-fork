@@ -1,10 +1,13 @@
 package team.sopa.boar.ui.settings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -12,23 +15,40 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,14 +58,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import team.sopa.boar.app.BoarServices
 import team.sopa.boar.app.DevOptions
+import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.engine.settings.AppSettings
+import team.sopa.boar.ui.components.BoarTopBar
+import team.sopa.boar.ui.icons.BoarIcons
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import team.sopa.boar.ui.theme.ThemeMode
@@ -58,95 +83,100 @@ interface DisplayPrefs {
 }
 
 /**
- * Settings as a Material grouped list: how BOAR answers, what it knows, chats, display, language, PIN, About, then
- * Start over. The measurement knobs (technical details, answer length, Custom style, memory numbers) live in Developer
- * options, shown only after seven taps on the version in About. The engine's own knobs are no longer here: they keep
- * their saved values (Auto by default) and the engine reads them as before.
+ * Settings as a Material grouped list: how BOAR answers, the model, knowledge, chats (with the PIN lock), display,
+ * language, About, then Start over. The measurement knobs (technical details, answer length, adaptive routing, Custom
+ * style, memory numbers) live in Developer options, shown only after seven taps on the version in About. The engine's
+ * own knobs keep their saved values (Auto by default) and the engine reads them as before.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) -> Unit, onSetup: () -> Unit, onOpen: (String) -> Unit = {}, onBack: () -> Unit) {
-    val c = Boar.colors
     val s = services.settings
     val ctx = LocalContext.current
     var tech by remember { mutableStateOf(s.showLiveStats) }
     // Shared by the style choices and Developer options → Custom style, so either one shows the other's pick.
     var styleId by remember { mutableStateOf(s.personalityId ?: services.personalities.defaultId) }
-    val dev = DevOptions.enabled(ctx)
-    Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            Box(Modifier.size(48.dp).clip(CircleShape).clickable(onClickLabel = t("native.settings.back"), onClick = onBack), contentAlignment = Alignment.Center) {
-                Text("←", style = Boar.type.titleLg, color = c.textPrimary)
-            }
-            Text(t("modelSetupScreen.header.title"), style = Boar.type.titleLg, color = c.textHeading)
-        }
+    // State, so switching Developer options off in its own section hides it at once.
+    var dev by remember { mutableStateOf(DevOptions.enabled(ctx)) }
+    val scroll = TopAppBarDefaults.pinnedScrollBehavior()
+    Scaffold(
+        modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = { BoarTopBar(t("modelSetupScreen.header.title"), onBack = onBack, scrollBehavior = scroll) },
+    ) { inner ->
         // Capped like the chat so rows and cards don't span a tablet or a landscape phone.
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
-        Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            ToneSection(services, styleId) { styleId = it }
-            ModelsSection(services, onOpen)
-            KnowledgeSection(services, onOpen)
-            Section(t("modelSetupScreen.sections.memory")) {
-                var titles by remember { mutableStateOf(s.autoGenerateTitles) }
-                SwitchRow(t("memorySettings.autoTitlesLabel"), t("memorySettings.autoTitlesValue"), titles) { titles = it; s.autoGenerateTitles = it }
-                var summarize by remember { mutableStateOf(s.autoSummarize) }
-                SwitchRow(t("memorySettings.autoSummarizeLabel"), t("memorySettings.autoSummarizeValue"), summarize) { summarize = it; s.autoSummarize = it }
-                ClearChats(services)
-            }
-            Section(t("modelSetupScreen.sections.displayTheme")) {
-                var theme by remember { mutableStateOf(ThemeMode.normalize(s.themeId)) }
-                Choices(t("clean.settings.theme"), ThemeMode.all.map { it to t("clean.settings.theme.$it") }, theme) { theme = it; s.themeId = it; prefs.setTheme(it) }
-                var scale by remember { mutableStateOf(s.fontScale) }
-                Choices(t("native.settings.textSize"), listOf("compact", "standard", "large").map { it to t("native.settings.$it") }, scale) { scale = it; s.fontScale = it; prefs.setFontScale(it) }
-                var haptics by remember { mutableStateOf(s.hapticsEnabled) }
-                SwitchRow(t("interfaceSettings.hapticFeedbackLabel"), t("native.interfaceSettings.hapticFeedbackValue"), haptics) { haptics = it; s.hapticsEnabled = it }
-            }
-            Section(t("modelSetupScreen.sections.language")) {
-                var lang by remember { mutableStateOf(s.languageId ?: "system") }
-                Choices(null, listOf("system" to t("clean.settings.language.system"), "en" to "English", "pt" to "Português"), lang) {
-                    lang = it; val id = it.takeIf { v -> v != "system" }; s.languageId = id; prefs.setLanguage(id)
+        Column(Modifier.padding(inner).fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
+                ToneSection(services, styleId) { styleId = it }
+                ModelsSection(services, onOpen)
+                KnowledgeSection(services, onOpen)
+                Section(t("modelSetupScreen.sections.memory")) {
+                    var titles by remember { mutableStateOf(s.autoGenerateTitles) }
+                    SwitchRow(t("memorySettings.autoTitlesLabel"), t("memorySettings.autoTitlesValue"), titles) { titles = it; s.autoGenerateTitles = it }
+                    var summarize by remember { mutableStateOf(s.autoSummarize) }
+                    SwitchRow(t("clean.settings.chats.remember"), t("clean.settings.chats.rememberNote"), summarize) { summarize = it; s.autoSummarize = it }
+                    PinRow(services, onPin)
+                    ClearChats(services)
                 }
+                Section(t("modelSetupScreen.sections.displayTheme")) {
+                    var theme by remember { mutableStateOf(ThemeMode.normalize(s.themeId)) }
+                    Choices(t("clean.settings.theme"), ThemeMode.all.map { it to t("clean.settings.theme.$it") }, theme) { theme = it; s.themeId = it; prefs.setTheme(it) }
+                    var scale by remember { mutableStateOf(s.fontScale) }
+                    Choices(t("native.settings.textSize"), listOf("compact", "standard", "large").map { it to t("native.settings.$it") }, scale) { scale = it; s.fontScale = it; prefs.setFontScale(it) }
+                    var haptics by remember { mutableStateOf(s.hapticsEnabled) }
+                    SwitchRow(t("interfaceSettings.hapticFeedbackLabel"), t("native.interfaceSettings.hapticFeedbackValue"), haptics) { haptics = it; s.hapticsEnabled = it }
+                }
+                Section(t("modelSetupScreen.sections.language")) {
+                    var lang by remember { mutableStateOf(s.languageId ?: "system") }
+                    Choices(null, listOf("system" to t("clean.settings.language.system"), "en" to "English", "pt" to "Português"), lang) {
+                        lang = it; val id = it.takeIf { v -> v != "system" }; s.languageId = id; prefs.setLanguage(id)
+                    }
+                }
+                AnimatedVisibility(tech, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) { TelemetrySection(services) }
+                AnimatedVisibility(dev, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+                    DeveloperSection(services, styleId, { styleId = it }, tech, { tech = it }) { dev = false }
+                }
+                // One row, no header of its own: the version is the supporting line.
+                Section(null) {
+                    val version = remember { runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }.getOrNull() }
+                    ActionRow(t("aboutScreen.title"), note = version, icon = Icons.Outlined.Info, chevron = true) { onOpen("about") }
+                }
+                RecoverySection(services, prefs, onSetup)
             }
-            SecuritySection(services, onPin)
-            if (tech) TelemetrySection(services)
-            if (dev) DeveloperSection(services, styleId, { styleId = it }, tech) { tech = it }
-            Section(t("clean.settings.section.about")) {
-                ActionRow(t("aboutScreen.title"), note = t("clean.settings.aboutNote")) { onOpen("about") }
-            }
-            RecoverySection(services, prefs, onSetup)
-        }
         }
     }
 }
 
-/** ModelSetupScreen.tsx's Reasoning Models: what answers now, and the catalog (download, use, remove). */
+/** One row for the model that answers (name and how many are installed) that opens the catalog. */
 @Composable
 private fun ModelsSection(services: BoarServices, onOpen: (String) -> Unit) {
     Section(t("modelSetupScreen.sections.models")) {
-        val llms = services.installed(team.sopa.boar.engine.models.AssetKind.LLM)
+        val llms = services.installed(AssetKind.LLM)
         ActionRow(
-            t("native.settings.activeModel", "model" to (services.answerModel()?.shortName ?: "—")),
-            note = t("modelSetupScreen.installedModels") + ": " + llms.joinToString(", ") { it.shortName }.ifEmpty { "—" },
-            accent = false,
+            t("clean.settings.model.title"),
+            note = t("clean.settings.model.summary", "model" to (services.answerModel()?.shortName ?: "—"), "count" to llms.size),
+            icon = BoarIcons.Memory, chevron = true,
         ) { onOpen("models") }
-        // The embedding model searches the knowledge packs and documents; it isn't a choice, so not in the catalog.
-        val emb = services.catalog.models.firstOrNull { it.kind == team.sopa.boar.engine.models.AssetKind.EMBEDDING }
-        if (emb != null) Info(t(if (services.fileOf(emb).isFile) "native.settings.embeddingOk" else "native.settings.embeddingMissing", "model" to emb.shortName))
-        ActionRow(t("native.settings.openCatalog")) { onOpen("models") }
+        // The embedding model searches the packs and documents; it isn't a choice, so it shows here only when it's missing
+        // (Developer options has the ok line).
+        val emb = services.catalog.models.firstOrNull { it.kind == AssetKind.EMBEDDING }
+        if (emb != null && !services.fileOf(emb).isFile) Info(t("native.settings.embeddingMissing", "model" to emb.shortName), MaterialTheme.colorScheme.error)
         var free by remember { mutableStateOf(services.settings.freeMemoryInBackground) }
         SwitchRow(t("native.settings.freeMemory"), t("native.settings.freeMemoryNote"), free) { free = it; services.settings.freeMemoryInBackground = it }
     }
 }
 
-/** CorpusSettingsTab.tsx: the knowledge packs on the phone and your documents. */
+/** CorpusSettingsTab.tsx in one row: the knowledge packs on the phone and your documents. */
 @Composable
 private fun KnowledgeSection(services: BoarServices, onOpen: (String) -> Unit) {
     Section(t("modelSetupScreen.sections.knowledgeBase")) {
-        val packs = services.catalog.corpusCatalog.filter { services.fileOf(it).isFile }
-        ActionRow(
-            t("corpusSettingsTab.downloadablePacks"),
-            note = if (packs.isEmpty()) t("native.settings.noPacks") else t("native.settings.packsInstalled", "packs" to packs.joinToString(", ") { it.shortName }),
-        ) { onOpen("documents") }
-        ActionRow(t("native.settings.openDocuments"), note = t("native.settings.documents", "count" to services.knowledgeBase.collections().size)) { onOpen("documents") }
+        val packs = services.catalog.corpusCatalog.count { services.fileOf(it).isFile }
+        val docs = services.knowledgeBase.collections().size
+        val note = listOf(
+            if (packs == 0) t("clean.settings.knowledge.noPacks") else t("clean.settings.knowledge.packs", "count" to packs),
+            if (docs == 0) t("clean.settings.knowledge.noDocs") else t("clean.settings.knowledge.docs", "count" to docs),
+        ).joinToString(" · ")
+        ActionRow(t("clean.settings.knowledge.title"), note = note, icon = BoarIcons.MenuBook, chevron = true) { onOpen("documents") }
     }
 }
 
@@ -191,7 +221,7 @@ private fun TelemetrySection(services: BoarServices) {
         // For anyone first: memory and storage as bars, the phone and the chats. Then the technical rows (Oct 18).
         val budget = services.catalog.storageBudgetBytes
         val others = maxOf(phone.usedBytes - app, 0L)
-        team.sopa.boar.ui.drawer.UsageBar(t("native.telemetry.memory"), listOf(minOf(app, phone.usedBytes) to c.emerald400, others to c.textDim),
+        team.sopa.boar.ui.drawer.UsageBar(t("native.telemetry.memory"), listOf(minOf(app, phone.usedBytes) to c.emerald400, others to c.textSecondary),
             phone.totalBytes, team.sopa.boar.ui.drawer.usage(phone.usedBytes, phone.totalBytes), large = true)
         team.sopa.boar.ui.drawer.UsageCaption(t("native.telemetry.memoryCaption", "app" to gb(app), "others" to gb(others)), large = true)
         team.sopa.boar.ui.drawer.UsageBar(t("native.telemetry.disk"), listOf(storage to c.cyan400, fetching to c.cyan400.copy(alpha = 0.35f)),
@@ -209,7 +239,7 @@ private fun TelemetrySection(services: BoarServices) {
             t("native.telemetry.device") to listOfNotNull(d.brand, d.model).joinToString(" ") + " · Android ${d.osVersion}",
             t("native.telemetry.chats") to (chatCount?.toString() ?: "—"),
         ))
-        Text(t("native.telemetry.technical"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(top = 6.dp))
+        Text(t("native.telemetry.technical"), style = Boar.type["mono.xs"], color = c.textSecondary, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(top = 6.dp))
         val inf = d.cpuFeatures.orEmpty()
         rows(listOf(
             t("native.telemetry.chip") to (team.sopa.boar.engine.eval.ShareResults.describeChipset(d) ?: "—"),
@@ -220,21 +250,17 @@ private fun TelemetrySection(services: BoarServices) {
             t("native.telemetry.lastEval") to last,
         ))
         // The sharing half only in builds that can share (EVAL_SHARING); otherwise nothing is ever sent.
-        Text(t(if (sharing.available) "native.telemetry.noteSharing" else "native.telemetry.note"), style = Boar.type.micro, color = c.textDim)
+        Text(t(if (sharing.available) "native.telemetry.noteSharing" else "native.telemetry.note"), style = Boar.type.micro, color = c.textSecondary)
     } }
 }
 
+
+/** The PIN lock as one switch row: on opens the PIN flow to set it, off the flow that removes it; Change shows while it's on. */
 @Composable
-private fun SecuritySection(services: BoarServices, onPin: (String) -> Unit) {
-    val c = Boar.colors
+private fun PinRow(services: BoarServices, onPin: (String) -> Unit) {
     val on = services.pinLock.isSet
-    Section(t("native.settings.security")) {
-        Info(t(if (on) "native.settings.pinOn" else "native.settings.pinOff"), color = if (on) c.textAccentEmerald else c.textSecondary)
-        if (on) {
-            ActionRow(t("native.settings.pinChange")) { onPin("CHANGE") }
-            ActionRow(t("native.settings.pinRemove"), danger = true) { onPin("REMOVE") }
-        } else ActionRow(t("native.settings.pinSet")) { onPin("NEW") }
-    }
+    SwitchRow(t("native.settings.security"), t(if (on) "native.settings.pinOn" else "native.settings.pinOff"), on) { turnOn -> onPin(if (turnOn) "NEW" else "REMOVE") }
+    if (on) ActionRow(t("native.settings.pinChange"), icon = Icons.Outlined.Lock) { onPin("CHANGE") }
 }
 
 /** MemorySettings.tsx: Clear All Chat History, after a confirmation. */
@@ -242,38 +268,42 @@ private fun SecuritySection(services: BoarServices, onPin: (String) -> Unit) {
 private fun ClearChats(services: BoarServices) {
     var asking by remember { mutableStateOf(false) }
     var done by remember { mutableStateOf(false) }
-    ActionRow(if (done) t("native.settings.clearChatsDone") else t("memorySettings.clearAllChatHistory"), danger = !done) { if (!done) asking = true }
-    if (asking) androidx.compose.material3.AlertDialog({ asking = false },
+    ActionRow(if (done) t("native.settings.clearChatsDone") else t("memorySettings.clearAllChatHistory"), danger = !done,
+        icon = if (done) Icons.Filled.Check else Icons.Outlined.Delete) { if (!done) asking = true }
+    if (asking) AlertDialog({ asking = false },
         title = { Text(t("memorySettings.clearAllConfirmTitle")) },
-        confirmButton = { androidx.compose.material3.TextButton({ services.chats.clearAll(); asking = false; done = true }) { Text(t("memorySettings.clearAllButton"), color = Boar.colors.crimson400) } },
-        dismissButton = { androidx.compose.material3.TextButton({ asking = false }) { Text(t("common.cancel")) } })
+        confirmButton = { TextButton({ services.chats.clearAll(); asking = false; done = true }) { Text(t("memorySettings.clearAllButton"), color = MaterialTheme.colorScheme.error) } },
+        dismissButton = { TextButton({ asking = false }) { Text(t("common.cancel")) } })
 }
 
 /** ModelSetupScreen.tsx's System Recovery & Danger Zone: run setup again, reset settings, or wipe everything and start over. */
 @Composable
 private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup: () -> Unit) {
     val ctx = LocalContext.current
+    val error = MaterialTheme.colorScheme.error
     var purging by remember { mutableStateOf(false) }
     var resetting by remember { mutableStateOf(false) }
     Section(t("modelSetupScreen.sections.recovery")) {
-        ActionRow(t("modelSetupScreen.recovery.wizardButton"), note = t("modelSetupScreen.recovery.wizardDesc"), onClick = onSetup)
+        ActionRow(t("modelSetupScreen.recovery.wizardButton"), note = t("modelSetupScreen.recovery.wizardDesc"), icon = Icons.Outlined.PlayArrow, onClick = onSetup)
         // Defaults back without the multi-GB re-download "Clear all data" costs.
-        ActionRow(t("native.settings.resetButton"), note = t("clean.settings.resetDesc")) { resetting = true }
-        ActionRow(t("modelSetupScreen.recovery.dangerButton"), note = t("modelSetupScreen.recovery.dangerDesc"), danger = true) { purging = true }
+        ActionRow(t("native.settings.resetButton"), note = t("clean.settings.resetDesc"), icon = Icons.Filled.Refresh) { resetting = true }
+        ActionRow(t("modelSetupScreen.recovery.dangerButton"), note = t("modelSetupScreen.recovery.dangerDesc"), danger = true, icon = Icons.Outlined.Delete) { purging = true }
     }
-    if (resetting) androidx.compose.material3.AlertDialog({ resetting = false },
+    if (resetting) AlertDialog({ resetting = false },
         title = { Text(t("native.settings.resetConfirmTitle")) },
         text = { Text(t("native.settings.resetConfirmBody")) },
-        confirmButton = { androidx.compose.material3.TextButton({
+        confirmButton = { TextButton({
             resetting = false
             services.settings.resetPreferences()
             services.applyDefaults()
             prefs.setTheme(ThemeMode.DEFAULT_ID)
             prefs.setFontScale("standard")
             onSetup()
-        }) { Text(t("native.settings.resetConfirmButton"), color = Boar.colors.crimson400) } },
-        dismissButton = { androidx.compose.material3.TextButton({ resetting = false }) { Text(t("common.cancel")) } })
-    if (purging) androidx.compose.material3.AlertDialog({ purging = false },
+        }) { Text(t("native.settings.resetConfirmButton"), color = error) } },
+        dismissButton = { TextButton({ resetting = false }) { Text(t("common.cancel")) } })
+    if (purging) AlertDialog({ purging = false },
+        icon = { Icon(Icons.Outlined.Delete, null) },
+        iconContentColor = error,
         title = { Text(t("modelSetupScreen.dangerModal.title")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -283,35 +313,39 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
             }
         },
         // Android's own "clear data": every file, setting and key of the app, then it closes; next start is setup.
-        confirmButton = { androidx.compose.material3.TextButton({ ctx.getSystemService(android.app.ActivityManager::class.java).clearApplicationUserData() }) {
-            Text(t("modelSetupScreen.dangerModal.confirmButton"), color = Boar.colors.crimson400) } },
-        dismissButton = { androidx.compose.material3.TextButton({ purging = false }) { Text(t("common.cancel")) } })
+        confirmButton = { TextButton({ ctx.getSystemService(android.app.ActivityManager::class.java).clearApplicationUserData() }) {
+            Text(t("modelSetupScreen.dangerModal.confirmButton"), color = error) } },
+        dismissButton = { TextButton({ purging = false }) { Text(t("common.cancel")) } })
 }
 
-/** The answer styles (Custom only through Developer options), Deep Research and adaptive routing. */
+/** The answer styles as radio rows, each with its own description (Custom only through Developer options), and Deep Research. */
 @Composable
 private fun ToneSection(services: BoarServices, id: String, onStyle: (String) -> Unit) {
     val s = services.settings
-    val personalities = services.personalities
     Section(t("modelSetupScreen.sections.tone")) {
-        Choices(null, personalities.personalities.filter { it.id != "custom" || BoarServices.SHOW_CUSTOM_STYLE }.map { it.id to "${it.icon} ${t("personalities.${it.id}.label")}" }, id) {
-            onStyle(it); s.personalityId = it
+        Column(Modifier.selectableGroup()) {
+            for (p in services.personalities.personalities.filter { it.id != "custom" || BoarServices.SHOW_CUSTOM_STYLE }) {
+                ListItem(
+                    headlineContent = { Text(t("personalities.${p.id}.label")) },
+                    supportingContent = { Text(t("personalities.${p.id}.description")) },
+                    leadingContent = { RadioButton(selected = p.id == id, onClick = null) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    modifier = Modifier.selectable(selected = p.id == id, role = Role.RadioButton) { onStyle(p.id); s.personalityId = p.id },
+                )
+            }
         }
-        Note(t("personalities.$id.description"))
         var deep by remember { mutableStateOf(s.deepResearchMode) }
         SwitchRow(t("personalitySettings.deepResearchTitle"), t("personalitySettings.deepResearchNote"), deep) { deep = it; s.deepResearchMode = it }
-        var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }
-        SwitchRow(t("native.settings.adaptiveTitle"), t("native.settings.adaptiveNote"), adaptive) { adaptive = it; s.adaptiveRoutingEnabled = it }
     }
 }
 
 /**
  * Developer options (DevOptions, seven taps on the version in About): the technical details switch, answer length,
- * the Custom style, the memory numbers, and a switch that hides it all again. Turning it off also turns technical
- * details off, since its switch would no longer be anywhere to find.
+ * adaptive routing, the Custom style, the memory numbers, and a switch that hides it all again. Turning it off also
+ * turns technical details off ([onDisable] hides the section), since its switch would no longer be anywhere to find.
  */
 @Composable
-private fun DeveloperSection(services: BoarServices, styleId: String, onStyle: (String) -> Unit, technical: Boolean, onTechnical: (Boolean) -> Unit) {
+private fun DeveloperSection(services: BoarServices, styleId: String, onStyle: (String) -> Unit, technical: Boolean, onTechnical: (Boolean) -> Unit, onDisable: () -> Unit) {
     val s = services.settings
     val ctx = LocalContext.current
     Section(t("clean.settings.section.developer")) {
@@ -324,33 +358,39 @@ private fun DeveloperSection(services: BoarServices, styleId: String, onStyle: (
             listOf<Pair<Int?, String>>(null to "${t("native.tweaks.auto")} ($auto)") + services.personalities.maxTokensOptions.map { it to "$it" },
             tokens) { tokens = it; s.maxTokensChoice = it }
         Note(t("personalitySettings.maxOutputTokensNote"))
+        // An engine knob, off by default: it changes how the answer is produced even with a single model installed.
+        var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }
+        SwitchRow(t("native.settings.adaptiveTitle"), t("native.settings.adaptiveNote"), adaptive) { adaptive = it; s.adaptiveRoutingEnabled = it }
+        val emb = services.catalog.models.firstOrNull { it.kind == AssetKind.EMBEDDING }
+        if (emb != null && services.fileOf(emb).isFile) Note(t("native.settings.embeddingOk", "model" to emb.shortName))
         val custom = styleId == "custom"
         SwitchRow(t("clean.settings.dev.customStyle"), t("clean.settings.dev.customStyleNote"), custom) { on ->
             val next = if (on) "custom" else services.personalities.defaultId
             onStyle(next); s.personalityId = next
         }
-        if (custom) {
+        AnimatedVisibility(custom, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
             var prompt by remember { mutableStateOf(s.customSystemPrompt ?: "") }
-            Field(prompt, t("personalitySettings.customPromptPlaceholder")) { prompt = it; s.customSystemPrompt = it }
+            OutlinedTextField(prompt, { prompt = it; s.customSystemPrompt = it }, placeholder = { Text(t("personalitySettings.customPromptPlaceholder")) },
+                minLines = 3, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp))
         }
         var turns by remember { mutableStateOf(s.historyTurnThreshold) }
         Choices(t("memorySettings.turnsBeforeSummarizing"), listOf(4, 6, 8, 12).map { it to "$it" }, turns) { turns = it; s.historyTurnThreshold = it }
         var max by remember { mutableStateOf(s.maxSavedSessions) }
         Choices(t("memorySettings.maxSavedSessions"), listOf(5, 10, 25, 50).map { it to "$it" }, max) { max = it; s.maxSavedSessions = it }
         SwitchRow(t("clean.settings.dev.enabled"), t("clean.settings.dev.enabledNote"), true) { on ->
-            if (!on) { onTechnical(false); DevOptions.setEnabled(ctx, false) }
+            if (!on) { onTechnical(false); DevOptions.setEnabled(ctx, false); onDisable() }
         }
     }
 }
 
-/** A Material settings group: the title in the accent over its rows on one rounded container. */
+/** A Material settings group: the title in the primary color over its rows on one rounded container ([title] null: no header). */
 @Composable
-private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
-    val c = Boar.colors
-    Column(Modifier.fillMaxWidth()) {
-        Text(title, style = Boar.type.caption, color = c.textAccentEmerald, fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp))
-        Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(c.bgCard).padding(vertical = 8.dp), content = content)
+private fun Section(title: String?, content: @Composable ColumnScope.() -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    Column(Modifier.fillMaxWidth().padding(top = if (title == null) 24.dp else 0.dp)) {
+        if (title != null) Text(title, style = MaterialTheme.typography.labelLarge, color = scheme.primary,
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp))
+        Column(Modifier.fillMaxWidth().clip(MaterialTheme.shapes.extraLarge).background(scheme.surfaceContainer).padding(vertical = 8.dp), content = content)
     }
 }
 
@@ -359,37 +399,57 @@ private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) 
 private fun Padded(content: @Composable ColumnScope.() -> Unit) =
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = content)
 
-/** A tappable row: an action in the accent (red when [danger]), or a plain row that opens something when not [accent]. */
+/**
+ * A tappable list item: the label in onSurface (error when [danger]), an optional leading [icon] and, for rows that open
+ * another screen, a trailing [chevron].
+ */
 @Composable
-private fun ActionRow(label: String, note: String? = null, danger: Boolean = false, accent: Boolean = true, onClick: () -> Unit) {
-    val c = Boar.colors
+private fun ActionRow(label: String, note: String? = null, danger: Boolean = false, icon: ImageVector? = null, chevron: Boolean = false, onClick: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
     ListItem(
-        headlineContent = { Text(label, style = Boar.type.body, fontWeight = if (accent || danger) FontWeight.SemiBold else null) },
-        supportingContent = if (note != null) { { Text(note, style = Boar.type.subtext) } } else null,
+        headlineContent = { Text(label) },
+        supportingContent = if (note != null) { { Text(note) } } else null,
+        leadingContent = if (icon != null) { { Icon(icon, contentDescription = null) } } else null,
+        trailingContent = if (chevron) { { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) } } else null,
         colors = ListItemDefaults.colors(
             containerColor = Color.Transparent,
-            headlineColor = if (danger) c.crimson400 else if (accent) c.textAccentEmerald else c.textPrimary,
-            supportingColor = c.textMuted,
+            headlineColor = if (danger) scheme.error else scheme.onSurface,
+            supportingColor = scheme.onSurfaceVariant,
+            leadingIconColor = if (danger) scheme.error else scheme.onSurfaceVariant,
+            trailingIconColor = scheme.onSurfaceVariant,
         ),
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier.clickable(role = Role.Button, onClick = onClick),
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * A single choice: Material segmented buttons for up to four options, filter chips (with a check when selected) when
+ * there are more, since they would not fit one row.
+ */
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun <T> Choices(label: String?, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
-    val c = Boar.colors
-    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        label?.let { Text(it, style = Boar.type.body, color = c.textPrimary) }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            for ((value, text) in options) {
-                FilterChip(
-                    selected = value == selected, onClick = { onSelect(value) },
-                    label = { Text(text, style = Boar.type.caption) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        labelColor = c.textSecondary, selectedLabelColor = c.emerald50, selectedContainerColor = c.emerald900,
-                    ),
-                )
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        label?.let { Text(it, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface) }
+        if (options.size <= 4) {
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                options.forEachIndexed { i, (value, text) ->
+                    SegmentedButton(
+                        selected = value == selected, onClick = { onSelect(value) },
+                        shape = SegmentedButtonDefaults.itemShape(i, options.size),
+                        label = { Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    )
+                }
+            }
+        } else {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for ((value, text) in options) {
+                    FilterChip(
+                        selected = value == selected, onClick = { onSelect(value) },
+                        label = { Text(text) },
+                        leadingIcon = if (value == selected) { { Icon(Icons.Filled.Check, contentDescription = null, Modifier.size(FilterChipDefaults.IconSize)) } } else null,
+                    )
+                }
             }
         }
     }
@@ -398,28 +458,18 @@ private fun <T> Choices(label: String?, options: List<Pair<T, String>>, selected
 /** A switch row: the whole row toggles, as in Android's own settings. */
 @Composable
 private fun SwitchRow(label: String, note: String?, checked: Boolean, onChange: (Boolean) -> Unit) {
-    val c = Boar.colors
     ListItem(
-        headlineContent = { Text(label, style = Boar.type.body) },
-        supportingContent = if (note != null) { { Text(note, style = Boar.type.subtext) } } else null,
+        headlineContent = { Text(label) },
+        supportingContent = if (note != null) { { Text(note) } } else null,
         trailingContent = { Switch(checked, onCheckedChange = null) },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent, headlineColor = c.textPrimary, supportingColor = c.textMuted),
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.toggleable(checked, role = Role.Switch, onValueChange = onChange),
     )
 }
 
 @Composable
-private fun Info(text: String, color: Color = Boar.colors.textSecondary) =
-    Text(text, style = Boar.type.subtext, color = color, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp))
+private fun Info(text: String, color: Color = MaterialTheme.colorScheme.onSurfaceVariant) =
+    Text(text, style = MaterialTheme.typography.bodySmall, color = color, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp))
 
 @Composable
-private fun Note(text: String) = Info(text, Boar.colors.textMuted)
-
-@Composable
-private fun Field(value: String, placeholder: String, onChange: (String) -> Unit) {
-    val c = Boar.colors
-    Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).background(c.bgInput, RoundedCornerShape(12.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(12.dp)).padding(12.dp)) {
-        if (value.isEmpty()) Text(placeholder, style = Boar.type.body, color = c.textDim)
-        BasicTextField(value, onChange, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth())
-    }
-}
+private fun Note(text: String) = Info(text)

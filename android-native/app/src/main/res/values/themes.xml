@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- The window before Compose draws: light here, dark in values-night, so a light phone doesn't flash dark at
-         launch. The colors after that come from Material You (ui/theme/MaterialYou.kt). -->
-    <style name="Theme.Boar" parent="@android:style/Theme.Material.Light.NoActionBar" />
+         launch. Its background is the brand surface (MaterialYou.kt brandLight) so the first frame matches what Compose
+         paints; on Android 12+ values-v31 swaps in the wallpaper's neutral. The colors after that come from Material You
+         (ui/theme/MaterialYou.kt). -->
+    <style name="Theme.Boar" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#FFFFF8F4</item>
+    </style>
 </resources>

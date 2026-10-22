@@ -3,11 +3,13 @@ package team.sopa.boar.ui.drawer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,7 +19,13 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
@@ -36,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,12 +59,14 @@ import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import java.util.Locale
 
-class DrawerItem(val key: String, val label: String, val onClick: () -> Unit)
+/** A destination under "New chat"; [icon] leads the label (the Material drawer spec: every destination has one). */
+class DrawerItem(val key: String, val label: String, val icon: ImageVector? = null, val onClick: () -> Unit)
 
 /**
- * Drawer.tsx as a standard Material 3 navigation drawer: the brand, a new chat, recent sessions (open, delete), the
- * screens, and (developer options only) the RAM/disk footer. Colors come from the Material theme, so it follows
- * Material You and the light/dark choice.
+ * Drawer.tsx as a standard Material 3 navigation drawer: the brand, a new chat, the screens, recent sessions (open,
+ * delete), and (developer options only) the RAM/disk footer. Colors come from the Material theme, so it follows
+ * Material You and the light/dark choice. Everything lines up at 28 dp: the sheet's 12 dp item padding plus the 16 dp
+ * inset the item text, the header and the section label share.
  */
 @Composable
 fun BoarDrawer(
@@ -73,47 +84,64 @@ fun BoarDrawer(
     answering: Boolean = false,
     onNewChat: () -> Unit,
     onSelect: (String) -> Unit,
+    /** The caller removes the row right away and offers an undo; the chat is erased only when that lapses. */
     onDelete: (String) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
+    val type = MaterialTheme.typography
     // The ModalDrawerSheet around it pads for the system bars.
     Column(Modifier.fillMaxHeight().padding(horizontal = 12.dp).padding(top = 16.dp)) {
-        // Fixed parts at the top and bottom; the chat history takes the height left between them and scrolls inside
+        // Fixed parts at the top and bottom; the chat history takes the height left under them and scrolls inside
         // it, so the menu doesn't move when the sessions load.
         Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(start = 4.dp, bottom = 16.dp)) {
-                Image(painterResource(R.drawable.boar), null, Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)) {
+                Image(painterResource(R.drawable.boar), null, Modifier.size(36.dp).clip(MaterialTheme.shapes.medium))
                 Column {
-                    Text("BOAR", style = Boar.type.title, color = scheme.onSurface)
-                    // No size override: the style is already the readable minimum and follows Settings → Text size.
-                    Text(t("drawer.subtitle"), style = Boar.type["mono.xs"], color = scheme.primary, modifier = Modifier.padding(top = 1.dp))
+                    Text("BOAR", style = type.titleMedium, color = scheme.onSurface)
+                    // The same line the setup welcome carries: one product, one tagline.
+                    Text(t("flows.onboarding.brandSub"), style = type.bodySmall, color = scheme.onSurfaceVariant)
                 }
             }
-            FilledTonalButton(onClick = onNewChat, enabled = !answering, modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
-                Text("＋  " + t("clean.drawer.newChat"), style = Boar.type.titleSm)
+            FilledTonalButton(onClick = onNewChat, enabled = !answering, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                Icon(Icons.Filled.Add, null, Modifier.size(ButtonDefaults.IconSize))
+                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                Text(t("clean.drawer.newChat"))
             }
-            Text(t("drawer.recentSessions"), style = Boar.type.caption, color = scheme.onSurfaceVariant, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 6.dp))
-            if (answering) Text(t("native.drawer.answeringHint"), style = Boar.type.caption, color = scheme.tertiary, modifier = Modifier.padding(start = 4.dp, bottom = 6.dp))
+            // The destinations sit right under the button, so a short history leaves the empty space at the bottom
+            // instead of a gap in the middle of the sheet.
+            items.forEach { item ->
+                val icon = item.icon
+                NavigationDrawerItem(
+                    icon = if (icon != null) ({ Icon(icon, null) }) else null,
+                    label = { Text(item.label, style = type.labelLarge) },
+                    selected = false,
+                    onClick = item.onClick,
+                )
+            }
+            HorizontalDivider(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+            Text(t("drawer.recentSessions"), style = type.titleSmall, color = scheme.onSurfaceVariant, modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 6.dp))
+            if (answering) Text(t("native.drawer.answeringHint"), style = type.bodySmall, color = scheme.tertiary, modifier = Modifier.padding(start = 16.dp, bottom = 6.dp))
             LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                 items(sessions, key = { it.id }) { s ->
                     val active = s.id == activeSessionId
                     NavigationDrawerItem(
                         label = {
                             Column {
-                                Text(s.title, style = Boar.type.caption, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Text(relativeTime(s.updatedAt), style = Boar.type["mono.xs"], color = scheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+                                Text(s.title, style = type.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(relativeTime(s.updatedAt), style = type.bodySmall, color = scheme.onSurfaceVariant)
                             }
                         },
                         selected = active,
                         onClick = { if (!answering) onSelect(s.id) },
-                        badge = if (answering) null else ({ Text("🗑️", fontSize = 13.sp, modifier = Modifier.alpha(0.7f).clickable { onDelete(s.id) }.padding(4.dp)) }),
+                        // A 48 dp target of its own (the glyph pulled into the item's end padding), not a tap on an emoji.
+                        badge = if (answering) null else ({
+                            IconButton(onClick = { onDelete(s.id) }, modifier = Modifier.offset(x = 12.dp)) {
+                                Icon(Icons.Outlined.Delete, t("clean.nav.deleteChat"), tint = scheme.onSurfaceVariant)
+                            }
+                        }),
                         modifier = Modifier.alpha(if (answering && !active) 0.4f else 1f),
                     )
                 }
-            }
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
-            items.forEach { item ->
-                NavigationDrawerItem(label = { Text(item.label, style = Boar.type.titleSm) }, selected = false, onClick = item.onClick)
             }
         }
         if (showStats) FooterStats(lastTokPerSec, storageUsed, downloading, storageBudgetBytes)

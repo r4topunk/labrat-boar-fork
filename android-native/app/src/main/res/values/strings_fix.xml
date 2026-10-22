@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Texts added by the MD3 fix round (judge/clean-native). -->
+<resources>
+    <string name="clean_setup_stage_assistant" formatted="false">Assistant</string>
+    <string name="clean_setup_knowledgeTitle" formatted="false">Your knowledge</string>
+    <string name="clean_setup_chosenFor" formatted="false">Chosen for this phone\'s {{ram}} of memory. Larger models are under More options.</string>
+    <string name="clean_setup_modelLarge" formatted="false">Larger and slower. Best on phones with plenty of memory.</string>
+    <string name="clean_setup_modelOther" formatted="false">Another answer model that fits this phone.</string>
+    <string name="clean_setup_cat_answer" formatted="false">Answers</string>
+    <string name="clean_setup_cat_search" formatted="false">Search</string>
+    <string name="clean_setup_cat_knowledge" formatted="false">Articles</string>
+    <string name="clean_setup_expanded" formatted="false">Expanded</string>
+    <string name="clean_setup_collapsed" formatted="false">Collapsed</string>
+    <string name="clean_setup_openWhenReady" formatted="false">You can open BOAR when everything is on the phone.</string>
+    <string name="clean_setup_indexTitle" formatted="false">Preparing your library</string>
+    <string name="clean_setup_indexSub" formatted="false">BOAR is sorting the articles it just downloaded so it can find them fast. It only reads those articles, never your photos or files. No internet needed.</string>
+    <string name="clean_setup_indexLabel" formatted="false">Organizing articles</string>
+    <string name="clean_setup_indexCounter" formatted="false">{{done}} of {{total}} articles</string>
+    <string name="clean_chat_worksOffline" formatted="false">Works offline</string>
+    <string name="clean_chat_expanded" formatted="false">Expanded</string>
+    <string name="clean_chat_collapsed" formatted="false">Collapsed</string>
+    <string name="clean_chat_showPassage" formatted="false">Show passage</string>
+    <string name="clean_nav_deleteChat" formatted="false">Delete chat</string>
+    <string name="clean_nav_chatDeleted" formatted="false">Chat deleted</string>
+    <string name="clean_nav_undo" formatted="false">Undo</string>
+    <string name="clean_settings_model_title" formatted="false">Model</string>
+    <string name="clean_settings_model_summary_one" formatted="false">{{model}} · {{count}} installed</string>
+    <string name="clean_settings_model_summary_other" formatted="false">{{model}} · {{count}} installed</string>
+    <string name="clean_settings_knowledge_title" formatted="false">Packs and documents</string>
+    <string name="clean_settings_knowledge_packs_one" formatted="false">{{count}} pack on this phone</string>
+    <string name="clean_settings_knowledge_packs_other" formatted="false">{{count}} packs on this phone</string>
+    <string name="clean_settings_knowledge_noPacks" formatted="false">No packs yet</string>
+    <string name="clean_settings_knowledge_docs_one" formatted="false">{{count}} document</string>
+    <string name="clean_settings_knowledge_docs_other" formatted="false">{{count}} documents</string>
+    <string name="clean_settings_knowledge_noDocs" formatted="false">No documents yet</string>
+    <string name="clean_settings_chats_remember" formatted="false">Remember long chats</string>
+    <string name="clean_settings_chats_rememberNote" formatted="false">Keeps a short summary of earlier messages so BOAR doesn\'t forget them.</string>
+    <string name="clean_settings_about_copyAddress" formatted="false">Copy address</string>
+    <string name="clean_library_builtInTitle" formatted="false">Built-in knowledge</string>
+    <string name="clean_library_builtInSummary" formatted="false">Wikipedia topics BOAR searches offline whenever you ask a question.</string>
+    <string name="clean_library_yourDocs" formatted="false">Your documents</string>
+    <string name="clean_library_docsHint" formatted="false">Text, Markdown, CSV, JSON or PDF. Stays on this phone.</string>
+    <string name="clean_library_collectionName" formatted="false">Collection name (optional)</string>
+    <string name="clean_library_collectionHelp" formatted="false">Leave empty to use the first file\'s name.</string>
+    <string name="clean_library_addDocs" formatted="false">Add documents</string>
+    <string name="clean_library_defaultName" formatted="false">My documents</string>
+    <string name="clean_library_pdfNote" formatted="false">PDFs need selectable text: scanned or password-protected PDFs can\'t be read.</string>
+    <string name="clean_library_emptyTitle" formatted="false">No documents yet</string>
+    <string name="clean_library_emptyBody" formatted="false">Add notes or PDFs to search them offline alongside the built-in knowledge.</string>
+    <string name="clean_library_more" formatted="false">More options</string>
+    <string name="clean_library_expanded" formatted="false">Expanded</string>
+    <string name="clean_library_collapsed" formatted="false">Collapsed</string>
+</resources>

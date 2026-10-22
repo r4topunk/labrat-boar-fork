@@ -9,8 +9,19 @@ import kotlinx.serialization.json.jsonPrimitive
  * Indexes the bundled corpus and downloaded corpus packs into the knowledge base (port of src/rag/seedCorpus.ts):
  * one chunk per document, id "wiki-<collection>-<slug of the title>" (the first document with a slug wins), embedded
  * as "title\nbody". Chunk ids match the Expo app's, so an upgraded install finds its index complete and skips it.
+ *
+ * Speed (first-run setup indexes ~5,300 articles): [embedMany] embeds up to [batchSize] articles per native call, rows are
+ * committed every [commitEvery] articles under a lighter fsync setting, and the existing ids are read once. A stop or a
+ * cancel commits what was embedded; a killed process loses at most [commitEvery] articles, and the next run skips the rest.
  */
-class SeedCorpus(private val kb: KnowledgeBase, private val embed: suspend (String) -> FloatArray) {
+class SeedCorpus(
+    private val kb: KnowledgeBase,
+    /** Several texts per call, in order; null (or a failed batch) embeds them one at a time with [embed]. */
+    private val embedMany: (suspend (List<String>) -> List<FloatArray>?)? = null,
+    private val batchSize: Int = 1,
+    private val commitEvery: Int = COMMIT_EVERY,
+    private val embed: suspend (String) -> FloatArray,
+) {
     data class Doc(val id: String, val title: String, val source: String, val body: String)
     data class Collection(val id: String, val docs: List<Doc>, val error: String? = null)
     data class Progress(val done: Int, val total: Int, val title: String, val collectionId: String, val collectionDone: Int, val collectionTotal: Int)
@@ -23,29 +34,59 @@ class SeedCorpus(private val kb: KnowledgeBase, private val embed: suspend (Stri
         val total = collections.sumOf { it.docs.size }
         val count = kb.seedChunkCount()
         if (count == total.toLong()) return 0
+        val have = HashSet(kb.chunkIds())
+        val group = ArrayList<Doc>(batchSize)
+        val rows = ArrayList<Pair<Chunk, FloatArray>>(commitEvery)
         var done = 0
         var embedded = 0
         var lastReport = 0L
-        for (c in collections) {
-            if (c.error != null) continue
-            for ((i, doc) in c.docs.withIndex()) {
-                if (shouldStop()) throw Stopped()
-                done++
-                val now = System.currentTimeMillis()
-                if (now - lastReport > 250 || done == total) {
-                    lastReport = now
-                    onProgress(Progress(done, total, doc.title, c.id, i + 1, c.docs.size))
-                }
-                if (kb.hasChunk(doc.id)) continue
-                kb.insertChunk(Chunk(doc.id, doc.id, doc.title, doc.body, source = doc.source), embed("${doc.title}\n${doc.body}"))
-                embedded++
-            }
+
+        fun flush() {
+            kb.insertChunks(rows)
+            rows.clear()
         }
-        return embedded
+
+        suspend fun embedGroup() {
+            if (group.isEmpty()) return
+            val texts = group.map { "${it.title}\n${it.body}" }
+            val vectors = (if (texts.size > 1) embedMany?.invoke(texts)?.takeIf { it.size == texts.size } else null) ?: texts.map { embed(it) }
+            group.forEachIndexed { k, doc -> rows += Chunk(doc.id, doc.id, doc.title, doc.body, source = doc.source) to vectors[k] }
+            embedded += group.size
+            group.clear()
+            if (rows.size >= commitEvery) flush()
+        }
+
+        return kb.withLightSync {
+            try {
+                for (c in collections) {
+                    if (c.error != null) continue
+                    for ((i, doc) in c.docs.withIndex()) {
+                        if (shouldStop()) throw Stopped()
+                        done++
+                        val now = System.currentTimeMillis()
+                        if (now - lastReport > 250 || done == total) {
+                            lastReport = now
+                            onProgress(Progress(done, total, doc.title, c.id, i + 1, c.docs.size))
+                        }
+                        if (!have.add(doc.id)) continue
+                        group += doc
+                        if (group.size >= batchSize) embedGroup()
+                    }
+                }
+                embedGroup()
+            } finally {
+                // Also on a stop or a cancel: what was embedded is kept, so the next run starts after it.
+                if (rows.isNotEmpty()) runCatching { flush() }
+            }
+            embedded
+        }
     }
 
     companion object {
         const val BUILTIN = "builtin"
+
+        /** Articles per transaction: a killed setup redoes at most this many. */
+        const val COMMIT_EVERY = 200
 
         /** Seed chunks the app no longer ships (removed before seeding). */
         val RETIRED_SEED_IDS = listOf("app-moe-ram", "app-mmap-streaming", "app-bm25-vs-cosine", "app-grapheneos", "app-ram-budgeting")

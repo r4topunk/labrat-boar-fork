@@ -1,5 +1,6 @@
 package team.sopa.boar.engine.rag
 
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -56,6 +57,26 @@ class KnowledgeBaseTest {
         kb.insertChunk(Chunk("wiki-9", "mine", "Mine", "User text.", collectionId = "col1"), vec(1f, 0f, 0f))
         assertEquals(3L, kb.deleteSeedChunksWithPrefix("wiki-"))
         assertEquals(1L, kb.chunkCount())
+    }
+
+    @Test fun `many chunks go in one transaction, and the id set sees them`() {
+        val kb = kb()
+        kb.insertChunks((1..5).map { Chunk("wiki-$it", "d$it", "T$it", "Body $it.") to vec(it.toFloat(), 0f) })
+        assertEquals(5L, kb.chunkCount())
+        assertEquals((1..5).map { "wiki-$it" }.toSet(), kb.chunkIds())
+        kb.insertChunks(emptyList())
+        assertEquals(5L, kb.chunkCount())
+    }
+
+    @Test fun `light sync is NORMAL during the block and the old setting comes back, even after a throw`() = runBlocking {
+        val db = JdbcSqlite()
+        val kb = KnowledgeBase(db)
+        fun sync() = db.query("PRAGMA synchronous") { it.long(0) }.first()
+        val before = sync()
+        assertEquals(1L, kb.withLightSync { sync() })
+        assertEquals(before, sync())
+        runCatching { kb.withLightSync { throw IllegalStateException("boom") } }
+        assertEquals(before, sync())
     }
 
     @Test fun `opening an existing database migrates it without losing data`() {

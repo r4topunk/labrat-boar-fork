@@ -25,7 +25,15 @@ class KnowledgeBase(private val db: SqlDatabase) {
         if ("collection_id" !in columns) db.exec("ALTER TABLE chunks ADD COLUMN collection_id TEXT REFERENCES custom_collections(id)")
     }
 
-    fun insertChunk(chunk: Chunk, embedding: FloatArray) = db.transaction {
+    fun insertChunk(chunk: Chunk, embedding: FloatArray) = db.transaction { insertRows(chunk, embedding) }
+
+    /** Many chunks in one transaction: the seed index commits every few hundred articles, not one fsync per article. */
+    fun insertChunks(rows: List<Pair<Chunk, FloatArray>>) {
+        if (rows.isEmpty()) return
+        db.transaction { rows.forEach { (chunk, embedding) -> insertRows(chunk, embedding) } }
+    }
+
+    private fun insertRows(chunk: Chunk, embedding: FloatArray) {
         db.execute(
             "INSERT OR REPLACE INTO chunks (chunk_id, doc_id, title, body, source, collection_id) VALUES (?, ?, ?, ?, ?, ?)",
             listOf(chunk.chunkId, chunk.docId, chunk.title, chunk.body, chunk.source, chunk.collectionId),
@@ -36,6 +44,23 @@ class KnowledgeBase(private val db: SqlDatabase) {
 
     /** Seed chunks (bundled corpus and corpus packs, not imported documents). */
     fun seedChunkCount(): Long = db.query("SELECT COUNT(*) FROM chunks WHERE collection_id IS NULL") { it.long(0) }.first()
+
+    /** Every chunk id, read once so seeding doesn't run one lookup per article. */
+    fun chunkIds(): Set<String> = db.query("SELECT chunk_id FROM chunks") { it.string(0)!! }.toHashSet()
+
+    /**
+     * Runs [block] with `synchronous = NORMAL` (safe under WAL: a power cut can lose the last commits, never corrupt the
+     * file), then puts back what the connection had. For bulk writes the caller redoes anyway, such as the seed index.
+     */
+    suspend fun <T> withLightSync(block: suspend () -> T): T {
+        val before = runCatching { db.query("PRAGMA synchronous") { it.long(0) }.firstOrNull() }.getOrNull()
+        runCatching { db.exec("PRAGMA synchronous = NORMAL") }
+        try {
+            return block()
+        } finally {
+            if (before != null) runCatching { db.exec("PRAGMA synchronous = $before") }
+        }
+    }
 
     fun hasChunk(chunkId: String): Boolean = db.query("SELECT 1 FROM chunks WHERE chunk_id = ?", listOf(chunkId)) { 1 }.isNotEmpty()
 
