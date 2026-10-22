@@ -511,10 +511,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)) minOf(it, team.sopa.boar.engine.settings.AppSettings.AUTO_MAX_TOKENS) else it
                 }
                 limited = budget
+                // Small talk never starts a Deep Research or the router (AnswerPath): "hi" took minutes on a big model.
+                val way = team.sopa.boar.engine.routing.AnswerPath.of(_state.value.deepResearch, aboutConversation(q, history, conversation),
+                    settings.adaptiveRoutingEnabled, team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q))
                 if (session == null) {
                     _state.update { it.copy(noModel = true, error = team.sopa.boar.engine.UserErrors.NO_MODEL) }
-                } else if (_state.value.deepResearch || aboutConversation(q, history, conversation)) {
-                    val research = _state.value.deepResearch
+                } else if (way == team.sopa.boar.engine.routing.AnswerPath.RESEARCH || way == team.sopa.boar.engine.routing.AnswerPath.RECAP) {
+                    val research = way == team.sopa.boar.engine.routing.AnswerPath.RESEARCH
                     path = if (research) "deep" else "chat"
                     val r = DeepResearch(SessionEngine(session, settings.engineTweaks.thinkingEnabled), services.retriever::retrieve, settings.engineTweaks::stageTimeoutMs, settings.engineTweaks::writeUpTimeoutMs).run(
                         q, systemPrompt, history, budget,
@@ -529,7 +532,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     if (r.fromPreviousAnswer) reusedSources = lastAnswer?.sources
                     timedOut = r.timedOut
                     metrics = r.metrics
-                } else if (settings.adaptiveRoutingEnabled) {
+                } else if (way == team.sopa.boar.engine.routing.AnswerPath.ADAPTIVE) {
                     limited = null
                     path = "adaptive"
                     val r = adaptive(q, systemPrompt, styleReminder, history, ::onPiece)
