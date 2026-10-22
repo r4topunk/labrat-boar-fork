@@ -514,7 +514,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 // Small talk never starts a Deep Research or the router (AnswerPath): "hi" took minutes on a big model.
                 val way = team.sopa.boar.engine.routing.AnswerPath.of(_state.value.deepResearch, aboutConversation(q, history, conversation),
                     settings.adaptiveRoutingEnabled, team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q))
-                if (session == null) {
+                if (stopRequested) {
+                    // Stop pressed while the model loaded: the load can't be interrupted, the answer can be skipped.
+                } else if (session == null) {
                     _state.update { it.copy(noModel = true, error = team.sopa.boar.engine.UserErrors.NO_MODEL) }
                 } else if (way == team.sopa.boar.engine.routing.AnswerPath.RESEARCH || way == team.sopa.boar.engine.routing.AnswerPath.RECAP) {
                     val research = way == team.sopa.boar.engine.routing.AnswerPath.RESEARCH
@@ -533,9 +535,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     timedOut = r.timedOut
                     metrics = r.metrics
                 } else if (way == team.sopa.boar.engine.routing.AnswerPath.ADAPTIVE) {
-                    limited = null
+                    // The router answers within the same budget, so a cut answer gets its note and "Allow more".
                     path = "adaptive"
-                    val r = adaptive(q, systemPrompt, styleReminder, history, ::onPiece)
+                    val r = adaptive(q, systemPrompt, styleReminder, history, budget, ::onPiece)
                     sources = r.first
                     timedOut = r.second
                     metrics = r.third
@@ -674,13 +676,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** The model the adaptive plan's generate step runs, for the header and the receipt; null on the other paths. */
     @Volatile private var routedModelId: String? = null
 
-    private suspend fun adaptive(q: String, systemPrompt: String, styleReminder: String?, history: ConversationHistory, onPiece: (String) -> Unit): Triple<List<Chunk>, Boolean, GenerationMetrics?> {
+    private suspend fun adaptive(q: String, systemPrompt: String, styleReminder: String?, history: ConversationHistory, budget: Int, onPiece: (String) -> Unit): Triple<List<Chunk>, Boolean, GenerationMetrics?> {
         lastAdaptive = null  // a plan that fails mustn't leave the previous answer's task on this receipt
         val s = services.settings
         val statuses = services.catalog.models.filter { it.kind == AssetKind.LLM }.map { Profiles.AvailableModel(it, services.fileOf(it).isFile) }
         val preset = s.routingPreset?.let { runCatching { RoutingPreset.of(it) }.getOrNull() } ?: RoutingPreset.DEFAULT
         val overrides = s.modelRoleAssignments().mapNotNull { (k, v) -> runCatching { ModelRole.of(k) to v }.getOrNull() }.toMap()
-        val plan = AdaptivePlan.plan(q, statuses, preset, overrides, s.activeModelId("llm"), totalRamBytes(), s.answerTokens(services.host.openedContext))
+        val plan = AdaptivePlan.plan(q, statuses, preset, overrides, services.answerModel()?.id ?: s.activeModelId("llm"), totalRamBytes(), budget)
         lastAdaptive = plan.taskType.value to plan.plan.steps.any { it.type == team.sopa.boar.engine.routing.RoutingStepType.VERIFY }
         val r = PlanExecutor(services.host, services.retriever::retrieve, { Classify.classifyTask(it).value }, timeoutFor = s.engineTweaks::stageTimeoutMs)
             .execute(plan.plan, PipelineInput(q, systemPrompt, styleReminder, history), onToken = onPiece, onStepStart = { step ->

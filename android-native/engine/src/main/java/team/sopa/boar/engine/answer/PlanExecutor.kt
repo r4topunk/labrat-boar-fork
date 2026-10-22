@@ -148,6 +148,8 @@ class PlanExecutor(
                         if (step.required) { warnings += "generate-step-failed-no-model"; return result(false) }
                         continue
                     }
+                    // Stop pressed while the model loaded: the load can't be interrupted, the answer can be skipped.
+                    if (shouldStop()) return result(true)
                     val e = engine!!
                     // Every model uses its own chat template when its GGUF ships one ("if-embedded").
                     format = if (e.hasChatTemplate) "chat-template" else "plain"

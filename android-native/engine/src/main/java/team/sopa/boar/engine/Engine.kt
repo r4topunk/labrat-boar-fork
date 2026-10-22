@@ -216,10 +216,21 @@ class LlamaSession private constructor(@Volatile private var handle: Long, val p
     }
 
     companion object {
-        /** Loads a GGUF file; null when llama.cpp can't open it (see logcat tag "llama"). */
-        suspend fun load(path: String, params: EngineParams): LlamaSession? = withContext(Dispatchers.IO) {
-            val h = BoarNative.load(path, params.toJson())
-            if (h == 0L) null else LlamaSession(h, params)
+        /**
+         * Loads a GGUF file; null when llama.cpp can't open it (see logcat tag "llama"). The native load can't be stopped
+         * halfway, so it always runs to the end; a caller cancelled meanwhile (Close BOAR, a new question) gets the model
+         * closed again, never left in memory with nothing pointing at it (2–3 GB after Close BOAR, chaos runs 5, 8, 9).
+         */
+        suspend fun load(path: String, params: EngineParams): LlamaSession? {
+            val s = withContext(Dispatchers.IO + kotlinx.coroutines.NonCancellable) {
+                val h = BoarNative.load(path, params.toJson())
+                if (h == 0L) null else LlamaSession(h, params)
+            }
+            if (kotlinx.coroutines.currentCoroutineContext()[kotlinx.coroutines.Job]?.isActive == false) {
+                s?.close()
+                throw kotlinx.coroutines.CancellationException("load cancelled")
+            }
+            return s
         }
     }
 }

@@ -251,7 +251,8 @@ class BoarServices private constructor(private val context: Context) {
                 val repack = tweaks.weightRepack ?: !(loadGuard.mappedNext(asset.id) || asset.id in keepMapped)
                 loadGuard.begin(meta, previous, repack)
                 val resolved = tweaks.resolve(topology, totalRamBytes).params.copy(repack = repack)
-                val s = LlamaSession.load(fileOf(asset).path, resolved)
+                // A cancelled load clears its marker: it didn't kill the app, and must not block the model next time.
+                val s = try { LlamaSession.load(fileOf(asset).path, resolved) } catch (e: kotlinx.coroutines.CancellationException) { loadGuard.end(meta, false); throw e }
                 loadGuard.end(meta, s != null)
                 if (s == null) return null
                 session = s
