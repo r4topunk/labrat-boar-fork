@@ -354,4 +354,5 @@
     <string name="native_modelSetupScreen_sections_displayTheme" formatted="false">Display &amp; theme</string>
     <string name="native_voiceSettings_unavailable" formatted="false">Not available on this phone</string>
     <string name="native_personalities_detailed_description" formatted="false">Structured, in-depth answers on what it knows well.</string>
+    <string name="native_documents_unsupported" formatted="false">BOAR can\'t read {{name}}: it imports .txt, .md, .csv, .json and .pdf. Save the page as one of those (a browser can save it as PDF) and import it again.</string>
 </resources>

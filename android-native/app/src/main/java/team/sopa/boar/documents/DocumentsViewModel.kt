@@ -48,6 +48,8 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
                         if (c.moveToFirst()) { fileName = c.getString(0) ?: fileName; size = c.getLong(1) }
                     }
                     if (size <= 0) size = runCatching { resolver.openFileDescriptor(uri, "r")?.use { it.statSize } }.getOrNull() ?: 0L
+                    // Only what BOAR can read: anything else (an .html page, a .docx) would go in as raw code, found by nothing.
+                    if (fileName.substringAfterLast('.', "").lowercase() !in READABLE) throw Failed(text("native.documents.unsupported", fileName))
                     if (DocumentImport.tooLargeToRead(size)) throw TooLarge(fileName)
                     val text = try {
                         if (fileName.lowercase().endsWith(".pdf")) pdfText(uri, fileName)
@@ -78,6 +80,11 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private class TooLarge(val fileName: String) : Exception()
+
+    private companion object {
+        /** The extensions the importer reads (the screen's note lists them). */
+        val READABLE = setOf("txt", "md", "markdown", "csv", "json", "pdf")
+    }
 
     /** An IOException, so PDDocument.load closes and deletes its scratch file before it reaches [pdfText]. */
     private class InputTooLarge : java.io.IOException()
