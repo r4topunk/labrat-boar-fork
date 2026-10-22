@@ -62,6 +62,35 @@ class KnowledgeBase(private val db: SqlDatabase) {
         }
     }
 
+    /**
+     * Merges a prebuilt seed index (a "kb-snapshot": this same schema, seed rows only, embedded on a device with the
+     * catalog's search model) into this database, so setup skips embedding thousands of articles. Rows already here
+     * win, and imported documents and chats are never touched. Returns the seed chunks added, or throws when the file
+     * isn't such a snapshot (the caller then indexes as before).
+     */
+    fun importSnapshot(path: String, dims: Int): Int {
+        db.execute("ATTACH DATABASE ? AS kbsnap", listOf(path))
+        try {
+            val tables = db.query("SELECT name FROM kbsnap.sqlite_master WHERE type = 'table'") { it.string(0) }.toSet()
+            require(tables.containsAll(listOf("chunks", "chunk_embeddings", "chunks_fts"))) { "not a knowledge-base snapshot" }
+            val bad = db.query("SELECT COUNT(*) FROM kbsnap.chunk_embeddings WHERE dim != ? OR length(embedding) != ? * 4", listOf(dims, dims)) { it.long(0) }.first()
+            require(bad == 0L) { "snapshot embeddings are not $dims-dimensional" }
+            val seed = "SELECT * FROM kbsnap.chunks WHERE collection_id IS NULL AND chunk_id NOT IN (SELECT chunk_id FROM main.chunks)"
+            return db.transaction {
+                // The full-text rows first: they are picked by what main.chunks doesn't have yet.
+                db.execute("INSERT INTO main.chunks_fts (chunk_id, doc_id, title, body) SELECT chunk_id, doc_id, title, body FROM ($seed)")
+                val added = db.execute("INSERT INTO main.chunks (chunk_id, doc_id, title, body, source, collection_id) SELECT chunk_id, doc_id, title, body, source, NULL FROM ($seed)")
+                db.execute(
+                    "INSERT OR IGNORE INTO main.chunk_embeddings (chunk_id, embedding, dim) SELECT e.chunk_id, e.embedding, e.dim FROM kbsnap.chunk_embeddings e " +
+                        "JOIN kbsnap.chunks c ON c.chunk_id = e.chunk_id WHERE c.collection_id IS NULL",
+                )
+                added.toInt()
+            }
+        } finally {
+            runCatching { db.execute("DETACH DATABASE kbsnap") }
+        }
+    }
+
     fun hasChunk(chunkId: String): Boolean = db.query("SELECT 1 FROM chunks WHERE chunk_id = ?", listOf(chunkId)) { 1 }.isNotEmpty()
 
     fun chunkCount(): Long = db.query("SELECT COUNT(*) FROM chunks") { it.long(0) }.first()

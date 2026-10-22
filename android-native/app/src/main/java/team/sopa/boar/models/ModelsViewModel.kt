@@ -84,8 +84,8 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
 
     // Answer models first (curated, then discovered), then the embedding model, then knowledge, as the catalog lists them.
     // A hidden model (no longer suggested) is listed only when it's on the phone.
-    private fun sortedItems() = services.catalog.models.filter { !it.hidden || services.fileOf(it).isFile }
-        .sortedBy { when (it.kind) { AssetKind.LLM -> 0; AssetKind.EMBEDDING -> 1; AssetKind.CORPUS -> 2 } }
+    private fun sortedItems() = services.catalog.models.filter { it.kind != AssetKind.INDEX && (!it.hidden || services.fileOf(it).isFile) }
+        .sortedBy { when (it.kind) { AssetKind.LLM -> 0; AssetKind.EMBEDDING -> 1; AssetKind.CORPUS -> 2; AssetKind.INDEX -> 3 } }
 
     private val hfSearch = java.util.concurrent.atomic.AtomicInteger()
 

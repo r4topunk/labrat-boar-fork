@@ -43,6 +43,8 @@ enum class AssetKind {
     @SerialName("llm") LLM,
     @SerialName("embedding") EMBEDDING,
     @SerialName("corpus") CORPUS,
+    /** A prebuilt seed index ("kb-snapshot") for the JSON corpora it [CatalogAsset.requires]: merged at setup, never listed. */
+    @SerialName("index") INDEX,
 }
 
 @Serializable
@@ -73,6 +75,8 @@ data class CatalogAsset(
     val requires: List<String> = emptyList(),
     /** Curated capabilities (manifest.ts); null = not yet assessed, never an assumed capability set. */
     val capabilities: ModelCapabilities? = null,
+    /** For an [AssetKind.INDEX]: the search model its vectors came from; any other search model must not use them. */
+    val embeddingModelSha256: String? = null,
 ) {
     /**
      * Short UI name ("Qwen3 4B"), falling back to the technical label (manifest.ts displayNameOf); a model added from
