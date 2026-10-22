@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The window before Compose draws: light here, dark in values-night, so a light phone doesn't flash dark at
+         launch. The colors after that come from Material You (ui/theme/MaterialYou.kt). -->
+    <style name="Theme.Boar" parent="@android:style/Theme.Material.Light.NoActionBar" />
+</resources>
