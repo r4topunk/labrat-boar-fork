@@ -30,7 +30,7 @@ class PurgeDeviceTest {
 
     @Test fun purgeAllDataWipesTheApp() {
         val services = BoarServices.get(ctx)
-        val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setOrientation(mode: String) {}; override fun setLanguage(id: String?) {} }
+        val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setLanguage(id: String?) {} }
         compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = {}, onSetup = {}) {} } }
         compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("modelSetupScreen.recovery.dangerButton")))
         compose.onNodeWithText(t("modelSetupScreen.recovery.dangerButton")).performSemanticsAction(SemanticsActions.OnClick)

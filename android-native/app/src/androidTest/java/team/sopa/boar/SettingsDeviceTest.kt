@@ -49,7 +49,6 @@ class SettingsDeviceTest {
             val prefs = object : DisplayPrefs {
                 override fun setTheme(id: String) {}
                 override fun setFontScale(scale: String) {}
-                override fun setOrientation(mode: String) {}
                 override fun setLanguage(id: String?) {}
             }
             var opened by mutableStateOf<String?>(null)
@@ -61,8 +60,6 @@ class SettingsDeviceTest {
         compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("native.telemetry.chip")))
         compose.onNodeWithText(t("native.telemetry.chip")).assertExists()
         compose.onNodeWithText(t("native.telemetry.note")).assertExists()
-        compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("voiceSettings.enabledLabel")))
-        compose.onNodeWithText(t("voiceSettings.speechEngineLabel")).assertExists()
         compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("interfaceSettings.hapticFeedbackLabel")))
     
             // Security: no PIN on this install, so it offers one.
@@ -97,12 +94,12 @@ class SettingsDeviceTest {
         services.settings.showLiveStats = true // Hardware telemetry is a technical detail
         try {
             var opened by mutableStateOf<String?>(null)
-            val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setOrientation(mode: String) {}; override fun setLanguage(id: String?) {} }
+            val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setLanguage(id: String?) {} }
             compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = {}, onSetup = {}, onOpen = { opened = it }) {} } }
             click(t("native.settings.openCatalog")); assertEquals("models", opened)
             click(t("native.settings.openDocuments")); assertEquals("documents", opened)
             for (label in listOf("modelSetupScreen.sections.models", "modelSetupScreen.sections.knowledgeBase", "native.telemetry.chip", "native.telemetry.note",
-                "voiceSettings.enabledLabel", "voiceSettings.speechEngineLabel", "interfaceSettings.hapticFeedbackLabel", "native.settings.security")) {
+                "interfaceSettings.hapticFeedbackLabel", "native.settings.security")) {
                 compose.onNode(hasScrollAction()).performScrollToNode(hasText(t(label)))
                 compose.onNodeWithText(t(label)).assertExists()
             }
@@ -111,18 +108,15 @@ class SettingsDeviceTest {
         }
     }
 
-    /** Show technical details off (on by default): no Hardware telemetry section; the switch sits in Advanced tweaks. */
+    /** Show technical details off (on by default): no Hardware telemetry section; the switch sits in Developer options (hidden unless DevOptions is on). */
     @Test fun telemetryHidesWithoutTechnicalDetails() {
         val services = BoarServices.get(ctx)
         val was = services.settings.showLiveStats
         services.settings.showLiveStats = false
         try {
-            val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setOrientation(mode: String) {}; override fun setLanguage(id: String?) {} }
+            val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setLanguage(id: String?) {} }
             compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = {}, onSetup = {}, onOpen = {}) {} } }
             compose.onNodeWithText(t("native.telemetry.chip")).assertDoesNotExist()
-            click(t("native.tweaks.title"))
-            compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("native.tweaks.technicalDetails")))
-            compose.onNodeWithText(t("native.tweaks.technicalDetails")).assertExists()
         } finally {
             services.settings.showLiveStats = was
         }

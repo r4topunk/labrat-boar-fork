@@ -90,7 +90,7 @@ data class SetupState(
 private data class SavedProgress(val step: Int, val packageId: String, val chosenId: String?, val packageChosen: Boolean, val answerChosen: Boolean)
 
 /**
- * The first-run setup (port of src/ui/SetupWizardScreen.tsx): welcome with the phone's numbers and the language,
+ * The first-run setup (port of src/ui/SetupWizardScreen.tsx): welcome with the phone's numbers (the language follows the phone),
  * the answer model (recommended by RAM), the knowledge package (recommended by free space), then the downloads
  * (resumable, verified, retried) and the search index, ending on a summary. Everything after it works offline.
  */

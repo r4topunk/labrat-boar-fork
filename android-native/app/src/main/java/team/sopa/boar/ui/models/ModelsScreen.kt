@@ -55,7 +55,7 @@ import kotlin.math.floor
 
 /** The models and knowledge catalog (ModelCatalogScreen.tsx with CatalogItemCard.tsx's layout and styles). */
 @Composable
-fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit = {}, onBack: () -> Unit) {
+fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBack: () -> Unit) {
     val c = Boar.colors
     Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding().imePadding()) {
@@ -68,8 +68,6 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            // More models first: today Hugging Face, later other providers.
-            item { HfCta(onBrowse) }
             // The user's sort and filter (ModelOrder): Smart puts the active model first, then downloads, then the
             // phone's models by last use. Knowledge packs are on the Knowledge screen, as in the Expo app (KnowledgePacks
             // below); the embedding model is BOAR's own search engine, not a choice, so it's in Settings → Models.
@@ -242,13 +240,9 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
 }
 
 /**
- * Where more models come from, at the top: Hugging Face for now, searched on its own page (BrowseScreen). Not a model,
- * so it doesn't look like one: a dashed cyan outline and a tint, like an open slot.
+ * "Discover GGUF models · Browse Hugging Face models", in setup's model step under More options. Not a model, so it
+ * doesn't look like one: a dashed cyan outline and a tint, like an open slot.
  */
-@Composable
-private fun HfCta(onBrowse: () -> Unit) = DiscoverGgufCard(onBrowse)
-
-/** "Discover GGUF models · Browse Hugging Face models": the same card in Models and in setup's model step. */
 @Composable
 fun DiscoverGgufCard(onBrowse: () -> Unit) {
     val c = Boar.colors

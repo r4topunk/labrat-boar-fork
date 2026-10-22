@@ -4,8 +4,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- The header's ONLINE / OFFLINE pill. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- Dictation with the on-device speech recognizer (asked the first time the mic is tapped). -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Settings → Haptic feedback (a normal permission: granted at install, no prompt). -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- AnswerService: "BOAR is answering…" while an answer is written, so the phone doesn't close BOAR mid-answer

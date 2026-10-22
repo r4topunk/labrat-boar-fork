@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings, theme and About texts of the cleaner judge-facing app, written by hand. Keys: clean.settings.*, clean.about.* -->
+<resources>
+    <string name="clean_settings_theme" formatted="false">Theme</string>
+    <string name="clean_settings_theme_system" formatted="false">System</string>
+    <string name="clean_settings_theme_light" formatted="false">Light</string>
+    <string name="clean_settings_theme_dark" formatted="false">Dark</string>
+    <string name="clean_settings_language_system" formatted="false">Phone language</string>
+    <string name="clean_settings_section_about" formatted="false">About</string>
+    <string name="clean_settings_aboutNote" formatted="false">What BOAR is, its version, and the open work it stands on.</string>
+    <string name="clean_settings_resetDesc" formatted="false">Theme, answer style, Deep Research and display options go back to their defaults. Your models, chats, PIN and language stay.</string>
+    <string name="clean_settings_section_developer" formatted="false">Developer options</string>
+    <string name="clean_settings_dev_intro" formatted="false">Tools for measuring BOAR. Most people never need them.</string>
+    <string name="clean_settings_dev_customStyle" formatted="false">Custom style</string>
+    <string name="clean_settings_dev_customStyleNote" formatted="false">Answers follow instructions you write yourself.</string>
+    <string name="clean_settings_dev_enabled" formatted="false">Show developer options</string>
+    <string name="clean_settings_dev_enabledNote" formatted="false">Turn off to hide this section. Seven taps on the version in About bring it back.</string>
+    <string name="clean_about_devOn" formatted="false">Developer options on</string>
+    <string name="clean_about_devOff" formatted="false">Developer options off</string>
+</resources>

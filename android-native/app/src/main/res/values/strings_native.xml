@@ -95,12 +95,12 @@
     <string name="native_eval_score_noneExpected" formatted="false">none expected</string>
     <string name="native_eval_score_note" formatted="false">Speed 60 %, reliability 25 %, sources found 15 %, measured on this phone. It doesn\'t say whether the answers are right.</string>
     <string name="native_eval_keepScreenOn" formatted="false">Keep the screen on and the app open while it runs. The chat\'s model is unloaded first so the two don\'t share memory.</string>
-    <string name="native_chat_loadCrashed" formatted="false">{{crashed}} closed the app while loading: not enough memory. BOAR is answering with {{fallback}} for now.</string>
-    <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} closed the app while loading: not enough memory. Try again with less memory, or pick a smaller model in the Model Catalog.</string>
-    <string name="native_chat_loadCrashedOnly" formatted="false">{{model}} couldn\'t load last time: not enough memory on this phone. Download a smaller model, such as Qwen2.5 1.5B (about 1 GB).</string>
+    <string name="native_chat_loadCrashed" formatted="false">{{crashed}} ran out of memory and BOAR had to close. For now, BOAR is answering with {{fallback}}.</string>
+    <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} ran out of memory and BOAR had to close. You can try again using less memory, or pick a smaller model.</string>
+    <string name="native_chat_loadCrashedOnly" formatted="false">{{model}} was too big for this phone last time and BOAR had to close. Download a smaller model, such as Qwen2.5 1.5B (about 1 GB).</string>
     <string name="native_chat_retryLessMemory" formatted="false">Try again with less memory</string>
-    <string name="native_chat_mayNotFit" formatted="false">{{model}} may not fit in this phone\'s memory.</string>
-    <string name="native_chat_mayNotFitOnly" formatted="false">{{model}} may not fit in this phone\'s memory. A smaller model, such as Qwen2.5 1.5B (about 1 GB), fits better.</string>
+    <string name="native_chat_mayNotFit" formatted="false">{{model}} may be too big for this phone.</string>
+    <string name="native_chat_mayNotFitOnly" formatted="false">{{model}} may be too big for this phone. A smaller model, such as Qwen2.5 1.5B (about 1 GB), will run better.</string>
     <string name="native_chat_loadAnyway" formatted="false">Load anyway</string>
     <string name="native_chat_pickAnother" formatted="false">Pick another model</string>
     <string name="native_tweaks_thinking" formatted="false">Thinking before answering</string>
@@ -239,8 +239,8 @@
     <string name="native_chat_allowMore" formatted="false">Allow {{limit}} and redo</string>
     <string name="native_chat_deepResearchOn" formatted="false">ON · deeper, slower answers</string>
     <string name="native_chat_deepResearchOff" formatted="false">OFF · normal answers</string>
-    <string name="native_chat_deepResearchExplain" formatted="false">Splits your question into 2 or 3 parts, searches your knowledge for each, then writes one answer with sources. Deeper, but slower. Expect a few minutes per answer on a phone.</string>
-    <string name="native_personalitySettings_deepResearchNote" formatted="false">Breaks your question into smaller questions, researches each one, then writes one answer. It runs several steps on the same model, so it is slower than a normal reply. It works with any style, which sets the tone. Deep Research with Succinct still gives a short answer.</string>
+    <string name="native_chat_deepResearchExplain" formatted="false">BOAR splits your question into a few smaller ones, looks each one up in your knowledge, then writes one answer with sources. It is deeper but slower: expect a few minutes per answer on a phone.</string>
+    <string name="native_personalitySettings_deepResearchNote" formatted="false">Splits your question into smaller ones, researches each, then writes one answer. It takes several steps, so it is slower than a normal reply. Works with any style.</string>
     <string name="native_chat_suggestions_b1" formatted="false">Who came up with natural selection?</string>
     <string name="native_chat_suggestionTopics_b1" formatted="false">History of science</string>
     <string name="native_chat_suggestions_b2" formatted="false">How do vaccines work?</string>

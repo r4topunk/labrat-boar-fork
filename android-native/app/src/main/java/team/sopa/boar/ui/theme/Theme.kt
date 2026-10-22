@@ -1,17 +1,25 @@
 package team.sopa.boar.ui.theme
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import team.sopa.boar.R
 import kotlin.math.roundToInt
 
@@ -112,16 +120,35 @@ object Boar {
     val type: BoarType @Composable @ReadOnlyComposable get() = LocalType.current
 }
 
-/** The app theme: Campfire or Moonlight colors and the brand type at the user's text size. */
+/**
+ * The app theme: Material You colors (the wallpaper's on Android 12+, the brand's before) in System, Light or Dark, the
+ * Boar.colors tokens derived from them, and the brand type at the user's text size. Old ids (campfire, moonlight) read
+ * as System.
+ */
 @Composable
 fun BoarTheme(themeId: String? = null, fontScale: String = "standard", content: @Composable () -> Unit) {
-    val c = ThemeTokens.byId(themeId)
-    val scheme = darkColorScheme(
-        primary = c.emerald500, onPrimary = c.textInverse, secondary = c.cyan500, background = c.bgTerminal,
-        onBackground = c.textPrimary, surface = c.bgSurface, onSurface = c.textPrimary, surfaceVariant = c.bgCard,
-        onSurfaceVariant = c.textSecondary, outline = c.borderDefault, error = c.crimson500,
-    )
+    val dark = when (ThemeMode.normalize(themeId)) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+        else -> isSystemInDarkTheme()
+    }
+    val context = LocalContext.current
+    val scheme = remember(dark, context) { boarColorScheme(context, dark) }
+    val c = remember(scheme, dark) { boarColorsOf(scheme, dark) }
+    // enableEdgeToEdge picks the bar icons from the phone's mode; a Light or Dark chosen here can differ from it.
+    val view = LocalView.current
+    if (!view.isInEditMode) SideEffect {
+        view.context.findActivity()?.window?.let { w ->
+            WindowCompat.getInsetsController(w, view).apply { isAppearanceLightStatusBars = !dark; isAppearanceLightNavigationBars = !dark }
+        }
+    }
     CompositionLocalProvider(LocalColors provides c, LocalType provides BoarType(fontScale)) {
         MaterialTheme(colorScheme = scheme, content = content)
     }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

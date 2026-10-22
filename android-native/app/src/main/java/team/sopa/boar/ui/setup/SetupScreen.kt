@@ -36,17 +36,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import team.sopa.boar.R
 import team.sopa.boar.engine.models.AssetKind
+import team.sopa.boar.engine.models.CatalogAsset
 import team.sopa.boar.engine.models.Units
 import team.sopa.boar.setup.AssetProgress
 import team.sopa.boar.setup.IndexPhase
+import team.sopa.boar.setup.PackagePlan
 import team.sopa.boar.setup.SetupPackage
 import team.sopa.boar.setup.SetupState
 import team.sopa.boar.setup.SetupViewModel
@@ -64,10 +66,12 @@ private val STAGES = listOf("start", "model", "knowledge", "download", "index")
 
 /**
  * First-run setup (port of src/ui/SetupWizardScreen.tsx): welcome, answer model, knowledge, download and index,
- * then a summary. [onSkip] is set when setup was reopened from Settings and the app already works.
+ * then a summary. The model and knowledge steps show the recommended choice and keep the rest under "More options".
+ * The language follows the phone (Settings has its picker). [onSkip] is set when setup was reopened from Settings and
+ * the app already works.
  */
 @Composable
-fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLanguage: (String) -> Unit, onSkip: (() -> Unit)?, onBrowse: () -> Unit = {}, onDone: () -> Unit) {
+fun SetupScreen(state: SetupState, vm: SetupViewModel, onSkip: (() -> Unit)?, onBrowse: () -> Unit = {}, onDone: () -> Unit) {
     var backOpen by remember { mutableStateOf(false) }
     BackHandler(state.step > 1 || onSkip != null) {
         when {
@@ -80,7 +84,7 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLangu
         }
     }
     when {
-        state.step == 1 -> Welcome(state, language, onLanguage, onSkip) { vm.next() }
+        state.step == 1 -> Welcome(state, onSkip) { vm.next() }
         state.step == 2 -> ModelStep(state, vm, onBrowse)
         state.step == 3 -> PackageStep(state, vm)
         state.finished -> Done(state, onDone)
@@ -189,6 +193,20 @@ private fun OptionCard(title: String, selected: Boolean, trailing: String?, badg
 private fun Meta(text: String, color: Color = Boar.colors.textMuted) = Text(text, style = Boar.type.subtext, color = color)
 
 @Composable
+private fun SectionLabel(text: String) =
+    Text(text.uppercase(), style = Boar.type.micro, color = Boar.colors.textSecondary, fontWeight = FontWeight.Bold)
+
+/** "More options ▾" / "Fewer options ▴": the choices beyond the recommended one. */
+@Composable
+private fun MoreToggle(open: Boolean, onClick: () -> Unit) {
+    val c = Boar.colors
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button, onClick = onClick).padding(vertical = 12.dp),
+        horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+        Text(t(if (open) "clean.setup.fewerOptions" else "clean.setup.moreOptions") + (if (open) "  ▴" else "  ▾"), style = Boar.type.titleSm, color = c.textAccentEmerald)
+    }
+}
+
+@Composable
 private fun BrandDisc(size: Int) =
     Image(painterResource(R.drawable.brand_pfp), null, Modifier.size(size.dp).clip(CircleShape))
 
@@ -201,7 +219,7 @@ private fun minutesAbout(seconds: Long) = maxOf(1, (seconds / 60.0).roundToLong(
 // --- Step 1: welcome -----------------------------------------------------------------------------------------------
 
 @Composable
-private fun Welcome(state: SetupState, language: String, onLanguage: (String) -> Unit, onSkip: (() -> Unit)?, onNext: () -> Unit) {
+private fun Welcome(state: SetupState, onSkip: (() -> Unit)?, onNext: () -> Unit) {
     val c = Boar.colors
     StepScreen(footer = {
         PrimaryButton(t("flows.onboarding.start") + "  →", onClick = onNext)
@@ -218,20 +236,6 @@ private fun Welcome(state: SetupState, language: String, onLanguage: (String) ->
         Card {
             Text(t("flows.onboarding.introLabel").uppercase(), style = Boar.type.micro, color = c.textAccentAmber, fontWeight = FontWeight.Bold)
             Text(t("flows.onboarding.introBody"), style = Boar.type.body, color = c.textPrimary)
-        }
-        Text(t("modelSetupScreen.sections.language").uppercase(), style = Boar.type.micro, color = c.textSecondary, fontWeight = FontWeight.Bold)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("en" to "English", "pt" to "Português").forEach { (id, name) ->
-                val on = language == id
-                Row(Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).background(if (on) c.emeraldBgSubtle else c.bgCard)
-                    .border(if (on) 2.dp else 1.dp, if (on) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(14.dp))
-                    .clickable { if (!on) onLanguage(id) }.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Box(Modifier.size(30.dp).background(if (on) c.emerald500 else c.bgSubtle, CircleShape), contentAlignment = Alignment.Center) {
-                        Text(id.uppercase(), style = Boar.type.caption, color = if (on) c.textInverse else c.textPrimary, fontWeight = FontWeight.Bold)
-                    }
-                    Text(name, style = Boar.type.title, color = c.textHeading)
-                }
-            }
         }
         Card {
             Text(t("flows.onboarding.phoneLabel").uppercase(), style = Boar.type.micro, color = c.textSecondary, fontWeight = FontWeight.Bold)
@@ -255,26 +259,38 @@ private fun Welcome(state: SetupState, language: String, onLanguage: (String) ->
 @Composable
 private fun ModelStep(state: SetupState, vm: SetupViewModel, onBrowse: () -> Unit) {
     val c = Boar.colors
+    val rec = state.models.firstOrNull { it.id == state.recommendedId } ?: state.models.firstOrNull()
+    // Another model chosen earlier (from the list or Discover, before a restart) keeps the list open so the choice shows.
+    var more by remember { mutableStateOf(rec == null || state.chosenId != rec.id) }
     StepScreen(footer = {
         PrimaryButton(t("flows.onboarding.continue") + "  →", enabled = state.chosenId != null) { vm.next() }
         BackLink(t("flows.onboarding.back")) { vm.back() }
     }) {
-        StepHeader(1, t("flows.onboarding.modelTitle"), t("flows.onboarding.modelSub"))
-        for (m in state.models) {
-            OptionCard(m.shortName, m.id == state.chosenId, Units.formatBytes(m.sizeBytes),
-                if (m.id == state.recommendedId) t("flows.onboarding.recommended") else null, { vm.choose(m.id) }) {
-                // The two answer tiers have translated lines; the other catalog models carry their manifest description.
-                if (m.answerTier != null) {
-                    val tier = vm.tierOf(m)
-                    Meta("${t("flows.onboarding.answerTier.$tier")} · ${t("flows.assistant.sub.$tier")}", c.textSecondary)
-                } else Meta(m.description, c.textSecondary)
-                if (vm.isHeavy(m)) Meta(t("flows.row.fit.thrashing"), c.textAccentAmber)
-            }
+        StepHeader(1, t("clean.setup.modelTitle"), t("clean.setup.modelSub"))
+        if (rec != null) {
+            SectionLabel(t("clean.setup.recommended"))
+            ModelOption(rec, state, vm)
+            if (vm.tierOf(rec) == "compact") Meta(t("flows.onboarding.compactWhy"), c.textSecondary)
+            MoreToggle(more) { more = !more }
         }
-        val rec = state.models.firstOrNull { it.id == state.recommendedId }
-        if (rec != null && vm.tierOf(rec) == "compact") Meta(t("flows.onboarding.compactWhy"), c.textSecondary)
-        // The same card as Models: a model added there comes back here, listed and chosen.
-        team.sopa.boar.ui.models.DiscoverGgufCard(onBrowse)
+        if (more) {
+            for (m in state.models) if (m.id != rec?.id) ModelOption(m, state, vm)
+            // The same card as Models: a model added there comes back here, listed and chosen.
+            team.sopa.boar.ui.models.DiscoverGgufCard(onBrowse)
+        }
+    }
+}
+
+@Composable
+private fun ModelOption(m: CatalogAsset, state: SetupState, vm: SetupViewModel) {
+    val c = Boar.colors
+    OptionCard(m.shortName, m.id == state.chosenId, Units.formatBytes(m.sizeBytes), null, { vm.choose(m.id) }) {
+        // The two answer tiers have translated lines; the other catalog models carry their manifest description.
+        if (m.answerTier != null) {
+            val tier = vm.tierOf(m)
+            Meta("${t("flows.onboarding.answerTier.$tier")} · ${t("flows.assistant.sub.$tier")}", c.textSecondary)
+        } else Meta(m.description, c.textSecondary)
+        if (vm.isHeavy(m)) Meta(t("flows.row.fit.thrashing"), c.textAccentAmber)
     }
 }
 
@@ -284,6 +300,9 @@ private fun ModelStep(state: SetupState, vm: SetupViewModel, onBrowse: () -> Uni
 private fun PackageStep(state: SetupState, vm: SetupViewModel) {
     val c = Boar.colors
     val chosen = state.plans.firstOrNull { it.pkg == state.packageId }
+    val rec = state.plans.firstOrNull { it.pkg == state.recommendedPackage } ?: state.plans.firstOrNull()
+    // The recommended package is preselected: another one chosen earlier keeps the list open so the choice shows.
+    var more by remember { mutableStateOf(rec != null && state.packageId != rec.pkg) }
     StepScreen(footer = {
         val short = chosen?.shortfallBytes ?: 0
         PrimaryButton(
@@ -294,22 +313,30 @@ private fun PackageStep(state: SetupState, vm: SetupViewModel) {
         if (short > 0) Meta(t("flows.onboarding.noSpace", "size" to Units.formatBytes(short)), c.crimson400)
         BackLink(t("flows.onboarding.back")) { vm.back() }
     }) {
-        StepHeader(2, t("flows.onboarding.knowledgeTitle"), t("flows.onboarding.step2Sub"))
-        for (p in state.plans) {
-            OptionCard(t("flows.onboarding.package.${p.pkg.id}.name"), p.pkg == state.packageId,
-                p.downloadBytes.takeIf { it > 0 }?.let { Units.formatBytes(it) },
-                if (p.pkg == state.recommendedPackage) t("flows.onboarding.recommended") else null, { vm.choosePackage(p.pkg) }) {
-                Text(t("flows.onboarding.package.${p.pkg.id}.body"), style = Boar.type.body, color = c.textSecondary)
-                val meta = listOfNotNull(
-                    if (p.downloadBytes == 0L) t("flows.onboarding.alreadyDownloaded") else null,
-                    if (Units.formatBytes(p.installedBytes) != Units.formatBytes(p.downloadBytes)) t("flows.onboarding.meta.onDisk", "size" to Units.formatBytes(p.installedBytes)) else null,
-                    if (p.downloadBytes > 0) t("flows.onboarding.meta.time", "minutes" to minutesAbout(p.downloadBytes / REFERENCE_BYTES_PER_SEC),
-                        "speed" to Units.formatBytes(REFERENCE_BYTES_PER_SEC)) else null,
-                )
-                if (meta.isNotEmpty()) Meta(meta.joinToString(" · "))
-                if (p.shortfallBytes > 0) Meta(t("flows.onboarding.noSpace", "size" to Units.formatBytes(p.shortfallBytes)), c.crimson400)
-            }
+        StepHeader(2, t("flows.onboarding.knowledgeTitle"), t("clean.setup.knowledgeSub"))
+        if (rec != null) {
+            SectionLabel(t("clean.setup.recommended"))
+            PackageOption(rec, state, vm)
+            if (state.plans.size > 1) MoreToggle(more) { more = !more }
         }
+        if (more) for (p in state.plans) if (p.pkg != rec?.pkg) PackageOption(p, state, vm)
+    }
+}
+
+@Composable
+private fun PackageOption(p: PackagePlan, state: SetupState, vm: SetupViewModel) {
+    val c = Boar.colors
+    OptionCard(t("flows.onboarding.package.${p.pkg.id}.name"), p.pkg == state.packageId, p.downloadBytes.takeIf { it > 0 }?.let { Units.formatBytes(it) },
+        null, { vm.choosePackage(p.pkg) }) {
+        Text(t("flows.onboarding.package.${p.pkg.id}.body"), style = Boar.type.body, color = c.textSecondary)
+        val meta = listOfNotNull(
+            if (p.downloadBytes == 0L) t("flows.onboarding.alreadyDownloaded") else null,
+            if (Units.formatBytes(p.installedBytes) != Units.formatBytes(p.downloadBytes)) t("flows.onboarding.meta.onDisk", "size" to Units.formatBytes(p.installedBytes)) else null,
+            if (p.downloadBytes > 0) t("flows.onboarding.meta.time", "minutes" to minutesAbout(p.downloadBytes / REFERENCE_BYTES_PER_SEC),
+                "speed" to Units.formatBytes(REFERENCE_BYTES_PER_SEC)) else null,
+        )
+        if (meta.isNotEmpty()) Meta(meta.joinToString(" · "))
+        if (p.shortfallBytes > 0) Meta(t("flows.onboarding.noSpace", "size" to Units.formatBytes(p.shortfallBytes)), c.crimson400)
     }
 }
 
@@ -488,6 +515,3 @@ private fun Done(state: SetupState, onDone: () -> Unit) {
         }
     }
 }
-
-@Composable
-fun currentLanguage(saved: String?): String = saved ?: LocalConfiguration.current.locales[0].language.let { if (it == "pt") "pt" else "en" }

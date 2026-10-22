@@ -44,7 +44,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -52,11 +51,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.painterResource
@@ -83,11 +79,10 @@ import team.sopa.boar.engine.answer.ResearchStage
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import team.sopa.boar.ui.theme.BrandType
-import kotlin.math.sqrt
 
 /**
  * The chat, laid out as src/ui-android/ChatScreen.tsx and ChatHeader.tsx with their style values: the ambient light,
- * header and sub-bar, the loading and Deep Research strips, the empty state, the bubbles and the input bar.
+ * header and sub-bar, the loading strip, the empty state, the bubbles and the input bar.
  */
 @Composable
 fun ChatScreen(
@@ -98,19 +93,16 @@ fun ChatScreen(
     onMenu: () -> Unit,
     onSetTone: (String) -> Unit,
     onSetDeepResearch: (Boolean) -> Unit,
-    onHideResearchBanner: () -> Unit = {},
-    onRate: (String, String) -> Unit,
     /** The cut answer's "Allow more and redo": its id and the higher limit. */
     onRedo: (String, Int) -> Unit = { _, _ -> },
     onRetry: (String) -> Unit = {},
-    /** The memory note (LoadNote): close it, its actions by model id, and the Model Catalog. */
+    /** The memory note (LoadNote): close it, its actions by model id, and the models list. */
     onDismissLoadNote: () -> Unit = {},
     onRetryLessMemory: (String) -> Unit = {},
     onLoadAnyway: (String) -> Unit = {},
     onOpenModels: () -> Unit = {},
     onReused: () -> Unit = {},
     onToastHidden: () -> Unit = {},
-    voiceEnabled: Boolean = false,
 ) {
     val c = Boar.colors
     val list = rememberLazyListState()
@@ -136,7 +128,6 @@ fun ChatScreen(
         Ambient()
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
             team.sopa.boar.ui.theme.FixedSizeChrome { Header(state, onMenu, onNewChat, onSetDeepResearch) }
-            if (state.deepResearch && !state.researchBannerHidden) DeepResearchBanner(onHideResearchBanner)
             state.loadingKey?.let { LoadingBanner(t(it)) }
             state.loadNote?.let { LoadNoteBanner(it, onDismissLoadNote, onRetryLessMemory, onLoadAnyway, onOpenModels) }
             // Deep Research on: the chat area takes a light tint of its color, so the mode shows at a glance.
@@ -152,13 +143,13 @@ fun ChatScreen(
                     contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry) }
+                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry) }
                 }
             }
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
                 // The answer gets the whole screen: the keyboard closes on send.
                 onSend(input); input = ""; keyboard?.hide(); focus.clearFocus()
-            }, onStop, voiceEnabled, state.toneIcon, state.stopping, deepResearch = state.deepResearch) { toneSheet = true }
+            }, onStop, state.toneIcon, state.stopping, deepResearch = state.deepResearch) { toneSheet = true }
         }
     }
     state.toast?.let { Toast(it, onToastHidden) }
@@ -167,32 +158,13 @@ fun ChatScreen(
 /** The chat column's widest: about 75 characters of body text. */
 private val MAX_CHAT_WIDTH = 720.dp
 
-/** components/Ambient.tsx: Campfire's ember glow rising from the bottom, Moonlight's faint moon at the top right. */
+/** Material You has no ember glow; only the faint moon stays, and only in the dark theme. */
 @Composable
 private fun Ambient() {
     val c = Boar.colors
-    if (c.id == "moonlight") {
-        Box(Modifier.fillMaxSize()) {
-            Box(Modifier.align(Alignment.TopEnd).offset(x = 40.dp, y = 120.dp).size(110.dp).alpha(0.13f).background(c.cyan500, CircleShape))
-        }
-        return
-    }
-    val glow = c.emerald500
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        // The ember box: 60 dp past each side, 440 dp tall, 170 dp below the bottom edge; "ellipse at 50% 100%".
-        Box(
-            Modifier.align(Alignment.BottomCenter).offset(y = 170.dp).size(maxWidth + 120.dp, 440.dp).drawBehind {
-                val rx = size.width / 2 * sqrt(2f)
-                val ry = size.height * sqrt(2f)
-                val center = Offset(size.width / 2, size.height)
-                scale(scaleX = 1f, scaleY = ry / rx, pivot = center) {
-                    drawCircle(
-                        Brush.radialGradient(0f to glow.copy(alpha = 0.25f), 0.45f to glow.copy(alpha = 0.0625f), 0.7f to glow.copy(alpha = 0f), center = center, radius = rx),
-                        radius = rx, center = center,
-                    )
-                }
-            },
-        )
+    if (c.id != "dark") return
+    Box(Modifier.fillMaxSize()) {
+        Box(Modifier.align(Alignment.TopEnd).offset(x = 40.dp, y = 120.dp).size(110.dp).alpha(0.13f).background(c.cyan500, CircleShape))
     }
 }
 
@@ -297,24 +269,9 @@ private fun StatusPill(online: Boolean) {
     }
 }
 
-@Composable
-private fun DeepResearchBanner(onClose: () -> Unit) {
-    val c = Boar.colors
-    Row(Modifier.fillMaxWidth().background(c.frontierBadgeBg).padding(start = 12.dp, end = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text("🔬", fontSize = 10.sp)
-        Text(t("chatScreen.deepResearchBanner"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp, letterSpacing = 0.4.sp), color = c.frontierText,
-            fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(vertical = 5.dp))
-        // Closed for good: the header chip still shows Deep Research is on.
-        Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onClose), contentAlignment = Alignment.Center) {
-            Text("✕", style = Boar.type["mono.sm"], color = c.frontierText)
-        }
-    }
-    Box(Modifier.fillMaxWidth().height(1.dp).background(c.frontierBadgeBorder))
-}
-
 /**
- * The answer model and the phone's memory: it closed the app last time (with "Try again with less memory" and the
- * Model Catalog), or it may not fit (with "Load anyway" and another model). Nothing is blocked for good.
+ * The answer model and the phone's memory: it closed the app last time (with "Try again with less memory" and a way
+ * to pick another model), or it may not fit (with "Load anyway" and another model). Nothing is blocked for good.
  */
 @Composable
 private fun LoadNoteBanner(
@@ -325,7 +282,7 @@ private fun LoadNoteBanner(
     onOpenModels: () -> Unit,
 ) {
     val c = Boar.colors
-    val catalog = t("modelCatalogScreen.title")
+    val catalog = t("native.chat.pickAnother")
     val (text, actions) = when (note) {
         is team.sopa.boar.chat.LoadNote.Crashed -> {
             val retry = t("native.chat.retryLessMemory") to { onRetryLessMemory(note.modelId) }
@@ -363,39 +320,6 @@ private fun LoadNoteBanner(
         }
     }
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.amberBorder))
-}
-
-/** Dictation: tap to listen (asks for the microphone the first time), tap again to stop; the words go into the input. */
-@Composable
-private fun MicButton(text: String, onText: (String) -> Unit, enabled: Boolean, size: androidx.compose.ui.unit.Dp = 48.dp) {
-    val c = Boar.colors
-    val ctx = androidx.compose.ui.platform.LocalContext.current
-    if (!team.sopa.boar.voice.VoiceInput.available(ctx)) return
-    val voice = remember { team.sopa.boar.voice.VoiceInput(ctx) }
-    var listening by remember { mutableStateOf(false) }
-    val before = remember { mutableStateOf("") }
-    val disposed = remember { booleanArrayOf(false) }
-    // The permission answer comes later: by then an answer may have started and disabled the mic.
-    val enabledNow = androidx.compose.runtime.rememberUpdatedState(enabled)
-    DisposableEffect(Unit) { onDispose { disposed[0] = true; voice.stop() } }
-    fun listen() {
-        before.value = text.trimEnd()
-        listening = true
-        val join = { said: String -> listOf(before.value, said).filter { it.isNotBlank() }.joinToString(" ") }
-        voice.start(onPartial = { onText(join(it)) }, onResult = { onText(join(it)) }, onEnd = { listening = false })
-    }
-    val permission = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { granted -> if (granted && !disposed[0] && enabledNow.value) listen() }
-    Box(Modifier.size(size).alpha(if (enabled) 1f else 0.35f).clip(CircleShape).background(if (listening) c.crimson600 else c.bgInput)
-        .border(1.dp, if (listening) c.crimsonBorder else c.borderDefault, CircleShape)
-        .clickable(enabled = enabled) {
-            when {
-                listening -> { voice.stop(); listening = false }
-                androidx.core.content.ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED -> listen()
-                else -> permission.launch(android.Manifest.permission.RECORD_AUDIO)
-            }
-        }, contentAlignment = Alignment.Center) {
-        Text(if (listening) "■" else "🎤", fontSize = if (listening) 12.sp else 16.sp, color = Color.White)
-    }
 }
 
 /** Toast.tsx: below the header, fades in, gone after 1.8 s. Also on the Models and Hugging Face pages. */
@@ -474,7 +398,7 @@ private fun activityLabel(a: Activity?): String = when (a) {
 /** A message bubble (ChatScreen.tsx styles.bubble / userBubble / assistantBubble). */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> Unit, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit) {
+private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit) {
     val c = Boar.colors
     val type = Boar.type
     val user = m.role == "user"
@@ -543,10 +467,8 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             if (m.text.isNotEmpty() && !streaming) {
                 Box(Modifier.padding(top = 8.dp).fillMaxWidth().height(0.5.dp).background(c.borderSubtle))
                 Row(Modifier.padding(top = 6.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    FooterButton("▲", if (m.feedback == "up") t("chatScreen.rateHelpful") else null, m.feedback == "up", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRate(m.id, "up") }
-                    FooterButton("▼", if (m.feedback == "down") t("chatScreen.rateUnhelpful") else null, m.feedback == "down", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder) { onRate(m.id, "down") }
-                    // The receipt fills the gap between rating and copy (main's ReceiptToggle), tapped open below.
-                    Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                    // The receipt fills the gap before the reasoning and copy buttons (main's ReceiptToggle), tapped open below.
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                         // Everyone sees time and speed; the measured details open only with technical details on.
                         m.receipt?.let { r -> if (state.technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
                     }
@@ -570,13 +492,13 @@ private fun receiptShort(r: Receipt, rate: String) = listOf(ReceiptFormat.second
 private fun ReceiptShort(r: Receipt) =
     Text(receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))), style = Boar.type["mono.xs"], color = Boar.colors.textMuted,
         // Two lines with Large text rather than losing "tok/s" off the end.
-        maxLines = 2, textAlign = TextAlign.End, modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp))
+        maxLines = 2, textAlign = TextAlign.Start, modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp))
 
 /** The answer's receipt (main's ReceiptToggle): time and speed, tapped open for the measured details. */
 @Composable
 private fun ReceiptToggle(r: Receipt, open: Boolean, onToggle: () -> Unit) {
     val short = receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec)))
-    Text("$short " + if (open) "▴" else "▾", style = Boar.type["mono.xs"], color = Boar.colors.textMuted, maxLines = 2, textAlign = TextAlign.End,
+    Text("$short " + if (open) "▴" else "▾", style = Boar.type["mono.xs"], color = Boar.colors.textMuted, maxLines = 2, textAlign = TextAlign.Start,
         modifier = Modifier.clickable(onClickLabel = t("chat.receipt.details"), onClick = onToggle).padding(vertical = 8.dp, horizontal = 4.dp))
 }
 
@@ -669,10 +591,10 @@ private fun Badge(text: String) {
 
 /**
  * The input bar (styles.inputContainer / input / sendBtn / stopBtn): the answer style on the left (opens the style
- * sheet), the mic inside the field on the right (VoiceInputButton.tsx), send or stop.
+ * sheet), the field, send or stop.
  */
 @Composable
-private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, voiceEnabled: Boolean, toneIcon: String, stopping: Boolean, deepResearch: Boolean = false, onOpenStyles: () -> Unit) {
+private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, toneIcon: String, stopping: Boolean, deepResearch: Boolean = false, onOpenStyles: () -> Unit) {
     val c = Boar.colors
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
     // Tight gaps, full-size buttons: the field gets the room, and the round buttons keep a 48 dp tap target.
@@ -685,7 +607,7 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
         val fieldShape = if (lines > 1) RoundedCornerShape(16.dp) else RoundedCornerShape(50)
         // Deep Research on: the field's border in the mode's color and its own placeholder, right where you type.
         Row(Modifier.weight(1f).clip(fieldShape).background(c.bgInput).border(if (deepResearch) 1.5.dp else 1.dp, if (deepResearch) c.frontierBadgeBorder else c.borderDefault, fieldShape)
-            .padding(start = 18.dp, end = if (voiceEnabled) 6.dp else 18.dp), verticalAlignment = Alignment.CenterVertically) {
+            .padding(horizontal = 18.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.weight(1f).padding(vertical = 12.dp)) {
                 val style = Boar.type.body.copy(fontSize = 14.sp, color = c.textPrimary)
                 if (text.isEmpty()) Text(t(if (deepResearch) "native.chat.deepResearchPlaceholder" else "chatScreen.inputPlaceholder"), style = style, color = if (deepResearch) c.frontierText else c.textDim,
@@ -693,7 +615,6 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
                 BasicTextField(text, onText, textStyle = style, cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth(), maxLines = 5,
                     onTextLayout = { lines = it.lineCount })
             }
-            if (voiceEnabled) MicButton(text, onText, enabled = !answering, size = 34.dp)
         }
         val canSend = text.isNotBlank() && !answering
         val bg = if (answering) c.crimson600 else if (canSend) c.emerald600 else c.borderElevated
@@ -704,7 +625,7 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
         Box(
             Modifier.size(48.dp).alpha(if (answering || canSend) pulse else 0.35f).clip(CircleShape).background(bg).clickable(enabled = answering || canSend) { if (answering) onStop() else onSend() },
             contentAlignment = Alignment.Center,
-        ) { Text(if (answering) "■" else "➤", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = if (answering) 14.sp else 16.sp) }
+        ) { Text(if (answering) "■" else "➤", color = if (answering) Color.White else c.textInverse, fontWeight = FontWeight.ExtraBold, fontSize = if (answering) 14.sp else 16.sp) }
     }
 }
 

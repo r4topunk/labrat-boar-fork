@@ -151,8 +151,8 @@ class PinDeviceTest {
         assertTrue(b.chats.listSessions().isEmpty())
     }
 
-    @Test fun setupEndsOnThePinOfferUnlessAPinIsSet() {
-        assertEquals("pinOffer", afterSetup(pinSet = false))
+    @Test fun setupEndsOnTheChat() {
+        assertEquals("chat", afterSetup(pinSet = false))
         assertEquals("chat", afterSetup(pinSet = true))
     }
 

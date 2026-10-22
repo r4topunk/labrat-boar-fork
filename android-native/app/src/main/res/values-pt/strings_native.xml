@@ -95,12 +95,12 @@
     <string name="native_eval_score_noneExpected" formatted="false">nenhuma esperada</string>
     <string name="native_eval_score_note" formatted="false">Velocidade 60 %, confiabilidade 25 %, fontes achadas 15 %, medidas neste celular. Não diz se as respostas estão certas.</string>
     <string name="native_eval_keepScreenOn" formatted="false">Mantenha a tela ligada e o app aberto durante a execução. O modelo do chat é descarregado antes, para os dois não dividirem a memória.</string>
-    <string name="native_chat_loadCrashed" formatted="false">{{crashed}} fechou o app ao carregar: memória insuficiente. Por enquanto, o BOAR está respondendo com {{fallback}}.</string>
-    <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} fechou o app ao carregar: memória insuficiente. Tente de novo com menos memória ou escolha um modelo menor no Catálogo de Modelos.</string>
-    <string name="native_chat_loadCrashedOnly" formatted="false">{{model}} não carregou da última vez: memória insuficiente neste celular. Baixe um modelo menor, como o Qwen2.5 1.5B (cerca de 1 GB).</string>
+    <string name="native_chat_loadCrashed" formatted="false">{{crashed}} ficou sem memória e o BOAR precisou fechar. Por enquanto, o BOAR está respondendo com {{fallback}}.</string>
+    <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} ficou sem memória e o BOAR precisou fechar. Você pode tentar de novo usando menos memória ou escolher um modelo menor.</string>
+    <string name="native_chat_loadCrashedOnly" formatted="false">{{model}} era grande demais para este celular da última vez e o BOAR precisou fechar. Baixe um modelo menor, como o Qwen2.5 1.5B (cerca de 1 GB).</string>
     <string name="native_chat_retryLessMemory" formatted="false">Tentar de novo com menos memória</string>
-    <string name="native_chat_mayNotFit" formatted="false">{{model}} pode não caber na memória deste celular.</string>
-    <string name="native_chat_mayNotFitOnly" formatted="false">{{model}} pode não caber na memória deste celular. Um modelo menor, como o Qwen2.5 1.5B (cerca de 1 GB), cabe melhor.</string>
+    <string name="native_chat_mayNotFit" formatted="false">{{model}} pode ser grande demais para este celular.</string>
+    <string name="native_chat_mayNotFitOnly" formatted="false">{{model}} pode ser grande demais para este celular. Um modelo menor, como o Qwen2.5 1.5B (cerca de 1 GB), funciona melhor.</string>
     <string name="native_chat_loadAnyway" formatted="false">Carregar mesmo assim</string>
     <string name="native_chat_pickAnother" formatted="false">Escolher outro modelo</string>
     <string name="native_tweaks_thinking" formatted="false">Pensar antes de responder</string>
@@ -239,8 +239,8 @@
     <string name="native_chat_allowMore" formatted="false">Permitir {{limit}} e refazer</string>
     <string name="native_chat_deepResearchOn" formatted="false">LIGADA · respostas mais profundas e lentas</string>
     <string name="native_chat_deepResearchOff" formatted="false">DESLIGADA · respostas normais</string>
-    <string name="native_chat_deepResearchExplain" formatted="false">Divide sua pergunta em 2 ou 3 partes, pesquisa seu conhecimento para cada uma e escreve uma resposta com fontes. Mais profunda, porém mais lenta. Espere alguns minutos por resposta no celular.</string>
-    <string name="native_personalitySettings_deepResearchNote" formatted="false">Divide sua pergunta em subperguntas, pesquisa cada uma e escreve uma resposta. Roda várias etapas no mesmo modelo, por isso é mais lenta que uma resposta normal. Funciona com qualquer estilo, que define o tom. Pesquisa Profunda com Sucinto ainda dá uma resposta curta.</string>
+    <string name="native_chat_deepResearchExplain" formatted="false">O BOAR divide sua pergunta em partes menores, procura cada uma no seu conhecimento e escreve uma resposta com fontes. É mais profunda, porém mais lenta: espere alguns minutos por resposta no celular.</string>
+    <string name="native_personalitySettings_deepResearchNote" formatted="false">Divide sua pergunta em partes menores, pesquisa cada uma e escreve uma resposta. Leva várias etapas, por isso é mais lenta que uma resposta normal. Funciona com qualquer estilo.</string>
     <string name="native_chat_suggestions_b1" formatted="false">Quem criou a ideia de seleção natural?</string>
     <string name="native_chat_suggestionTopics_b1" formatted="false">História da ciência</string>
     <string name="native_chat_suggestions_b2" formatted="false">Como as vacinas funcionam?</string>

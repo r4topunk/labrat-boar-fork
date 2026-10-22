@@ -114,8 +114,6 @@ data class ChatState(
     val toneIcon: String = "",
     /** Stop was tapped and the answer hasn't ended yet (a step in progress finishes first). */
     val stopping: Boolean = false,
-    /** The "Mixture of agents" line under the header was closed for good. */
-    val researchBannerHidden: Boolean = false,
     /** The styles the header sheet offers (id to icon): "custom" only when a custom prompt is written. */
     val tones: List<Pair<String, String>> = emptyList(),
     val online: Boolean = false,
@@ -176,23 +174,6 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         services.removeBusyCheck(busy)
         services.removeForegroundHook(onForeground)
         super.onCleared()
-    }
-
-    /**
-     * Menu → Close BOAR: stops an answer (what it wrote so far is saved, as with Stop) and a title or summary, then
-     * frees the model. The caller closes the app after.
-     */
-    suspend fun closeAndFreeMemory(): Boolean {
-        stop()
-        // The stopped answer saves what it wrote as it ends; until it has, closing would lose it.
-        if (kotlinx.coroutines.withTimeoutOrNull(CLOSE_WAIT_MS) { job?.join() } == null && job?.isActive == true) {
-            showToast("native.drawer.closeStillSaving")
-            return false
-        }
-        stopBackground()
-        preloading?.cancel()
-        services.host.unload()
-        return true
     }
 
     /**
@@ -291,12 +272,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val id = services.settings.personalityId ?: services.personalities.defaultId
         val custom = BoarServices.SHOW_CUSTOM_STYLE && services.settings.customSystemPrompt.orEmpty().isNotBlank()
         val tones = services.personalities.personalities.filter { it.id != "custom" || custom }.map { it.id to it.icon }
-        _state.update { it.copy(personalityId = id, toneIcon = services.personalities.get(id).icon, tones = tones, researchBannerHidden = services.settings.researchBannerHidden) }
-    }
-
-    fun hideResearchBanner() {
-        services.settings.researchBannerHidden = true
-        _state.update { it.copy(researchBannerHidden = true) }
+        _state.update { it.copy(personalityId = id, toneIcon = services.personalities.get(id).icon, tones = tones) }
     }
 
     /** The header sheet: answer in this style from the next question on. */
@@ -399,20 +375,6 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }.getOrElse { showToast("native.chat.dbFailed"); return@launch }
             _state.update { it.copy(sessionId = id, messages = msgs, error = null) }
-        }
-    }
-
-    fun rate(messageId: String, rating: String) {
-        val current = _state.value.messages.firstOrNull { it.id == messageId }?.feedback
-        val next = if (current == rating) null else rating
-        _state.update { s -> s.copy(messages = s.messages.map { if (it.id == messageId) it.copy(feedback = next) else it }) }
-        // Once, on the first rating: ratings stay on the phone and nothing uses them yet.
-        if (next != null && !services.settings.ratingNoteShown) { services.settings.ratingNoteShown = true; showToast("native.chat.ratingNote") }
-        safeScope.launch(Dispatchers.IO) {
-            runCatching { services.chats.setFeedback(messageId, next) }.onFailure {
-                _state.update { s -> s.copy(messages = s.messages.map { if (it.id == messageId) it.copy(feedback = current) else it }) }
-                showToast("native.chat.dbFailed")
-            }
         }
     }
 
@@ -774,8 +736,6 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         const val VERBATIM_MESSAGE_COUNT = 6
         /** How often an answer being written is saved (savePartial). */
         const val PARTIAL_SAVE_NS = 3_000_000_000L
-        /** Close BOAR waits this long for a stopped answer to save what it wrote. */
-        const val CLOSE_WAIT_MS = 15_000L
 
         /**
          * A message about the conversation itself, answered from it without a search: "summarize our conversation", or

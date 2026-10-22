@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings, theme and About texts of the cleaner judge-facing app, written by hand. Keys: clean.settings.*, clean.about.* -->
+<resources>
+    <string name="clean_settings_theme" formatted="false">Tema</string>
+    <string name="clean_settings_theme_system" formatted="false">Sistema</string>
+    <string name="clean_settings_theme_light" formatted="false">Claro</string>
+    <string name="clean_settings_theme_dark" formatted="false">Escuro</string>
+    <string name="clean_settings_language_system" formatted="false">Idioma do celular</string>
+    <string name="clean_settings_section_about" formatted="false">Sobre</string>
+    <string name="clean_settings_aboutNote" formatted="false">O que é o BOAR, a versão e o trabalho aberto em que ele se apoia.</string>
+    <string name="clean_settings_resetDesc" formatted="false">Tema, estilo de resposta, Pesquisa profunda e opções de exibição voltam ao padrão. Seus modelos, conversas, PIN e idioma ficam.</string>
+    <string name="clean_settings_section_developer" formatted="false">Opções do desenvolvedor</string>
+    <string name="clean_settings_dev_intro" formatted="false">Ferramentas para medir o BOAR. A maioria das pessoas nunca precisa delas.</string>
+    <string name="clean_settings_dev_customStyle" formatted="false">Estilo personalizado</string>
+    <string name="clean_settings_dev_customStyleNote" formatted="false">As respostas seguem instruções que você mesmo escreve.</string>
+    <string name="clean_settings_dev_enabled" formatted="false">Mostrar opções do desenvolvedor</string>
+    <string name="clean_settings_dev_enabledNote" formatted="false">Desligue para esconder esta seção. Sete toques na versão em Sobre trazem ela de volta.</string>
+    <string name="clean_about_devOn" formatted="false">Opções do desenvolvedor ligadas</string>
+    <string name="clean_about_devOff" formatted="false">Opções do desenvolvedor desligadas</string>
+</resources>

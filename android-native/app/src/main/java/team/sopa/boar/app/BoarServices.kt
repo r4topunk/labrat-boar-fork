@@ -79,11 +79,15 @@ class BoarServices private constructor(private val context: Context) {
         catalog = withDiscovered()
     }
     /**
-     * The answer styles. The native app starts on Detailed (the Expo app on Succinct); a style the user picked is kept.
-     * The evaluation runner keeps the shared default, so its runs compare with the Expo app's.
+     * The answer styles. The app starts on Succinct (personalities.json's defaultId, the one source for the default in
+     * the chat, Settings and the benchmark runner); a style the user picked is kept.
      */
-    // personalities.json's defaultId is the one source for the default style (the chat, Settings, the benchmark runner).
     val personalities: Personalities = Personalities.parse(asset("boar-data/personalities.json"))
+    init {
+        // The engine's AppSettings.autoMaxTokens reads a missing style as Detailed (a longer answer budget), so the
+        // default is written down rather than left implicit.
+        if (settings.personalityId == null) settings.personalityId = personalities.defaultId
+    }
     val topology: CpuTopology = CpuTopology.read()
     /** Total RAM, for the Auto context size; 0 when Android doesn't say. */
     val totalRamBytes: Long = runCatching {
@@ -273,7 +277,7 @@ class BoarServices private constructor(private val context: Context) {
         fun settleResident() { residentId?.let(loadGuard::settled) }
 
         suspend fun unload() = lock.withLock {
-            // Unloaded on purpose (free memory, Close BOAR): the model didn't kill the app, so its load marker goes.
+            // Unloaded on purpose (free memory): the model didn't kill the app, so its load marker goes.
             settleJob?.cancel(); settleJob = null
             residentId?.let(loadGuard::settled)
             session?.close()
@@ -353,7 +357,7 @@ class BoarServices private constructor(private val context: Context) {
          */
         const val SHOW_CUSTOM_STYLE = false
         /** The chat's style before settings load; the same as personalities.json's defaultId. */
-        const val DEFAULT_PERSONALITY_ID = "detailed"
+        const val DEFAULT_PERSONALITY_ID = "succinct"
 
         @Volatile private var instance: BoarServices? = null
 

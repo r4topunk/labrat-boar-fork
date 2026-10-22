@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +42,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import team.sopa.boar.R
+import team.sopa.boar.app.DevOptions
 import team.sopa.boar.engine.BoarEngine
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
@@ -48,7 +50,7 @@ import team.sopa.boar.ui.theme.Boar
 /**
  * About BOAR as a short thread from @boar_app (brand book, manifesto register): what BOAR is, its addresses, and the
  * open work it stands on, with the brand mark (direction A, "Tusk moon") as the avatar. Addresses copy on press and hold; nothing opens from
- * here. The version, build and engine line closes the thread.
+ * here. The version, build and engine line closes the thread; seven taps on it turn Developer options on or off.
  */
 @Composable
 fun AboutScreen(onClose: () -> Unit) {
@@ -60,7 +62,7 @@ fun AboutScreen(onClose: () -> Unit) {
         Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(t("aboutScreen.title"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.weight(1f))
             Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White.copy(alpha = 0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
+                modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(c.bgSubtle).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 16.dp).padding(bottom = 28.dp)) {
@@ -87,10 +89,27 @@ fun AboutScreen(onClose: () -> Unit) {
                 Credits()
             }
             Text(t("native.about.holdToCopy"), style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.padding(start = 56.dp, top = 4.dp))
+            // Seven taps in a row on the version toggle Developer options, as on Android's own build number.
+            var taps by remember { mutableStateOf(0) }
+            var lastTap by remember { mutableStateOf(0L) }
+            val devOn = t("clean.about.devOn")
+            val devOff = t("clean.about.devOff")
             Text(
                 t("aboutScreen.versionBadge", "version" to info, "build" to t(if (debug) "aboutScreen.buildDevelopment" else "aboutScreen.buildRelease")) + " • llama.cpp · ${BoarEngine.loadedVariant ?: "—"}",
                 style = Boar.type["mono.xs"], color = c.textSecondary,
-                modifier = Modifier.padding(start = 56.dp, top = 12.dp).background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
+                modifier = Modifier.padding(start = 56.dp, top = 12.dp).clip(RoundedCornerShape(4.dp)).background(c.bgSubtle)
+                    .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                        val now = android.os.SystemClock.elapsedRealtime()
+                        taps = if (now - lastTap > TAP_WINDOW_MS) 1 else taps + 1
+                        lastTap = now
+                        if (taps >= DevOptions.TAPS_TO_UNLOCK) {
+                            taps = 0
+                            val on = !DevOptions.enabled(ctx)
+                            DevOptions.setEnabled(ctx, on)
+                            android.widget.Toast.makeText(ctx, if (on) devOn else devOff, android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .padding(horizontal = 8.dp, vertical = 3.dp),
             )
         }
     }
@@ -176,6 +195,9 @@ private fun versionName(ctx: android.content.Context): String = listOfNotNull(
     team.sopa.boar.BuildConfig.GIT_SHA.ifEmpty { null },
     team.sopa.boar.BuildConfig.BUILD_DATE,
 ).joinToString(" · ")
+
+/** Taps further apart than this start the count again. */
+private const val TAP_WINDOW_MS = 1500L
 
 /** BOAR's core team on X, alphabetical by name. */
 private val TEAM = listOf("Bielcx" to "bielthegoat", "Jasper" to "btcjasper", "r4to" to "r4topunk", "Sopa" to "sopaagency",
