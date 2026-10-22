@@ -87,13 +87,30 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
     private fun tooLarge(fileName: String) =
         team.sopa.boar.ui.I18n.t(getApplication(), "native.documents.tooLarge", "name" to fileName, "mb" to DocumentImport.READ_LIMIT / 1_000_000)
 
-    /** The PDF's selectable text (no OCR); password-protected PDFs aren't supported, as in the Expo app. */
+    /**
+     * The PDF's selectable text (no OCR); password-protected PDFs aren't supported, as in the Expo app. PDFBox keeps the
+     * file in a temp file in the cache, not on the heap, and the text is read a page at a time, so a large PDF doesn't
+     * fill the memory a loaded model needs.
+     */
     private fun pdfText(uri: Uri, fileName: String): String {
         val app = getApplication<Application>()
         com.tom_roush.pdfbox.android.PDFBoxResourceLoader.init(app)
         val input = app.contentResolver.openInputStream(uri) ?: throw Failed(text("native.documents.unreadable", fileName))
+        val memory = com.tom_roush.pdfbox.io.MemoryUsageSetting.setupTempFileOnly().setTempDir(app.cacheDir)
         return try {
-            input.use { s -> com.tom_roush.pdfbox.pdmodel.PDDocument.load(s).use { doc -> com.tom_roush.pdfbox.text.PDFTextStripper().getText(doc) } }
+            input.use { s ->
+                com.tom_roush.pdfbox.pdmodel.PDDocument.load(s, memory).use { doc ->
+                    val stripper = com.tom_roush.pdfbox.text.PDFTextStripper()
+                    val out = StringBuilder()
+                    for (page in 1..doc.numberOfPages) {
+                        stripper.startPage = page
+                        stripper.endPage = page
+                        out.append(stripper.getText(doc))
+                        if (out.length > DocumentImport.READ_LIMIT) throw TooLarge(fileName)
+                    }
+                    out.toString()
+                }
+            }
         } catch (e: com.tom_roush.pdfbox.pdmodel.encryption.InvalidPasswordException) {
             throw Failed(text("native.documents.passwordProtected", fileName))
         } catch (e: java.io.IOException) {
