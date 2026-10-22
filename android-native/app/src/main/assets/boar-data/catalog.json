@@ -151,6 +151,25 @@
       "required": false
     },
     {
+      "id": "kb-index-research",
+      "kind": "index",
+      "format": "kb-snapshot",
+      "label": "Prebuilt search index (Wikipedia essentials)",
+      "filename": "kb/kb-index-research.db",
+      "sizeBytes": 21250048,
+      "sha256": "9fa0ad3345916fea656cfca95eeed8bb8b2d558b6ea274e73b88bf052cf333df",
+      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/bb5931a760ba35863c5b398cbc40a000ac2abb08/kb/kb-index-research/kb-index-research.db",
+      "license": "CC BY-SA 4.0 (Wikipedia)",
+      "description": "The search index of the built-in, standard and extended Wikipedia collections, built ahead so setup doesn't index them on the phone.",
+      "required": false,
+      "requires": [
+        "bge-small-en-v1.5-q8",
+        "corpus-standard",
+        "corpus-full"
+      ],
+      "embeddingModelSha256": "ec38e8da142596baa913124ae50550de284b6916bf59577ef2f0cb9660c2f514"
+    },
+    {
       "id": "wiki-vital5",
       "kind": "corpus",
       "format": "sqlite-pack",
