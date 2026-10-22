@@ -24,7 +24,7 @@
       "icon": "📋",
       "description": "One top-line takeaway, then 3 key bullet points.",
       "systemPrompt": "You are Boar. Provide a 1-sentence top-line key takeaway followed by 3 short bullet points summarizing the answer.",
-      "styleReminder": "Use exactly this format and nothing else:\n<one-sentence key takeaway>\n- <point 1>\n- <point 2>\n- <point 3>"
+      "styleReminder": "Start with one plain sentence that answers the question. Then write exactly three short bullet points, each starting with \"- \". No headings, no labels, no placeholders, nothing else."
     },
     {
       "id": "custom",
