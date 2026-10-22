@@ -222,9 +222,16 @@ class LlamaSession private constructor(@Volatile private var handle: Long, val p
          * closed again, never left in memory with nothing pointing at it (2–3 GB after Close BOAR, chaos runs 5, 8, 9).
          */
         suspend fun load(path: String, params: EngineParams): LlamaSession? {
-            val s = withContext(Dispatchers.IO + kotlinx.coroutines.NonCancellable) {
-                val h = BoarNative.load(path, params.toJson())
-                if (h == 0L) null else LlamaSession(h, params)
+            // Held outside the block: withContext can still throw on the way back to a cancelled caller, after the load.
+            var s: LlamaSession? = null
+            try {
+                withContext(Dispatchers.IO + kotlinx.coroutines.NonCancellable) {
+                    val h = BoarNative.load(path, params.toJson())
+                    if (h != 0L) s = LlamaSession(h, params)
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                s?.close()
+                throw e
             }
             if (kotlinx.coroutines.currentCoroutineContext()[kotlinx.coroutines.Job]?.isActive == false) {
                 s?.close()
