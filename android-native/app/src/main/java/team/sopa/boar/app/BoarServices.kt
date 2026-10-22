@@ -126,10 +126,18 @@ class BoarServices private constructor(private val context: Context) {
     /** CR-2: the marker next to the models and the bookkeeping in settings.json. */
     val loadGuard = LoadGuard(object : LoadGuard.MarkerStore {
         private val f = File(files, "model-load.marker.json")
-        override fun read() = f.takeIf { it.isFile }?.readText()
+        // A marker left by the user closing BOAR (swiped from Recents, force-stopped) is not the model running out of
+        // memory: on Android 11+ the exit reason tells them apart, so only a real kill blocks the model.
+        override fun read() = f.takeIf { it.isFile && !lastExitByUser() }?.readText()
         override fun write(json: String) = f.writeText(json)
         override fun clear() { f.delete() }
     }, settings.loadLedger)
+
+    private fun lastExitByUser(): Boolean = android.os.Build.VERSION.SDK_INT >= 30 && runCatching {
+        val am = context.getSystemService(android.app.ActivityManager::class.java)
+        val reason = am.getHistoricalProcessExitReasons(context.packageName, 0, 1).firstOrNull()?.reason
+        reason == android.app.ApplicationExitInfo.REASON_USER_REQUESTED || reason == android.app.ApplicationExitInfo.REASON_USER_STOPPED
+    }.getOrDefault(false)
 
     /**
      * The model the chat answers with: the active one, unless its last load killed the app (CR-2). Then the model loaded

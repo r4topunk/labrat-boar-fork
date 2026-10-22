@@ -1,5 +1,6 @@
 package team.sopa.boar.ui.chat
 
+import androidx.compose.foundation.layout.offset
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -287,8 +288,9 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
 private fun Modifier.describe(text: String): Modifier = semantics { contentDescription = text }
 
 /**
- * The answer model and the phone's memory: it closed the app last time (with "Try again with less memory" and a way
- * to pick another model), or it may not fit (with "Load anyway" and another model). Nothing is blocked for good.
+ * The answer model and the phone's memory: it closed the app last time (with "Use less memory" and a way to pick another
+ * model), or it may not fit (with "Load anyway" and another model). Nothing is blocked for good. Material's banner:
+ * a tonal card with a leading icon, a short title and line, and text buttons at the end.
  */
 @Composable
 private fun LoadNoteBanner(
@@ -298,48 +300,39 @@ private fun LoadNoteBanner(
     onLoadAnyway: (String) -> Unit,
     onOpenModels: () -> Unit,
 ) {
-    val c = Boar.colors
     val scheme = MaterialTheme.colorScheme
-    val catalog = t("native.chat.pickAnother")
-    val (text, actions) = when (note) {
+    val change = t("clean.chat.loadNote.changeModel") to onOpenModels
+    data class Copy(val title: String, val body: String, val actions: List<Pair<String, () -> Unit>>)
+    val copy = when (note) {
         is team.sopa.boar.chat.LoadNote.Crashed -> {
-            val retry = t("native.chat.retryLessMemory") to { onRetryLessMemory(note.modelId) }
-            when {
-                note.onlyModel -> t("native.chat.loadCrashedOnly", "model" to note.label) to listOf(catalog to onOpenModels, retry)
-                note.fallbackLabel != null -> t("native.chat.loadCrashed", "crashed" to note.label, "fallback" to note.fallbackLabel) to listOf(retry, catalog to onOpenModels)
-                else -> t("native.chat.loadCrashedNoFallback", "crashed" to note.label) to listOf(retry, catalog to onOpenModels)
+            val retry = t("clean.chat.loadNote.lessMemory") to { onRetryLessMemory(note.modelId) }
+            val title = t("clean.chat.loadNote.crashedTitle", "model" to note.label)
+            if (note.fallbackLabel != null) Copy(title, t("clean.chat.loadNote.crashedFallback", "fallback" to note.fallbackLabel), listOf(change, retry))
+            else Copy(title, t("clean.chat.loadNote.crashedBody"), listOf(change, retry))
+        }
+        is team.sopa.boar.chat.LoadNote.Risky -> Copy(t("clean.chat.loadNote.riskyTitle", "model" to note.label), t("clean.chat.loadNote.riskyBody"),
+            listOf(change, t("native.chat.loadAnyway") to { onLoadAnyway(note.modelId) }))
+    }
+    Card(
+        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerHigh, contentColor = scheme.onSurface),
+    ) {
+        Row(Modifier.padding(start = 16.dp, top = 16.dp, end = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+            Icon(BoarIcons.Memory, contentDescription = null, tint = scheme.tertiary, modifier = Modifier.padding(top = 2.dp).size(24.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(copy.title, style = MaterialTheme.typography.titleSmall, color = scheme.onSurface)
+                Text(copy.body, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+            }
+            IconButton(onDismiss, modifier = Modifier.offset(y = (-8).dp)) {
+                Icon(Icons.Filled.Close, contentDescription = t("common.close"), tint = scheme.onSurfaceVariant)
             }
         }
-        is team.sopa.boar.chat.LoadNote.Risky -> {
-            val load = t("native.chat.loadAnyway") to { onLoadAnyway(note.modelId) }
-            // The safer choice first (filled): another model; loading anyway is the user's call.
-            if (note.onlyModel) t("native.chat.mayNotFitOnly", "model" to note.label) to listOf(catalog to onOpenModels, load)
-            else t("native.chat.mayNotFit", "model" to note.label) to listOf(t("native.chat.pickAnother") to onOpenModels, load)
+        // Text buttons at the end, the safer choice last (closest to the thumb), as Material's banner places them.
+        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp), horizontalArrangement = Arrangement.End) {
+            copy.actions.forEach { (label, action) -> TextButton(action) { Text(label, maxLines = 1) } }
         }
     }
-    Column(Modifier.fillMaxWidth().background(c.amberBgSubtle).padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
-            Text(text, style = MaterialTheme.typography.bodySmall, color = c.amber400, modifier = Modifier.weight(1f))
-            IconButton(onDismiss, colors = IconButtonDefaults.iconButtonColors(contentColor = c.amber400)) {
-                Icon(Icons.Filled.Close, contentDescription = t("common.close"))
-            }
-        }
-        // The first action is the recommended one: filled. Both share the width and the height of the taller label.
-        // The amber tokens are the tertiary role, so the filled button's text is onTertiary.
-        val shape = MaterialTheme.shapes.small
-        val pad = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
-        Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            actions.forEachIndexed { i, (label, action) ->
-                val mod = Modifier.weight(1f).fillMaxHeight()
-                val labelText = @Composable { Text(label, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center) }
-                if (i == 0) Button(action, mod, shape = shape, contentPadding = pad, content = { labelText() },
-                    colors = ButtonDefaults.buttonColors(containerColor = scheme.tertiary, contentColor = scheme.onTertiary))
-                else OutlinedButton(action, mod, shape = shape, contentPadding = pad, content = { labelText() },
-                    border = BorderStroke(1.dp, c.amberBorder), colors = ButtonDefaults.outlinedButtonColors(contentColor = c.amber400))
-            }
-        }
-    }
-    HorizontalDivider(color = c.amberBorder)
 }
 
 /** Toast.tsx: below the header, fades in, gone after 1.8 s. Also on the Models and Hugging Face pages. */
