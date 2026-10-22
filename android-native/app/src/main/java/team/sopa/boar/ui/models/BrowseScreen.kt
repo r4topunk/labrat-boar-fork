@@ -1,7 +1,6 @@
 package team.sopa.boar.ui.models
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -15,16 +14,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -35,11 +39,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import team.sopa.boar.engine.models.HfQuery
 import team.sopa.boar.models.HfBrowser
 import team.sopa.boar.models.ModelsState
@@ -52,6 +60,7 @@ import team.sopa.boar.ui.theme.Boar
  * results that page in as the list ends, and a repo's whole GGUF files to add. Only text-generation GGUF repos BOAR
  * can run are listed (HfQuery). The network is used only while this page is open.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowseScreen(
     state: ModelsState,
@@ -71,21 +80,23 @@ fun BrowseScreen(
     val nearEnd by remember { derivedStateOf { list.layoutInfo.visibleItemsInfo.lastOrNull()?.index?.let { it >= list.layoutInfo.totalItemsCount - 3 } == true } }
     LaunchedEffect(nearEnd, state.hfNext, state.hfSearching) { if (nearEnd && state.hfNext != null && !state.hfSearching) vm.hfMore() }
 
+    val scroll = TopAppBarDefaults.pinnedScrollBehavior()
+    val searchLabel = t("flows.onboarding.category.search")
     Box(Modifier.fillMaxSize()) {
-    Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding().imePadding()) {
-        Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("‹ " + t("common.back"), style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
-            Text(t("native.browse.discoverTitle"), style = Boar.type.titleLg, color = c.textHeading)
-        }
-        Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp).padding(bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                BasicTextField(query, { query = it }, singleLine = true,
-                    textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.textAccentEmerald),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search), keyboardActions = KeyboardActions(onSearch = { search() }),
-                    modifier = Modifier.weight(1f).background(c.bgCard, RoundedCornerShape(8.dp)).padding(12.dp),
-                    decorationBox = { inner -> if (query.isEmpty()) Text(t("modelBrowser.searchPlaceholder"), style = Boar.type.body, color = c.textDim); inner() })
-                SmallButton("🔍", enabled = !state.hfSearching) { search() }
-            }
+    Column(Modifier.fillMaxSize().background(c.bgTerminal).nestedScroll(scroll.nestedScrollConnection).navigationBarsPadding().imePadding()) {
+        CatalogTopBar(onBack, scroll) { Text(t("native.browse.discoverTitle"), style = Boar.type.titleLg) }
+        // On the app bar's own surface, so the bar and the filters read as one header.
+        Column(Modifier.fillMaxWidth().background(c.bgTerminal).padding(horizontal = 12.dp).padding(bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            // The stock outlined field: a visible focus ring, and the search button inside it as a named icon button.
+            OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth(), singleLine = true, textStyle = Boar.type.body,
+                placeholder = { Text(t("modelBrowser.searchPlaceholder"), style = Boar.type.body) },
+                trailingIcon = {
+                    IconButton(::search, Modifier.semantics { contentDescription = searchLabel }, enabled = !state.hfSearching) {
+                        Text("🔍", fontSize = 16.sp, modifier = Modifier.clearAndSetSemantics {})
+                    }
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search), keyboardActions = KeyboardActions(onSearch = { search() }),
+                shape = MaterialTheme.shapes.large)
             ChipRow(t("native.browse.size"), HfQuery.Size.entries.map { it to sizeLabel(it) }, state.hfSize) { vm.hfBrowse(query.trim(), size = it) }
             ChipRow(t("native.browse.sort"), listOf(
                 HfQuery.Sort.TRENDING to t("native.browse.sortTrending"), HfQuery.Sort.DOWNLOADS to t("native.browse.sortDownloads"),
@@ -125,11 +136,14 @@ internal fun <T> ChipRow(label: String, options: List<Pair<T, String>>, selected
     Row(Modifier.horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(label, style = Boar.type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold)
         for ((value, text) in options) {
-            val on = value == selected
-            Text(text, style = Boar.type.caption, color = if (on) c.textInverse else c.textPrimary,
-                modifier = Modifier.background(if (on) c.emerald600 else c.bgCard, RoundedCornerShape(16.dp))
-                    .border(1.dp, if (on) c.emerald600 else c.borderDefault, RoundedCornerShape(16.dp))
-                    .clickable { onSelect(value) }.padding(horizontal = 12.dp, vertical = 7.dp))
+            // The same stock chip, with the same colors, as Settings: selected state for TalkBack and a 48 dp target.
+            FilterChip(
+                selected = value == selected, onClick = { onSelect(value) },
+                label = { Text(text, style = Boar.type.caption) },
+                colors = FilterChipDefaults.filterChipColors(
+                    labelColor = c.textSecondary, selectedLabelColor = c.emerald50, selectedContainerColor = c.emerald900,
+                ),
+            )
         }
     }
 }

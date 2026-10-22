@@ -9,11 +9,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,7 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,19 +40,20 @@ fun SourceFootnotes(sources: List<Source>, title: String? = null) {
     val mono = Boar.type["mono.xs"]
     var expanded by remember { mutableStateOf<Int?>(null) }
     Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.08f)))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("📚", fontSize = 11.sp)
             Text(title ?: t("sourceFootnotes.title"), style = mono.copy(letterSpacing = 0.5.sp), color = c.textAccentCyan, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 4.dp))
             Spacer(Modifier.weight(1f))
-            Text("${sources.size}", style = mono, color = c.textMuted, modifier = Modifier.background(Color.White.copy(alpha = 0.07f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp))
+            Text("${sources.size}", style = mono, color = c.textMuted, modifier = Modifier.background(c.bgCardHover, RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp))
         }
         sources.forEachIndexed { i, s ->
             val open = expanded == i
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(
                     Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp))
-                        .background(if (open) Color(0x1A06B6D4) else Color(0xCC0F172A))
+                        // Scheme surfaces, not a fixed navy: the title is onSurface and has to sit on a surface in both themes.
+                        .background(if (open) c.cyanBgSubtle else c.bgCard)
                         .border(1.dp, if (open) c.cyan500 else c.borderDefault, RoundedCornerShape(6.dp))
                         .clickable { expanded = if (open) null else i }.padding(horizontal = 8.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),

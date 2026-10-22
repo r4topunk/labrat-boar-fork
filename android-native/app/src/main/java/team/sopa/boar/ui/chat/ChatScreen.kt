@@ -38,7 +38,18 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilledTonalIconToggleButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,6 +66,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -126,7 +141,9 @@ fun ChatScreen(
     }
     Box(Modifier.fillMaxSize().background(c.bgTerminal)) {
         Ambient()
-        Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
+        // The status and navigation bar insets are applied inside Header and InputBar, under their backgrounds, so the bars
+        // show the bar's own surface instead of a band of the page color; the keyboard still lifts the whole column.
+        Column(Modifier.fillMaxSize().imePadding()) {
             team.sopa.boar.ui.theme.FixedSizeChrome { Header(state, onMenu, onNewChat, onSetDeepResearch) }
             state.loadingKey?.let { LoadingBanner(t(it)) }
             state.loadNote?.let { LoadNoteBanner(it, onDismissLoadNote, onRetryLessMemory, onLoadAnyway, onOpenModels) }
@@ -173,9 +190,10 @@ private fun Ambient() {
 private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, onSetDeepResearch: (Boolean) -> Unit) {
     val c = Boar.colors
     val type = Boar.type
-    Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxWidth().background(c.bgSurface).statusBarsPadding().padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            RoundButton(Color.White.copy(alpha = 0.05f), null, onMenu) { Text("☰", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textHeading) }
+            // Stock icon buttons: 48 dp touch target, button role, and a name for TalkBack (the glyph itself is hidden from it).
+            IconButton(onMenu, Modifier.describe(t("drawer.recentSessions"))) { Glyph("☰", 18.sp, FontWeight.Bold) }
             Row(Modifier.weight(1f).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Image(painterResource(R.drawable.mascot), null, Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Fit)
                 Column(Modifier.weight(1f)) {
@@ -190,7 +208,7 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 DeepResearchButton(state.deepResearch, onSetDeepResearch)
-                RoundButton(c.emeraldBgSubtle, c.emeraldBorder, onNewChat) { Text("+", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textAccentEmerald) }
+                FilledTonalIconButton(onNewChat, Modifier.describe(t("clean.drawer.newChat"))) { Glyph("+", 18.sp, FontWeight.Bold) }
             }
         }
         // Live speed in the header is a technical detail (Advanced tweaks → Show technical details).
@@ -199,7 +217,7 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
             Spacer(Modifier.weight(1f))
             tps?.let {
                 Row(
-                    Modifier.background(Color(0x1F06B6D4), RoundedCornerShape(6.dp)).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
+                    Modifier.background(c.cyanBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
                 ) {
                     Text("●", fontSize = 8.sp, color = c.cyan400)
@@ -221,8 +239,12 @@ private fun DeepResearchButton(on: Boolean, onSet: (Boolean) -> Unit) {
     val c = Boar.colors
     var open by remember { mutableStateOf(false) }
     Box {
-        RoundButton(if (on) c.frontierBadgeBg else Color.White.copy(alpha = 0.05f), if (on) c.frontierBadgeBorder else c.borderSubtle, { open = true }) {
-            Text("🔬", fontSize = 17.sp, modifier = Modifier.alpha(if (on) 1f else 0.45f))
+        // Tonal toggle: the tertiary container when on, a visible surface when off (white at 5 % vanished on light).
+        FilledTonalIconToggleButton(on, { open = true }, Modifier.describe(t("chatHeader.deepResearch")), colors = IconButtonDefaults.filledTonalIconToggleButtonColors(
+            containerColor = c.bgCardElevated, contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            checkedContainerColor = MaterialTheme.colorScheme.tertiaryContainer, checkedContentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+        )) {
+            Glyph("🔬", 17.sp, modifier = Modifier.alpha(if (on) 1f else 0.45f))
         }
         androidx.compose.material3.DropdownMenu(open, { open = false }, Modifier.background(c.bgCardElevated).widthIn(max = 300.dp)) {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -239,14 +261,14 @@ private fun DeepResearchButton(on: Boolean, onSet: (Boolean) -> Unit) {
     }
 }
 
+/** A text glyph inside an icon button: the button carries the name, so TalkBack doesn't also read "trigram for heaven". */
 @Composable
-private fun RoundButton(bg: Color, border: Color?, onClick: () -> Unit, content: @Composable () -> Unit) {
-    var m = Modifier.size(42.dp).clip(CircleShape).background(bg)
-    if (border != null) m = m.border(1.dp, border, CircleShape)
-    Box(m.clickable(onClick = onClick), contentAlignment = Alignment.Center) { content() }
-}
+private fun Glyph(glyph: String, size: androidx.compose.ui.unit.TextUnit, weight: FontWeight? = null, modifier: Modifier = Modifier) =
+    Text(glyph, fontSize = size, fontWeight = weight, modifier = modifier.clearAndSetSemantics {})
 
-/** The brand's moon blue (brand book: moonlight means no signal), for the OFFLINE pill. */
+private fun Modifier.describe(text: String): Modifier = semantics { contentDescription = text }
+
+/** The brand's moon blue (brand book: moonlight means no signal), for the OFFLINE pill; light blue only reads on dark. */
 private val MOON = Color(0xFF9EC7F0)
 
 @Composable
@@ -256,7 +278,7 @@ private fun StatusPill(online: Boolean) {
     // Without room the pill is just its dot. Told apart by hue and by shape (Oct 16, both were yellow in Moonlight):
     // OFFLINE is a moon-blue outline, the calm state; ONLINE is a filled gold pill, noticed without reading "danger".
     var fits by remember { mutableStateOf(true) }
-    val tint = if (online) c.amber400 else MOON
+    val tint = if (online) c.amber400 else if (c.id == "dark") MOON else MaterialTheme.colorScheme.tertiary
     Row(
         Modifier.background(if (online) c.amber400.copy(alpha = 0.22f) else Color.Transparent, RoundedCornerShape(4.dp))
             .border(1.dp, tint.copy(alpha = if (online) 0.9f else 0.6f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = if (fits) 1.dp else 4.dp),
@@ -302,20 +324,24 @@ private fun LoadNoteBanner(
     Column(Modifier.fillMaxWidth().background(c.amberBgSubtle).padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
             Text(text, style = Boar.type.subtext, color = c.amber400, modifier = Modifier.weight(1f))
-            Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onDismiss), contentAlignment = Alignment.Center) {
-                Text("✕", style = Boar.type["mono.sm"], color = c.amber400)
+            IconButton(onDismiss, Modifier.describe(t("common.close")), colors = IconButtonDefaults.iconButtonColors(contentColor = c.amber400)) {
+                Text("✕", style = Boar.type["mono.sm"], modifier = Modifier.clearAndSetSemantics {})
             }
         }
         // The first action is the recommended one: filled. Both share the width and the height of the taller label.
+        // Amber is not a scheme role, so its filled button carries its own on-color: dark text on the light amber of
+        // the dark theme, white on the deep amber of the light one (onPrimary is only the pair of primary).
+        val onAmber = if (c.id == "dark") Color(0xFF261A00) else Color.White
+        val shape = RoundedCornerShape(8.dp)
+        val pad = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
         Row(Modifier.height(androidx.compose.foundation.layout.IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             actions.forEachIndexed { i, (label, action) ->
-                val primary = i == 0
-                Box(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(8.dp))
-                    .background(if (primary) c.amber400 else Color.Transparent)
-                    .border(1.dp, if (primary) c.amber400 else c.amberBorder, RoundedCornerShape(8.dp))
-                    .clickable(onClick = action).padding(horizontal = 12.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
-                    Text(label, style = Boar.type.subtext, color = if (primary) c.textInverse else c.amber400, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-                }
+                val mod = Modifier.weight(1f).fillMaxHeight()
+                val labelText = @Composable { Text(label, style = Boar.type.subtext, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) }
+                if (i == 0) Button(action, mod, shape = shape, contentPadding = pad, content = { labelText() },
+                    colors = ButtonDefaults.buttonColors(containerColor = c.amber400, contentColor = onAmber))
+                else OutlinedButton(action, mod, shape = shape, contentPadding = pad, content = { labelText() },
+                    border = BorderStroke(1.dp, c.amberBorder), colors = ButtonDefaults.outlinedButtonColors(contentColor = c.amber400))
             }
         }
     }
@@ -333,9 +359,10 @@ internal fun Toast(message: String, onHide: () -> Unit) {
         onHide()
     }
     Box(Modifier.fillMaxSize().statusBarsPadding().padding(top = 96.dp), contentAlignment = Alignment.TopCenter) {
-        Text(message, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = androidx.compose.ui.graphics.Color(0xFFEEEEEE),
-            modifier = Modifier.graphicsLayer { this.alpha = alpha.value }.clip(RoundedCornerShape(20.dp))
-                .background(androidx.compose.ui.graphics.Color(0xF214141E)).border(1.dp, androidx.compose.ui.graphics.Color(0x1AFFFFFF), RoundedCornerShape(20.dp))
+        // Material's snackbar pair: inverseSurface with inverseOnSurface, so it follows the wallpaper and the theme.
+        Text(message, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.inverseOnSurface,
+            modifier = Modifier.graphicsLayer { this.alpha = alpha.value }.clip(MaterialTheme.shapes.extraSmall)
+                .background(MaterialTheme.colorScheme.inverseSurface)
                 .padding(horizontal = 16.dp, vertical = 10.dp))
     }
 }
@@ -447,7 +474,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
             if (!streaming && !m.stopped && errorKey != null) {
                 Text(t(errorKey), style = type.bodyLg, color = c.crimson400)
                 if ((errorKey == UserErrors.chatKey(UserErrors.EMPTY_ANSWER) || errorKey == UserErrors.INTERRUPTED_KEY) && state.answeringId == null)
-                    FooterButton("↻", t("native.chat.tryAgain"), true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRetry(m.id) }
+                    FooterButton("↻", t("native.chat.tryAgain"), null, true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRetry(m.id) }
                 // Holding a question already copies it back to the input (onReuse); say so where it helps.
                 Text(t("native.chat.holdToReuse"), style = Boar.type.subtext, color = c.textPrimary, modifier = Modifier.padding(top = 2.dp))
             }
@@ -460,7 +487,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
             m.cutAt?.let { limit ->
                 Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     Badge("✂ " + t("native.chat.cutAtLimit", "limit" to limit))
-                    if (m.nextLimit != null && state.answeringId == null) FooterButton("↻", t("native.chat.allowMore", "limit" to m.nextLimit), true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRedo(m.id, m.nextLimit) }
+                    if (m.nextLimit != null && state.answeringId == null) FooterButton("↻", t("native.chat.allowMore", "limit" to m.nextLimit), null, true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRedo(m.id, m.nextLimit) }
                 }
             }
             var receiptOpen by remember { mutableStateOf(false) }
@@ -472,10 +499,10 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
                         // Everyone sees time and speed; the measured details open only with technical details on.
                         m.receipt?.let { r -> if (state.technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
                     }
-                    if (split.thinking != null) FooterButton("💭", null, reasoningShown, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { reasoningShown = !reasoningShown }
+                    if (split.thinking != null) FooterButton("💭", null, t(if (reasoningShown) "chatScreen.hideReasoning" else "chatScreen.showReasoning"), reasoningShown, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { reasoningShown = !reasoningShown }
                     var copied by remember { mutableStateOf(false) }
                     // With 💭 open, the reasoning is copied too: reviewing a thinking model needs both.
-                    FooterButton("⧉", null, copied, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) {
+                    FooterButton("⧉", null, t("chatScreen.copyResponse"), copied, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) {
                         clipboard.setText(AnnotatedString(if (reasoningShown && split.thinking != null) "💭 ${split.thinking}\n\n---\n\n$shown" else shown)); copied = true
                     }
                 }
@@ -570,14 +597,16 @@ private fun ProcessingIndicator(label: String) {
 }
 
 @Composable
-private fun FooterButton(glyph: String, label: String?, on: Boolean, onColor: Color, onBg: Color, onBorder: Color, onClick: () -> Unit) {
+private fun FooterButton(glyph: String, label: String?, desc: String?, on: Boolean, onColor: Color, onBg: Color, onBorder: Color, onClick: () -> Unit) {
     val c = Boar.colors
+    // The chip stays compact, but its touch target is the 48 dp minimum, and a glyph-only button is named for TalkBack.
     Row(
-        Modifier.clip(RoundedCornerShape(4.dp)).background(if (on) onBg else c.bgSubtle).border(1.dp, if (on) onBorder else c.borderSubtle, RoundedCornerShape(4.dp))
-            .clickable(onClick = onClick).padding(horizontal = 7.dp, vertical = 3.dp),
+        Modifier.minimumInteractiveComponentSize().clip(RoundedCornerShape(4.dp)).background(if (on) onBg else c.bgSubtle).border(1.dp, if (on) onBorder else c.borderSubtle, RoundedCornerShape(4.dp))
+            .then(if (desc != null) Modifier.describe(desc) else Modifier)
+            .clickable(role = Role.Button, onClick = onClick).padding(horizontal = 7.dp, vertical = 3.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(glyph, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Bold, color = if (on) onColor else c.textDim)
+        Text(glyph, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Bold, color = if (on) onColor else c.textDim, modifier = Modifier.clearAndSetSemantics {})
         label?.let { Text(it, style = Boar.type.micro.copy(fontSize = 10.sp, letterSpacing = 0.2.sp), fontWeight = FontWeight.SemiBold, color = onColor) }
     }
 }
@@ -598,10 +627,9 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
     val c = Boar.colors
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
     // Tight gaps, full-size buttons: the field gets the room, and the round buttons keep a 48 dp tap target.
-    Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Box(Modifier.size(48.dp).clip(CircleShape).background(c.bgInput).border(1.dp, c.borderDefault, CircleShape).clickable(onClick = onOpenStyles), contentAlignment = Alignment.Center) {
-            Text(toneIcon, fontSize = 18.sp)
-        }
+    // The background runs under the gesture bar (navigationBarsPadding comes after it).
+    Row(Modifier.fillMaxWidth().background(c.bgCardElevated).navigationBarsPadding().padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        FilledTonalIconButton(onOpenStyles, Modifier.size(48.dp).describe(t("chatHeader.cycleTone"))) { Glyph(toneIcon, 18.sp) }
         // A pill on one line; a rounded box once the question wraps (a pill's ends cut into the text).
         var lines by remember { mutableStateOf(1) }
         val fieldShape = if (lines > 1) RoundedCornerShape(16.dp) else RoundedCornerShape(50)
@@ -610,22 +638,28 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
             .padding(horizontal = 18.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.weight(1f).padding(vertical = 12.dp)) {
                 val style = Boar.type.body.copy(fontSize = 14.sp, color = c.textPrimary)
-                if (text.isEmpty()) Text(t(if (deepResearch) "native.chat.deepResearchPlaceholder" else "chatScreen.inputPlaceholder"), style = style, color = if (deepResearch) c.frontierText else c.textDim,
+                val hint = t(if (deepResearch) "native.chat.deepResearchPlaceholder" else "chatScreen.inputPlaceholder")
+                if (text.isEmpty()) Text(hint, style = style, color = if (deepResearch) c.frontierText else c.textDim,
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
-                BasicTextField(text, onText, textStyle = style, cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth(), maxLines = 5,
+                BasicTextField(text, onText, textStyle = style, cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth().describe(hint), maxLines = 5,
                     onTextLayout = { lines = it.lineCount })
             }
         }
         val canSend = text.isNotBlank() && !answering
-        val bg = if (answering) c.crimson600 else if (canSend) c.emerald600 else c.borderElevated
         // After Stop, the button pulses until the answer really ends: a library search or a chunk of prompt finishes first.
         val transition = rememberInfiniteTransition(label = "stopping")
         val blink by transition.animateFloat(1f, 0.35f, infiniteRepeatable(tween<Float>(500), RepeatMode.Reverse), label = "pulse")
         val pulse = if (stopping) blink else 1f
-        Box(
-            Modifier.size(48.dp).alpha(if (answering || canSend) pulse else 0.35f).clip(CircleShape).background(bg).clickable(enabled = answering || canSend) { if (answering) onStop() else onSend() },
-            contentAlignment = Alignment.Center,
-        ) { Text(if (answering) "■" else "➤", color = if (answering) Color.White else c.textInverse, fontWeight = FontWeight.ExtraBold, fontSize = if (answering) 14.sp else 16.sp) }
+        // Stop is error/onError, send is primary/onPrimary: real scheme pairs in both themes. The disabled send state is
+        // the stock one (onSurface at 12 % / 38 %); the pulse after Stop applies only while the button is live.
+        val scheme = MaterialTheme.colorScheme
+        FilledIconButton(
+            { if (answering) onStop() else onSend() },
+            Modifier.size(48.dp).alpha(if (answering || canSend) pulse else 1f).describe(t(if (answering) "chatScreen.stopGeneration" else "chatScreen.sendMessage")),
+            enabled = answering || canSend,
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = if (answering) scheme.error else scheme.primary, contentColor = if (answering) scheme.onError else scheme.onPrimary),
+        ) { Glyph(if (answering) "■" else "➤", if (answering) 14.sp else 16.sp, FontWeight.ExtraBold) }
     }
 }
 

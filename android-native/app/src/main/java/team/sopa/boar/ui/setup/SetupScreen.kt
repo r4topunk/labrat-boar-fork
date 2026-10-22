@@ -11,19 +11,29 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -106,13 +116,25 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, onSkip: (() -> Unit)?, on
 
 // --- Layout ------------------------------------------------------------------------------------------------------
 
-/** A step: its content scrolls, the actions stay at the bottom (the mockup's footer). */
+/**
+ * A step: its content scrolls (under the system bars, edge to edge), the actions stay in a bottom bar (the mockup's
+ * footer). [radioGroup] marks the page as one choice group for TalkBack (the model and package steps).
+ */
 @Composable
-private fun StepScreen(footer: @Composable ColumnScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
-    Column(Modifier.fillMaxSize().background(Boar.colors.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
+private fun StepScreen(radioGroup: Boolean = false, footer: @Composable ColumnScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    Scaffold(
+        containerColor = Boar.colors.bgTerminal,
+        contentWindowInsets = WindowInsets.safeDrawing,
+        bottomBar = {
+            Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
+                Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally, content = footer)
+            }
+        },
+    ) { inner ->
+        Column(Modifier.fillMaxSize().padding(inner).then(if (radioGroup) Modifier.selectableGroup() else Modifier)
+            .verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp), content = content)
-        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally, content = footer)
     }
 }
 
@@ -145,25 +167,18 @@ private fun Card(modifier: Modifier = Modifier, background: Color = Boar.colors.
         verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
 }
 
+// Real M3 buttons: TalkBack announces the button role, the shape is the M3 full round, and the disabled state is M3's.
 @Composable
-private fun PrimaryButton(label: String, enabled: Boolean = true, onClick: () -> Unit) {
-    val c = Boar.colors
-    Text(label, style = Boar.type.title, color = if (enabled) c.textInverse else c.textDim, textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if (enabled) c.emerald500 else c.bgCard)
-            .clickable(enabled = enabled, onClick = onClick).padding(vertical = 15.dp, horizontal = 14.dp))
-}
+private fun PrimaryButton(label: String, enabled: Boolean = true, onClick: () -> Unit) =
+    Button(onClick, Modifier.fillMaxWidth().heightIn(min = 56.dp), enabled = enabled) { Text(label, style = Boar.type.title, textAlign = TextAlign.Center) }
 
 @Composable
-private fun SecondaryButton(label: String, onClick: () -> Unit) {
-    val c = Boar.colors
-    Text(label, style = Boar.type.titleSm, color = c.textPrimary, textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick).padding(12.dp))
-}
+private fun SecondaryButton(label: String, onClick: () -> Unit) =
+    OutlinedButton(onClick, Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(label, style = Boar.type.titleSm, textAlign = TextAlign.Center) }
 
 @Composable
 private fun BackLink(label: String, onClick: () -> Unit) =
-    Text("← $label", style = Boar.type.body, color = Boar.colors.textMuted, modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onClick).padding(10.dp))
+    TextButton(onClick) { Text("← $label", style = Boar.type.body) }
 
 @Composable
 private fun Badge(label: String) {
@@ -172,15 +187,15 @@ private fun Badge(label: String) {
         modifier = Modifier.background(c.emerald500, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 2.dp))
 }
 
-/** A selectable card (OptionCard): title, a badge, the number that decides on the right, then details. */
+/** A selectable card (OptionCard): title, a badge, the number that decides on the right, then details. A radio for TalkBack and the eye. */
 @Composable
 private fun OptionCard(title: String, selected: Boolean, trailing: String?, badge: String?, onClick: () -> Unit, details: @Composable ColumnScope.() -> Unit) {
     val c = Boar.colors
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if (selected) c.emeraldBgSubtle else c.bgCard)
         .border(if (selected) 2.dp else 1.dp, if (selected) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(16.dp))
-        .clickable(onClick = onClick).padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(if (selected) "●" else "○", style = Boar.type.title, color = if (selected) c.textAccentEmerald else c.textDim)
+        .selectable(selected, onClick = onClick, role = Role.RadioButton).padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            RadioButton(selected, onClick = null)
             Text(title, style = Boar.type.title, color = c.textHeading, modifier = Modifier.weight(1f))
             trailing?.let { Text(it, style = Boar.type["mono.sm"], color = c.textSecondary) }
         }
@@ -262,7 +277,7 @@ private fun ModelStep(state: SetupState, vm: SetupViewModel, onBrowse: () -> Uni
     val rec = state.models.firstOrNull { it.id == state.recommendedId } ?: state.models.firstOrNull()
     // Another model chosen earlier (from the list or Discover, before a restart) keeps the list open so the choice shows.
     var more by remember { mutableStateOf(rec == null || state.chosenId != rec.id) }
-    StepScreen(footer = {
+    StepScreen(radioGroup = true, footer = {
         PrimaryButton(t("flows.onboarding.continue") + "  →", enabled = state.chosenId != null) { vm.next() }
         BackLink(t("flows.onboarding.back")) { vm.back() }
     }) {
@@ -303,7 +318,7 @@ private fun PackageStep(state: SetupState, vm: SetupViewModel) {
     val rec = state.plans.firstOrNull { it.pkg == state.recommendedPackage } ?: state.plans.firstOrNull()
     // The recommended package is preselected: another one chosen earlier keeps the list open so the choice shows.
     var more by remember { mutableStateOf(rec != null && state.packageId != rec.pkg) }
-    StepScreen(footer = {
+    StepScreen(radioGroup = true, footer = {
         val short = chosen?.shortfallBytes ?: 0
         PrimaryButton(
             if ((chosen?.downloadBytes ?: 0) > 0) t("flows.onboarding.install", "size" to Units.formatBytes(chosen!!.downloadBytes)) + "  →"

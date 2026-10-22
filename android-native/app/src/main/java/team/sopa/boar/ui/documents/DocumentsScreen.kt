@@ -9,18 +9,28 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -31,7 +41,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,7 +67,9 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> vm.import(uris, name.trim()); name = "" }
-    Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
+    // Top and sides are insets; the bottom one is a spacer at the end of the scroll, so the list draws behind the navigation bar.
+    Scaffold(containerColor = c.bgTerminal, contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)) { inner ->
+    Column(Modifier.fillMaxSize().padding(inner)) {
         Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("‹ " + t("common.back"), style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
             Text(t("nav.knowledge"), style = Boar.type.titleLg, color = c.textHeading)
@@ -71,12 +82,13 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
                 BasicTextField(name, { name = it }, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.emerald500), singleLine = true, modifier = Modifier.fillMaxWidth())
             }
             val busy = state.stage != null
-            Text(t("personalDocumentsManager.pickButton"), style = Boar.type.title, color = if (busy) c.textDim else c.textInverse,
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (busy) c.bgCard else c.emerald600)
-                    .clickable(enabled = !busy) {
-                        if (name.isBlank()) nameMissing = true
-                        else picker.launch(arrayOf("text/plain", "text/markdown", "text/csv", "text/comma-separated-values", "application/json", "application/pdf", "text/*"))
-                    }.padding(14.dp))
+            Button(
+                onClick = {
+                    if (name.isBlank()) nameMissing = true
+                    else picker.launch(arrayOf("text/plain", "text/markdown", "text/csv", "text/comma-separated-values", "application/json", "application/pdf", "text/*"))
+                },
+                enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+            ) { Text(t("personalDocumentsManager.pickButton"), style = Boar.type.title) }
             state.stage?.let { stage ->
                 val label = when (stage) {
                     "reading" -> t("personalDocumentsManager.stageReading")
@@ -102,21 +114,26 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
                     Switch(col.active, { vm.setActive(col.id, it) }, colors = SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(if (exporting == col.id) t("personalDocumentsManager.exporting") else "📤 " + t("personalDocumentsManager.exportButton"),
-                        fontSize = 12.sp, color = c.textAccentCyan, fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(c.cyanBgSubtle).clickable(enabled = exporting == null) {
+                    FilledTonalButton(
+                        onClick = {
                             exporting = col.id
                             scope.launch {
                                 try { ctx.startActivity(vm.exportIntent(col)) } catch (e: Exception) { exportError = e.message ?: e.toString() }
                                 exporting = null
                             }
-                        }.padding(horizontal = 12.dp, vertical = 6.dp))
-                    Text("🗑️ " + t("common.remove"), style = Boar.type.caption, color = c.crimson400, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { removing = col }.padding(vertical = 4.dp))
+                        },
+                        enabled = exporting == null,
+                    ) { Text(if (exporting == col.id) t("personalDocumentsManager.exporting") else t("personalDocumentsManager.exportButton"), style = Boar.type.caption) }
+                    TextButton({ removing = col }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
+                        Text(t("common.remove"), style = Boar.type.caption, fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
             // Your documents first, then the knowledge packs (KnowledgeScreen.tsx's order).
             packs()
+            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
         }
+    }
     }
     exportError?.let { msg -> AlertDialog({ exportError = null }, confirmButton = { TextButton({ exportError = null }) { Text(t("native.common.ok")) } },
         title = { Text(t("personalDocumentsManager.exportFailedTitle")) }, text = { Text(msg) }) }

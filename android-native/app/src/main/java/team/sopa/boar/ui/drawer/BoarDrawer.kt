@@ -85,7 +85,8 @@ fun BoarDrawer(
                 Image(painterResource(R.drawable.boar), null, Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)))
                 Column {
                     Text("BOAR", style = Boar.type.title, color = scheme.onSurface)
-                    Text(t("drawer.subtitle"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = scheme.primary, modifier = Modifier.padding(top = 1.dp))
+                    // No size override: the style is already the readable minimum and follows Settings → Text size.
+                    Text(t("drawer.subtitle"), style = Boar.type["mono.xs"], color = scheme.primary, modifier = Modifier.padding(top = 1.dp))
                 }
             }
             FilledTonalButton(onClick = onNewChat, enabled = !answering, modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
@@ -100,7 +101,7 @@ fun BoarDrawer(
                         label = {
                             Column {
                                 Text(s.title, style = Boar.type.caption, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Text(relativeTime(s.updatedAt), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = scheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+                                Text(relativeTime(s.updatedAt), style = Boar.type["mono.xs"], color = scheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
                             }
                         },
                         selected = active,
@@ -202,7 +203,7 @@ internal fun UsageBar(label: String, parts: List<Pair<Long, Color>>, total: Long
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(label, style = if (large) Boar.type.subtext else small, color = if (large) c.textSecondary else c.textDim, fontWeight = FontWeight.Bold, maxLines = 1,
             modifier = Modifier.widthIn(min = if (large) 86.dp else 40.dp))
-        Row(Modifier.weight(1f).height(if (large) 9.dp else 5.dp).clip(RoundedCornerShape(3.dp)).background(Color.Black.copy(alpha = 0.5f)).border(1.dp, c.borderDefault, RoundedCornerShape(3.dp))) {
+        Row(Modifier.weight(1f).height(if (large) 9.dp else 5.dp).clip(RoundedCornerShape(3.dp)).background(MaterialTheme.colorScheme.surfaceContainerHighest).border(1.dp, c.borderDefault, RoundedCornerShape(3.dp))) {
             if (total > 0) parts.forEach { (bytes, color) ->
                 val frac = (bytes.toFloat() / maxOf(total, sum)).coerceIn(0f, 1f)
                 if (frac > 0f) Box(Modifier.weight(frac).fillMaxHeight().background(if (over) c.crimson500 else color))

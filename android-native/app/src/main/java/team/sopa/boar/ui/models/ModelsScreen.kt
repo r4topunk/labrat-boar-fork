@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,15 +17,23 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +41,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -53,20 +66,37 @@ import team.sopa.boar.ui.theme.BrandType
 import kotlin.math.ceil
 import kotlin.math.floor
 
+/**
+ * The top bar of the Models and Hugging Face pages: Material's TopAppBar, so it takes the status bar inset under its own
+ * surface, tints on scroll, and has a 48 dp named back button (the old "‹ Back" text link was about 28 dp).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun CatalogTopBar(onBack: () -> Unit, scroll: TopAppBarScrollBehavior, height: Dp = 64.dp, title: @Composable () -> Unit) {
+    val back = t("common.back")
+    TopAppBar(
+        title = title,
+        navigationIcon = { IconButton(onBack, Modifier.semantics { contentDescription = back }) { Text("←", fontSize = 22.sp, modifier = Modifier.clearAndSetSemantics {}) } },
+        expandedHeight = height,
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface, scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer),
+        scrollBehavior = scroll,
+    )
+}
+
 /** The models and knowledge catalog (ModelCatalogScreen.tsx with CatalogItemCard.tsx's layout and styles). */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBack: () -> Unit) {
     val c = Boar.colors
+    val scroll = TopAppBarDefaults.pinnedScrollBehavior()
     Box(Modifier.fillMaxSize()) {
-    Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding().imePadding()) {
-        Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("‹ " + t("common.back"), style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
+    Column(Modifier.fillMaxSize().background(c.bgTerminal).nestedScroll(scroll.nestedScrollConnection).navigationBarsPadding().imePadding()) {
+        CatalogTopBar(onBack, scroll, height = 72.dp) {
             Column {
-                Text(t("modelCatalogScreen.title"), style = Boar.type.titleLg, color = c.textHeading)
+                Text(t("modelCatalogScreen.title"), style = Boar.type.titleLg)
                 Text(t("modelCatalogScreen.subtitle"), style = Boar.type.caption, color = c.textMuted)
             }
         }
-        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // The user's sort and filter (ModelOrder): Smart puts the active model first, then downloads, then the
             // phone's models by last use. Knowledge packs are on the Knowledge screen, as in the Expo app (KnowledgePacks
@@ -140,7 +170,7 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
     var confirm by remember { mutableStateOf(false) }
     var confirmUnlist by remember { mutableStateOf(false) }
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(if (active) Color(0x0F10B981).compositeOver(c.bgCardElevated) else c.bgCardElevated)
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(if (active) c.emeraldBgSubtle.compositeOver(c.bgCardElevated) else c.bgCardElevated)
             .border(1.dp, if (active) c.emeraldBorder else c.borderDefault, RoundedCornerShape(12.dp)).padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -150,7 +180,7 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 Text(if (item.id.startsWith("hf-")) item.shortName else item.label, style = Boar.type.titleSm, color = c.textHeading)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text(t("catalogItemCard.kind.${item.kind.name.lowercase()}"), style = mono.copy(fontSize = 9.sp), fontWeight = FontWeight.Bold, color = c.textSecondary,
-                        modifier = Modifier.background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp))
+                        modifier = Modifier.background(c.bgCardHover, RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp))
                     Text(formatMB(item.sizeBytes), style = mono, color = c.textDim)
                     Text("•", style = mono, color = c.textDim)
                     Text(item.license, style = mono, color = c.textDim, maxLines = 1, modifier = Modifier.weight(1f, fill = false))
@@ -195,9 +225,9 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 Spacer(Modifier.weight(1f))
                 Text("%.0f%%".format(row.progress * 100), style = mono, color = c.textHeading, fontWeight = FontWeight.ExtraBold)
             }
-            Box(Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).background(Color.Black.copy(alpha = 0.6f))) {
-                Box(Modifier.fillMaxHeight().fillMaxWidth(maxOf(row.progress, 0.02).toFloat()).clip(RoundedCornerShape(4.dp)).background(c.emerald500))
-            }
+            // The stock indicator on the scheme's own track (a black track vanished the bar on light cards).
+            LinearProgressIndicator(progress = { maxOf(row.progress, 0.02).toFloat().coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.surfaceContainerHighest)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("${if (row.bytesWritten > 0) formatMB(row.bytesWritten) else "0 MB"} / ${formatMB(item.sizeBytes)}", style = mono, color = c.textDim)
                 Spacer(Modifier.weight(1f))
@@ -217,27 +247,38 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 activating -> Busy(t("catalogItemCard.loadingModel"))
                 else -> SmallButton(t("catalogItemCard.selectUse"), enabled = !busy) { vm.use(item) }
             } }
-            if (present && !item.required) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable(enabled = !busy) { confirm = true }.padding(4.dp))
-            else if (!present && vm.isDiscovered(item)) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable { confirmUnlist = true }.padding(4.dp))
+            if (present && !item.required) DeleteButton(t("catalogItemCard.deleteAccessibility"), enabled = !busy) { confirm = true }
+            else if (!present && vm.isDiscovered(item)) DeleteButton(t("common.remove")) { confirmUnlist = true }
         }
     }
     if (confirm) AlertDialog(
         onDismissRequest = { confirm = false },
         title = { Text(t(if (corpus) "catalogItemCard.removeCorpusTitle" else "catalogItemCard.removeModelTitle")) },
         text = { Text(t(if (corpus) "catalogItemCard.removeCorpusMessage" else "catalogItemCard.removeModelMessage", "size" to formatMB(item.sizeBytes))) },
-        confirmButton = { TextButton({ confirm = false; vm.remove(item) }) { Text(t("catalogItemCard.removeAssetButton"), color = c.crimson400) } },
+        confirmButton = { DestructiveTextButton({ confirm = false; vm.remove(item) }) { Text(t("catalogItemCard.removeAssetButton")) } },
         dismissButton = { TextButton({ confirm = false }) { Text(t("common.cancel")) } },
-        containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary,
     )
     if (confirmUnlist) AlertDialog(
         onDismissRequest = { confirmUnlist = false },
         title = { Text(t("catalogItemCard.removeFromListTitle")) },
         text = { Text(t("catalogItemCard.removeFromListMessage")) },
-        confirmButton = { TextButton({ confirmUnlist = false; vm.removeFromList(item) }) { Text(t("catalogItemCard.removeAssetButton"), color = c.crimson400) } },
+        confirmButton = { DestructiveTextButton({ confirmUnlist = false; vm.removeFromList(item) }) { Text(t("catalogItemCard.removeAssetButton")) } },
         dismissButton = { TextButton({ confirmUnlist = false }) { Text(t("common.cancel")) } },
-        containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary,
     )
 }
+
+/** The trash can as an icon button: 48 dp target, a name for TalkBack, and dimmed while another model is busy. */
+@Composable
+private fun DeleteButton(description: String, enabled: Boolean = true, onClick: () -> Unit) {
+    IconButton(onClick, Modifier.semantics { contentDescription = description }, enabled = enabled) {
+        Text("🗑️", fontSize = 16.sp, modifier = Modifier.alpha(if (enabled) 1f else 0.38f).clearAndSetSemantics {})
+    }
+}
+
+/** A dialog's confirm for a destructive action: the error role on the text button, the dialog itself keeps the M3 defaults. */
+@Composable
+private fun DestructiveTextButton(onClick: () -> Unit, label: @Composable () -> Unit) =
+    TextButton(onClick, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { label() }
 
 /**
  * "Discover GGUF models · Browse Hugging Face models", in setup's model step under More options. Not a model, so it
@@ -271,9 +312,9 @@ private fun StatusBadge(present: Boolean, active: Boolean, downloading: Boolean)
     val mono = Boar.type["mono.xs"]
     val (text, fg, bg, border) = when {
         downloading -> listOf(t("catalogItemCard.badge.downloading"), c.textAccentCyan, c.cyanBgSubtle, c.cyanBorder)
-        !present -> listOf(t("catalogItemCard.badge.notOnDisk"), c.textDim, Color.White.copy(alpha = 0.04f), c.borderSubtle)
+        !present -> listOf(t("catalogItemCard.badge.notOnDisk"), c.textDim, Color.Transparent, c.borderSubtle)
         active -> listOf(t("catalogItemCard.badge.active"), c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder)
-        else -> listOf(t("catalogItemCard.badge.cached"), c.textSecondary, Color.White.copy(alpha = 0.06f), c.borderDefault)
+        else -> listOf(t("catalogItemCard.badge.cached"), c.textSecondary, c.bgCardHover, c.borderDefault)
     }
     Row(
         Modifier.background(bg as Color, RoundedCornerShape(6.dp)).border(1.dp, border as Color, RoundedCornerShape(6.dp)).padding(horizontal = 7.dp, vertical = 3.dp),
@@ -286,11 +327,11 @@ private fun StatusBadge(present: Boolean, active: Boolean, downloading: Boolean)
 
 @Composable
 internal fun SmallButton(label: String, enabled: Boolean = true, onClick: () -> Unit) {
-    val c = Boar.colors
     // Scaled with Settings → Text size: fixed at 12 sp they stayed tiny at Large (X6, Oct 16).
-    Text(label, style = Boar.type.titleSm.copy(fontSize = (12 * BrandType.factor(Boar.type.scale)).sp), color = c.textAccentEmerald,
-        modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(6.dp))
-            .clickable(enabled = enabled, onClick = onClick).padding(horizontal = 14.dp, vertical = 8.dp))
+    // A real tonal button: secondaryContainer with its on-color, a button role, and a visible disabled state.
+    FilledTonalButton(onClick, enabled = enabled, contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)) {
+        Text(label, style = Boar.type.titleSm.copy(fontSize = (12 * BrandType.factor(Boar.type.scale)).sp))
+    }
 }
 
 @Composable

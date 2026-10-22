@@ -17,16 +17,25 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,20 +61,26 @@ import team.sopa.boar.ui.theme.Boar
  * open work it stands on, with the brand mark (direction A, "Tusk moon") as the avatar. Addresses copy on press and hold; nothing opens from
  * here. The version, build and engine line closes the thread; seven taps on it turn Developer options on or off.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(onClose: () -> Unit) {
     val c = Boar.colors
     val ctx = LocalContext.current
     val info = versionName(ctx)
     val debug = (ctx.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
-    Column(Modifier.fillMaxSize().background(c.bgSurface).statusBarsPadding().navigationBarsPadding()) {
-        Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(t("aboutScreen.title"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.weight(1f))
-            Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(c.bgSubtle).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
-        }
-        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
-        Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 16.dp).padding(bottom = 28.dp)) {
+    // The top bar takes the status bar; the bottom inset is a spacer at the end of the scroll, so the thread draws behind the navigation bar.
+    Scaffold(
+        containerColor = c.bgSurface,
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
+        topBar = {
+            TopAppBar(
+                title = { Text(t("aboutScreen.title"), style = Boar.type.title) },
+                actions = { TextButton(onClose) { Text(t("common.done"), style = Boar.type.body) } },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = c.bgCardElevated),
+            )
+        },
+    ) { inner ->
+        Column(Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 16.dp)) {
             Profile()
             // Three posts: about BOAR, its addresses, the open work it stands on.
             Post(last = false) {
@@ -111,6 +126,7 @@ fun AboutScreen(onClose: () -> Unit) {
                     }
                     .padding(horizontal = 8.dp, vertical = 3.dp),
             )
+            Spacer(Modifier.padding(bottom = 28.dp).windowInsetsBottomHeight(WindowInsets.safeDrawing))
         }
     }
 }

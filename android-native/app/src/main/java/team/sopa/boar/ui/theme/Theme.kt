@@ -4,7 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
@@ -17,6 +20,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
@@ -142,10 +146,38 @@ fun BoarTheme(themeId: String? = null, fontScale: String = "standard", content: 
             WindowCompat.getInsetsController(w, view).apply { isAppearanceLightStatusBars = !dark; isAppearanceLightNavigationBars = !dark }
         }
     }
-    CompositionLocalProvider(LocalColors provides c, LocalType provides BoarType(fontScale)) {
-        MaterialTheme(colorScheme = scheme, content = content)
+    // Stock M3 parts (dialogs, text buttons, menus, chips) read MaterialTheme.typography: without this they fall back to
+    // Roboto at the default sizes and ignore Settings → Text size.
+    val type = remember(fontScale) { BoarType(fontScale) }
+    val typography = remember(type) { boarTypography(type) }
+    CompositionLocalProvider(LocalColors provides c, LocalType provides type) {
+        MaterialTheme(colorScheme = scheme, typography = typography, shapes = BoarShapes, content = content)
     }
 }
+
+/** The M3 type roles mapped onto the brand scale, so stock components match the rest of the app. */
+private fun boarTypography(type: BoarType) = Typography(
+    displaySmall = type.headline,
+    headlineSmall = type.headline,
+    titleLarge = type.titleLg,
+    titleMedium = type.title,
+    titleSmall = type.titleSm,
+    bodyLarge = type.bodyLg,
+    bodyMedium = type.body,
+    bodySmall = type.subtext,
+    labelLarge = type.titleSm,
+    labelMedium = type.caption,
+    labelSmall = type.micro,
+)
+
+/** The M3 default corner scale, stated so it doesn't move with a library bump. */
+private val BoarShapes = Shapes(
+    extraSmall = RoundedCornerShape(4.dp),
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(12.dp),
+    large = RoundedCornerShape(16.dp),
+    extraLarge = RoundedCornerShape(28.dp),
+)
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this

@@ -3,6 +3,8 @@ package team.sopa.boar
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.core.app.ActivityScenario
 import androidx.compose.ui.test.onNodeWithText
@@ -10,7 +12,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
@@ -20,8 +22,9 @@ import team.sopa.boar.ui.I18n
 
 /**
  * The whole first run, on the throwaway devtest install (its files are emptied first): hardware, the 1.5B
- * model, the Essential package, the real download and indexing, the summary, then the PIN offer and a PIN set through it. Needs Wi-Fi and about
- * 1 GB; it only runs on the devtest install.
+ * model, the Essential package (each under "More options" when it isn't the recommended one), the real download and
+ * indexing, the summary, then Open lands in the chat (no PIN offer; a PIN is set in Settings only). Needs Wi-Fi and
+ * about 1 GB; it only runs on the devtest install.
  */
 @RunWith(AndroidJUnit4::class)
 class SetupFlowDeviceTest {
@@ -35,7 +38,7 @@ class SetupFlowDeviceTest {
 
     private fun click(text: String, substring: Boolean = false) {
         val node = compose.onNode(hasText(text, substring = substring) and hasClickAction())
-        runCatching { node.performScrollTo() } // screens that don't scroll (the PIN offer) have nothing to scroll
+        runCatching { node.performScrollTo() } // screens that don't scroll have nothing to scroll
         node.performSemanticsAction(SemanticsActions.OnClick)
         compose.waitForIdle()
     }
@@ -51,7 +54,15 @@ class SetupFlowDeviceTest {
 
     private fun shows(text: String, substring: Boolean = false) = runCatching { compose.onNodeWithText(text, substring = substring).assertExists() }.isSuccess // false until a screen exists
 
-    @Test fun firstRunEndsOnThePinOfferAndSetsAPin() {
+    private fun listed(text: String) = compose.onAllNodesWithText(text, substring = true).fetchSemanticsNodes().isNotEmpty()
+
+    /** Picks a choice card; when it isn't the recommended one it sits under "More options", so open that first. */
+    private fun choose(text: String) {
+        if (!listed(text)) click(t("clean.setup.moreOptions"), substring = true)
+        click(text, substring = true)
+    }
+
+    @Test fun firstRunEndsInTheChat() {
         // A first run: this throwaway install's files are emptied before the app starts (nothing else in this process
         // has opened them yet), so setup begins from step 1.
         assumeTrue("only on the throwaway devtest install", ctx.packageName.endsWith(".devtest"))
@@ -63,22 +74,18 @@ class SetupFlowDeviceTest {
 
         click(t("flows.onboarding.start"), substring = true)
         val compact = services.catalog.answerModels.first { it.id == "qwen2.5-1.5b-instruct-q4km" }
-        click(compact.shortName, substring = true) // the name the model step shows
+        choose(compact.shortName) // the name the model step shows
         click(t("flows.onboarding.continue"), substring = true)
-        click(t("flows.onboarding.package.essential.name"))
+        choose(t("flows.onboarding.package.essential.name"))
         click(t("flows.onboarding.install").substringBefore("{{"), substring = true) // "Download 1.0 GB  →"
         // Downloads (verified) and indexing, then the summary and its Open button.
         waitSlowly(30 * 60_000L) { shows(t("flows.onboarding.doneBody")) }
         click(t("flows.onboarding.open"))
 
-        compose.waitUntil(10_000) { shows(t("native.pin.offerTitle")) }
-        click(t("native.pin.offerSet"))
-        repeat(2) {
-            "2580".forEach { d -> click(d.toString()) }
-            click("✓")
-        }
-        compose.waitUntil(20_000) { services.pinLock.isSet }
-        assertTrue(services.pinLock.isSet)
-        assertTrue(services.activeModel()?.id == compact.id)
+        // Open leads straight to the chat: its menu button is there, and no PIN offer came first.
+        compose.waitUntil(10_000) { compose.onAllNodesWithContentDescription(t("drawer.recentSessions")).fetchSemanticsNodes().isNotEmpty() }
+        assertEquals(false, shows(t("native.pin.offerTitle")))
+        assertEquals(false, services.pinLock.isSet)
+        assertEquals(compact.id, services.activeModel()?.id)
     }
 }
