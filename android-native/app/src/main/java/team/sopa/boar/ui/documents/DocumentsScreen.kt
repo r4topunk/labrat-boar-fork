@@ -5,47 +5,25 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,35 +31,39 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import team.sopa.boar.documents.DocumentsState
 import team.sopa.boar.documents.DocumentsViewModel
+import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.engine.rag.KnowledgeBase
+import team.sopa.boar.models.ModelsState
+import team.sopa.boar.models.ModelsViewModel
+import team.sopa.boar.setup.KnowledgeCatalog
+import team.sopa.boar.setup.KnowledgeItem
+import team.sopa.boar.setup.KnowledgeTheme
+import team.sopa.boar.ui.chat.groupedShape
 import team.sopa.boar.ui.components.BoarTopBar
 import team.sopa.boar.ui.icons.BoarIcons
+import team.sopa.boar.ui.setup.countText
+import team.sopa.boar.ui.setup.sizeText
 import team.sopa.boar.ui.t
 
 /**
- * Knowledge (KnowledgeScreen.tsx): what BOAR knows offline first (the built-in packs, in [packs]), then the user's own
- * documents (PersonalDocumentsManager.tsx), imported from this screen and kept on the phone.
+ * Knowledge (KnowledgeScreen.tsx): what BOAR searches offline, by theme, as the setup step names and counts it (one
+ * catalog: KnowledgeCatalog), then the user's own documents. Grouped tonal lists, no outlines; a row says its status only
+ * when it isn't ready, and removing or exporting sits behind the row's ⋮ menu.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Composable () -> Unit = {}, onBack: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    var name by remember { mutableStateOf("") }
     var removing by remember { mutableStateOf<KnowledgeBase.Collection?>(null) }
-    var exporting by remember { mutableStateOf<String?>(null) }
     var exportError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val fallbackName = t("clean.library.defaultName")
-    // A collection with no name takes the first file's name: no blocking "Name required" dialog before the picker.
+    // A collection takes the first file's name: no name field and no blocking "Name required" dialog before the picker.
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-        if (uris.isNotEmpty()) {
-            vm.import(uris, name.trim().ifEmpty { firstFileName(ctx, uris) ?: fallbackName })
-            name = ""
-        }
+        if (uris.isNotEmpty()) vm.import(uris, firstFileName(ctx, uris) ?: fallbackName)
     }
     val scroll = TopAppBarDefaults.pinnedScrollBehavior()
-    // The bar takes the top inset; the bottom one is a spacer at the end of the scroll, so the list draws behind the navigation bar.
     Scaffold(
         modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
         containerColor = scheme.surface,
@@ -89,77 +71,63 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
         topBar = { BoarTopBar(title = t("nav.knowledge"), onBack = onBack, scrollBehavior = scroll) },
     ) { inner ->
         Column(
-            Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp),
         ) {
-            // The packs are what answers use, so they come first (KnowledgePacks draws its own heading).
             packs()
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(t("clean.library.yourDocs"), style = MaterialTheme.typography.titleMedium)
-                    Text(t("clean.library.docsHint"), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+            SectionHeader(t("clean.library.yourDocs"))
+            Text(t("clean.library.docsHint"), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp))
+            val busy = state.stage != null
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                state.collections.forEachIndexed { i, col ->
+                    ListItem(
+                        headlineContent = { Text(col.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        supportingContent = { Text(t("personalDocumentsManager.docCount", "count" to col.docCount)) },
+                        leadingContent = { Icon(BoarIcons.Description, null) },
+                        trailingContent = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Switch(col.active, { vm.setActive(col.id, it) }, Modifier.semantics { contentDescription = col.name })
+                                RowMenu(listOf(
+                                    t("personalDocumentsManager.exportButton") to {
+                                        scope.launch {
+                                            try { ctx.startActivity(vm.exportIntent(col)) } catch (e: Exception) { exportError = e.message ?: e.toString() }
+                                        }; Unit
+                                    },
+                                    t("common.remove") to { removing = col },
+                                ))
+                            }
+                        },
+                        colors = ListItemDefaults.colors(containerColor = scheme.surfaceContainer, leadingIconColor = scheme.onSurfaceVariant),
+                        modifier = Modifier.clip(groupedShape(i, state.collections.size, outer = 20.dp)),
+                    )
                 }
-                val busy = state.stage != null
-                OutlinedTextField(
-                    name, { name = it }, Modifier.fillMaxWidth(), enabled = !busy, singleLine = true,
-                    label = { Text(t("clean.library.collectionName")) },
-                    supportingText = { Text(t("clean.library.collectionHelp")) },
-                )
-                OutlinedButton(
-                    onClick = { picker.launch(arrayOf("text/plain", "text/markdown", "text/csv", "text/comma-separated-values", "application/json", "application/pdf", "text/*")) },
-                    enabled = !busy, modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Icon(BoarIcons.UploadFile, contentDescription = null, Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(t("clean.library.addDocs"))
+            }
+            if (state.collections.isEmpty() && !busy) EmptyDocuments()
+            state.stage?.let { stage ->
+                val label = when (stage) {
+                    "reading" -> t("personalDocumentsManager.stageReading")
+                    "chunking" -> t("personalDocumentsManager.stageChunking")
+                    else -> t("personalDocumentsManager.stageEmbedding", "current" to state.done, "total" to state.total)
                 }
-                state.stage?.let { stage ->
-                    val label = when (stage) {
-                        "reading" -> t("personalDocumentsManager.stageReading")
-                        "chunking" -> t("personalDocumentsManager.stageChunking")
-                        else -> t("personalDocumentsManager.stageEmbedding", "current" to state.done, "total" to state.total)
-                    }
-                    Text(label, style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
+                Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(label, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
                     LinearProgressIndicator(progress = { if (state.total > 0) state.done.toFloat() / state.total else 0f }, modifier = Modifier.fillMaxWidth())
                 }
-                // The scanned-PDF and password caveats belong where an import went wrong, not above every import.
-                state.error?.let {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text("${t("personalDocumentsManager.importFailedTitle")}: $it", style = MaterialTheme.typography.bodyMedium, color = scheme.error)
-                        Text(t("clean.library.pdfNote"), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
-                    }
+            }
+            // The scanned-PDF and password caveats belong where an import went wrong, not above every import.
+            state.error?.let {
+                Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text("${t("personalDocumentsManager.importFailedTitle")}: $it", style = MaterialTheme.typography.bodyMedium, color = scheme.error)
+                    Text(t("clean.library.pdfNote"), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                 }
-                if (state.collections.isEmpty()) EmptyDocuments()
-                for (col in state.collections) OutlinedCard(
-                    Modifier.fillMaxWidth(),
-                    colors = CardDefaults.outlinedCardColors(containerColor = scheme.surfaceContainerLow),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, scheme.outlineVariant),
-                ) {
-                    Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Text(col.name, style = MaterialTheme.typography.titleMedium)
-                                Text(t("personalDocumentsManager.docCount", "count" to col.docCount) + " · " + t("personalDocumentsManager.chunkCount", "count" to col.chunkCount),
-                                    style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
-                                col.sourceFilename?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                            }
-                            Switch(col.active, { vm.setActive(col.id, it) }, Modifier.semantics { contentDescription = col.name })
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(
-                                onClick = {
-                                    exporting = col.id
-                                    scope.launch {
-                                        try { ctx.startActivity(vm.exportIntent(col)) } catch (e: Exception) { exportError = e.message ?: e.toString() }
-                                        exporting = null
-                                    }
-                                },
-                                enabled = exporting == null,
-                            ) { Text(if (exporting == col.id) t("personalDocumentsManager.exporting") else t("personalDocumentsManager.exportButton")) }
-                            TextButton({ removing = col }, colors = ButtonDefaults.textButtonColors(contentColor = scheme.error)) { Text(t("common.remove")) }
-                        }
-                    }
-                }
+            }
+            FilledTonalButton(
+                onClick = { picker.launch(arrayOf("text/plain", "text/markdown", "text/csv", "text/comma-separated-values", "application/json", "application/pdf", "text/*")) },
+                enabled = !busy, modifier = Modifier.padding(top = 12.dp).height(48.dp),
+            ) {
+                Icon(BoarIcons.UploadFile, contentDescription = null, Modifier.size(ButtonDefaults.IconSize))
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                Text(t("clean.library.addDocs"))
             }
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
         }
@@ -175,18 +143,130 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
     }
 }
 
-/** The one empty state: an icon, what it's for and what to do (the button is right above it). */
+/**
+ * The built-in libraries by theme, named and counted as in setup. A ready library is a plain row (name, then articles ·
+ * size); a missing one offers Download at its end; a running download shows its progress in the row.
+ */
+@Composable
+fun KnowledgeLibrary(state: ModelsState, vm: ModelsViewModel) {
+    val scheme = MaterialTheme.colorScheme
+    val ctx = LocalContext.current
+    val corpora = state.items.filter { it.kind == AssetKind.CORPUS }
+    if (corpora.isEmpty()) return
+    val previews = remember {
+        runCatching { ctx.assets.open("boar-data/pack-previews.json").bufferedReader().use { it.readText() } }
+            .map(KnowledgeCatalog::parsePreviews).getOrDefault(emptyMap())
+    }
+    val sections = remember(corpora, state.rows) {
+        KnowledgeCatalog.sections(corpora, previews, emptySet()) { state.rows[it.id]?.present == true }
+    }
+    var removing by remember { mutableStateOf<KnowledgeItem?>(null) }
+    Text(t("design.knowledge.summary"), style = MaterialTheme.typography.bodyLarge, color = scheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp))
+    sections.forEach { section ->
+        SectionHeader(t(section.titleKey))
+        if (section.theme == KnowledgeTheme.HEALTH) HealthNote()
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            section.items.forEachIndexed { i, item ->
+                val assets = item.assetIds.mapNotNull { id -> corpora.firstOrNull { it.id == id } }
+                val rows = item.assetIds.mapNotNull { state.rows[it] }
+                val downloading = rows.any { it.downloading }
+                val indexing = rows.any { it.indexing }
+                val error = rows.firstNotNullOfOrNull { it.error }
+                val progress = if (rows.isEmpty()) 0.0 else rows.sumOf { if (it.present) 1.0 else it.progress } / item.assetIds.size
+                val articles = item.preview?.articles?.takeIf { it > 0 }
+                val facts = listOfNotNull(
+                    articles?.let { t("clean.onboarding.articles", "count" to it, "value" to countText(it)) },
+                    sizeText(item.sizeBytes),
+                    // The status only when it isn't ready.
+                    when {
+                        downloading -> null
+                        indexing -> t("setupWizard.step3.buildingIndex")
+                        else -> null
+                    },
+                ).joinToString(" · ")
+                ListItem(
+                    headlineContent = { Text(item.nameKey?.let { t(it) } ?: item.fallbackName) },
+                    supportingContent = {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(if (error != null && !downloading) t("design.knowledge.failed") else facts,
+                                color = if (error != null && !downloading) scheme.error else scheme.onSurfaceVariant)
+                            if (downloading) LinearProgressIndicator(progress = { progress.toFloat().coerceIn(0.02f, 1f) }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+                        }
+                    },
+                    trailingContent = {
+                        when {
+                            downloading -> IconButton({ assets.forEach(vm::cancelDownload) }) {
+                                Icon(Icons.Filled.Close, contentDescription = t("native.models.cancelDownload"), tint = scheme.onSurfaceVariant)
+                            }
+                            !item.installed -> FilledTonalIconButton({ assets.filter { state.rows[it.id]?.present != true }.forEach(vm::download) }) {
+                                Icon(BoarIcons.Download, contentDescription = t("catalogItemCard.downloadAsset"))
+                            }
+                            assets.any { !it.required } -> RowMenu(listOf(t("design.knowledge.remove") to { removing = item }))
+                            else -> {}
+                        }
+                    },
+                    colors = ListItemDefaults.colors(containerColor = scheme.surfaceContainer),
+                    modifier = Modifier.clip(groupedShape(i, section.items.size, outer = 20.dp)),
+                )
+            }
+        }
+    }
+    removing?.let { item ->
+        AlertDialog({ removing = null },
+            title = { Text(t("catalogItemCard.removeCorpusTitle")) },
+            text = { Text(t("catalogItemCard.removeCorpusMessage", "size" to sizeText(item.sizeBytes))) },
+            confirmButton = { TextButton({
+                corpora.filter { it.id in item.assetIds && !it.required }.forEach(vm::remove); removing = null
+            }, colors = ButtonDefaults.textButtonColors(contentColor = scheme.error)) { Text(t("catalogItemCard.removeAssetButton")) } },
+            dismissButton = { TextButton({ removing = null }) { Text(t("common.cancel")) } })
+    }
+}
+
+/** The clinical caveat once under the Health header: a calm tonal note, not a warning. */
+@Composable
+private fun HealthNote() {
+    val scheme = MaterialTheme.colorScheme
+    Row(
+        Modifier.fillMaxWidth().padding(bottom = 8.dp).clip(RoundedCornerShape(16.dp)).background(scheme.surfaceContainerHighest)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Icon(Icons.Outlined.Info, null, Modifier.size(20.dp), tint = scheme.onSurfaceVariant)
+        Text(t("clean.onboarding.caveat"), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+    }
+}
+
+/** A group title, as in Settings: labelLarge in primary on the rows' 16 dp inset. */
+@Composable
+private fun SectionHeader(text: String) = Text(text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary,
+    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp).semantics { heading() })
+
+/** The row's ⋮ menu: a named 48 dp target. */
+@Composable
+private fun RowMenu(actions: List<Pair<String, () -> Unit>>) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton({ open = true }) { Icon(Icons.Filled.MoreVert, contentDescription = t("clean.library.more"), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+        DropdownMenu(open, { open = false }) {
+            actions.forEach { (label, action) -> DropdownMenuItem(text = { Text(label) }, onClick = { open = false; action() }) }
+        }
+    }
+}
+
+/** The one empty state: an icon, what it's for and what to do (the button is right below it). */
 @Composable
 private fun EmptyDocuments() {
     val scheme = MaterialTheme.colorScheme
-    Column(Modifier.fillMaxWidth().padding(vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Icon(BoarIcons.Description, contentDescription = null, Modifier.size(40.dp), tint = scheme.onSurfaceVariant)
-        Text(t("clean.library.emptyTitle"), style = MaterialTheme.typography.titleSmall)
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(scheme.surfaceContainer).padding(vertical = 24.dp, horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Icon(BoarIcons.Description, contentDescription = null, Modifier.size(32.dp), tint = scheme.onSurfaceVariant)
+        Text(t("clean.library.emptyTitle"), style = MaterialTheme.typography.titleSmall, color = scheme.onSurface)
         Text(t("clean.library.emptyBody"), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, textAlign = TextAlign.Center)
     }
 }
 
-/** The first picked file's name without its extension, for a collection the user left unnamed. */
+/** The first picked file's name without its extension, for the new collection. */
 private fun firstFileName(ctx: Context, uris: List<Uri>): String? {
     val uri = uris.firstOrNull() ?: return null
     val raw = runCatching {

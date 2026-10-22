@@ -244,7 +244,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                 val modelsState by models.state.collectAsState()
                 LaunchedEffect(Unit) { models.refresh() }
                 PredictiveBackScreen(onBack = { screen = backTo }) {
-                    DocumentsScreen(docsState, docs, packs = { KnowledgePacks(modelsState, models) }) { screen = backTo }
+                    DocumentsScreen(docsState, docs, packs = { team.sopa.boar.ui.documents.KnowledgeLibrary(modelsState, models) }) { screen = backTo }
                 }
             }
             current == "evaluation" -> {
