@@ -3,122 +3,191 @@ package team.sopa.boar
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.semantics.SemanticsActions
-import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performScrollToNode
-import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isSelected
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import team.sopa.boar.app.BoarServices
-import team.sopa.boar.ui.I18n
+import team.sopa.boar.app.DevOptions
 import team.sopa.boar.ui.settings.DisplayPrefs
 import team.sopa.boar.ui.settings.SettingsScreen
 import team.sopa.boar.ui.theme.BoarTheme
 
-/** The Settings screen on the phone: Security, Clear All Chat History and Recovery are there and do what they say. */
+/**
+ * The Settings screen on the phone, regrouped (answer style, Models, Knowledge, Chats & history, Display, Language,
+ * About, Recovery; Developer options only after seven taps on the version): each row does what it says, and the
+ * choices reach settings.json. The app's own settings are put back after each test.
+ */
 @RunWith(AndroidJUnit4::class)
 class SettingsDeviceTest {
     @get:Rule val compose = createComposeRule()
     private val ctx = InstrumentationRegistry.getInstrumentation().targetContext
-    private fun t(key: String) = I18n.t(ctx, key)
-    private fun click(text: String) {
-        compose.onNode(hasScrollAction()).performScrollToNode(hasText(text))
-        compose.onNodeWithText(text).performSemanticsAction(SemanticsActions.OnClick)
+    private val services get() = BoarServices.get(ctx)
+
+    private var wasStyle: String? = null
+    private var wasDeep = false
+    private var wasTheme: String? = null
+    private var wasScale: String? = null
+    private var wasLive = false
+    private var wasDev = false
+
+    private val themes = mutableListOf<String>()
+    private val scales = mutableListOf<String>()
+    private val prefs = object : DisplayPrefs {
+        override fun setTheme(id: String) { themes += id }
+        override fun setFontScale(scale: String) { scales += scale }
+        override fun setLanguage(id: String?) {}
+    }
+    private var pinFlow by mutableStateOf<String?>(null)
+    private var opened by mutableStateOf<String?>(null)
+    private var setupAgain = false
+
+    @Before fun remember() {
+        val s = services.settings
+        wasStyle = s.personalityId; wasDeep = s.deepResearchMode; wasTheme = s.themeId; wasScale = s.fontScale; wasLive = s.showLiveStats
+        wasDev = DevOptions.enabled(ctx)
+    }
+
+    @After fun restore() {
+        val s = services.settings
+        s.personalityId = wasStyle; s.deepResearchMode = wasDeep; s.themeId = wasTheme ?: "system"; wasScale?.let { s.fontScale = it }
+        InstrumentationRegistry.getInstrumentation().runOnMainSync { DevOptions.setEnabled(ctx, wasDev) }
+        s.showLiveStats = wasLive
+    }
+
+    private fun show() {
+        compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = { pinFlow = it }, onSetup = { setupAgain = true }, onOpen = { opened = it }) {} } }
         compose.waitForIdle()
     }
 
-    @Test fun securityClearAllChatsAndRecoveryAreThere() {
-        val services = BoarServices.get(ctx)
-        // Clear All really clears: only run where the app has no chats of its own (a test install).
-        org.junit.Assume.assumeTrue("the app has chats; not clearing them", services.chats.listSessions().isEmpty())
-        val was = services.settings.showLiveStats
-        services.settings.showLiveStats = true // Hardware telemetry is a technical detail
-        val s = services.chats.createSession("Settings test chat")
-        services.chats.addMessage(s.id, "user", "hello", services.chats.newId())
-        try {
-            var pinFlow by mutableStateOf<String?>(null)
-            var setupAgain = false
-            val prefs = object : DisplayPrefs {
-                override fun setTheme(id: String) {}
-                override fun setFontScale(scale: String) {}
-                override fun setLanguage(id: String?) {}
-            }
-            var opened by mutableStateOf<String?>(null)
-        compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = { pinFlow = it }, onSetup = { setupAgain = true }, onOpen = { opened = it }) {} } }
+    /** Scrolls to the row showing [text] and checks it is there. */
+    private fun visible(text: String) {
+        compose.scrollTo(hasText(text))
+        assertTrue("'$text' not on the Settings screen", compose.shows(text))
+    }
 
-        // The sections brought back from the Expo app.
-        click(t("native.settings.openCatalog")); assertEquals("models", opened)
-        click(t("native.settings.openDocuments")); assertEquals("documents", opened)
-        compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("native.telemetry.chip")))
-        compose.onNodeWithText(t("native.telemetry.chip")).assertExists()
-        compose.onNodeWithText(t("native.telemetry.note")).assertExists()
-        compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("interfaceSettings.hapticFeedbackLabel")))
-    
-            // Security: no PIN on this install, so it offers one.
-            compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("native.settings.security")))
-            compose.onNodeWithText(t("native.settings.pinOff")).assertExists()
-            click(t("native.settings.pinSet"))
+    @Test fun theAnswerStyleAndDeepResearchAreChosenAtTheTop() {
+        services.settings.personalityId = "succinct"
+        services.settings.deepResearchMode = false
+        show()
+        visible(tr("modelSetupScreen.sections.tone"))
+        val detailed = tr("personalities.detailed.label")
+        compose.press(detailed)
+        assertEquals("detailed", services.settings.personalityId)
+        assertTrue("the chosen style is marked", compose.exists(hasText(detailed) and isSelected()))
+        compose.press(tr("personalities.summary.label"))
+        assertEquals("summary", services.settings.personalityId)
+        // Deep Research is its own switch under the styles.
+        compose.press(tr("personalitySettings.deepResearchTitle"))
+        assertTrue(services.settings.deepResearchMode)
+        compose.press(tr("personalitySettings.deepResearchTitle"))
+        assertFalse(services.settings.deepResearchMode)
+    }
+
+    @Test fun themeAndTextSizeApplyAtOnceAndAreSaved() {
+        services.settings.themeId = "system"
+        show()
+        visible(tr("clean.settings.theme"))
+        compose.scrollAndPress(tr("clean.settings.theme.dark"))
+        assertEquals("dark", services.settings.themeId)
+        assertEquals(listOf("dark"), themes)
+        assertTrue(compose.exists(hasText(tr("clean.settings.theme.dark")) and isSelected()))
+        compose.scrollAndPress(tr("clean.settings.theme.light"))
+        assertEquals("light", services.settings.themeId)
+        compose.scrollAndPress(tr("clean.settings.theme.system"))
+        assertEquals(listOf("dark", "light", "system"), themes)
+
+        visible(tr("native.settings.textSize"))
+        compose.scrollAndPress(tr("native.settings.large"))
+        assertEquals("large", services.settings.fontScale)
+        assertEquals(listOf("large"), scales)
+        // The haptics switch sits in the same group.
+        visible(tr("interfaceSettings.hapticFeedbackLabel"))
+    }
+
+    @Test fun eachRowOpensItsScreenOrFlow() {
+        show()
+        compose.scrollAndPress(tr("clean.settings.model.title")); assertEquals("models", opened)
+        compose.scrollAndPress(tr("clean.settings.knowledge.title")); assertEquals("documents", opened)
+        compose.scrollAndPress(tr("aboutScreen.title")); assertEquals("about", opened)
+        // No PIN on this install: the switch offers one.
+        if (!services.pinLock.isSet) {
+            visible(tr("native.settings.pinOff"))
+            compose.scrollAndPress(tr("native.settings.security"))
             assertEquals("NEW", pinFlow)
-    
-            // Memory: Clear All Chat History, confirmed, empties the chats.
-            click(t("memorySettings.clearAllChatHistory"))
-            compose.onNodeWithText(t("memorySettings.clearAllButton")).performSemanticsAction(SemanticsActions.OnClick)
-            compose.waitForIdle()
-            assertTrue(services.chats.listSessions().isEmpty())
-            compose.onNodeWithText(t("native.settings.clearChatsDone")).assertExists()
-    
-            // Recovery: setup again, and the purge button opens its confirmation (not confirmed here: it wipes the app).
-            click(t("modelSetupScreen.recovery.wizardButton"))
-            assertTrue(setupAgain)
-            click(t("modelSetupScreen.recovery.dangerButton"))
-            compose.onNodeWithText(t("modelSetupScreen.dangerModal.title")).assertExists()
-            compose.onNodeWithText(t("modelSetupScreen.dangerModal.confirmButton")).assertExists()
-        } finally {
-            runCatching { services.chats.deleteSession(s.id) }
-            services.settings.showLiveStats = was
         }
+        compose.scrollAndPress(tr("modelSetupScreen.recovery.wizardButton"))
+        assertTrue(setupAgain)
+        for (section in listOf("modelSetupScreen.sections.models", "modelSetupScreen.sections.knowledgeBase", "modelSetupScreen.sections.memory",
+            "modelSetupScreen.sections.displayTheme", "modelSetupScreen.sections.language", "design.settings.about", "modelSetupScreen.sections.recovery")) visible(tr(section))
     }
 
-    /** The sections brought back from the Expo app, without touching the app's chats or settings. */
-    @Test fun restoredSectionsAreThere() {
-        val services = BoarServices.get(ctx)
-        val was = services.settings.showLiveStats
-        services.settings.showLiveStats = true // Hardware telemetry is a technical detail
-        try {
-            var opened by mutableStateOf<String?>(null)
-            val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setLanguage(id: String?) {} }
-            compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = {}, onSetup = {}, onOpen = { opened = it }) {} } }
-            click(t("native.settings.openCatalog")); assertEquals("models", opened)
-            click(t("native.settings.openDocuments")); assertEquals("documents", opened)
-            for (label in listOf("modelSetupScreen.sections.models", "modelSetupScreen.sections.knowledgeBase", "native.telemetry.chip", "native.telemetry.note",
-                "interfaceSettings.hapticFeedbackLabel", "native.settings.security")) {
-                compose.onNode(hasScrollAction()).performScrollToNode(hasText(t(label)))
-                compose.onNodeWithText(t(label)).assertExists()
-            }
-        } finally {
-            services.settings.showLiveStats = was
-        }
+    @Test fun clearChatHistoryAsksFirstThenEmptiesTheChats() {
+        org.junit.Assume.assumeTrue("only on the throwaway devtest install", ctx.packageName.endsWith(".devtest"))
+        val s = services.chats.createSession("QA settings chat")
+        services.chats.addMessage(s.id, "user", "hello", services.chats.newId())
+        show()
+        val clear = tr("memorySettings.clearAllChatHistory")
+        compose.scrollAndPress(clear)
+        compose.waitForText(tr("memorySettings.clearAllConfirmTitle"))
+        compose.pressInDialog(tr("common.cancel"))
+        compose.waitForTextGone(tr("memorySettings.clearAllConfirmTitle"))
+        assertTrue("Cancel cleared the chats", services.chats.listSessions().any { it.id == s.id })
+        compose.scrollAndPress(clear)
+        compose.pressInDialog(tr("memorySettings.clearAllButton"))
+        compose.waitForText(tr("native.settings.clearChatsDone"))
+        assertTrue(services.chats.listSessions().isEmpty())
     }
 
-    /** Show technical details off (on by default): no Hardware telemetry section; the switch sits in Developer options (hidden unless DevOptions is on). */
-    @Test fun telemetryHidesWithoutTechnicalDetails() {
-        val services = BoarServices.get(ctx)
-        val was = services.settings.showLiveStats
+    @Test fun eraseEverythingAndResetSettingsAskFirstAndCancelKeepsEverything() {
+        show()
+        val erase = tr("modelSetupScreen.recovery.dangerButton")
+        compose.scrollAndPress(erase)
+        compose.waitForText(tr("modelSetupScreen.dangerModal.title"))
+        assertTrue(compose.shows(tr("modelSetupScreen.dangerModal.consequencesHeader")))
+        compose.pressInDialog(tr("common.cancel"))
+        compose.waitForTextGone(tr("modelSetupScreen.dangerModal.title"))
+        assertTrue("the app's files are still there", services.activeModel() != null)
+
+        compose.scrollAndPress(tr("native.settings.resetButton"))
+        compose.waitForText(tr("native.settings.resetConfirmTitle"))
+        compose.pressInDialog(tr("common.cancel"))
+        compose.waitForTextGone(tr("native.settings.resetConfirmTitle"))
+    }
+
+    /** Developer options: hidden until switched on (seven taps in About); then technical details show the telemetry. */
+    @Test fun developerOptionsAndTelemetryShowOnlyWhenSwitchedOn() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync { DevOptions.setEnabled(ctx, false) }
+        show()
+        compose.scrollTo(hasText(tr("modelSetupScreen.recovery.wizardButton")))
+        assertFalse(compose.shows(tr("clean.settings.section.developer")))
+        assertFalse(compose.shows(tr("native.telemetry.chip")))
+    }
+
+    @Test fun withDeveloperOptionsTechnicalDetailsShowTheTelemetry() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync { DevOptions.setEnabled(ctx, true) }
         services.settings.showLiveStats = false
-        try {
-            val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setLanguage(id: String?) {} }
-            compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = {}, onSetup = {}, onOpen = {}) {} } }
-            compose.onNodeWithText(t("native.telemetry.chip")).assertDoesNotExist()
-        } finally {
-            services.settings.showLiveStats = was
-        }
+        show()
+        visible(tr("clean.settings.section.developer"))
+        assertFalse(compose.shows(tr("native.telemetry.chip")))
+        compose.scrollAndPress(tr("native.tweaks.technicalDetails"))
+        assertTrue(services.settings.showLiveStats)
+        compose.waitUntil(5_000) { compose.shows(tr("native.telemetry.chip")) }
+        visible(tr("native.telemetry.chip"))
+        // Off again from the same switch.
+        compose.scrollAndPress(tr("native.tweaks.technicalDetails"))
+        assertFalse(services.settings.showLiveStats)
+        visible(tr("clean.settings.dev.enabled"))
     }
 }
