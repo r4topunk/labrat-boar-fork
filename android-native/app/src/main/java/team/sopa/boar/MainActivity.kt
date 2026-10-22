@@ -96,6 +96,26 @@ class MainActivity : ComponentActivity() {
     private val locked = mutableStateOf(false)
     private var stoppedAt = 0L
 
+    /**
+     * With a PIN, the screen is secure: blank in recent apps, screenshots and screen recordings, so chats can't be seen
+     * there without the PIN. Without one, screenshots work as usual. Checked on every resume and pause, so a PIN set or
+     * removed in Settings applies before the recent-apps picture is taken.
+     */
+    private fun applySecure() {
+        val flag = android.view.WindowManager.LayoutParams.FLAG_SECURE
+        if (BoarServices.get(this).pinLock.isSet) window.addFlags(flag) else window.clearFlags(flag)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        applySecure()
+    }
+
+    override fun onPause() {
+        applySecure()
+        super.onPause()
+    }
+
     override fun onStop() {
         super.onStop()
         // A rotation or font change stops and starts the activity: that isn't leaving BOAR.
