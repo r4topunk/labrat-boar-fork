@@ -89,25 +89,35 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
 
     /**
      * The PDF's selectable text (no OCR); password-protected PDFs aren't supported, as in the Expo app. PDFBox keeps the
-     * file in a temp file in the cache, not on the heap, and the text is read a page at a time, so a large PDF doesn't
-     * fill the memory a loaded model needs.
+     * file in a temp file in the cache, not on the heap, and writes the text in one pass, so a large PDF doesn't fill
+     * the memory a loaded model needs. Both the file and its text stop at [DocumentImport.READ_LIMIT], also when the
+     * picker didn't say how big the file is.
      */
     private fun pdfText(uri: Uri, fileName: String): String {
         val app = getApplication<Application>()
         com.tom_roush.pdfbox.android.PDFBoxResourceLoader.init(app)
         val input = app.contentResolver.openInputStream(uri) ?: throw Failed(text("native.documents.unreadable", fileName))
         val memory = com.tom_roush.pdfbox.io.MemoryUsageSetting.setupTempFileOnly().setTempDir(app.cacheDir)
+        val limit = DocumentImport.READ_LIMIT
         return try {
-            input.use { s ->
-                com.tom_roush.pdfbox.pdmodel.PDDocument.load(s, memory).use { doc ->
-                    val stripper = com.tom_roush.pdfbox.text.PDFTextStripper()
+            input.use { raw ->
+                val bounded = object : java.io.FilterInputStream(raw) {
+                    private var read = 0L
+                    private fun count(n: Int): Int { if (n > 0) { read += n; if (read > limit) throw TooLarge(fileName) }; return n }
+                    override fun read(): Int = super.read().also { if (it >= 0) count(1) }
+                    override fun read(b: ByteArray, off: Int, len: Int): Int = count(super.read(b, off, len))
+                }
+                com.tom_roush.pdfbox.pdmodel.PDDocument.load(bounded, memory).use { doc ->
                     val out = StringBuilder()
-                    for (page in 1..doc.numberOfPages) {
-                        stripper.startPage = page
-                        stripper.endPage = page
-                        out.append(stripper.getText(doc))
-                        if (out.length > DocumentImport.READ_LIMIT) throw TooLarge(fileName)
+                    val writer = object : java.io.Writer() {
+                        override fun write(cbuf: CharArray, off: Int, len: Int) {
+                            out.append(cbuf, off, len)
+                            if (out.length > limit) throw TooLarge(fileName)
+                        }
+                        override fun flush() {}
+                        override fun close() {}
                     }
+                    com.tom_roush.pdfbox.text.PDFTextStripper().writeText(doc, writer)
                     out.toString()
                 }
             }
