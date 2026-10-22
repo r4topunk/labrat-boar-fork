@@ -235,7 +235,7 @@
     <string name="native_settings_resetConfirmBody" formatted="false">As configurações voltam ao padrão e a configuração inicial abre de novo. Modelos e pacotes baixados, suas conversas, seu PIN e seu idioma são mantidos.</string>
     <string name="native_settings_resetConfirmButton" formatted="false">Redefinir</string>
     <string name="native_chat_foundBeforeStop" formatted="false">Encontradas antes de parar</string>
-    <string name="native_chat_cutAtLimit" formatted="false">Parou no limite de {{limit}} tokens</string>
+    <string name="native_chat_cutAtLimit" formatted="false">Parou no limite de tamanho</string>
     <string name="native_chat_allowMore" formatted="false">Permitir {{limit}} e refazer</string>
     <string name="native_chat_deepResearchOn" formatted="false">LIGADA · respostas mais profundas e lentas</string>
     <string name="native_chat_deepResearchOff" formatted="false">DESLIGADA · respostas normais</string>

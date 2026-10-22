@@ -83,10 +83,16 @@ class BoarServices private constructor(private val context: Context) {
      * the chat, Settings and the benchmark runner); a style the user picked is kept.
      */
     val personalities: Personalities = Personalities.parse(asset("boar-data/personalities.json"))
-    init {
-        // The engine's AppSettings.autoMaxTokens reads a missing style as Detailed (a longer answer budget), so the
-        // default is written down rather than left implicit.
+    init { applyDefaults() }
+
+    /**
+     * At start and after "Reset settings". The engine's AppSettings.autoMaxTokens reads a missing style as Detailed (a
+     * longer answer budget), so the default is written down rather than left implicit; technical details only show
+     * while developer options are on, since their switch lives there.
+     */
+    fun applyDefaults() {
         if (settings.personalityId == null) settings.personalityId = personalities.defaultId
+        if (settings.showLiveStats && !DevOptions.enabled(context)) settings.showLiveStats = false
     }
     val topology: CpuTopology = CpuTopology.read()
     /** Total RAM, for the Auto context size; 0 when Android doesn't say. */

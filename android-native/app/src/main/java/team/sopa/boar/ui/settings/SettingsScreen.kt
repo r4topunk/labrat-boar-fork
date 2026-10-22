@@ -85,6 +85,8 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
             Section(t("modelSetupScreen.sections.memory")) {
                 var titles by remember { mutableStateOf(s.autoGenerateTitles) }
                 SwitchRow(t("memorySettings.autoTitlesLabel"), t("memorySettings.autoTitlesValue"), titles) { titles = it; s.autoGenerateTitles = it }
+                var summarize by remember { mutableStateOf(s.autoSummarize) }
+                SwitchRow(t("memorySettings.autoSummarizeLabel"), t("memorySettings.autoSummarizeValue"), summarize) { summarize = it; s.autoSummarize = it }
                 ClearChats(services)
             }
             Section(t("modelSetupScreen.sections.displayTheme")) {
@@ -261,6 +263,7 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
         confirmButton = { androidx.compose.material3.TextButton({
             resetting = false
             services.settings.resetPreferences()
+            services.applyDefaults()
             prefs.setTheme(ThemeMode.DEFAULT_ID)
             prefs.setFontScale("standard")
             onSetup()
@@ -326,14 +329,12 @@ private fun DeveloperSection(services: BoarServices, styleId: String, onStyle: (
             var prompt by remember { mutableStateOf(s.customSystemPrompt ?: "") }
             Field(prompt, t("personalitySettings.customPromptPlaceholder")) { prompt = it; s.customSystemPrompt = it }
         }
-        var summarize by remember { mutableStateOf(s.autoSummarize) }
-        SwitchRow(t("memorySettings.autoSummarizeLabel"), t("memorySettings.autoSummarizeValue"), summarize) { summarize = it; s.autoSummarize = it }
         var turns by remember { mutableStateOf(s.historyTurnThreshold) }
         Choices(t("memorySettings.turnsBeforeSummarizing"), listOf(4, 6, 8, 12).map { it to "$it" }, turns) { turns = it; s.historyTurnThreshold = it }
         var max by remember { mutableStateOf(s.maxSavedSessions) }
         Choices(t("memorySettings.maxSavedSessions"), listOf(5, 10, 25, 50).map { it to "$it" }, max) { max = it; s.maxSavedSessions = it }
         SwitchRow(t("clean.settings.dev.enabled"), t("clean.settings.dev.enabledNote"), true) { on ->
-            if (!on) { s.showLiveStats = false; onTechnical(false); DevOptions.setEnabled(ctx, false) }
+            if (!on) { onTechnical(false); DevOptions.setEnabled(ctx, false) }
         }
     }
 }

@@ -19,8 +19,10 @@ object DevOptions {
     fun enabled(ctx: Context): Boolean =
         state.value ?: ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY, false).also { state.value = it }
 
+    /** Off also turns technical details off: their switch is in developer options, so it would be nowhere to find. */
     fun setEnabled(ctx: Context, on: Boolean) {
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY, on).apply()
         state.value = on
+        if (!on) BoarServices.get(ctx).settings.showLiveStats = false
     }
 }

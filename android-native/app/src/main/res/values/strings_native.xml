@@ -235,7 +235,7 @@
     <string name="native_settings_resetConfirmBody" formatted="false">Settings go back to their defaults and setup opens again. Downloaded models and packs, your chats, your PIN and your language are kept.</string>
     <string name="native_settings_resetConfirmButton" formatted="false">Reset</string>
     <string name="native_chat_foundBeforeStop" formatted="false">Found before stopping</string>
-    <string name="native_chat_cutAtLimit" formatted="false">Stopped at the {{limit}}-token limit</string>
+    <string name="native_chat_cutAtLimit" formatted="false">Stopped at the length limit</string>
     <string name="native_chat_allowMore" formatted="false">Allow {{limit}} and redo</string>
     <string name="native_chat_deepResearchOn" formatted="false">ON · deeper, slower answers</string>
     <string name="native_chat_deepResearchOff" formatted="false">OFF · normal answers</string>

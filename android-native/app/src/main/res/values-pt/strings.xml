@@ -238,7 +238,7 @@
     <string name="knowledgeBaseScreen_title" formatted="false">Meus Documentos</string>
     <string name="chatHeader_openDrawer" formatted="false">Abrir menu de navegação</string>
     <string name="chatHeader_offline" formatted="false">OFFLINE</string>
-    <string name="chatHeader_localLlmCore" formatted="false">NÚCLEO LLM LOCAL</string>
+    <string name="chatHeader_localLlmCore" formatted="false">Nenhum modelo ainda</string>
     <string name="chatHeader_cycleTone" formatted="false">Mudar como o BOAR responde</string>
     <string name="chatHeader_newChatSession" formatted="false">Nova sessão de chat</string>
     <string name="chatHeader_deepResearch" formatted="false">Pesquisa Aprofundada</string>
@@ -249,7 +249,7 @@
     <string name="chatHeader_offlineTitle" formatted="false">Você está offline</string>
     <string name="chatHeader_offlineBody" formatted="false">Sem conexão com a internet. Tudo funciona: respostas, busca e sua biblioteca estão neste celular.</string>
     <string name="chatScreen_initializingCore" formatted="false">Inicializando núcleo offline local…</string>
-    <string name="chatScreen_mountingWeights" formatted="false">Carregando pesos GGUF locais…</string>
+    <string name="chatScreen_mountingWeights" formatted="false">Preparando o BOAR…</string>
     <string name="chatScreen_indexingKnowledgeBase" formatted="false">Indexando base de conhecimento offline…</string>
     <string name="chatScreen_reasoningElapsed" formatted="false">💭 Raciocinando… {{seconds}}s</string>
     <string name="chatScreen_reasoningUnfinished" formatted="false">O raciocínio não terminou antes do fim da resposta (interrompido ou sem tokens). Toque em 💭 para ler.</string>
@@ -301,7 +301,7 @@
     <string name="promptIdeasCarousel_prev" formatted="false">Anterior</string>
     <string name="promptIdeasCarousel_usePrompt" formatted="false">Usar Este Prompt de Pesquisa</string>
     <string name="promptIdeasCarousel_next" formatted="false">Próximo</string>
-    <string name="processingIndicator_retrieving" formatted="false">🔍 Buscando no acervo offline…</string>
+    <string name="processingIndicator_retrieving" formatted="false">🔍 Buscando no seu conhecimento…</string>
     <string name="processingIndicator_thinking" formatted="false">🧠 Raciocinando sobre o contexto local…</string>
     <string name="processingIndicator_generating" formatted="false">⚡ Transmitindo tokens…</string>
     <string name="personalities_succinct_label" formatted="false">Sucinto e Direto</string>

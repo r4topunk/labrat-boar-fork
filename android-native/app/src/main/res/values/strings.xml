@@ -239,7 +239,7 @@
     <string name="knowledgeBaseScreen_title" formatted="false">My Documents</string>
     <string name="chatHeader_openDrawer" formatted="false">Open Navigation Drawer</string>
     <string name="chatHeader_offline" formatted="false">OFFLINE</string>
-    <string name="chatHeader_localLlmCore" formatted="false">LOCAL LLM CORE</string>
+    <string name="chatHeader_localLlmCore" formatted="false">No model yet</string>
     <string name="chatHeader_cycleTone" formatted="false">Change how BOAR answers</string>
     <string name="chatHeader_newChatSession" formatted="false">New Chat Session</string>
     <string name="chatHeader_deepResearch" formatted="false">Deep Research</string>
@@ -250,7 +250,7 @@
     <string name="chatHeader_offlineTitle" formatted="false">You\'re offline</string>
     <string name="chatHeader_offlineBody" formatted="false">No internet connection. Everything works: answers, search and your library are all on this phone.</string>
     <string name="chatScreen_initializingCore" formatted="false">Initializing local offline core…</string>
-    <string name="chatScreen_mountingWeights" formatted="false">Mounting local GGUF weights…</string>
+    <string name="chatScreen_mountingWeights" formatted="false">Getting BOAR ready…</string>
     <string name="chatScreen_indexingKnowledgeBase" formatted="false">Indexing offline knowledge base…</string>
     <string name="chatScreen_reasoningElapsed" formatted="false">💭 Reasoning… {{seconds}}s</string>
     <string name="chatScreen_reasoningUnfinished" formatted="false">Reasoning didn\'t finish before the reply ended (stopped or out of tokens). Tap 💭 to read it.</string>
@@ -302,7 +302,7 @@
     <string name="promptIdeasCarousel_prev" formatted="false">Prev</string>
     <string name="promptIdeasCarousel_usePrompt" formatted="false">Use This Research Prompt</string>
     <string name="promptIdeasCarousel_next" formatted="false">Next</string>
-    <string name="processingIndicator_retrieving" formatted="false">🔍 Searching offline corpus…</string>
+    <string name="processingIndicator_retrieving" formatted="false">🔍 Searching your knowledge…</string>
     <string name="processingIndicator_thinking" formatted="false">🧠 Reasoning over local context…</string>
     <string name="processingIndicator_generating" formatted="false">⚡ Streaming tokens…</string>
     <string name="personalities_succinct_label" formatted="false">Succinct &amp; Direct</string>
