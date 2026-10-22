@@ -79,6 +79,9 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
 
     private class TooLarge(val fileName: String) : Exception()
 
+    /** An IOException, so PDDocument.load closes and deletes its scratch file before it reaches [pdfText]. */
+    private class InputTooLarge : java.io.IOException()
+
     /** A failure the user can act on, already in their language. */
     private class Failed(message: String) : Exception(message)
 
@@ -103,7 +106,7 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
             input.use { raw ->
                 val bounded = object : java.io.FilterInputStream(raw) {
                     private var read = 0L
-                    private fun count(n: Int): Int { if (n > 0) { read += n; if (read > limit) throw TooLarge(fileName) }; return n }
+                    private fun count(n: Int): Int { if (n > 0) { read += n; if (read > limit) throw InputTooLarge() }; return n }
                     override fun read(): Int = super.read().also { if (it >= 0) count(1) }
                     override fun read(b: ByteArray, off: Int, len: Int): Int = count(super.read(b, off, len))
                 }
@@ -121,6 +124,8 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
                     out.toString()
                 }
             }
+        } catch (e: InputTooLarge) {
+            throw TooLarge(fileName)
         } catch (e: com.tom_roush.pdfbox.pdmodel.encryption.InvalidPasswordException) {
             throw Failed(text("native.documents.passwordProtected", fileName))
         } catch (e: java.io.IOException) {
