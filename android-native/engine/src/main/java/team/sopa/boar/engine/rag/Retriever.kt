@@ -68,8 +68,12 @@ class Retriever(
         val wikiLexical = chunks { it.via != "title" }
         // The knowledge base and format-1 packs pass the relevance gate first; large-pack hits have their own
         // ranking and no similarity, so they aren't gated here.
+        // The user's own documents (a collection they imported): a keyword hit that already covers the question's key
+        // words reaches the model without the similarity floor. Their parts are long and mixed, so a short question
+        // scored under the floor against the very post it names (X6, Oct 21). The library and the packs keep the floor.
+        val (own, shared) = lexical.partition { it.collectionId != null }
         val fused = RagPure.fuse(
-            RagPure.gateByRelevance(lexical + f1.flatMap { it.lexical }) + wikiLexical,
+            own + RagPure.gateByRelevance(shared + f1.flatMap { it.lexical }) + wikiLexical,
             RagPure.gateByRelevance(semantic + f1.flatMap { it.semantic }),
             topK,
         )

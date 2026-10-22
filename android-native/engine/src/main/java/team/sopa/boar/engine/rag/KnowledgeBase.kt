@@ -157,7 +157,7 @@ class KnowledgeBase(private val db: SqlDatabase) {
     fun lexicalSearch(query: String, queryVec: FloatArray, limit: Int): List<Chunk> {
         val lq = RagPure.buildLexicalQuery(query) ?: return emptyList()
         val rows = db.query(
-            """SELECT f.chunk_id, f.doc_id, f.title, f.body, bm25(chunks_fts) AS rank, e.embedding
+            """SELECT f.chunk_id, f.doc_id, f.title, f.body, bm25(chunks_fts) AS rank, e.embedding, c.collection_id
                FROM chunks_fts f
                JOIN chunks c ON c.chunk_id = f.chunk_id
                LEFT JOIN chunk_embeddings e ON e.chunk_id = f.chunk_id
@@ -169,7 +169,7 @@ class KnowledgeBase(private val db: SqlDatabase) {
             val emb = it.blob("embedding")
             Chunk(
                 chunkId = it.string("chunk_id")!!, docId = it.string("doc_id")!!, title = it.string("title") ?: "", body = it.string("body") ?: "",
-                score = -it.double("rank"), matchType = MatchType.LEXICAL,
+                collectionId = it.string("collection_id"), score = -it.double("rank"), matchType = MatchType.LEXICAL,
                 similarity = emb?.let { b -> RagPure.cosine(queryVec, fromBlob(b)) },
             )
         }
