@@ -22,8 +22,12 @@ class Retriever(
     private val embed: (String) -> FloatArray,
     private val lexicon: () -> Map<String, String>,
 ) {
-    fun retrieve(query: String, topK: Int = 6, queryVec: FloatArray? = null, includeWikiPacks: Boolean = true): List<Chunk> {
-        val main = retrieveOne(query, topK, queryVec, includeWikiPacks, null, null, null)
+    /**
+     * [ownOnly]: the user's own files only (search only my files): no library, no packs, and a meaning hit passes at the
+     * search floor (MIN_SEMANTIC_SIMILARITY) instead of the answer floor, since nothing else can come back.
+     */
+    fun retrieve(query: String, topK: Int = 6, queryVec: FloatArray? = null, includeWikiPacks: Boolean = true, ownOnly: Boolean = false): List<Chunk> {
+        val main = retrieveOne(query, topK, queryVec, includeWikiPacks, null, null, null, ownOnly)
         // A Portuguese question against English sources: search again with the English names it mentions and put
         // those results first. The English embedder and keyword index barely match Portuguese words.
         if (!PtLexicon.looksPortuguese(query)) return main
@@ -32,7 +36,7 @@ class Retriever(
         val names = ids + PtLexicon.englishNamesIn(query, lexicon()).filter { it !in ids }
         if (names.isEmpty()) return main
         val action = WikiPackText.ACTION_INTENT.containsMatchIn(query)
-        val found = retrieveOne(names.joinToString(" "), topK, null, includeWikiPacks, names, action, Explain.EXPLAIN_INTENT.containsMatchIn(query))
+        val found = retrieveOne(names.joinToString(" "), topK, null, includeWikiPacks, names, action, Explain.EXPLAIN_INTENT.containsMatchIn(query), ownOnly)
         val named = names.map { it.lowercase() }.toSet()
         // What-to-do sections first in an action question, then articles named exactly; disambiguation lists never.
         fun rank(c: Chunk) = if (action && c.action) 0 else if (c.title.lowercase() in named) 1 else 2
@@ -46,11 +50,13 @@ class Retriever(
 
     private fun retrieveOne(
         query: String, topK: Int, queryVec: FloatArray?, includeWikiPacks: Boolean, titles: List<String>?, action: Boolean?, explain: Boolean?,
+        ownOnly: Boolean = false,
     ): List<Chunk> {
         val vec = queryVec ?: embed(query)
-        val lexical = kb.lexicalSearch(query, vec, topK * 2)
-        val semantic = kb.semanticSearch(vec, topK * 2)
-        val installed = packs()
+        val lexical = kb.lexicalSearch(query, vec, topK * 2, ownOnly)
+        val semantic = kb.semanticSearch(vec, topK * 2, ownOnly)
+        // Only my files: the user's own files only, never the packs.
+        val installed = if (ownOnly) emptyList() else packs()
         // A failing pack is skipped, never fatal.
         val f1 = installed.filterIsInstance<OpenPack.Format1>().mapNotNull { p ->
             runCatching { Packs.searchFormat1(p.db, p.id, query, vec, topK * 2, explain) }.getOrNull()
@@ -74,7 +80,9 @@ class Retriever(
         val (own, shared) = lexical.partition { it.collectionId != null }
         val fused = RagPure.fuse(
             own + RagPure.gateByRelevance(shared + f1.flatMap { it.lexical }) + wikiLexical,
-            RagPure.gateByRelevance(semantic + f1.flatMap { it.semantic }),
+            // Only the user's files can come back with ownOnly, so their meaning hits pass at the search floor (0.55):
+            // a lower floor can't pull in the library there.
+            RagPure.gateByRelevance(semantic + f1.flatMap { it.semantic }, if (ownOnly) RagPure.MIN_SEMANTIC_SIMILARITY else RagPure.ANSWER_MIN_SIMILARITY),
             topK,
         )
         // A what-to-do question: up to three pack sections that say what to do, right after the named articles.

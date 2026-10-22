@@ -50,4 +50,27 @@ class UserDocumentsRetrievalTest {
         assertTrue(found.none { it.chunkId == "doc-1" })
         assertEquals(emptyList<String>(), found.filter { it.collectionId != null }.map { it.chunkId })
     }
+
+    // Personal Files (ownOnly): the user's files only, meaning hits at the search floor (0.55), not the answer floor.
+
+    @Test fun `in Personal Files a library passage never comes back, even a perfect match`() {
+        val kb = kbWithDocument().apply { insertChunk(Chunk("wiki-9", "review", "Tweet review", part), questionVec) }
+        assertTrue(retriever(kb).retrieve(question).any { it.chunkId == "wiki-9" })
+        val found = retriever(kb).retrieve(question, ownOnly = true)
+        assertTrue(found.map { it.chunkId }.toString(), found.isNotEmpty() && found.all { it.collectionId != null })
+    }
+
+    @Test fun `in Personal Files a part without the question's words passes at the search floor`() {
+        val found = retriever(kbWithDocument()).retrieve("How do monsoons form over South Asia?", ownOnly = true)
+        assertEquals(listOf("doc-1"), found.map { it.chunkId })
+    }
+
+    @Test fun `in Personal Files a part under the search floor stays out`() {
+        val kb = kbWithDocument().apply { insertChunk(Chunk("doc-2", "review", "boar-tweet-review (part 2/7)", "Unrelated notes.", collectionId = "tweets"), floatArrayOf(0.5f, 0.866f, 0f)) }
+        assertTrue(retriever(kb).retrieve("How do monsoons form over South Asia?", ownOnly = true).none { it.chunkId == "doc-2" })
+    }
+
+    @Test fun `in Personal Files a switched-off collection is not searched`() {
+        assertEquals(emptyList<Chunk>(), retriever(kbWithDocument(active = false)).retrieve(question, ownOnly = true))
+    }
 }
