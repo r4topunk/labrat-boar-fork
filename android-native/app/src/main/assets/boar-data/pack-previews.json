@@ -1,0 +1,330 @@
+{
+ "boar-crypto": {
+  "articles": 3141,
+  "sources": [
+   {
+    "name": "Wikipedia",
+    "documents": 1369
+   },
+   {
+    "name": "Ethereum EIPs",
+    "documents": 1208
+   },
+   {
+    "name": "ethereum.org",
+    "documents": 228
+   },
+   {
+    "name": "Bitcoin BIPs",
+    "documents": 180
+   },
+   {
+    "name": "Ethereum specs",
+    "documents": 156
+   }
+  ],
+  "samples": [
+   "EIP-1559: Fee market change for ETH 1.0 chain",
+   "EIP-4844: Shard Blob Transactions",
+   "ERC-20 Token Standard",
+   "ERC-4494: Permit for ERC-721 NFTs",
+   "Proof-of-stake (PoS)",
+   "Optimistic Rollups",
+   "Gasper",
+   "The Merge"
+  ]
+ },
+ "boar-factbook": {
+  "articles": 261,
+  "sources": [
+   {
+    "name": "CIA World Factbook",
+    "documents": 261
+   }
+  ],
+  "samples": [
+   "Bhutan",
+   "Brazil",
+   "Japan",
+   "Kenya",
+   "Norway",
+   "Peru",
+   "India",
+   "Germany",
+   "Egypt",
+   "Canada"
+  ]
+ },
+ "boar-firstaid-en": {
+  "articles": 1842,
+  "sources": [
+   {
+    "name": "Wikipedia",
+    "documents": 902
+   },
+   {
+    "name": "Appropedia",
+    "documents": 567
+   },
+   {
+    "name": "US government",
+    "documents": 294
+   },
+   {
+    "name": "Wikibooks",
+    "documents": 71
+   },
+   {
+    "name": "Wikivoyage",
+    "documents": 8
+   }
+  ],
+  "samples": [
+   "Nosebleed",
+   "Burn",
+   "Cardiopulmonary resuscitation",
+   "Choking",
+   "Bone fracture",
+   "Snakebite",
+   "Hypothermia",
+   "Heat stroke",
+   "Water purification",
+   "Bleeding"
+  ]
+ },
+ "boar-medlineplus-en": {
+  "articles": 1016,
+  "sources": [
+   {
+    "name": "MedlinePlus",
+    "documents": 1016
+   }
+  ],
+  "samples": [
+   "A1C",
+   "Abdominal Pain",
+   "Abortion",
+   "Abscess",
+   "Acne",
+   "Acoustic Neuroma",
+   "Acupuncture",
+   "Acute Bronchitis",
+   "Acute Flaccid Myelitis",
+   "Acute Lymphocytic Leukemia"
+  ]
+ },
+ "boar-wikivoyage-en": {
+  "articles": 34002,
+  "sources": [
+   {
+    "name": "Wikipedia",
+    "documents": 0
+   },
+   {
+    "name": "Wikivoyage",
+    "documents": 0
+   }
+  ],
+  "samples": [
+   "Japan",
+   "Bhutan",
+   "Lisbon",
+   "Mexico City",
+   "Kyoto",
+   "Patagonia",
+   "Istanbul",
+   "Iceland",
+   "Rio de Janeiro",
+   "Marrakech"
+  ]
+ },
+ "qa-health-se": {
+  "articles": 5048,
+  "sources": [
+   {
+    "name": "Stack Exchange",
+    "documents": 5048
+   }
+  ],
+  "samples": [
+   "Is it normal to feel your heart beat in your chest?",
+   "Is it dangerous to eat bananas and eggs together?",
+   "Is saliva safe as a sexual lubricant for male masturbation?",
+   "What is the difference between cal and Kcal?",
+   "How many Calories Deficit Equals 1 KG Loss, approximately",
+   "What is this dot on the iris?",
+   "Do you bleed to death after your penis is cut off?",
+   "Is it better to sleep without a pillow?",
+   "Why does my antibiotic make my urine yellow?",
+   "Can you cauterize a wound with gunpowder?"
+  ]
+ },
+ "qa-outdoors-se": {
+  "articles": 5872,
+  "sources": [
+   {
+    "name": "Stack Exchange",
+    "documents": 5872
+   }
+  ],
+  "samples": [
+   "How far would you need to fall for it to be fatal?",
+   "How do you determine how long a hike will take?",
+   "How much should your backpack weigh?",
+   "What is this knee pain when going downhill?",
+   "How to avoid exploding rocks",
+   "How dangerous is a band of coyotes to a lone, unarmed human?",
+   "How to humanely kill an injured bird?",
+   "Is it safe to fire 38 caliber rounds in a 357 magnum pistol?",
+   "How to warm up your cold toes and fingers?",
+   "How do I tie a sleeping bag to my backpack?"
+  ]
+ },
+ "qa-travel-se": {
+  "articles": 42307,
+  "sources": [
+   {
+    "name": "Stack Exchange",
+    "documents": 42307
+   }
+  ],
+  "samples": [
+   "Are aerosol cans allowed and safe, in checked luggage?",
+   "Are battery packs allowed in hand luggage?",
+   "How to get from Nice to Monaco by public transport?",
+   "How to track my UK Visa Application Status?",
+   "What harm can be done with a copy of one's passport?",
+   "Are wet wipes subject to the TSA's 3-1-1 Liquids Rule?",
+   "Converting Older United States Dollar Bills",
+   "How can I accurately estimate the weight of my luggage?",
+   "What to do when you can't print your boarding pass?",
+   "What does \"Baggage: 1PC\" mean on my flight ticket?"
+  ]
+ },
+ "qa-ethereum-se": {
+  "articles": 34588,
+  "sources": [
+   {
+    "name": "Stack Exchange",
+    "documents": 34588
+   }
+  ],
+  "samples": [
+   "How do I buy Ethereum with USD?",
+   "How to Mine Ether and use Ethereum on Windows?",
+   "How to import a plain private key into geth or Mist?",
+   "What is meant by the term \"gas\"?",
+   "For pool mining, what exactly is a share?",
+   "What is the total supply of Ether?",
+   "Is CPU mining even worth the Ether?",
+   "What is the recommended way to safely store Ether?",
+   "What actually is a DAG?",
+   "What is a DApp?"
+  ]
+ },
+ "qa-bitcoin-se": {
+  "articles": 26042,
+  "sources": [
+   {
+    "name": "Stack Exchange",
+    "documents": 26042
+   }
+  ],
+  "samples": [
+   "What is the difference between kH/s, MH/s, and GH/s?",
+   "How can I change BTC into normal cash?",
+   "How much Bitcoin will I mine right now with hardware X?",
+   "What are bitcoin miners really solving?",
+   "How long does it usually take to mine a bitcoin block?",
+   "What is a 'Satoshi'?",
+   "What are stale shares and what can I do to avoid them?",
+   "What are \"bitcoin days destroyed\"?",
+   "How can I buy Bitcoin via a Credit Card or Paypal?",
+   "Import wallet.dat into a new Bitcoin-Qt client"
+  ]
+ },
+ "boar-simplewiki-en": {
+  "articles": 208622,
+  "sources": [
+   {
+    "name": "Simple English Wikipedia",
+    "documents": 208628
+   }
+  ],
+  "samples": [
+   "Photosynthesis",
+   "Volcano",
+   "Solar System",
+   "World War II",
+   "DNA",
+   "Climate change",
+   "Democracy",
+   "Gravity",
+   "Internet",
+   "Ancient Egypt"
+  ]
+ },
+ "wiki-vital5": {
+  "articles": 49832,
+  "sources": [
+   {
+    "name": "Wikipedia",
+    "documents": 49832
+   }
+  ],
+  "samples": [
+   "Anarchism",
+   "Almond",
+   "Arabic numerals",
+   "Acceleration",
+   "Beadwork",
+   "Baháʼí Faith",
+   "Bohr model",
+   "Cyrillic script",
+   "Continuous function",
+   "Cavalry"
+  ]
+ },
+ "corpus-standard": {
+  "articles": 1000,
+  "sources": [
+   {
+    "name": "Wikipedia",
+    "documents": 1000
+   }
+  ],
+  "samples": [
+   "Chuen-Gun Lee",
+   "Khopi Saint Nicholas Church",
+   "Apex Predator (Crooked I album)",
+   "Virginia Meriwether Davies",
+   "Viking Trilogy",
+   "Economic diversity",
+   "Mariam Baouardy",
+   "Battaglia Terme",
+   "Rudolf Keydell",
+   "Hesse's theorem"
+  ]
+ },
+ "corpus-full": {
+  "articles": 4000,
+  "sources": [
+   {
+    "name": "Wikipedia",
+    "documents": 4000
+   }
+  ],
+  "samples": [
+   "Mammillaria",
+   "Ronald Burroughs",
+   "Sam Rayburn Reservoir",
+   "Elizabeth Gavis",
+   "Trinity Armstrong",
+   "Mailto",
+   "Howard Mitchell",
+   "Ekachai Jearakul",
+   "Nigerian Defence Academy",
+   "Craig Davidson (rugby union)"
+  ]
+ }
+}

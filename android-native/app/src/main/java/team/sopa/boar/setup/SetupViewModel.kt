@@ -7,10 +7,10 @@ import android.app.Application
 import android.os.StatFs
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +31,12 @@ import team.sopa.boar.engine.rag.SeedCorpus
 import java.io.File
 import java.io.IOException
 
+/** The two groups of the install list. */
+enum class InstallGroup { MODELS, KNOWLEDGE }
+
+/** An install row's status: Queued / Downloading NN% / Checking / Ready / Failed (+ Retry). */
+enum class FileStatus { QUEUED, DOWNLOADING, CHECKING, READY, FAILED }
+
 /** One file of the install step, as its row shows it. */
 data class AssetProgress(
     val asset: CatalogAsset,
@@ -38,36 +44,57 @@ data class AssetProgress(
     val verifying: Boolean,
     val done: Boolean,
     val error: String? = null,
-    /** Not enough space: the step offers a smaller package. */
+    /** Not enough space: the step offers to go back and pick less knowledge. */
     val storage: Boolean = false,
+    /** The file the download loop is on right now. */
+    val current: Boolean = false,
+    /** MODELS for the search model and answer models, KNOWLEDGE for corpora. */
+    val group: InstallGroup = if (asset.kind == AssetKind.CORPUS || asset.kind == AssetKind.INDEX) InstallGroup.KNOWLEDGE else InstallGroup.MODELS,
+    /** t() key of the row name; null = use [CatalogAsset.shortName] (answer models, unknown corpora). */
+    val nameKey: String? = KnowledgeCatalog.fileNameKey(asset),
 ) {
     val moving get() = !done && error == null && (bytesDone > 0 || verifying)
     val fraction get() = if (done) 1f else if (asset.sizeBytes > 0) (bytesDone.toFloat() / asset.sizeBytes).coerceIn(0f, 1f) else 0f
+    /** 0..100 for "Downloading NN%". */
+    val percent get() = (fraction * 100).toInt()
+    val status: FileStatus get() = when {
+        error != null -> FileStatus.FAILED
+        done -> FileStatus.READY
+        verifying -> FileStatus.CHECKING
+        current -> FileStatus.DOWNLOADING
+        else -> FileStatus.QUEUED
+    }
 }
-
-/** The two knowledge packages of the setup (port of src/ui/flows/packages.ts): each is a catalog tier. */
-/** Smallest first: the recommendation is the biggest that fits, so Research (Encyclopedia + our knowledge packs) leads when there is room. */
-enum class SetupPackage(val id: String, val tierId: String) { ESSENTIAL("essential", "full"), ENCYCLOPEDIA("encyclopedia", "encyclopedia"), RESEARCH("research", "research") }
-
-/** A package as its card shows it: what it adds, what is left to download, and whether it fits the free space. */
-data class PackagePlan(val pkg: SetupPackage, val assets: List<CatalogAsset>, val downloadBytes: Long, val installedBytes: Long, val shortfallBytes: Long)
 
 enum class IndexPhase { WAITING, BUILDING, READY, ERROR }
 
 data class SetupState(
-    /** 1 welcome, 2 answer model, 3 knowledge, 4 install (download, then index, then the done screen). */
-    val step: Int = 1,
+    /** A [SetupSteps] value: 1 welcome, 2 models, 3 default model (only with 2+ selected), 4 knowledge, 5 install. */
+    val step: Int = SetupSteps.WELCOME,
     val totalRamBytes: Long = 0,
+    /** Free space on the phone; -1 when Android doesn't say. */
     val freeDiskBytes: Long = 0,
-    /** The answer models offered: the default and the compact tier. */
-    val models: List<CatalogAsset> = emptyList(),
-    val recommendedId: String? = null,
-    val chosenId: String? = null,
-    val plans: List<PackagePlan> = emptyList(),
-    val recommendedPackage: SetupPackage? = null,
-    val packageId: SetupPackage = SetupPackage.ESSENTIAL,
+    /** Every answer model the user can pick (catalog LLMs + discovered ones), in card order (recommended first). */
+    val models: List<ModelOption> = emptyList(),
+    val recommendedModelId: String? = null,
+    val selectedModelIds: Set<String> = emptySet(),
+    /** The model that answers after setup (becomes the active LLM when the install starts); always one of [selectedModelIds]. */
+    val defaultModelId: String? = null,
+    /** The knowledge step's sections, every corpus of the catalog once. */
+    val knowledge: List<KnowledgeSection> = emptyList(),
+    /** Catalog asset ids of the recommended knowledge (tier research / encyclopedia / full by free space). */
+    val recommendedCorpusIds: Set<String> = emptySet(),
+    /** Catalog asset ids selected (the Wikipedia essentials card = both corpus-standard and corpus-full). */
+    val selectedCorpusIds: Set<String> = emptySet(),
+    /** Sizes of the current selection. */
+    val plan: SelectionPlan = SelectionPlan(),
+    /** What the recommended selection downloads (search model + recommended model + recommended knowledge): the welcome line. */
+    val recommendedDownloadBytes: Long = 0,
+    /** One row per file being installed, in download order. */
     val downloads: List<AssetProgress> = emptyList(),
-    /** Measured download speed, once 5 s of bytes came in; null before. */
+    /** Measured download speed over the last ~5 s; null before a second of data or while stalled. */
+    val speedBytesPerSec: Long? = null,
+    /** Time left for the downloads, once 5 s of bytes came in; null before. */
     val etaSeconds: Long? = null,
     /** No byte for a minute while downloading: the step offers to restart the downloads. */
     val stalled: Boolean = false,
@@ -80,38 +107,60 @@ data class SetupState(
     /** Counts progress updates: the loading line under the bar changes every few of them, without a timer. */
     val tick: Int = 0,
 ) {
+    val selectedModels get() = models.filter { it.asset.id in selectedModelIds }
+    /** The default-model step is part of the flow. */
+    val showsDefaultStep get() = selectedModelIds.size >= 2
+    val canContinueModels get() = selectedModelIds.isNotEmpty()
+    fun isSelected(item: KnowledgeItem) = item.assetIds.all { it in selectedCorpusIds }
+    private val allCorpusIds get() = knowledge.flatMap { s -> s.items.flatMap { it.assetIds } }
+    /** The quick-select chip that matches the selection exactly; null when none does. */
+    val knowledgePreset get() = KnowledgeCatalog.matchingPreset(selectedCorpusIds, recommendedCorpusIds, allCorpusIds)
+    val selectedKnowledgeCount get() = knowledge.sumOf { s -> s.items.count(::isSelected) }
+
+    val modelDownloads get() = downloads.filter { it.group == InstallGroup.MODELS }
+    val knowledgeDownloads get() = downloads.filter { it.group == InstallGroup.KNOWLEDGE }
     val allPresent get() = downloads.isNotEmpty() && downloads.all { it.done }
-    /** Files are still coming in and nothing has failed: no Back, and the "keep BOAR open" card. */
+    /** Files are still coming in and nothing has failed: Back asks first. */
     val transferring get() = downloads.isNotEmpty() && !allPresent && failed.isEmpty()
     val failed get() = downloads.filter { it.error != null }
     val totalBytes get() = downloads.sumOf { it.asset.sizeBytes }
     val doneBytes get() = downloads.sumOf { if (it.done) it.asset.sizeBytes else it.bytesDone }
+    /** 0..1 over all files. */
+    val overallFraction get() = if (totalBytes > 0) (doneBytes.toFloat() / totalBytes).coerceIn(0f, 1f) else if (allPresent) 1f else 0f
     /** The index can finish while the answer model still downloads (they overlap): done means both. */
     val finished get() = indexPhase == IndexPhase.READY && allPresent
 }
 
-/** What survives a killed process, so setup resumes where it was (src/models/settings.ts setupProgress). */
-private data class SavedProgress(val step: Int, val packageId: String, val chosenId: String?, val packageChosen: Boolean, val answerChosen: Boolean)
-
 /**
- * The first-run setup (port of src/ui/SetupWizardScreen.tsx): welcome with the phone's numbers (the language follows the phone),
- * the answer model (recommended by RAM), the knowledge package (recommended by free space), then the downloads
- * (resumable, verified, retried) and the search index, ending on a summary. Everything after it works offline.
+ * The first-run setup: welcome, the answer models (any number; the RAM pick preselected), the default model when two or
+ * more are picked, the knowledge (every pack, the free-space pick preselected), then the downloads (resumable,
+ * verified, retried) with the search index overlapping them. Everything after it works offline.
  */
 class SetupViewModel(app: Application) : AndroidViewModel(app) {
     private val services = BoarServices.get(app)
     private val store = AssetStore(app.filesDir, services.catalog)
     private val progressFile = File(app.filesDir, "setup_progress.json")
+    private val previews: Map<String, PackPreview> =
+        runCatching { app.assets.open("boar-data/pack-previews.json").bufferedReader().use { it.readText() } }
+            .map(KnowledgeCatalog::parsePreviews).getOrDefault(emptyMap())
     private val _state = MutableStateFlow(SetupState())
     val state: StateFlow<SetupState> = _state
     /** The downloads. */
     private var job: Job? = null
+    /** Asset ids of the run [job] downloads, to tell a re-entry from a changed selection. */
+    private var jobIds: List<String> = emptyList()
     /** The index, which starts as soon as its inputs are in and overlaps the rest of the downloads. */
     private var indexJob: Job? = null
-    private var packageChosen = false
-    private var answerChosen = false
+    /** JSON corpora the running/last index read; a newly selected one runs it again once it ends. */
+    @Volatile private var indexedInputs: Set<String> = emptySet()
+    @Volatile private var reindex = false
+    /** The user touched the selection: the recommendation no longer overrides it. */
+    private var modelsChosen = false
+    private var knowledgeChosen = false
     /** Bytes and time when downloads were first seen moving, for the measured ETA. */
     private var rateStart: Pair<Long, Long>? = null
+    /** (time ms, bytes) over the last few seconds, for the speed. */
+    private val speedSamples = ArrayDeque<Pair<Long, Long>>()
     private var lastMove = Pair(0L, System.currentTimeMillis())
     private var indexStart: Pair<Int, Long>? = null
     /** Setup was in its install step when the process ended: the app opens on it, not on the chat. */
@@ -120,17 +169,14 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         val ram = runCatching { ActivityManager.MemoryInfo().also { app.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }.totalMem }.getOrDefault(0L)
-        // Only the built-in suggested models: models added from Hugging Face come in through "Discover GGUF models"
-        // (pickDiscovered), one at a time, as the user picks them.
-        val added = services.discovered().map { it.id }.toSet()
-        val answer = services.catalog.setupModels.filter { it.id !in added }
         val rec = SetupModel.recommended(services.catalog.answerModels, ram)
-        _state.update { it.copy(totalRamBytes = ram, models = answer, recommendedId = rec?.id, chosenId = rec?.id) }
+        _state.update { it.copy(totalRamBytes = ram, recommendedModelId = rec?.id) }
+        initialSelection()
         restore()
         refreshPlans()
-        // Process killed in step 4 (downloading or indexing): pick up there. Files already in are skipped and the
-        // index skips the articles it has, so this ends on the summary.
-        unfinished = _state.value.step == 4
+        // Process killed in the install step (downloading or indexing): pick up there. Files already in are skipped
+        // and the index skips the articles it has.
+        unfinished = _state.value.step == SetupSteps.INSTALL
         if (unfinished) install()
         watchStall()
     }
@@ -138,32 +184,73 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     /** Free space on the phone; -1 when Android doesn't say (a real 0 means the disk is full). */
     private fun freeBytes() = runCatching { StatFs(getApplication<Application>().filesDir.path).availableBytes }.getOrDefault(-1L)
 
+    private fun present(a: CatalogAsset) = store.status(a).present
+
+    /** Answer models offered: every non-hidden catalog LLM, discovered ones included, plus hidden ones already on the phone. */
+    private fun modelCandidates(): List<CatalogAsset> =
+        services.catalog.models.filter { it.kind == AssetKind.LLM && (!it.hidden || present(it)) }
+
+    /** Recommended model + the answer models already on the phone; default = the active model when on the phone. */
+    private fun initialSelection() {
+        val candidates = modelCandidates()
+        val rec = _state.value.recommendedModelId
+        val installed = candidates.filter(::present).map { it.id }
+        val selected = (listOfNotNull(rec?.takeIf { id -> candidates.any { it.id == id } }) + installed).toSet()
+            .ifEmpty { candidates.firstOrNull()?.let { setOf(it.id) } ?: emptySet() }
+        val active = services.settings.activeModelId("llm")?.takeIf { it in selected }
+        _state.update { it.copy(selectedModelIds = selected, defaultModelId = ModelPlanner.resolveDefault(emptyList(), selected, active, rec)) }
+    }
+
     private fun restore() {
-        val saved = runCatching {
-            val o = org.json.JSONObject(progressFile.readText())
-            SavedProgress(o.getInt("step"), o.getString("packageId"), o.optString("chosenId").ifEmpty { null }, o.optBoolean("packageChosen"), o.optBoolean("answerChosen"))
-        }.getOrNull() ?: return
-        packageChosen = saved.packageChosen
-        answerChosen = saved.answerChosen
-        // A model picked from Hugging Face before the process ended is listed again, so the choice survives.
-        saved.chosenId?.let { id -> services.catalog.byId(id) }?.let { m ->
-            _state.update { s -> if (s.models.any { it.id == m.id }) s else s.copy(models = s.models + m) }
+        val o = runCatching { org.json.JSONObject(progressFile.readText()) }.getOrNull() ?: return
+        val catalog = services.catalog
+        fun ids(key: String) = o.optJSONArray(key)?.let { a -> (0 until a.length()).map { a.getString(it) } }.orEmpty()
+        val step: Int
+        val models: Set<String>
+        val default: String?
+        val corpusRaw: Set<String>?
+        if (o.optInt("v") >= 2) {
+            step = o.optInt("step", SetupSteps.WELCOME)
+            models = ids("models").toSet()
+            default = o.optString("default").ifEmpty { null }
+            corpusRaw = ids("corpus").toSet()
+            modelsChosen = o.optBoolean("modelsChosen")
+            knowledgeChosen = o.optBoolean("knowledgeChosen")
+        } else {
+            // Before 2026-10-22: one package (a tier) and one answer model; steps 3 knowledge, 4 install.
+            step = when (val s = o.optInt("step", 1)) { 3 -> SetupSteps.KNOWLEDGE; 4 -> SetupSteps.INSTALL; else -> s }
+            val chosen = o.optString("chosenId").ifEmpty { null }
+            models = setOfNotNull(chosen?.takeIf { o.optBoolean("answerChosen") })
+            default = chosen
+            val tier = when (o.optString("packageId")) { "research" -> "research"; "encyclopedia" -> "encyclopedia"; "essential" -> "full"; else -> null }
+            corpusRaw = tier?.let { catalog.tier(it)?.corpusPackIds?.toSet() }
+            modelsChosen = models.isNotEmpty()
+            knowledgeChosen = o.optBoolean("packageChosen")
         }
+        val known = modelCandidates().map { it.id }.toSet()
+        val keptModels = models.filter { it in known || catalog.byId(it)?.kind == AssetKind.LLM }.toSet()
+        val corpus: Set<String>? = corpusRaw?.filter { id -> catalog.byId(id)?.kind == AssetKind.CORPUS }?.toSet()
         _state.update { s ->
+            val sel = keptModels.ifEmpty { s.selectedModelIds }
             s.copy(
-                step = saved.step.coerceIn(1, 4),
-                packageId = SetupPackage.entries.firstOrNull { it.id == saved.packageId } ?: s.packageId,
-                chosenId = saved.chosenId?.takeIf { id -> s.models.any { it.id == id } && saved.answerChosen } ?: s.chosenId,
+                step = step.coerceIn(SetupSteps.WELCOME, SetupSteps.INSTALL).let { if (it == SetupSteps.DEFAULT_MODEL && sel.size < 2) SetupSteps.KNOWLEDGE else it },
+                selectedModelIds = sel,
+                defaultModelId = ModelPlanner.resolveDefault(emptyList(), sel, default, s.recommendedModelId),
+                selectedCorpusIds = if (knowledgeChosen && corpus != null) corpus else s.selectedCorpusIds,
             )
         }
+        if (corpus == null) knowledgeChosen = false
     }
 
     private fun save() {
         val s = _state.value
         runCatching {
             val tmp = File(progressFile.path + ".tmp")
-            tmp.writeText(org.json.JSONObject().put("step", s.step).put("packageId", s.packageId.id).put("chosenId", s.chosenId ?: "")
-                .put("packageChosen", packageChosen).put("answerChosen", answerChosen).toString())
+            tmp.writeText(org.json.JSONObject().put("v", 2).put("step", s.step)
+                .put("models", org.json.JSONArray(s.selectedModelIds.toList()))
+                .put("default", s.defaultModelId ?: "")
+                .put("corpus", org.json.JSONArray(s.selectedCorpusIds.toList()))
+                .put("modelsChosen", modelsChosen).put("knowledgeChosen", knowledgeChosen).toString())
             tmp.renameTo(progressFile)
         }
     }
@@ -176,117 +263,263 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         save()
     }
 
-    /** Settings → Recovery: the wizard from step 1 again. */
+    /** Settings → Run setup again: the wizard from step 1, the selection back to the recommendation + what is installed. */
     fun restart() {
         job?.cancel()
         job = null
+        jobIds = emptyList()
         indexJob?.cancel()
         indexJob = null
-        _state.update { it.copy(step = 1, downloads = emptyList(), indexPhase = IndexPhase.WAITING, indexError = null, stalled = false) }
+        modelsChosen = false
+        knowledgeChosen = false
+        _state.update { it.copy(step = SetupSteps.WELCOME, downloads = emptyList(), indexPhase = IndexPhase.WAITING, indexError = null, stalled = false, speedBytesPerSec = null, etaSeconds = null) }
+        initialSelection()
         refreshPlans()
         save()
     }
 
-    fun next() = setStep(minOf(_state.value.step + 1, 3))
-    fun back() = setStep(maxOf(_state.value.step - 1, 1))
+    /** Forward one step (skipping the default-model step with fewer than 2 models); from the knowledge step it starts [install]. */
+    fun next() {
+        val s = _state.value
+        when (s.step) {
+            SetupSteps.KNOWLEDGE -> install()
+            SetupSteps.MODELS -> if (s.canContinueModels) setStep(ModelPlanner.nextStep(s.step, s.selectedModelIds.size))
+            else -> setStep(ModelPlanner.nextStep(s.step, s.selectedModelIds.size))
+        }
+    }
 
-    /** A model added from Hugging Face in setup's Discover page: listed with the suggested ones and chosen. */
+    /**
+     * Back one step. From the install step it stops the downloads (the bytes on disk are kept and resume later) but
+     * never the index: the UI must not call it while the index builds (indexPhase BUILDING).
+     */
+    fun back() {
+        val s = _state.value
+        if (s.step == SetupSteps.INSTALL) {
+            job?.cancel()
+            job = null
+            jobIds = emptyList()
+            _state.update { st -> st.copy(downloads = st.downloads.map { it.copy(current = false, verifying = false) }, speedBytesPerSec = null, stalled = false) }
+        }
+        setStep(ModelPlanner.previousStep(s.step, s.selectedModelIds.size))
+    }
+
+    // --- Models ------------------------------------------------------------------------------------------------------
+
+    /** Checks or unchecks an answer model; the default follows when it was unchecked. */
+    fun toggleModel(id: String) {
+        modelsChosen = true
+        _state.update { s ->
+            val sel = if (id in s.selectedModelIds) s.selectedModelIds - id else s.selectedModelIds + id
+            s.copy(selectedModelIds = sel, defaultModelId = ModelPlanner.resolveDefault(s.models.map { it.asset.id }, sel, s.defaultModelId, s.recommendedModelId))
+        }
+        refreshPlans()
+        save()
+    }
+
+    /** The default-model step's radio: must be one of the selected models. */
+    fun setDefaultModel(id: String) {
+        if (id !in _state.value.selectedModelIds) return
+        _state.update { it.copy(defaultModelId = id) }
+        save()
+    }
+
+    /** A model added from Hugging Face in setup's Discover page: listed with the others and selected. */
     fun pickDiscovered(id: String) {
-        val m = services.catalog.byId(id) ?: return
-        _state.update { s -> if (s.models.any { it.id == id }) s else s.copy(models = s.models + m) }
-        choose(id)
-    }
-
-    fun choose(id: String) {
-        answerChosen = true
-        _state.update { it.copy(chosenId = id) }
+        if (services.catalog.byId(id) == null) return
+        modelsChosen = true
+        _state.update { s ->
+            val sel = s.selectedModelIds + id
+            s.copy(selectedModelIds = sel, defaultModelId = ModelPlanner.resolveDefault(s.models.map { it.asset.id }, sel, s.defaultModelId, s.recommendedModelId))
+        }
         refreshPlans()
-        save()
-    }
-
-    fun choosePackage(p: SetupPackage) {
-        packageChosen = true
-        _state.update { it.copy(packageId = p) }
         save()
     }
 
     fun isHeavy(m: CatalogAsset) = SetupModel.heavyForPhone(m, _state.value.totalRamBytes)
 
-    /**
-     * The package's files: the required ones (search model), the chosen answer model and the tier's collections, in
-     * download order: what the index needs first (search model and JSON corpora, ~40 MB), so it runs while the answer
-     * model (~1 GB) comes in, then the answer model, then the prebuilt sqlite packs, which aren't indexed on the phone.
-     */
-    private fun assetsOf(p: SetupPackage): List<CatalogAsset> {
-        val catalog = services.catalog
-        val chosen = _state.value.chosenId?.let(catalog::byId)
-        val packs = catalog.tier(p.tierId)?.corpusPackIds.orEmpty().mapNotNull(catalog::byId)
-        return (catalog.models.filter { it.required && it.kind != AssetKind.LLM } + listOfNotNull(chosen) + packs).distinctBy { it.id }
-            .sortedBy { if (feedsIndex(it)) 0 else if (it.kind == AssetKind.LLM) 1 else 2 }
+    // --- Knowledge ---------------------------------------------------------------------------------------------------
+
+    /** Checks or unchecks a knowledge card (the Wikipedia essentials card toggles both of its files). */
+    fun toggleKnowledge(item: KnowledgeItem) {
+        knowledgeChosen = true
+        _state.update { it.copy(selectedCorpusIds = KnowledgeCatalog.toggle(it.selectedCorpusIds, item)) }
+        refreshPlans()
+        save()
     }
 
-    /** Files the index reads: the search model and the JSON corpora (sqlite packs ship their own index). */
-    private fun feedsIndex(a: CatalogAsset) =
-        a.kind == AssetKind.EMBEDDING || (a.kind == AssetKind.CORPUS && a.format != SQLITE_PACK)
+    /** The quick-select chips: Recommended, Everything, Minimal (Wikipedia essentials only). */
+    fun applyPreset(preset: KnowledgePreset) {
+        knowledgeChosen = true
+        _state.update { s ->
+            s.copy(selectedCorpusIds = KnowledgeCatalog.presetIds(preset, s.recommendedCorpusIds, s.knowledge.flatMap { k -> k.items.flatMap { it.assetIds } }))
+        }
+        refreshPlans()
+        save()
+    }
 
-    /** Sizes, free space and the recommendation (the biggest package that fits), recomputed when the choice changes. */
+    // --- Plans -------------------------------------------------------------------------------------------------------
+
+    /** Required files other than answer models (the search model). */
+    private fun requiredAssets() = services.catalog.models.filter { it.required && it.kind != AssetKind.LLM }
+
+    /**
+     * Everything the selection installs, in download order: what the index needs first (search model and JSON corpora,
+     * ~40 MB), so it runs while the models come in; then the default model, the prebuilt sqlite packs (not indexed on
+     * the phone), and the other selected models last.
+     */
+    private fun installAssets(): List<CatalogAsset> {
+        val s = _state.value
+        val catalog = services.catalog
+        val models = s.selectedModelIds.mapNotNull(catalog::byId)
+        val corpora = catalog.corpusCatalog.filter { it.id in s.selectedCorpusIds }
+        return (requiredAssets() + models + corpora + snapshotsFor(corpora)).distinctBy { it.id }.sortedBy {
+            when {
+                feedsIndex(it) -> 0
+                it.id == s.defaultModelId -> 1
+                it.kind == AssetKind.CORPUS -> 2
+                else -> 3
+            }
+        }
+    }
+
+    /** Files the index reads: the search model, the JSON corpora (sqlite packs ship their own index) and a prebuilt index. */
+    private fun feedsIndex(a: CatalogAsset) =
+        a.kind == AssetKind.EMBEDDING || a.kind == AssetKind.INDEX || (a.kind == AssetKind.CORPUS && a.format != SQLITE_PACK)
+
+    /**
+     * The prebuilt index that covers exactly the selected JSON corpora (what tiers full, encyclopedia and research
+     * index) and was embedded with the catalog's search model. Any other selection indexes on the phone as before.
+     */
+    private fun snapshotsFor(corpora: List<CatalogAsset>): List<CatalogAsset> {
+        val json = corpora.filter { it.format != SQLITE_PACK }.map { it.id }.toSet()
+        val embedder = services.catalog.models.firstOrNull { it.kind == AssetKind.EMBEDDING && it.required }
+        return services.catalog.models.filter { a ->
+            a.kind == AssetKind.INDEX && a.format == KB_SNAPSHOT && a.embeddingModelSha256 == embedder?.sha256 &&
+                a.requires.filter { id -> services.catalog.byId(id)?.kind == AssetKind.CORPUS }.toSet() == json && json.isNotEmpty()
+        }
+    }
+
+    /**
+     * Free space, the model cards, the knowledge sections, the recommendations and the selection's sizes, recomputed
+     * whenever the selection changes or a file lands. The recommended knowledge follows the selected models' size until
+     * the user touches the knowledge step.
+     */
     fun refreshPlans() {
         val free = freeBytes()
-        val plans = SetupPackage.entries.map { p ->
-            val assets = assetsOf(p)
-            val pending = assets.filter { !store.status(it).present }
-            val download = pending.sumOf { it.sizeBytes }
-            PackagePlan(p, assets, download, assets.sumOf { it.sizeBytes }, if (free >= 0) maxOf(0, download - free) else 0)
+        val catalog = services.catalog
+        val ram = _state.value.totalRamBytes
+        val presentIds = catalog.models.filter(::present).map { it.id }.toSet()
+        fun pending(ids: Collection<String>) = ids.filter { it !in presentIds }.sumOf { catalog.byId(it)?.sizeBytes ?: 0L }
+        val rec = _state.value.recommendedModelId
+        val discoveredIds = services.discovered().map { it.id }.toSet()
+        val models = ModelPlanner.order(modelCandidates().map { m ->
+            val heavy = SetupModel.heavyForPhone(m, ram)
+            ModelOption(
+                asset = m, name = m.shortName, sizeBytes = m.sizeBytes, recommended = m.id == rec, tier = ModelPlanner.tier(m),
+                fit = if (ram <= 0) RamFit.UNKNOWN else if (heavy) RamFit.HEAVY else RamFit.FITS,
+                license = ModelPlanner.licenseShort(m.license), installed = m.id in presentIds,
+                discovered = m.id in discoveredIds || m.id.startsWith("hf-"),
+            )
+        })
+        val required = requiredAssets().map { it.id }
+        val research = catalog.tier("research")?.corpusPackIds.orEmpty().toSet()
+        val knowledge = KnowledgeCatalog.sections(catalog.corpusCatalog, previews, research) { it.id in presentIds }
+        _state.update { s ->
+            val modelIds = s.selectedModelIds.filter { id -> models.any { it.asset.id == id } }.toSet()
+            val recCorpus = KnowledgeCatalog.recommendedCorpus(catalog.tiers, free, pending(required + modelIds)) { pending(it) }
+            val corpus = if (knowledgeChosen) s.selectedCorpusIds else recCorpus
+            val modelsDl = pending(modelIds)
+            val knowledgeDl = pending(corpus)
+            val download = pending(required) + modelsDl + knowledgeDl
+            val installedBytes = (required + modelIds + corpus).distinct().sumOf { catalog.byId(it)?.sizeBytes ?: 0L }
+            val recModelIds = listOfNotNull(rec)
+            val recCorpusForRec = KnowledgeCatalog.recommendedCorpus(catalog.tiers, free, pending(required + recModelIds)) { pending(it) }
+            s.copy(
+                freeDiskBytes = free, models = models, selectedModelIds = modelIds,
+                defaultModelId = ModelPlanner.resolveDefault(models.map { it.asset.id }, modelIds, s.defaultModelId, rec),
+                knowledge = knowledge, recommendedCorpusIds = recCorpus, selectedCorpusIds = corpus,
+                plan = SelectionPlan(
+                    modelsDownloadBytes = modelsDl, knowledgeDownloadBytes = knowledgeDl, downloadBytes = download,
+                    installedBytes = installedBytes, shortfallBytes = if (free >= 0) maxOf(0, download - free) else 0,
+                    estimatedMinutes = KnowledgeCatalog.estimatedMinutes(download),
+                ),
+                recommendedDownloadBytes = pending(required) + pending(recModelIds) + pending(recCorpusForRec),
+            )
         }
-        val rec = (plans.lastOrNull { it.shortfallBytes == 0L } ?: plans.first()).pkg
-        _state.update { s -> s.copy(freeDiskBytes = free, plans = plans, recommendedPackage = rec, packageId = if (packageChosen) s.packageId else rec) }
     }
 
+    // --- Install -----------------------------------------------------------------------------------------------------
+
     /**
-     * Step 3 → 4: downloads what is missing, one file at a time (one stream already fills the link), and builds the index
-     * as soon as its inputs are in, in parallel with the rest of the downloads. The done screen waits for both.
+     * Knowledge step → install: downloads what is missing, one file at a time (one stream already fills the link), and
+     * builds the index as soon as its inputs are in, in parallel with the rest. Re-entered with the same selection it
+     * just shows the running install; with a changed selection it restarts the downloads from the bytes on disk.
      */
     fun install() {
-        if (job?.isActive == true) return
-        val assets = assetsOf(_state.value.packageId)
-        _state.value.chosenId?.let { services.settings.setActiveModelId("llm", it) }
-        // A finished or failed index is checked again for this package (fast when nothing is missing); a running one goes on.
+        val assets = installAssets()
+        val ids = assets.map { it.id }
+        _state.value.defaultModelId?.let { services.settings.setActiveModelId("llm", it) }
+        if (job?.isActive == true && ids == jobIds) { setStep(SetupSteps.INSTALL); return }
+        val old = job
+        old?.cancel()
+        // A finished or failed index is checked again for this selection (fast when nothing is missing); a running one goes on.
         val indexing = indexJob?.isActive == true
         _state.update { s ->
-            s.copy(step = 4, stalled = false, downloads = assets.map { a ->
-                s.downloads.firstOrNull { it.asset.id == a.id }?.copy(error = null, storage = false) ?: AssetProgress(a, 0, false, store.status(a).present)
+            s.copy(step = SetupSteps.INSTALL, stalled = false, speedBytesPerSec = null, etaSeconds = null, downloads = assets.map { a ->
+                val st = store.status(a)
+                s.downloads.firstOrNull { it.asset.id == a.id }?.copy(error = null, storage = false, current = false, verifying = false, done = st.present)
+                    ?: AssetProgress(a, if (st.present) a.sizeBytes else st.partialBytes, false, st.present)
             }, indexPhase = if (indexing) s.indexPhase else IndexPhase.WAITING, indexError = if (indexing) s.indexError else null)
         }
         save()
         rateStart = null
+        speedSamples.clear()
         lastMove = Pair(_state.value.doneBytes, System.currentTimeMillis())
+        jobIds = ids
         job = safeScope.launch(Dispatchers.IO) {
+            // The previous run may still be inside a file: let it stop before this one opens the same file.
+            old?.cancelAndJoin()
             val started = System.currentTimeMillis()
-            var indexStarted = indexing
+            val indexInputs = assets.filter { it.kind == AssetKind.CORPUS && feedsIndex(it) }.map { it.id }.toSet()
+            var indexStarted = false
             fun maybeIndex() {
-                if (indexStarted || !assets.filter { feedsIndex(it) }.all { store.status(it).present }) return
+                if (indexStarted || !assets.filter { feedsIndex(it) }.all(::present)) return
                 indexStarted = true
+                // A running index that already reads every selected JSON corpus goes on; otherwise one (more) run.
+                if (indexJob?.isActive == true && indexedInputs.containsAll(indexInputs)) return
                 startIndex()
             }
             maybeIndex()
             for (a in assets) {
-                if (store.status(a).present) {
-                    update(a) { it.copy(done = true, bytesDone = a.sizeBytes) }
+                if (present(a)) {
+                    update(a) { it.copy(done = true, bytesDone = a.sizeBytes, current = false) }
                 } else {
-                    if (!fetch(a)) return@launch
+                    update(a) { it.copy(current = true) }
+                    val ok = fetch(a)
+                    update(a) { it.copy(current = false) }
+                    if (!ok) return@launch
                     // A prebuilt pack is searchable once opened; the index doesn't read it, so it needn't wait for it.
                     if (a.format == SQLITE_PACK) services.reloadPacks()
                 }
                 maybeIndex()
             }
+            _state.update { it.copy(speedBytesPerSec = null) }
             Log.i(TAG, "downloads done in ${(System.currentTimeMillis() - started) / 1000.0} s")
         }
     }
 
-    /** Runs [index] in its own job, so a download retry or restart neither waits for it nor starts a second one. */
+    /**
+     * Runs [index] in its own job, so a download retry or restart neither waits for it nor starts a second one; a run
+     * asked for while one is going (a new JSON corpus selected) follows it.
+     */
     private fun startIndex() {
-        if (indexJob?.isActive == true) return
-        indexJob = safeScope.launch(Dispatchers.IO) { index() }
+        if (indexJob?.isActive == true) { reindex = true; return }
+        indexJob = safeScope.launch(Dispatchers.IO) {
+            do {
+                reindex = false
+                index()
+            } while (reindex && _state.value.indexPhase == IndexPhase.READY)
+        }
     }
 
     /** One file, with up to three quiet retries when the connection stalls (the bytes already in are kept). */
@@ -329,7 +562,13 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         val elapsed = (now - start.second) / 1000.0
         val bps = (bytes - start.first) / maxOf(elapsed, 1.0)
         val eta = if (elapsed >= 5 && bps > 0) ((s.totalBytes - bytes) / bps).toLong() else null
-        _state.update { it.copy(etaSeconds = eta, stalled = false, tick = it.tick + 1) }
+        val speed = synchronized(speedSamples) {
+            speedSamples.addLast(now to bytes)
+            while (speedSamples.size > 2 && now - speedSamples.first().first > SPEED_WINDOW_MS) speedSamples.removeFirst()
+            val (t0, b0) = speedSamples.first()
+            if (now - t0 >= 1_000) maxOf(0L, (bytes - b0) * 1000 / (now - t0)) else null
+        }
+        _state.update { it.copy(etaSeconds = eta, speedBytesPerSec = speed ?: it.speedBytesPerSec, stalled = false, tick = it.tick + 1) }
     }
 
     /** No byte for a minute while a download runs: offer to restart (the Expo wizard's STALL_MS). */
@@ -337,25 +576,29 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         while (isActive) {
             delay(5_000)
             val s = _state.value
-            val running = job?.isActive == true && s.step == 4 && !s.allPresent
-            val stalled = running && System.currentTimeMillis() - lastMove.second > STALL_MS
+            val running = job?.isActive == true && s.step == SetupSteps.INSTALL && !s.allPresent
+            val idle = System.currentTimeMillis() - lastMove.second
+            val stalled = running && idle > STALL_MS
             if (stalled != s.stalled) _state.update { it.copy(stalled = stalled) }
+            // Nothing moved for a while: the last measured speed is no longer true.
+            if (running && idle > SPEED_WINDOW_MS && s.speedBytesPerSec != null) _state.update { it.copy(speedBytesPerSec = null) }
         }
     }
 
     /** Back in the app: retry what retrying can fix (stalls, network), as the Expo wizard does on AppState active. */
     fun onForeground() {
         val s = _state.value
-        if (s.step == 4 && job?.isActive != true && s.failed.isNotEmpty() && s.failed.none { it.storage }) install()
+        if (s.step == SetupSteps.INSTALL && job?.isActive != true && s.failed.isNotEmpty() && s.failed.none { it.storage }) install()
     }
 
     /** "Restart downloads": drops the running transfer and starts again from the bytes on disk. */
     fun restartDownloads() {
         job?.cancel()
-        job = null
+        jobIds = emptyList()
         install()
     }
 
+    /** A failed row's Retry (retries every failed file, from the bytes on disk). */
     fun retry() = install()
 
     private fun update(a: CatalogAsset, change: (AssetProgress) -> AssetProgress) =
@@ -377,8 +620,18 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
             ?: run { indexFailed(team.sopa.boar.ui.I18n.t(getApplication(), "native.setup.indexEmbedderFailed")); return }
         try {
             val builtin = app.assets.open("corpus/corpus.json").bufferedReader().use { it.readText() }
+            val corpora = services.catalog.corpusCatalog.filter { it.format != SQLITE_PACK && store.status(it).present }
+            indexedInputs = corpora.map { it.id }.toSet()
+            // A downloaded (sha-checked) prebuilt index for exactly these corpora: merge it, and the seeder below finds
+            // nothing left to embed. If it can't be used, the phone indexes as before.
+            snapshotsFor(corpora).firstOrNull { store.status(it).present }?.let { snap ->
+                val t0 = System.currentTimeMillis()
+                runCatching { services.knowledgeBase.importSnapshot(services.fileOf(snap).path, SNAPSHOT_DIMS) }
+                    .onSuccess { n -> Log.i(TAG, "index snapshot ${snap.id}: $n articles merged in ${(System.currentTimeMillis() - t0) / 1000.0} s") }
+                    .onFailure { e -> Log.w(TAG, "index snapshot ${snap.id} not used: ${e.message}") }
+            }
             val collections = listOf(SeedCorpus.Collection(SeedCorpus.BUILTIN, SeedCorpus.docs(SeedCorpus.BUILTIN, builtin))) +
-                services.catalog.corpusCatalog.filter { it.format != SQLITE_PACK && store.status(it).present }.map { p ->
+                corpora.map { p ->
                     runCatching { SeedCorpus.Collection(p.id, SeedCorpus.docs(p.id, services.fileOf(p).readText())) }
                         .getOrElse { e -> SeedCorpus.Collection(p.id, emptyList(), e.message) }
                 }
@@ -426,13 +679,17 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     /** Whether the app can answer: everything required and an answer model on disk (requiredModelsPresent). */
     fun ready(): Boolean = store.requiredPresent()
 
-    /** The answer model's tier, for its friendly name ("More accurate" / "Fast"). */
+    /** The answer model's tier, for its friendly name ("More accurate" / "Fast"). Kept for older callers. */
     fun tierOf(m: CatalogAsset) = if (m.answerTier == AnswerTier.COMPACT) "compact" else "default"
 
     private companion object {
         const val STALL_MS = 60_000L
+        const val SPEED_WINDOW_MS = 5_000L
         const val TAG = "BoarSetup"
         const val SQLITE_PACK = "sqlite-pack"
+        const val KB_SNAPSHOT = "kb-snapshot"
+        /** bge-small-en-v1.5: the vector size a prebuilt index must have. */
+        const val SNAPSHOT_DIMS = 384
         const val INDEX_THREADS = 4
         /** Articles handed to one embedBatch call; the native side packs them into 512-token decodes. */
         const val INDEX_BATCH = 8

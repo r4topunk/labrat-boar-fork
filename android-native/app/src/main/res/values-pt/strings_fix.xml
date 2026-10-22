@@ -52,4 +52,132 @@
     <string name="clean_library_collapsed" formatted="false">Recolhido</string>
     <string name="flows_onboarding_package_research_name" formatted="false">Pesquisa</string>
     <string name="flows_onboarding_package_research_body" formatted="false">Enciclopédia mais primeiros socorros, saúde, dados de países, guias de viagem e referência de cripto, tudo offline.</string>
+    <string name="clean_onboarding_section_encyclopedia" formatted="false">Enciclopédia</string>
+    <string name="clean_onboarding_section_health" formatted="false">Saúde</string>
+    <string name="clean_onboarding_section_travel" formatted="false">Viagem</string>
+    <string name="clean_onboarding_section_reference" formatted="false">Referência</string>
+    <string name="clean_onboarding_section_crypto" formatted="false">Cripto</string>
+    <string name="clean_onboarding_section_other" formatted="false">Outros</string>
+    <string name="clean_onboarding_tag_fast" formatted="false">Rápido</string>
+    <string name="clean_onboarding_tag_balanced" formatted="false">Equilibrado</string>
+    <string name="clean_onboarding_tag_accurate" formatted="false">Preciso</string>
+    <string name="clean_onboarding_caveat" formatted="false">Revisado por IA, sem revisão clínica.</string>
+    <string name="clean_onboarding_file_searchModel" formatted="false">Modelo de busca</string>
+    <string name="clean_onboarding_file_wikiEssentials1" formatted="false">Wikipédia essencial · 1.000 temas</string>
+    <string name="clean_onboarding_file_wikiEssentials2" formatted="false">Wikipédia essencial · mais 4.000 temas</string>
+    <string name="clean_onboarding_pack_wikiEssentials_name" formatted="false">Wikipédia essencial</string>
+    <string name="clean_onboarding_pack_wikiEssentials_desc" formatted="false">5.000 temas centrais para qualquer resposta.</string>
+    <string name="clean_onboarding_pack_wikiVital_name" formatted="false">Artigos vitais da Wikipédia</string>
+    <string name="clean_onboarding_pack_wikiVital_desc" formatted="false">Introduções de cerca de 50.000 artigos-chave.</string>
+    <string name="clean_onboarding_pack_simpleWiki_name" formatted="false">Wikipédia em inglês simples</string>
+    <string name="clean_onboarding_pack_simpleWiki_desc" formatted="false">Mais de 200.000 artigos em inglês simples, texto completo.</string>
+    <string name="clean_onboarding_pack_firstAid_name" formatted="false">Primeiros socorros</string>
+    <string name="clean_onboarding_pack_firstAid_desc" formatted="false">Orientações de emergência e primeiros socorros de manuais públicos.</string>
+    <string name="clean_onboarding_pack_medlinePlus_name" formatted="false">MedlinePlus</string>
+    <string name="clean_onboarding_pack_medlinePlus_desc" formatted="false">Resumos de temas de saúde em linguagem simples.</string>
+    <string name="clean_onboarding_pack_medicalQa_name" formatted="false">Perguntas médicas</string>
+    <string name="clean_onboarding_pack_medicalQa_desc" formatted="false">Perguntas de ciências médicas com respostas da comunidade.</string>
+    <string name="clean_onboarding_pack_wikivoyage_name" formatted="false">Wikivoyage</string>
+    <string name="clean_onboarding_pack_wikivoyage_desc" formatted="false">34.000 guias de viagem pelo mundo.</string>
+    <string name="clean_onboarding_pack_travelQa_name" formatted="false">Perguntas de viagem</string>
+    <string name="clean_onboarding_pack_travelQa_desc" formatted="false">Perguntas práticas de viagem com respostas.</string>
+    <string name="clean_onboarding_pack_outdoorsQa_name" formatted="false">Perguntas de natureza</string>
+    <string name="clean_onboarding_pack_outdoorsQa_desc" formatted="false">Trilhas, acampamento e clima extremo, com respostas.</string>
+    <string name="clean_onboarding_pack_factbook_name" formatted="false">CIA World Factbook</string>
+    <string name="clean_onboarding_pack_factbook_desc" formatted="false">Dados de países: população, capitais, economia, governo.</string>
+    <string name="clean_onboarding_pack_crypto_name" formatted="false">Referência de cripto e Ethereum</string>
+    <string name="clean_onboarding_pack_crypto_desc" formatted="false">EIPs, BIPs, especificações do Ethereum e docs do ethereum.org.</string>
+    <string name="clean_onboarding_pack_ethereumQa_name" formatted="false">Perguntas sobre Ethereum</string>
+    <string name="clean_onboarding_pack_ethereumQa_desc" formatted="false">Perguntas de desenvolvimento em Ethereum com respostas.</string>
+    <string name="clean_onboarding_pack_bitcoinQa_name" formatted="false">Perguntas sobre Bitcoin</string>
+    <string name="clean_onboarding_pack_bitcoinQa_desc" formatted="false">Perguntas sobre Bitcoin com respostas da comunidade.</string>
+    <string name="clean_onboarding_back" formatted="false">Voltar</string>
+    <string name="clean_onboarding_continue" formatted="false">Continuar</string>
+    <string name="clean_onboarding_progressA11y" formatted="false">Configuração {{pct}}% concluída</string>
+    <string name="clean_onboarding_onPhone" formatted="false">Já no celular</string>
+    <string name="clean_onboarding_welcome_title" formatted="false">Pesquise qualquer coisa. Offline.</string>
+    <string name="clean_onboarding_welcome_subtitle" formatted="false">O BOAR é um assistente de pesquisa com IA que roda inteiro no seu celular.</string>
+    <string name="clean_onboarding_welcome_private_title" formatted="false">Privado</string>
+    <string name="clean_onboarding_welcome_private_body" formatted="false">Suas perguntas nunca saem do celular.</string>
+    <string name="clean_onboarding_welcome_offline_title" formatted="false">Offline</string>
+    <string name="clean_onboarding_welcome_offline_body" formatted="false">Funciona sem internet depois da configuração.</string>
+    <string name="clean_onboarding_welcome_cited_title" formatted="false">Com fontes</string>
+    <string name="clean_onboarding_welcome_cited_body" formatted="false">Toda resposta mostra as fontes.</string>
+    <string name="clean_onboarding_welcome_download" formatted="false">Um único download pelo Wi-Fi · cerca de {{size}}</string>
+    <string name="clean_onboarding_welcome_downloadNone" formatted="false">Tudo o que ele precisa já está no celular</string>
+    <string name="clean_onboarding_welcome_start" formatted="false">Começar</string>
+    <string name="clean_onboarding_welcome_mascotA11y" formatted="false">Mascote do BOAR</string>
+    <string name="clean_onboarding_models_title" formatted="false">Escolha seus modelos</string>
+    <string name="clean_onboarding_models_subtitle" formatted="false">Escolha um ou mais. Os mais rápidos respondem antes; os maiores vão mais fundo.</string>
+    <string name="clean_onboarding_device_memory" formatted="false">{{size}} de memória</string>
+    <string name="clean_onboarding_device_free" formatted="false">{{size}} livres</string>
+    <string name="clean_onboarding_tag_recommended" formatted="false">Recomendado</string>
+    <string name="clean_onboarding_tag_fits" formatted="false">Cabe neste celular</string>
+    <string name="clean_onboarding_tag_heavy" formatted="false">Pesado para este celular</string>
+    <string name="clean_onboarding_tag_discovered" formatted="false">Do Hugging Face</string>
+    <string name="clean_onboarding_models_heavyWarning" formatted="false">Pode ficar lento ou fechar neste celular.</string>
+    <string name="clean_onboarding_models_selected_one" formatted="false">{{count}} modelo selecionado</string>
+    <string name="clean_onboarding_models_selected_other" formatted="false">{{count}} modelos selecionados</string>
+    <string name="clean_onboarding_models_none" formatted="false">Nenhum modelo selecionado</string>
+    <string name="clean_onboarding_models_pickOne" formatted="false">Escolha pelo menos um para continuar</string>
+    <string name="clean_onboarding_models_toDownload" formatted="false">{{size}} para baixar</string>
+    <string name="clean_onboarding_models_nothingToDownload" formatted="false">Já está no celular</string>
+    <string name="clean_onboarding_default_title" formatted="false">Qual modelo responde por padrão?</string>
+    <string name="clean_onboarding_default_subtitle" formatted="false">O BOAR começa com este. Os outros ficam prontos.</string>
+    <string name="clean_onboarding_default_switchLater" formatted="false">Você pode trocar quando quiser em Ajustes.</string>
+    <string name="clean_onboarding_default_none" formatted="false">Escolha um modelo</string>
+    <string name="clean_onboarding_knowledge_title" formatted="false">Escolha seu conhecimento</string>
+    <string name="clean_onboarding_knowledge_subtitle" formatted="false">Bibliotecas que o BOAR pesquisa e cita. Ficam no seu celular.</string>
+    <string name="clean_onboarding_preset_recommended" formatted="false">Recomendado</string>
+    <string name="clean_onboarding_preset_everything" formatted="false">Tudo</string>
+    <string name="clean_onboarding_preset_minimal" formatted="false">Mínimo</string>
+    <string name="clean_onboarding_articles_one" formatted="false">{{value}} artigo</string>
+    <string name="clean_onboarding_articles_other" formatted="false">{{value}} artigos</string>
+    <string name="clean_onboarding_preview" formatted="false">Ver conteúdo</string>
+    <string name="clean_onboarding_knowledge_summary_one" formatted="false">{{size}} · cerca de {{count}} min</string>
+    <string name="clean_onboarding_knowledge_summary_other" formatted="false">{{size}} · cerca de {{count}} min</string>
+    <string name="clean_onboarding_knowledge_nothingToDownload" formatted="false">Nada para baixar</string>
+    <string name="clean_onboarding_knowledge_libraries_one" formatted="false">{{count}} biblioteca selecionada</string>
+    <string name="clean_onboarding_knowledge_libraries_other" formatted="false">{{count}} bibliotecas selecionadas</string>
+    <string name="clean_onboarding_knowledge_download" formatted="false">Baixar</string>
+    <string name="clean_onboarding_knowledge_finish" formatted="false">Concluir</string>
+    <string name="clean_onboarding_sheet_sources" formatted="false">Fontes</string>
+    <string name="clean_onboarding_sheet_license" formatted="false">Licença</string>
+    <string name="clean_onboarding_sheet_samples_one" formatted="false">Seu {{value}} artigo</string>
+    <string name="clean_onboarding_sheet_samples_other" formatted="false">Alguns dos {{value}} artigos</string>
+    <string name="clean_onboarding_sheet_add" formatted="false">Incluir no download</string>
+    <string name="clean_onboarding_sheet_remove" formatted="false">Selecionado · toque para remover</string>
+    <string name="clean_onboarding_install_title" formatted="false">Instalando</string>
+    <string name="clean_onboarding_install_subtitle" formatted="false">Aqui está tudo o que o BOAR está baixando. Isso acontece uma vez só.</string>
+    <string name="clean_onboarding_install_doneTitle" formatted="false">Tudo pronto</string>
+    <string name="clean_onboarding_install_doneSubtitle" formatted="false">Abrindo o BOAR…</string>
+    <string name="clean_onboarding_install_bytes" formatted="false">{{done}} de {{total}}</string>
+    <string name="clean_onboarding_install_speed" formatted="false">{{speed}}/s</string>
+    <string name="clean_onboarding_install_models" formatted="false">Modelos</string>
+    <string name="clean_onboarding_install_knowledge" formatted="false">Conhecimento</string>
+    <string name="clean_onboarding_install_pauseNote" formatted="false">Os downloads pausam se você fechar o BOAR e continuam de onde pararam.</string>
+    <string name="clean_onboarding_install_lessKnowledge" formatted="false">Escolher menos conhecimento</string>
+    <string name="clean_onboarding_status_queued" formatted="false">Na fila</string>
+    <string name="clean_onboarding_status_downloading" formatted="false">Baixando {{pct}}%</string>
+    <string name="clean_onboarding_status_checking" formatted="false">Verificando</string>
+    <string name="clean_onboarding_status_ready" formatted="false">Pronto</string>
+    <string name="clean_onboarding_status_failed" formatted="false">Falhou</string>
+    <string name="clean_onboarding_status_waiting" formatted="false">Aguardando</string>
+    <string name="clean_onboarding_status_starting" formatted="false">Iniciando</string>
+    <string name="clean_onboarding_index_title" formatted="false">Organizando sua biblioteca</string>
+    <string name="clean_onboarding_index_waiting" formatted="false">Começa assim que o modelo de busca chegar</string>
+    <string name="clean_onboarding_index_starting" formatted="false">Preparando os artigos…</string>
+    <string name="clean_onboarding_index_progress" formatted="false">{{done}} de {{total}} artigos</string>
+    <string name="clean_onboarding_leave_title" formatted="false">Parar o download?</string>
+    <string name="clean_onboarding_leave_body" formatted="false">Os downloads pausam e continuam de onde pararam quando você seguir.</string>
+    <string name="clean_onboarding_leave_confirm" formatted="false">Voltar</string>
+    <string name="clean_onboarding_leave_stay" formatted="false">Continuar baixando</string>
+    <string name="clean_onboarding_file_searchIndex" formatted="false">Índice de busca pronto</string>
+    <string name="clean_chat_loadNote_crashedTitle" formatted="false">{{model}} fechou ao carregar</string>
+    <string name="clean_chat_loadNote_crashedBody" formatted="false">O celular ficou sem memória. Tente de novo com menos memória ou escolha um modelo menor.</string>
+    <string name="clean_chat_loadNote_crashedFallback" formatted="false">O celular ficou sem memória. Por enquanto o BOAR responde com {{fallback}}.</string>
+    <string name="clean_chat_loadNote_riskyTitle" formatted="false">{{model}} pode não caber</string>
+    <string name="clean_chat_loadNote_riskyBody" formatted="false">Ele usa quase toda a memória deste celular. Um modelo menor responde mais rápido.</string>
+    <string name="clean_chat_loadNote_lessMemory" formatted="false">Usar menos memória</string>
+    <string name="clean_chat_loadNote_changeModel" formatted="false">Trocar modelo</string>
 </resources>
