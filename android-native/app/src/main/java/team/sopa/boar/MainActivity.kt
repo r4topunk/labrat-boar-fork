@@ -231,6 +231,8 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             current == "models" -> {
                 val models: ModelsViewModel = viewModel()
                 val modelsState by models.state.collectAsState()
+                // The same view model setup used (Discover models): what setup downloaded must show as on the phone.
+                LaunchedEffect(Unit) { models.refresh() }
                 PredictiveBackScreen(onBack = { vm.refreshModel(); screen = backTo }) {
                     ModelsScreen(modelsState, models) { vm.refreshModel(); screen = backTo }
                 }
@@ -240,6 +242,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                 val docsState by docs.state.collectAsState()
                 val models: ModelsViewModel = viewModel()
                 val modelsState by models.state.collectAsState()
+                LaunchedEffect(Unit) { models.refresh() }
                 PredictiveBackScreen(onBack = { screen = backTo }) {
                     DocumentsScreen(docsState, docs, packs = { KnowledgePacks(modelsState, models) }) { screen = backTo }
                 }
