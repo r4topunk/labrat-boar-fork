@@ -156,6 +156,11 @@ fun ChatScreen(
     val scheme = MaterialTheme.colorScheme
     val list = rememberLazyListState()
     var input by remember { mutableStateOf("") }
+    // Android 13+: "BOAR is answering…" (AnswerService) needs the notification permission, which nothing asked for
+    // (issue #91). Asked once, with the first question; a refusal stands and is never asked again.
+    val notifyCtx = androidx.compose.ui.platform.LocalContext.current
+    val notifyAsk = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) {}
+    val send: (String) -> Unit = { q -> askNotificationsOnce(notifyCtx) { notifyAsk.launch(android.Manifest.permission.POST_NOTIFICATIONS) }; onSend(q) }
     var toneSheet by remember { mutableStateOf(false) }
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     val focus = androidx.compose.ui.platform.LocalFocusManager.current
@@ -187,7 +192,7 @@ fun ChatScreen(
             val researchTint = Color.Transparent
             if (state.messages.isEmpty()) {
                 Box(Modifier.weight(1f).fillMaxWidth().background(researchTint)) {
-                    EmptyState(state.suggestions, onAsk = { onSend(it) }, onFill = { input = it })
+                    EmptyState(state.suggestions, onAsk = { send(it) }, onFill = { input = it })
                 }
             } else {
                 LazyColumn(
@@ -203,7 +208,7 @@ fun ChatScreen(
             }
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
                 // The answer gets the whole screen: the keyboard closes on send.
-                onSend(input); input = ""; keyboard?.hide(); focus.clearFocus()
+                send(input); input = ""; keyboard?.hide(); focus.clearFocus()
             }, onStop, state.personalityId, state.stopping, state.deepResearch, onSetDeepResearch) { toneSheet = true }
         }
     }
@@ -714,4 +719,14 @@ private fun InputBar(
             }
         }
     }
+}
+
+/** Runs [ask] once per install on Android 13+, when BOAR may not post notifications yet (issue #91). */
+private fun askNotificationsOnce(ctx: android.content.Context, ask: () -> Unit) {
+    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) return
+    if (androidx.core.content.ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED) return
+    val prefs = ctx.getSharedPreferences("permissions", android.content.Context.MODE_PRIVATE)
+    if (prefs.getBoolean("notificationsAsked", false)) return
+    prefs.edit().putBoolean("notificationsAsked", true).apply()
+    ask()
 }
