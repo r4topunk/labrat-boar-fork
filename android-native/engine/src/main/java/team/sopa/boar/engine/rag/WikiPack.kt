@@ -114,18 +114,23 @@ object WikiPackText {
 
     /** Sections grouped by top heading, groups by best score; a section before its own subsections. */
     fun <T> stepsFirst(items: List<T>, score: (T) -> Double, sectionOf: (T) -> String): List<T> {
-        fun top(x: T) = sectionOf(x).split(" > ")[0]
+        // Each item's section, top heading and score once: rebuilt inside the sort and in a search over every item for
+        // each ancestor, they took ~100 ms on a long article (Wikivoyage, Pixel 8a, Oct 23). Same order as before.
+        val sec = items.map(sectionOf)
+        val top = sec.map { it.split(" > ")[0] }
+        val sc = items.map(score)
         val best = HashMap<String, Double>()
-        for (x in items) best[top(x)] = maxOf(best[top(x)] ?: Double.NEGATIVE_INFINITY, score(x))
-        val byScore = items.sortedWith(compareByDescending<T> { best[top(it)]!! }.thenByDescending { score(it) })
+        for (i in items.indices) best[top[i]] = maxOf(best[top[i]] ?: Double.NEGATIVE_INFINITY, sc[i])
+        val byScore = items.indices.sortedWith(compareByDescending<Int> { best[top[it]]!! }.thenByDescending { sc[it] })
+        val firstOf = HashMap<String, Int>()
+        for (i in byScore) firstOf.putIfAbsent(sec[i], i)
         val out = ArrayList<T>()
-        for (x in byScore) {
-            val path = sectionOf(x).split(" > ")
-            for (d in 1 until path.size) {
-                val anc = byScore.firstOrNull { sectionOf(it) == path.subList(0, d).joinToString(" > ") }
-                if (anc != null && anc !in out) out += anc
-            }
-            if (x !in out) out += x
+        val added = HashSet<T>()
+        fun add(x: T) { if (added.add(x)) out += x }
+        for (i in byScore) {
+            val path = sec[i].split(" > ")
+            for (d in 1 until path.size) firstOf[path.subList(0, d).joinToString(" > ")]?.let { add(items[it]) }
+            add(items[i])
         }
         return out
     }
@@ -392,9 +397,10 @@ class WikiPack private constructor(
     }
 
     /** BM25-like score of a passage, 0..1; question terms in the heading count double. */
-    private fun passageScore(text: String, start: Int, end: Int, stems: List<Stem>): Double {
+    /** [section]: WikiPackText.sectionAt(text, start), which the caller already has. */
+    private fun passageScore(text: String, start: Int, end: Int, stems: List<Stem>, section: String = WikiPackText.sectionAt(text, start)): Double {
         val body = text.substring(start, end).lowercase()
-        val heading = WikiPackText.sectionAt(text, start).lowercase()
+        val heading = section.lowercase()
         val total = stems.sumOf { it.idf }.let { if (it == 0.0) 1.0 else it }
         var score = 0.0
         for ((stem, idf) in stems) {
@@ -426,7 +432,7 @@ class WikiPack private constructor(
         val seenSec = HashSet<String>()
         val scored = rows.filter { it !== lead }.map { r ->
             val sec = WikiPackText.sectionAt(a.text, r.start)
-            val s = passageScore(a.text, r.start, r.end, stems)
+            val s = passageScore(a.text, r.start, r.end, stems, sec)
             if (!action) return@map Scored(r.id, r.start, r.end, s, sec)
             val kind = WikiPackText.sectionKind(sec)
             if (kind == "background") return@map Scored(r.id, r.start, r.end, s * 0.3, sec)
