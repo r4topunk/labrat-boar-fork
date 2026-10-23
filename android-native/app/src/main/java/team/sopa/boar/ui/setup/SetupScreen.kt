@@ -17,6 +17,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -27,6 +28,7 @@ import team.sopa.boar.setup.IndexPhase
 import team.sopa.boar.setup.SetupState
 import team.sopa.boar.setup.SetupSteps
 import team.sopa.boar.setup.SetupViewModel
+import team.sopa.boar.ui.settings.DisplayPrefs
 import team.sopa.boar.ui.t
 
 /** How long the all-checked completion state stays before the chat opens. */
@@ -39,8 +41,11 @@ private const val COMPLETION_HOLD_MS = 800L
  * [onSkip] is set when setup was reopened from Settings and the app already works.
  */
 @Composable
-fun SetupScreen(state: SetupState, vm: SetupViewModel, onSkip: (() -> Unit)?, onBrowse: () -> Unit = {}, onDone: () -> Unit) {
+fun SetupScreen(state: SetupState, vm: SetupViewModel, prefs: DisplayPrefs, onSkip: (() -> Unit)?, onBrowse: () -> Unit = {}, onDone: () -> Unit) {
     var confirmBack by remember { mutableStateOf(false) }
+    // The tour over the install step, and its card, kept here so both survive setup moving from download to index.
+    var touring by rememberSaveable { mutableStateOf(false) }
+    var tourIndex by rememberSaveable { mutableIntStateOf(0) }
     val motion = rememberMotionEnabled()
 
     // Leaving the install step: never while the index builds (it would hide it) or once finished; ask while files move.
@@ -54,10 +59,11 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, onSkip: (() -> Unit)?, on
     }
     BackHandler(state.step > SetupSteps.WELCOME || onSkip != null) { requestBack() }
 
-    // Completion: all rows checked for a moment, then the chat. Called once per finished install.
+    // Completion: all rows checked for a moment, then the chat. Called once per finished install. Never under the tour:
+    // it says BOAR is ready and the user leaves it with Open BOAR.
     val done by rememberUpdatedState(onDone)
     var completed by rememberSaveable { mutableStateOf(false) }
-    val finishedHere = state.step == SetupSteps.INSTALL && state.finished
+    val finishedHere = state.step == SetupSteps.INSTALL && state.finished && !touring
     LaunchedEffect(finishedHere) {
         if (finishedHere && !completed) {
             delay(COMPLETION_HOLD_MS)
@@ -76,8 +82,13 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, onSkip: (() -> Unit)?, on
             SetupSteps.MODELS -> ModelsStep(state, vm, onBrowse, onBack = requestBack)
             SetupSteps.DEFAULT_MODEL -> DefaultModelStep(state, vm, onBack = requestBack)
             SetupSteps.KNOWLEDGE -> KnowledgeStep(state, vm, onBack = requestBack)
-            else -> InstallStep(state, vm, onBack = requestBack)
+            else -> InstallStep(state, vm, onBack = requestBack, onTour = { tourIndex = 0; touring = true })
         }
+    }
+
+    if (touring && state.step == SetupSteps.INSTALL) {
+        SetupTour(tourProgress(state), prefs, tourIndex, onIndex = { tourIndex = it },
+            onOpen = { touring = false }, onClose = { touring = false })
     }
 
     if (confirmBack) {

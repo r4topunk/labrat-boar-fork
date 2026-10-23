@@ -196,4 +196,36 @@
     <string name="design_options_reset" formatted="false">Voltar ao padrão</string>
     <string name="design_options_back" formatted="false">Voltar às opções</string>
     <string name="design_options_placeholderOwn" formatted="false">Pergunte sobre seus arquivos</string>
+    <!-- Setup tour (SetupTour.kt) -->
+    <string name="clean_tour_title" formatted="false">Ajuste o BOAR</string>
+    <string name="clean_tour_close" formatted="false">Fechar</string>
+    <string name="clean_tour_back" formatted="false">Voltar</string>
+    <string name="clean_tour_next" formatted="false">Próximo</string>
+    <string name="clean_tour_done" formatted="false">Pronto</string>
+    <string name="clean_tour_start" formatted="false">Começar</string>
+    <string name="clean_tour_openBoar" formatted="false">Abrir o BOAR</string>
+    <string name="clean_tour_keepGoing" formatted="false">Continuar</string>
+    <string name="clean_tour_ready" formatted="false">O BOAR está pronto.</string>
+    <string name="clean_tour_inviteTitle" formatted="false">Enquanto espera</string>
+    <string name="clean_tour_inviteBody" formatted="false">Escolha como o BOAR responde, a aparência e suas conversas. Cerca de 2 minutos.</string>
+    <string name="clean_tour_lineDownloading" formatted="false">Baixando · {{pct}}%</string>
+    <string name="clean_tour_lineReady" formatted="false">Pronto</string>
+    <string name="clean_tour_lineProblem" formatted="false">A instalação precisa de você · toque para ver</string>
+    <string name="clean_tour_welcome_title" formatted="false">Enquanto o BOAR baixa</string>
+    <string name="clean_tour_welcome_body" formatted="false">Isso leva alguns minutos, uma vez só. Enquanto isso, deixe o BOAR do seu jeito. O que você mudar aqui vale na hora, e tudo fica em Configurações depois.</string>
+    <string name="clean_tour_style_title" formatted="false">Como o BOAR responde</string>
+    <string name="clean_tour_style_body" formatted="false">Sucinto e Direto é o padrão: respostas curtas, com as fontes. Completo e Detalhado explica mais. A Pesquisa profunda pesquisa em várias etapas e demora mais.</string>
+    <string name="clean_tour_style_where" formatted="false">Também no chat: Opções de resposta → Estilo</string>
+    <string name="clean_tour_look_title" formatted="false">Aparência</string>
+    <string name="clean_tour_look_body" formatted="false">Escolha um tema e o tamanho do texto. Eles mudam conforme você toca.</string>
+    <string name="clean_tour_look_where" formatted="false">Configurações → Exibição &amp; Tema</string>
+    <string name="clean_tour_chats_title" formatted="false">Suas conversas</string>
+    <string name="clean_tour_chats_body" formatted="false">As conversas ficam neste celular. Um PIN as mantém lacradas e deixa o BOAR em branco nos apps recentes e nas capturas de tela.</string>
+    <string name="clean_tour_chats_where" formatted="false">Configurações → Configurações de Memória e Contexto</string>
+    <string name="clean_tour_sources_title" formatted="false">Fontes</string>
+    <string name="clean_tour_sources_body" formatted="false">Toda resposta da biblioteca lista os artigos que usou: toque em um para ler. Você escolhe onde o BOAR busca: todas as bibliotecas, algumas, ou só os arquivos que você adicionar.</string>
+    <string name="clean_tour_sources_where" formatted="false">No chat: Opções de resposta → Fontes</string>
+    <string name="clean_tour_end_title" formatted="false">Tudo pronto do seu lado</string>
+    <string name="clean_tour_end_body" formatted="false">O BOAR abre assim que o download terminar. Dá para mudar tudo isso em Configurações.</string>
+    <string name="clean_tour_end_bodyReady" formatted="false">O BOAR está pronto. Dá para mudar tudo isso em Configurações.</string>
 </resources>

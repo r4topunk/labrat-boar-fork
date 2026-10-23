@@ -196,4 +196,36 @@
     <string name="design_options_reset" formatted="false">Reset to defaults</string>
     <string name="design_options_back" formatted="false">Back to options</string>
     <string name="design_options_placeholderOwn" formatted="false">Ask about your files</string>
+    <!-- Setup tour (SetupTour.kt) -->
+    <string name="clean_tour_title" formatted="false">Set up BOAR</string>
+    <string name="clean_tour_close" formatted="false">Close</string>
+    <string name="clean_tour_back" formatted="false">Back</string>
+    <string name="clean_tour_next" formatted="false">Next</string>
+    <string name="clean_tour_done" formatted="false">Done</string>
+    <string name="clean_tour_start" formatted="false">Start</string>
+    <string name="clean_tour_openBoar" formatted="false">Open BOAR</string>
+    <string name="clean_tour_keepGoing" formatted="false">Keep going</string>
+    <string name="clean_tour_ready" formatted="false">BOAR is ready.</string>
+    <string name="clean_tour_inviteTitle" formatted="false">While you wait</string>
+    <string name="clean_tour_inviteBody" formatted="false">Set how BOAR answers, its look and your chats. About 2 minutes.</string>
+    <string name="clean_tour_lineDownloading" formatted="false">Downloading · {{pct}}%</string>
+    <string name="clean_tour_lineReady" formatted="false">Ready</string>
+    <string name="clean_tour_lineProblem" formatted="false">Setup needs you · tap to see</string>
+    <string name="clean_tour_welcome_title" formatted="false">While BOAR downloads</string>
+    <string name="clean_tour_welcome_body" formatted="false">This takes a few minutes, once. Meanwhile you can make BOAR yours. Whatever you change here applies right away, and every choice is in Settings later.</string>
+    <string name="clean_tour_style_title" formatted="false">How BOAR answers</string>
+    <string name="clean_tour_style_body" formatted="false">Succinct &amp; Direct is the default: short answers with their sources. Thorough &amp; Detailed explains more. Deep Research searches in several steps and takes longer.</string>
+    <string name="clean_tour_style_where" formatted="false">Also in the chat: Answer options → Style</string>
+    <string name="clean_tour_look_title" formatted="false">Look and feel</string>
+    <string name="clean_tour_look_body" formatted="false">Pick a theme and a text size. They change as you tap.</string>
+    <string name="clean_tour_look_where" formatted="false">Settings → Display &amp; Theme</string>
+    <string name="clean_tour_chats_title" formatted="false">Your chats</string>
+    <string name="clean_tour_chats_body" formatted="false">Chats stay on this phone. A PIN keeps them sealed and blanks BOAR in recent apps and screenshots.</string>
+    <string name="clean_tour_chats_where" formatted="false">Settings → Memory &amp; Context Settings</string>
+    <string name="clean_tour_sources_title" formatted="false">Sources</string>
+    <string name="clean_tour_sources_body" formatted="false">Every answer from the library lists the articles it used: tap one to read it. You choose where BOAR searches: every library, some of them, or only the files you add.</string>
+    <string name="clean_tour_sources_where" formatted="false">In the chat: Answer options → Sources</string>
+    <string name="clean_tour_end_title" formatted="false">All set on your side</string>
+    <string name="clean_tour_end_body" formatted="false">BOAR opens as soon as the download finishes. You can change all of this in Settings.</string>
+    <string name="clean_tour_end_bodyReady" formatted="false">BOAR is ready. You can change all of this in Settings.</string>
 </resources>

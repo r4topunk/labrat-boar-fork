@@ -431,7 +431,7 @@ private fun ActionRow(label: String, note: String? = null, danger: Boolean = fal
  */
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
-private fun <T> Choices(label: String?, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
+internal fun <T> Choices(label: String?, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         label?.let { Text(it, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface) }
         if (options.size <= 4) {
@@ -460,7 +460,7 @@ private fun <T> Choices(label: String?, options: List<Pair<T, String>>, selected
 
 /** A switch row: the whole row toggles, as in Android's own settings. */
 @Composable
-private fun SwitchRow(label: String, note: String?, checked: Boolean, icon: ImageVector? = null, onChange: (Boolean) -> Unit) {
+internal fun SwitchRow(label: String, note: String?, checked: Boolean, icon: ImageVector? = null, onChange: (Boolean) -> Unit) {
     ListItem(
         headlineContent = { Text(label) },
         supportingContent = if (note != null) { { Text(note) } } else null,

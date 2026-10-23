@@ -55,7 +55,7 @@ import team.sopa.boar.ui.t
  * model is in. When everything is ready the rows stay checked for a moment and SetupScreen opens the chat.
  */
 @Composable
-internal fun InstallStep(state: SetupState, vm: SetupViewModel, onBack: () -> Unit) {
+internal fun InstallStep(state: SetupState, vm: SetupViewModel, onBack: () -> Unit, onTour: () -> Unit = {}) {
     val cs = MaterialTheme.colorScheme
     val motion = rememberMotionEnabled()
     // Nothing to download (every file already on the phone): the card follows the library instead.
@@ -76,6 +76,8 @@ internal fun InstallStep(state: SetupState, vm: SetupViewModel, onBack: () -> Un
             else StepHeader(t("clean.onboarding.install.title"), t("clean.onboarding.install.subtitle"))
         }
         item(key = "overall") { OverallCard(state, overall) }
+        // While there's a wait ahead, the minutes can go into setting BOAR up (SetupTour).
+        if (!state.finished && !state.allPresent) item(key = "tour") { TourInvite(onTour) }
 
         if (state.stalled) item(key = "stalled") {
             Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = cs.tertiaryContainer, contentColor = cs.onTertiaryContainer)) {

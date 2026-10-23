@@ -241,7 +241,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         label = "screen",
     ) { current ->
         when {
-            current == "setup" -> SetupHost(setup, vm) { screen = it }
+            current == "setup" -> SetupHost(setup, vm, prefs) { screen = it }
             current.startsWith("pin:") -> {
                 // pin:<flow>:<screen to return to>
                 val (_, flow, back) = current.split(":")
@@ -297,7 +297,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
 
 /** First-run setup, and setup reopened from Settings. */
 @Composable
-private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, goTo: (String) -> Unit) {
+private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, prefs: DisplayPrefs, goTo: (String) -> Unit) {
     val setupState by setup.state.collectAsState()
     // Downloads pause in the background on MIUI: the screen stays on while setup runs.
     val view = LocalView.current
@@ -321,7 +321,7 @@ private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, goTo: (String) -
         BrowseScreen(modelsState, setupModels, rowActions = false) { browsing = false }
         return
     }
-    SetupScreen(setupState, setup,
+    SetupScreen(setupState, setup, prefs,
         // Settings too: after "Reset settings" the chat must show the default style and Deep Research off.
         onSkip = if (wasReady) ({ setup.forget(); vm.refreshSettings(); goTo("chat") }) else null,
         // Cleared first: a model added earlier from Models must not be picked the moment the page opens.
