@@ -338,12 +338,11 @@ private fun ChatHost(services: BoarServices, vm: ChatViewModel, onNavigate: (Str
     val scope = rememberCoroutineScope()
     // Back with the menu open closes the menu; it used to leave BOAR (smoke drawer-back, Oct 22).
     BackHandler(enabled = drawer.isOpen) { scope.launch { drawer.close() } }
-    var sessions by remember { mutableStateOf<List<ChatSession>>(emptyList()) }
+    val sessionsState = remember { mutableStateOf<List<ChatSession>>(emptyList()) }
+    var sessions by sessionsState
     // Chats the user just deleted whose Undo is still open: out of the list, still in the database.
     val pendingDelete = remember { mutableSetOf<String>() }
     val snackbar = remember { SnackbarHostState() }
-    val deletedText = t("clean.nav.chatDeleted")
-    val undoText = t("clean.nav.undo")
     LaunchedEffect(drawer.isOpen, state.answeringId) {
         if (drawer.isOpen) {
             val all = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -354,54 +353,14 @@ private fun ChatHost(services: BoarServices, vm: ChatViewModel, onNavigate: (Str
             sessions = all.filter { it.id !in pendingDelete }
         }
     }
+    // The drawer reads only what it shows, through its own composable: the chat's state changes on every streamed
+    // token, and the closed drawer stays composed, so reading `state` here re-ran the whole sheet per token.
+    val answering = state.answeringId != null
     ModalNavigationDrawer(
         drawerState = drawer,
         drawerContent = {
-            ModalDrawerSheet {
-                fun go(target: () -> Unit) { target(); scope.launch { drawer.close() } }
-                // The undo bar lives in the sheet: the drawer stays open while a chat is deleted.
-                Box(Modifier.fillMaxSize()) {
-                    BoarDrawer(
-                        sessions = sessions,
-                        activeSessionId = state.sessionId,
-                        // ChatScreen.tsx's items. Evaluation stands in for Execution Telemetry and shows only with developer
-                        // options; Models is reached from Settings, and About from there too.
-                        items = buildList {
-                            add(DrawerItem("knowledge", t("nav.knowledge"), BoarIcons.LibraryBooks) { go { onNavigate("documents") } })
-                            if (devOptions) add(DrawerItem("evaluation", t("evaluation.title"), BoarIcons.Science) { go { onNavigate("evaluation") } })
-                            add(DrawerItem("settings", t("chatScreen.drawerItems.settings"), Icons.Outlined.Settings) { go { onNavigate("settings") } })
-                        },
-                        lastTokPerSec = state.liveTokPerSec.takeIf { state.answeringId == null },
-                        storageUsed = { services.storageUsedBytes() },
-                        downloading = { team.sopa.boar.engine.models.AssetStore.downloadingBytes(services.filesDir) },
-                        storageBudgetBytes = services.catalog.storageBudgetBytes,
-                        showStats = state.technicalDetails,
-                        answering = state.answeringId != null,
-                        onNewChat = { go { vm.newChat() } },
-                        onSelect = { id -> go { vm.openSession(id) } },
-                        onDelete = { id ->
-                            // Optimistic: the row goes now, the database delete waits for the Undo bar to lapse. A second
-                            // delete closes the first bar, which commits it.
-                            val removed = sessions.firstOrNull { it.id == id }
-                            snackbar.currentSnackbarData?.dismiss()
-                            sessions = sessions.filter { it.id != id }
-                            pendingDelete += id
-                            scope.launch {
-                                var undone = false
-                                try {
-                                    undone = snackbar.showSnackbar(deletedText, undoText, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed
-                                } finally {
-                                    // Also when the scope is cancelled (the user left the chat): that counts as "let it go".
-                                    pendingDelete -= id
-                                    if (undone) { if (removed != null) sessions = (sessions + removed).sortedByDescending { it.updatedAt } }
-                                    else vm.deleteSession(id)
-                                }
-                            }
-                        },
-                    )
-                    SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
-                }
-            }
+            ChatDrawer(services, vm, drawer, sessionsState, pendingDelete, snackbar, devOptions, state.sessionId, answering,
+                state.liveTokPerSec.takeIf { !answering }, state.technicalDetails, onNavigate)
         },
     ) {
         ChatScreen(
@@ -424,5 +383,63 @@ private fun ChatHost(services: BoarServices, vm: ChatViewModel, onNavigate: (Str
             onReused = { vm.showToast("chatScreen.messageReused") },
             onToastHidden = vm::hideToast,
         )
+    }
+}
+
+/** The drawer's sheet: past chats (delete with undo), Knowledge, Evaluation, Settings. Skipped while its inputs hold still. */
+@Composable
+private fun ChatDrawer(
+    services: BoarServices, vm: ChatViewModel, drawer: androidx.compose.material3.DrawerState,
+    sessionsState: androidx.compose.runtime.MutableState<List<ChatSession>>, pendingDelete: MutableSet<String>, snackbar: SnackbarHostState,
+    devOptions: Boolean, activeSessionId: String?, answering: Boolean, lastTokPerSec: Double?, showStats: Boolean, onNavigate: (String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    var sessions by sessionsState
+    val deletedText = t("clean.nav.chatDeleted")
+    val undoText = t("clean.nav.undo")
+    ModalDrawerSheet {
+        fun go(target: () -> Unit) { target(); scope.launch { drawer.close() } }
+        // The undo bar lives in the sheet: the drawer stays open while a chat is deleted.
+        Box(Modifier.fillMaxSize()) {
+            BoarDrawer(
+                sessions = sessions,
+                activeSessionId = activeSessionId,
+                // ChatScreen.tsx's items. Evaluation stands in for Execution Telemetry and shows only with developer
+                // options; Models is reached from Settings, and About from there too.
+                items = buildList {
+                    add(DrawerItem("knowledge", t("nav.knowledge"), BoarIcons.LibraryBooks) { go { onNavigate("documents") } })
+                    if (devOptions) add(DrawerItem("evaluation", t("evaluation.title"), BoarIcons.Science) { go { onNavigate("evaluation") } })
+                    add(DrawerItem("settings", t("chatScreen.drawerItems.settings"), Icons.Outlined.Settings) { go { onNavigate("settings") } })
+                },
+                lastTokPerSec = lastTokPerSec,
+                storageUsed = { services.storageUsedBytes() },
+                downloading = { team.sopa.boar.engine.models.AssetStore.downloadingBytes(services.filesDir) },
+                storageBudgetBytes = services.catalog.storageBudgetBytes,
+                showStats = showStats,
+                answering = answering,
+                onNewChat = { go { vm.newChat() } },
+                onSelect = { id -> go { vm.openSession(id) } },
+                onDelete = { id ->
+                    // Optimistic: the row goes now, the database delete waits for the Undo bar to lapse. A second
+                    // delete closes the first bar, which commits it.
+                    val removed = sessions.firstOrNull { it.id == id }
+                    snackbar.currentSnackbarData?.dismiss()
+                    sessions = sessions.filter { it.id != id }
+                    pendingDelete += id
+                    scope.launch {
+                        var undone = false
+                        try {
+                            undone = snackbar.showSnackbar(deletedText, undoText, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed
+                        } finally {
+                            // Also when the scope is cancelled (the user left the chat): that counts as "let it go".
+                            pendingDelete -= id
+                            if (undone) { if (removed != null) sessions = (sessions + removed).sortedByDescending { it.updatedAt } }
+                            else vm.deleteSession(id)
+                        }
+                    }
+                },
+            )
+            SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
+        }
     }
 }

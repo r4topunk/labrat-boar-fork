@@ -193,7 +193,12 @@ fun ChatScreen(
         // The status and navigation bar insets are applied inside the TopAppBar and InputBar, under their backgrounds, so the
         // bars show their own surface instead of a band of the page color; the keyboard still lifts the whole column.
         Column(Modifier.fillMaxSize().imePadding().nestedScroll(barScroll.nestedScrollConnection)) {
-            FixedSizeChrome { Header(state, onMenu, onNewChat, barScroll) }
+            // Header and bubbles take only what they show: [state] is a new object on every streamed token, so passing it
+            // whole re-ran the app bar and every earlier answer (its Markdown included) per token.
+            FixedSizeChrome {
+                Header(state.messages.isNotEmpty(), state.online, state.answeringModel?.takeIf { state.answeringId != null }, state.modelLabel,
+                    state.technicalDetails, state.liveTokPerSec.takeIf { state.activity == Activity.Generating && state.technicalDetails }, onMenu, onNewChat, barScroll)
+            }
             state.loadingKey?.let { LoadingBanner(t(it)) }
             state.loadNote?.let { LoadNoteBanner(it, onDismissLoadNote, onRetryLessMemory, onLoadAnyway, onOpenModels) }
             // Deep Research shows in the composer (outline, placeholder, chip), not as a tint over the whole chat: the tint
@@ -211,7 +216,11 @@ fun ChatScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
                     items(state.messages, key = { it.id }) { m ->
-                        Bubble(m, state, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, modifier = Modifier.animateItem())
+                        val streaming = state.answeringId == m.id
+                        Bubble(m, streaming, busy = state.answeringId != null, stopping = streaming && state.stopping,
+                            activity = if (streaming) state.activity else null,
+                            liveError = state.error?.takeIf { state.messages.lastOrNull()?.id == m.id }, technicalDetails = state.technicalDetails,
+                            onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, modifier = Modifier.animateItem())
                     }
                 }
             }
@@ -240,21 +249,22 @@ private fun modelName(raw: String, technical: Boolean): String {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, scrollBehavior: TopAppBarScrollBehavior) {
+private fun Header(
+    hasMessages: Boolean, online: Boolean, routed: String?, picked: String?, technicalDetails: Boolean, tps: Double?,
+    onMenu: () -> Unit, onNewChat: () -> Unit, scrollBehavior: TopAppBarScrollBehavior,
+) {
     val scheme = MaterialTheme.colorScheme
     var info by remember { mutableStateOf(false) }
     if (info) AlertDialog(
         onDismissRequest = { info = false },
         confirmButton = { TextButton({ info = false }) { Text(t("common.close")) } },
-        title = { Text(t(if (state.online) "chatHeader.onlineTitle" else "chatHeader.offlineTitle")) },
-        text = { Text(t(if (state.online) "chatHeader.onlineBody" else "chatHeader.offlineBody")) },
+        title = { Text(t(if (online) "chatHeader.onlineTitle" else "chatHeader.offlineTitle")) },
+        text = { Text(t(if (online) "chatHeader.onlineBody" else "chatHeader.offlineBody")) },
     )
-    // While adaptive routing has another model write the answer: "→ that model", then back to the pick.
-    val routed = state.answeringModel?.takeIf { state.answeringId != null }
-    val picked = state.modelLabel
+    // While adaptive routing has another model write the answer ([routed]): "→ that model", then back to the pick.
     val subtitle = when {
-        routed != null -> "→ " + modelName(routed, state.technicalDetails)
-        picked != null -> modelName(picked, state.technicalDetails)
+        routed != null -> "→ " + modelName(routed, technicalDetails)
+        picked != null -> modelName(picked, technicalDetails)
         else -> t("chatHeader.localLlmCore")
     }
     Column {
@@ -263,14 +273,14 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
                 // One tappable identity block: the mascot, the name, and one quiet line with the on-device claim and the
                 // model. Tapping it opens what working offline means (it was a separate chip that crowded the bar).
                 Row(
-                    Modifier.clip(MaterialTheme.shapes.medium).clickable(onClickLabel = t(if (state.online) "chatHeader.onlineTitle" else "chatHeader.offlineTitle"), role = Role.Button) { info = true }
+                    Modifier.clip(MaterialTheme.shapes.medium).clickable(onClickLabel = t(if (online) "chatHeader.onlineTitle" else "chatHeader.offlineTitle"), role = Role.Button) { info = true }
                         .padding(end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     // The empty chat already shows the boar large in the middle: one brand mark per screen. With the first
                     // message the mark slides in (width and fade), so the title moves smoothly instead of jumping, and the
                     // empty chat has no blank gap before the title.
-                    androidx.compose.animation.AnimatedVisibility(state.messages.isNotEmpty(),
+                    androidx.compose.animation.AnimatedVisibility(hasMessages,
                         enter = androidx.compose.animation.expandHorizontally() + androidx.compose.animation.fadeIn(),
                         exit = androidx.compose.animation.shrinkHorizontally() + androidx.compose.animation.fadeOut()) {
                         Image(painterResource(R.drawable.mascot), null, Modifier.size(IconSize.Standard), contentScale = ContentScale.Fit)
@@ -296,8 +306,7 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
                 actionIconContentColor = scheme.onSurfaceVariant),
             scrollBehavior = scrollBehavior,
         )
-        // Live speed in the header is a technical detail (Advanced tweaks → Show technical details).
-        val tps = if (state.activity == Activity.Generating && state.technicalDetails) state.liveTokPerSec else null
+        // Live speed in the header ([tps]) is a technical detail (Advanced tweaks → Show technical details).
         if (tps != null) Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
             Spacer(Modifier.weight(1f))
             Row(
@@ -454,12 +463,21 @@ private fun activityLabel(a: Activity?): String = when (a) {
 /** A message bubble (ChatScreen.tsx styles.bubble / userBubble / assistantBubble). */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit, modifier: Modifier = Modifier) {
+private fun Bubble(
+    m: UiMessage,
+    /** This is the answer being written, BOAR is answering (any message), and Stop was tapped on it. */
+    streaming: Boolean, busy: Boolean, stopping: Boolean,
+    /** The stage of the answer being written (null for the others). */
+    activity: Activity?,
+    /** The live error, on the last message only (before the answer could be saved). */
+    liveError: String?,
+    technicalDetails: Boolean,
+    onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit, modifier: Modifier = Modifier,
+) {
     val c = Boar.colors
     val scheme = MaterialTheme.colorScheme
     val type = MaterialTheme.typography
     val user = m.role == "user"
-    val streaming = state.answeringId == m.id
     var reasoningShown by remember { mutableStateOf(false) }
     val clipboard = LocalClipboardManager.current
     val researched = !user && m.receipt?.path == "deep"
@@ -491,7 +509,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
             val shown = if (streaming) split.answer else AnswerText.splitInlineBullets(AnswerText.cleanCitations(split.answer, m.sources.size))
             val reasoningStyle = Modifier.drawBehind { drawRect(c.borderDefault, size = size.copy(width = 2.dp.toPx())) }.padding(start = 8.dp, bottom = 8.dp)
             when {
-                m.text.isEmpty() && streaming -> ProcessingIndicator(if (state.stopping) t("native.chat.stopping") else activityLabel(state.activity))
+                m.text.isEmpty() && streaming -> ProcessingIndicator(if (stopping) t("native.chat.stopping") else activityLabel(activity))
                 split.thinkingInProgress && split.answer.isEmpty() && streaming -> ThinkingTail(split.thinking.orEmpty(), reasoningStyle)
                 // The reasoning used the whole answer budget: the note points at the reasoning button, which shows what it reasoned.
                 split.thinkingInProgress && split.answer.isEmpty() ->
@@ -505,10 +523,10 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
             // The answer failed (no model, an engine or storage error): a plain line, never the exception text.
             // Kept on the message (UiMessage.error), so it stays after the next question; the live error covers a failure
             // before the answer could be saved.
-            val errorKey = m.error ?: state.error?.takeIf { state.messages.lastOrNull()?.id == m.id }?.let(UserErrors::chatKey)
+            val errorKey = m.error ?: liveError?.let(UserErrors::chatKey)
             if (!streaming && !m.stopped && errorKey != null) {
                 Text(t(errorKey), style = type.bodyLarge, color = scheme.error)
-                if ((errorKey == UserErrors.chatKey(UserErrors.EMPTY_ANSWER) || errorKey == UserErrors.INTERRUPTED_KEY) && state.answeringId == null)
+                if ((errorKey == UserErrors.chatKey(UserErrors.EMPTY_ANSWER) || errorKey == UserErrors.INTERRUPTED_KEY) && !busy)
                     RedoButton(t("native.chat.tryAgain")) { onRetry(m.id) }
                 // Holding a question already copies it back to the input (onReuse); say so where it helps.
                 Text(t("native.chat.holdToReuse"), style = type.bodySmall, color = scheme.onSurface, modifier = Modifier.padding(top = 2.dp))
@@ -516,13 +534,13 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
             // Stopped before writing anything: these are what the search found, not what the answer cites.
             // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
             if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = type.bodySmall, color = scheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp)) }
-            if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, state.technicalDetails)
+            if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, technicalDetails)
             if (m.stopped) NoteBadge(BoarIcons.StopCircle, t("chatScreen.stoppedByUser"))
             if (m.timedOut) NoteBadge(BoarIcons.Timer, t("chatScreen.stageTimedOut"))
             m.cutAt?.let { limit ->
                 Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     NoteBadge(BoarIcons.ContentCut, t("native.chat.cutAtLimit", "limit" to limit))
-                    if (m.nextLimit != null && state.answeringId == null) RedoButton(t("native.chat.allowMore", "limit" to m.nextLimit)) { onRedo(m.id, m.nextLimit) }
+                    if (m.nextLimit != null && !busy) RedoButton(t("native.chat.allowMore", "limit" to m.nextLimit)) { onRedo(m.id, m.nextLimit) }
                 }
             }
             var receiptOpen by remember { mutableStateOf(false) }
@@ -546,10 +564,10 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
                     // Everyone sees time and speed; the measured details open only with technical details on.
                     // The receipt about 12 dp from the icon's ink (the button's own padding would leave ~18 dp).
                     Box(Modifier.weight(1f, fill = false).offset(x = (-6).dp)) {
-                        m.receipt?.let { r -> if (state.technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
+                        m.receipt?.let { r -> if (technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
                     }
                 }
-                if (receiptOpen && state.technicalDetails) m.receipt?.let { r -> ReceiptDetails(r) }
+                if (receiptOpen && technicalDetails) m.receipt?.let { r -> ReceiptDetails(r) }
             }
         }
     }
