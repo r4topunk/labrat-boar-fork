@@ -101,12 +101,15 @@ void parse_cpu_list(const std::string & spec, bool * mask) {
 }
 
 // Decode tokens[from..] in n_batch chunks; returns false on failure. Only the last token's logits are needed.
-bool decode_tokens(Session * s, const std::vector<llama_token> & tokens, size_t from) {
+// [done], when given, ends at the first token not fully decoded: the cache below it is valid after a failure.
+bool decode_tokens(Session * s, const std::vector<llama_token> & tokens, size_t from, size_t * done = nullptr) {
+    if (done) *done = from;
     for (size_t i = from; i < tokens.size(); i += s->n_batch) {
         if (s->cancel.load()) return false;
         int n = (int) std::min<size_t>(s->n_batch, tokens.size() - i);
         llama_batch batch = llama_batch_get_one(const_cast<llama_token *>(tokens.data() + i), n);
         if (llama_decode(s->ctx, batch) != 0) return false;
+        if (done) *done = i + n;
     }
     return true;
 }
@@ -123,9 +126,17 @@ int sync_prompt(Session * s, const std::vector<llama_token> & tokens) {
         keep = 0;
     }
     s->cached.assign(tokens.begin(), tokens.begin() + keep);
-    if (!decode_tokens(s, tokens, keep)) {
-        llama_memory_clear(mem, true);
-        s->cached.clear();
+    size_t done = keep;
+    if (!decode_tokens(s, tokens, keep, &done)) {
+        // Stopped (Stop, or a warm-up cut by a question or by leaving BOAR): what was decoded before the stop is still
+        // valid, so the next prompt reuses it. Clearing it all made the next answer read its ~250-token instructions
+        // again (631 decoded, 0 cached after a cut warm-up; Pixel 8a, Oct 23). Any other failure clears the cache.
+        if (s->cancel.load() && llama_memory_seq_rm(mem, 0, (llama_pos) done, -1)) {
+            s->cached.assign(tokens.begin(), tokens.begin() + done);
+        } else {
+            llama_memory_clear(mem, true);
+            s->cached.clear();
+        }
         return -1;
     }
     s->cached = tokens;
