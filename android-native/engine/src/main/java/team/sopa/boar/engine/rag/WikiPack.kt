@@ -187,17 +187,22 @@ object WikiPackText {
     private val HEADING = Regex("(?m)^(#{1,6})$S+(.*)$")
 
     private data class Heading(val at: Int, val level: Int, val titleAt: Int, val lineEnd: Int, val title: String)
-    private var headingsText: String? = null
-    private var headingsCache: List<Heading> = emptyList()
+    /**
+     * The last article's headings, per thread: packs are searched in parallel (Retriever), and one shared entry made the
+     * threads evict each other's article, so every section lookup scanned its article again (Japan: 1 s → 10 s).
+     */
+    private class HeadingsCache(var text: String? = null, var headings: List<Heading> = emptyList())
+    private val headingsCache = ThreadLocal.withInitial { HeadingsCache() }
 
-    @Synchronized private fun headingsOf(text: String): List<Heading> {
-        if (text === headingsText || text == headingsText) return headingsCache
+    private fun headingsOf(text: String): List<Heading> {
+        val c = headingsCache.get()
+        if (text === c.text || text == c.text) return c.headings
         val out = HEADING.findAll(text).map { m ->
             val lineEnd = m.range.first + m.value.length
             Heading(m.range.first, m.groupValues[1].length, lineEnd - m.groupValues[2].length, lineEnd, m.groupValues[2])
         }.toList()
-        headingsText = text
-        headingsCache = out
+        c.text = text
+        c.headings = out
         return out
     }
 

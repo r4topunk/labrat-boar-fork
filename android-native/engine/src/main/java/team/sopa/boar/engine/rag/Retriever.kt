@@ -53,19 +53,22 @@ class Retriever(
         ownOnly: Boolean = false,
     ): List<Chunk> {
         val vec = queryVec ?: embed(query)
-        val lexical = kb.lexicalSearch(query, vec, topK * 2, ownOnly)
-        val semantic = kb.semanticSearch(vec, topK * 2, ownOnly)
         // Only my files: the user's own files only, never the packs.
         val installed = if (ownOnly) emptyList() else packs()
+        // The knowledge base and every pack are searched at the same time: each is its own SQLite connection, and one
+        // after the other the packs took up to a second per question (11 packs, Pixel 8a, Oct 23). Results keep the
+        // packs' order, so the answer reads the same passages.
+        val kbSearch = SearchPool.submit { kb.lexicalSearch(query, vec, topK * 2, ownOnly) to kb.semanticSearch(vec, topK * 2, ownOnly) }
         // A failing pack is skipped, never fatal.
-        val f1 = installed.filterIsInstance<OpenPack.Format1>().mapNotNull { p ->
+        val f1 = SearchPool.map(installed.filterIsInstance<OpenPack.Format1>()) { p ->
             runCatching { Packs.searchFormat1(p.db, p.id, query, vec, topK * 2, explain) }.getOrNull()
-        }
-        val wiki = if (!includeWikiPacks) emptyList() else installed.filterIsInstance<OpenPack.Format2>().mapNotNull { p ->
+        }.filterNotNull()
+        val wiki = if (!includeWikiPacks) emptyList() else SearchPool.map(installed.filterIsInstance<OpenPack.Format2>()) { p ->
             runCatching {
                 p.id to p.pack.searchDetailed(query, PackSearchOptions(titles = titles ?: emptyList(), k = topK, action = action, explain = explain, queryVec = vec)).hits
             }.getOrNull()
-        }
+        }.filterNotNull()
+        val (lexical, semantic) = SearchPool.await(kbSearch)
         fun chunks(keep: (PackHit) -> Boolean) = wiki.flatMap { (id, hits) -> hits.filter(keep).map { Packs.packHitToChunk(id, it) } }
 
         // Passages from articles the question names come first, in the pack's own order; a named disambiguation page
@@ -108,4 +111,27 @@ class Retriever(
         /** A "may refer to" list or a "(disambiguation)" page: never a source. */
         fun isDisambiguation(c: Chunk) = DISAMBIG_TITLE.containsMatchIn(c.title) || REFERS.containsMatchIn(c.body.take(300))
     }
+}
+
+/**
+ * A few threads for the per-pack searches ([Retriever]). Tasks never wait on each other, so a small pool can't deadlock;
+ * an empty or one-item list runs on the caller's thread.
+ */
+internal object SearchPool {
+    private const val THREADS = 4
+    private val pool: java.util.concurrent.ExecutorService = java.util.concurrent.Executors.newFixedThreadPool(THREADS) { r ->
+        Thread(r, "boar-search").apply { isDaemon = true }
+    }
+
+    fun <T> submit(task: () -> T): java.util.concurrent.Future<T> = pool.submit(java.util.concurrent.Callable { task() })
+
+    /** [task]'s result, or its own exception (not wrapped), as if it had run on this thread. */
+    fun <T> await(f: java.util.concurrent.Future<T>): T = try {
+        f.get()
+    } catch (e: java.util.concurrent.ExecutionException) {
+        throw e.cause ?: e
+    }
+
+    /** [f] over [items] in parallel, results in input order. */
+    fun <T, R> map(items: List<T>, f: (T) -> R): List<R> = if (items.size <= 1) items.map(f) else items.map { submit { f(it) } }.map(::await)
 }
