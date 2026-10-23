@@ -94,7 +94,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
@@ -706,9 +705,13 @@ private fun InputBar(
     })
     val canSend = text.isNotBlank() && !answering
     // After Stop, the button pulses until the answer really ends: a library search or a chunk of prompt finishes first.
-    val transition = rememberInfiniteTransition(label = "stopping")
-    val blink by transition.animateFloat(1f, 0.35f, infiniteRepeatable(tween<Float>(500), RepeatMode.Reverse), label = "pulse")
-    val pulse = if (stopping) blink else 1f
+    // The infinite transition exists only then: composed always, it ran on every frame (13 % of the main thread
+    // while an answer streamed, and a wake-up per vsync at rest) for a value read only while stopping.
+    val pulse: () -> Float = if (stopping) {
+        val transition = rememberInfiniteTransition(label = "stopping")
+        val blink = transition.animateFloat(1f, 0.35f, infiniteRepeatable(tween<Float>(500), RepeatMode.Reverse), label = "pulse")
+        ({ blink.value })
+    } else ({ 1f })
     val optionsLabel = t(if (optionsChanged) "design.options.buttonChanged" else "design.options.button")
     // The gesture bar inset sits under the page background; the block itself keeps 12 dp from the edges.
     Column(Modifier.fillMaxWidth().background(scheme.background).navigationBarsPadding().padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 8.dp)) {
@@ -754,7 +757,8 @@ private fun InputBar(
             // the stock one (onSurface at 12 % / 38 %); the pulse after Stop applies only while the button is live.
             FilledIconButton(
                 { if (answering) onStop() else onSend() },
-                Modifier.alpha(if (answering || canSend) pulse else 1f),
+                // Read in the draw layer, so the pulse redraws the button without recomposing the bar.
+                Modifier.graphicsLayer { alpha = if (answering || canSend) pulse() else 1f },
                 enabled = answering || canSend,
                 colors = IconButtonDefaults.filledIconButtonColors(
                     containerColor = if (answering) scheme.error else scheme.primary, contentColor = if (answering) scheme.onError else scheme.onPrimary),
