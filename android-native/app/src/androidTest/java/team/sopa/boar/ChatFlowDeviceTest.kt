@@ -53,6 +53,16 @@ class ChatFlowDeviceTest {
         walk(root).joinToString("\n")
     }
 
+    /**
+     * The longest line that is new on screen and isn't [question]: the answer paragraph (source titles and the receipt are
+     * shorter). A total-length difference failed whenever a short Succinct answer replaced a long set of suggested
+     * questions, which leave the screen when the answer arrives.
+     */
+    private fun newAnswerLine(before: String, after: String, question: String): Int {
+        val old = before.lines().toSet()
+        return after.lines().filter { it !in old && it != question }.maxOfOrNull { it.length } ?: 0
+    }
+
     private val send get() = hasContentDescription(tr("chatScreen.sendMessage"))
     private val stop get() = hasContentDescription(tr("chatScreen.stopGeneration"))
 
@@ -163,7 +173,7 @@ class ChatFlowDeviceTest {
             val after = screenText()
             android.util.Log.i("ChatFlowDeviceTest", "screen after answer:\n$after")
             assertTrue("the question stays on screen", compose.shows("What are the symptoms of asthma?"))
-            assertTrue("no answer text appeared on screen", after.length > before.length + 80)
+            assertTrue("no answer text appeared on screen", newAnswerLine(before, after, "What are the symptoms of asthma?") > 40)
             assertTrue("the answer's label", compose.shows(tr("chatScreen.roleAssistant")))
             val session = services.chats.listSessions().first()
             val stored = services.chats.messages(session.id)
@@ -242,7 +252,7 @@ class ChatFlowDeviceTest {
             val before = screenText()
             ask("What is a monsoon?")
             val after = screenText()
-            assertTrue("no answer text appeared on screen with a PIN", after.length > before.length + 80)
+            assertTrue("no answer text appeared on screen with a PIN", newAnswerLine(before, after, "What is a monsoon?") > 40)
             // Sealed on disk: the stored text is readable only through the unlocked cipher.
             assertTrue(services.chats.cipher is team.sopa.boar.engine.security.AesTextCipher)
         } finally {

@@ -77,6 +77,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.style.LineHeightStyle
 import team.sopa.boar.ui.theme.IconSize
 import team.sopa.boar.ui.theme.onTextLine
 import team.sopa.boar.ui.theme.textOnRowCenter
@@ -707,7 +708,10 @@ private fun InputBar(
             }
             // A bare field in a 48 dp box: one line sits on the buttons' centreline (its x-height, not its line box), and
             // the text starts ~15 dp after the options glyph. TextField's 56 dp box and 16 dp inset pushed it up and away.
-            val bodyLarge = MaterialTheme.typography.bodyLarge
+            // Every line keeps its full 24 sp box (no first/last-line trim), so the last line of a long question sits on the
+            // buttons' centreline exactly as a single line does (trimmed, the last line dropped ~1.3 dp under it).
+            val bodyLarge = MaterialTheme.typography.bodyLarge.copy(
+                lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None))
             BasicTextField(
                 text, onText,
                 Modifier.weight(1f).describe(hint),
