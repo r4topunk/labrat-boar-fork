@@ -72,6 +72,8 @@ class BenchActivity : ComponentActivity() {
         if (savedInstanceState == null && intent.getStringExtra("run") == "eval") {
             // A timing run keeps the screen on: with the screen off Android moves the app to the slow cores (10x slower).
             window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            // Over the lock screen too (never unlocking it): behind the keyguard the activity isn't resumed either.
+            if (android.os.Build.VERSION.SDK_INT >= 27) { setShowWhenLocked(true); setTurnScreenOn(true) }
             // scripts/eval-device.mjs --package team.sopa.aoair.native --no-reload: wait for its request, answer it.
             val runner = team.sopa.boar.eval.DeviceEvalRunner(
                 this,

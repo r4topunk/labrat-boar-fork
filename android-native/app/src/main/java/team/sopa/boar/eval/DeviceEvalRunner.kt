@@ -200,6 +200,8 @@ class DeviceEvalRunner(
                                     log("[EVAL] model params ${params.toJson()}")
                                     session = file?.let { LlamaSession.load(it.absolutePath, params) }
                                     loadMs = (System.nanoTime() - t0) / 1e6
+                                    // As the chat's preload: the default answer's instructions read in before the first question.
+                                    if (overrides["warm"] == "1") session?.let { warm(it, personalities, installed, config) }
                                 } else {
                                     residency = "resident"
                                     loadMs = 0.0
@@ -216,6 +218,8 @@ class DeviceEvalRunner(
                                     val limit = if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q.query)) minOf(maxTokens, team.sopa.boar.engine.settings.AppSettings.AUTO_MAX_TOKENS) else maxTokens
                                     val r = answerRow(s, retrieval, runId, config, q, style, systemPrompt, styleReminder, limit, residency, loadMs)
                                     running = null
+                                    // As the chat after an answer without sources: the sourced instructions read back in.
+                                    if (overrides["rewarm"] == "1" && r["retrievalUsed"]?.jsonPrimitive?.content != "true") warm(s, personalities, installed, config)
                                     if (stopRequested) JsonObject(r + ("outcome" to JsonPrimitive("cancelled"))) else r
                                 }
                             }
@@ -276,6 +280,16 @@ class DeviceEvalRunner(
         val retriever = Retriever(kb, { packs }, { text -> runBlocking { embedder.embed(text) } }, { lexicon })
         log("[EVAL] retrieval: knowledge base + ${packs.size} packs, lexicon ${lexicon.size} names")
         return Retrieval(retriever, embedder, closeables, kb, packs)
+    }
+
+    /** ChatViewModel.warmPrefix for the default style with sources; logs how long it took. */
+    private suspend fun warm(s: LlamaSession, personalities: Personalities, installed: List<Pair<ModelRef, File>>, config: EvalConfig.Model) {
+        val small = (installed.firstOrNull { it.first.id == config.modelId }?.second?.length() ?: Long.MAX_VALUE) < Personalities.SMALL_MODEL_BYTES
+        val (head, _) = team.sopa.boar.engine.rag.RagPure.answerPromptPrefix(personalities.promptFor(personalities.defaultId, null, small).first, true)
+        val t0 = System.nanoTime()
+        val prompt = s.formatChat(listOf(team.sopa.boar.engine.ChatMessage("system", head))).prompt
+        s.generate(prompt, team.sopa.boar.engine.Sampling(nPredict = 0)).collect {}
+        log("[EVAL] warm prefix ${"%.0f".format((System.nanoTime() - t0) / 1e6)} ms")
     }
 
     private fun cpusFor(spec: String, topology: CpuTopology): String = when {
