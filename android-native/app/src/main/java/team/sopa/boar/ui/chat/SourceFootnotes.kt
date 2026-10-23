@@ -38,6 +38,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import team.sopa.boar.chat.Source
 import team.sopa.boar.ui.icons.BoarIcons
+import team.sopa.boar.ui.theme.IconSize
+import team.sopa.boar.ui.theme.textOnRowCenter
 import team.sopa.boar.ui.t
 
 private val URL = Regex("""\s*[—–:-]*\s*https?://\S+""")
@@ -107,10 +109,12 @@ fun SourceFootnotes(sources: List<Source>, title: String? = null, technicalDetai
                     Box(Modifier.size(24.dp).background(scheme.secondaryContainer, CircleShape), contentAlignment = Alignment.Center) {
                         Text("${i + 1}", style = type.labelMedium, color = scheme.onSecondaryContainer)
                     }
-                    Text(s.title, style = type.bodyMedium, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    // The title's x-height on the badge's and the chevron's centre (its line box alone sits it ~1.5 dp low).
+                    Text(s.title, style = type.bodyMedium, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f).textOnRowCenter(type.bodyMedium))
                     if (technicalDetails && s.similarity != null)
                         Text("%.0f%%".format(s.similarity * 100), style = type.labelSmall, color = scheme.onSurfaceVariant)
-                    Icon(BoarIcons.ExpandMore, contentDescription = null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(20.dp).rotate(rotation))
+                    Icon(BoarIcons.ExpandMore, contentDescription = null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(IconSize.Standard).rotate(rotation))
                 }
                 AnimatedVisibility(open, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
                     // The passage in an inset block a step up in tone, a size under the answer, so it reads as a quote, not as more answer.

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.foundation.layout.offset
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -74,8 +75,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.graphics.SolidColor
+import team.sopa.boar.ui.theme.IconSize
+import team.sopa.boar.ui.theme.onTextLine
+import team.sopa.boar.ui.theme.textOnRowCenter
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -262,12 +266,15 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
                         .padding(end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    // The empty chat already shows the boar large in the middle: one brand mark per screen.
-                    if (state.messages.isNotEmpty()) Image(painterResource(R.drawable.mascot), null, Modifier.size(36.dp), contentScale = ContentScale.Fit)
+                    // The empty chat already shows the boar large in the middle: one brand mark per screen. Its slot is
+                    // always there (the mark fades in with the first message), so the title never jumps sideways.
+                    val markAlpha by animateFloatAsState(if (state.messages.isNotEmpty()) 1f else 0f, label = "headerMark")
+                    Image(painterResource(R.drawable.mascot), null, Modifier.size(IconSize.Standard).alpha(markAlpha), contentScale = ContentScale.Fit)
                     Column {
                         Text("BOAR", style = MaterialTheme.typography.titleMedium, maxLines = 1)
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = scheme.primary, modifier = Modifier.size(12.dp))
+                            Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = scheme.primary,
+                                modifier = Modifier.size(IconSize.Status).onTextLine(MaterialTheme.typography.labelMedium))
                             Text(t("clean.chat.worksOffline") + " · " + subtitle, style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
@@ -298,6 +305,9 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
         }
     }
 }
+
+/** The answer footer's pull-back: the 48 dp copy button's padding (14 dp around a 20 dp icon) plus ContentCopy's ink inset. */
+private val FooterPullBack = (-15.5).dp
 
 private fun Modifier.describe(text: String): Modifier = semantics { contentDescription = text }
 
@@ -465,8 +475,9 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
     Box(modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(Modifier.padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (researched) Icon(BoarIcons.ScienceFilled, null, tint = scheme.tertiary, modifier = Modifier.size(20.dp))
-                else Image(painterResource(R.drawable.mascot), null, Modifier.size(24.dp), contentScale = ContentScale.Fit)
+                // One 24 dp slot for both marks, so the label starts at the same x in every answer.
+                if (researched) Icon(BoarIcons.Science, null, tint = scheme.tertiary, modifier = Modifier.size(IconSize.Standard))
+                else Image(painterResource(R.drawable.mascot), null, Modifier.size(IconSize.Standard), contentScale = ContentScale.Fit)
                 Text(if (researched) t("native.chat.roleDeepResearch") else t("chatScreen.roleAssistant"), style = type.labelLarge,
                     color = if (researched) scheme.tertiary else scheme.onSurfaceVariant)
             }
@@ -512,7 +523,8 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
             var receiptOpen by remember { mutableStateOf(false) }
             if (m.text.isNotEmpty() && !streaming) {
                 // The actions first, the icon lined up with the text edge; the receipt after them, quiet, never cut.
-                Row(Modifier.fillMaxWidth().padding(top = 4.dp).offset(x = (-12).dp), horizontalArrangement = Arrangement.spacedBy(0.dp), verticalAlignment = Alignment.CenterVertically) {
+                // The 48 dp button pulls back by its padding plus the glyph's own inset, so the copy ink meets the text edge.
+                Row(Modifier.fillMaxWidth().padding(top = 4.dp).offset(x = FooterPullBack), horizontalArrangement = Arrangement.spacedBy(0.dp), verticalAlignment = Alignment.CenterVertically) {
                     var copied by remember { mutableStateOf(false) }
                     LaunchedEffect(copied) { if (copied) { delay(2000); copied = false } }
                     // With the reasoning open, it is copied too: reviewing a thinking model needs both.
@@ -520,14 +532,15 @@ private fun Bubble(m: UiMessage, state: ChatState, onReuse: (String) -> Unit, on
                         clipboard.setText(AnnotatedString(if (reasoningShown && split.thinking != null) "💭 ${split.thinking}\n\n---\n\n$shown" else shown)); copied = true
                     }) {
                         Icon(if (copied) Icons.Filled.Check else BoarIcons.ContentCopy, contentDescription = t("chatScreen.copyResponse"),
-                            tint = scheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                            tint = scheme.onSurfaceVariant, modifier = Modifier.size(IconSize.InlineAction))
                     }
                     if (split.thinking != null) IconToggleButton(reasoningShown, { reasoningShown = !reasoningShown }) {
                         Icon(BoarIcons.Psychology, contentDescription = t(if (reasoningShown) "chatScreen.hideReasoning" else "chatScreen.showReasoning"),
-                            tint = if (reasoningShown) scheme.primary else scheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                            tint = if (reasoningShown) scheme.primary else scheme.onSurfaceVariant, modifier = Modifier.size(IconSize.InlineAction))
                     }
                     // Everyone sees time and speed; the measured details open only with technical details on.
-                    Box(Modifier.weight(1f, fill = false)) {
+                    // The receipt about 12 dp from the icon's ink (the button's own padding would leave ~18 dp).
+                    Box(Modifier.weight(1f, fill = false).offset(x = (-6).dp)) {
                         m.receipt?.let { r -> if (state.technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
                     }
                 }
@@ -544,17 +557,18 @@ private fun receiptShort(r: Receipt, rate: String) = listOf(ReceiptFormat.second
 private fun ReceiptShort(r: Receipt) =
     Text(receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
         // Two lines with Large text rather than losing "tok/s" off the end.
-        maxLines = 2, textAlign = TextAlign.Start, modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp))
+        maxLines = 2, textAlign = TextAlign.Start, modifier = Modifier.padding(vertical = 8.dp).textOnRowCenter(MaterialTheme.typography.bodySmall))
 
 /** The answer's receipt (main's ReceiptToggle): time and speed, tapped open for the measured details. */
 @Composable
 private fun ReceiptToggle(r: Receipt, open: Boolean, onToggle: () -> Unit) {
     val short = receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec)))
     val tint = MaterialTheme.colorScheme.onSurfaceVariant
-    Row(Modifier.minimumInteractiveComponentSize().clickable(onClickLabel = t("chat.receipt.details"), role = Role.Button, onClick = onToggle).padding(horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.minimumInteractiveComponentSize().clickable(onClickLabel = t("chat.receipt.details"), role = Role.Button, onClick = onToggle).padding(end = 4.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(short, style = MaterialTheme.typography.labelSmall, color = tint, maxLines = 2, textAlign = TextAlign.Start, modifier = Modifier.weight(1f, fill = false))
-        Icon(if (open) BoarIcons.ExpandLess else BoarIcons.ExpandMore, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
+        Icon(if (open) BoarIcons.ExpandLess else BoarIcons.ExpandMore, contentDescription = null, tint = tint,
+            modifier = Modifier.size(IconSize.Meta).onTextLine(MaterialTheme.typography.labelSmall))
     }
 }
 
@@ -606,7 +620,7 @@ private fun ThinkingTail(thinking: String, modifier: Modifier) {
     val box = with(androidx.compose.ui.platform.LocalDensity.current) { (17.sp * 3).toDp() }
     // The icon stays put at the top left while it reasons; only the text beside it scrolls.
     Row(modifier.fillMaxWidth().height(box), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Icon(BoarIcons.Psychology, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
+        Icon(BoarIcons.Psychology, contentDescription = null, tint = tint, modifier = Modifier.padding(top = 0.5.dp).size(IconSize.Meta))
         Box(Modifier.weight(1f).fillMaxHeight().clipToBounds()) {
             // Taller than the box and bottom-aligned: the newest line stays at the bottom, older ones slide out at the top.
             Text(tail, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = tint,
@@ -619,8 +633,11 @@ private fun ThinkingTail(thinking: String, modifier: Modifier) {
 @Composable
 private fun ProcessingIndicator(label: String) {
     val scheme = MaterialTheme.colorScheme
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-        CircularProgressIndicator(Modifier.size(18.dp), color = scheme.primary, strokeWidth = 2.dp)
+    // The spinner in the byline's 24 dp slot with its 8 dp gap, so the stage text starts on the label's column.
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(IconSize.Standard).onTextLine(MaterialTheme.typography.bodyMedium), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(Modifier.size(18.dp), color = scheme.primary, strokeWidth = 2.dp)
+        }
         Text(label, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
     }
 }
@@ -629,7 +646,7 @@ private fun ProcessingIndicator(label: String) {
 @Composable
 private fun RedoButton(label: String, onClick: () -> Unit) {
     FilledTonalButton(onClick, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
-        Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+        Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize).onTextLine(MaterialTheme.typography.labelLarge))
         Spacer(Modifier.width(ButtonDefaults.IconSpacing))
         Text(label)
     }
@@ -641,7 +658,7 @@ private fun NoteBadge(icon: ImageVector, text: String) {
     val scheme = MaterialTheme.colorScheme
     Row(Modifier.padding(top = 4.dp).background(scheme.secondaryContainer, MaterialTheme.shapes.small).padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Icon(icon, contentDescription = null, tint = scheme.onSecondaryContainer, modifier = Modifier.size(16.dp))
+        Icon(icon, contentDescription = null, tint = scheme.onSecondaryContainer, modifier = Modifier.size(IconSize.Meta).onTextLine(MaterialTheme.typography.labelMedium))
         Text(text, style = MaterialTheme.typography.labelMedium, color = scheme.onSecondaryContainer)
     }
 }
@@ -688,16 +705,24 @@ private fun InputBar(
                 if (optionsChanged) Box(Modifier.align(Alignment.TopEnd).padding(top = 8.dp, end = 8.dp).size(8.dp)
                     .clip(androidx.compose.foundation.shape.CircleShape).background(scheme.primary))
             }
-            TextField(
+            // A bare field in a 48 dp box: one line sits on the buttons' centreline (its x-height, not its line box), and
+            // the text starts ~15 dp after the options glyph. TextField's 56 dp box and 16 dp inset pushed it up and away.
+            val bodyLarge = MaterialTheme.typography.bodyLarge
+            BasicTextField(
                 text, onText,
                 Modifier.weight(1f).describe(hint),
-                placeholder = { Text(hint, maxLines = 1, overflow = TextOverflow.Ellipsis, color = if (deepResearch) scheme.tertiary else scheme.onSurfaceVariant) },
-                textStyle = MaterialTheme.typography.bodyLarge,
+                textStyle = bodyLarge.copy(color = scheme.onSurface),
                 maxLines = 6,
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, disabledIndicatorColor = Color.Transparent,
-                    cursorColor = scheme.primary),
+                cursorBrush = SolidColor(scheme.primary),
+                decorationBox = { inner ->
+                    Box(Modifier.heightIn(min = 48.dp).padding(end = 8.dp, top = 12.dp, bottom = 12.dp), contentAlignment = Alignment.CenterStart) {
+                        Box(Modifier.textOnRowCenter(bodyLarge)) {
+                            if (text.isEmpty()) Text(hint, style = bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                color = if (deepResearch) scheme.tertiary else scheme.onSurfaceVariant)
+                            inner()
+                        }
+                    }
+                },
             )
             // Stop is error/onError, send is primary/onPrimary: real scheme pairs in both themes. The disabled send state is
             // the stock one (onSurface at 12 % / 38 %); the pulse after Stop applies only while the button is live.
@@ -709,7 +734,7 @@ private fun InputBar(
                     containerColor = if (answering) scheme.error else scheme.primary, contentColor = if (answering) scheme.onError else scheme.onPrimary),
             ) {
                 Icon(if (answering) BoarIcons.Stop else Icons.AutoMirrored.Filled.Send,
-                    contentDescription = t(if (answering) "chatScreen.stopGeneration" else "chatScreen.sendMessage"), modifier = Modifier.size(20.dp))
+                    contentDescription = t(if (answering) "chatScreen.stopGeneration" else "chatScreen.sendMessage"))
             }
         }
     }

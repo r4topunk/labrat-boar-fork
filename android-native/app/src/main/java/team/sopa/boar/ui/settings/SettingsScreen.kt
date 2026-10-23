@@ -179,7 +179,7 @@ private fun KnowledgeSection(services: BoarServices, onOpen: (String) -> Unit) {
             if (packs == 0) t("clean.settings.knowledge.noPacks") else t("clean.settings.knowledge.packs", "count" to packs),
             if (docs == 0) t("clean.settings.knowledge.noDocs") else t("clean.settings.knowledge.docs", "count" to docs),
         ).joinToString(" · ")
-        ActionRow(t("clean.settings.knowledge.title"), note = note, icon = BoarIcons.MenuBook, chevron = true) { onOpen("documents") }
+        ActionRow(t("clean.settings.knowledge.title"), note = note, icon = BoarIcons.LibraryBooks, chevron = true) { onOpen("documents") }
     }
 }
 

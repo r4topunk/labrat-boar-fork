@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
@@ -21,8 +22,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
@@ -89,29 +88,25 @@ private fun OptionsList(state: ChatState, actions: AnswerOptionsActions, open: (
     val model = state.models.firstOrNull { it.id == state.activeModelId }
     Column(Modifier.fillMaxWidth()) {
         Text(t("design.options.title"), style = MaterialTheme.typography.titleLarge, color = scheme.onSurface,
-            modifier = Modifier.padding(start = 8.dp, top = 4.dp, bottom = 16.dp))
+            modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 16.dp))
         val rows = listOf(
             Triple(OptionsPage.STYLE, toneVector(state.personalityId), Pair(t("design.options.style"),
                 t("personalities.${state.personalityId}.label") to (state.personalityId != state.defaultPersonalityId))),
             Triple(OptionsPage.MODEL, BoarIcons.Memory, Pair(t("design.options.model"),
                 (model?.name ?: t("design.options.noModel")) to (state.defaultModelId != null && state.activeModelId != state.defaultModelId))),
-            Triple(OptionsPage.SOURCES, BoarIcons.MenuBook, Pair(t("design.options.sources"),
+            Triple(OptionsPage.SOURCES, BoarIcons.LibraryBooks, Pair(t("design.options.sources"),
                 t(if (state.sourcesOwn) "design.options.sourcesOwn" else "design.options.sourcesAll") to state.sourcesOwn)),
         )
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             rows.forEachIndexed { i, (target, icon, text) ->
                 val (title, value) = text
                 val (current, changed) = value
-                ListItem(
-                    headlineContent = { Text(title) },
-                    supportingContent = { Text(current, color = if (changed) scheme.primary else scheme.onSurfaceVariant) },
-                    leadingContent = { Icon(icon, contentDescription = null) },
-                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-                    colors = ListItemDefaults.colors(containerColor = scheme.surfaceContainerHigh,
-                        leadingIconColor = scheme.onSurfaceVariant, trailingIconColor = scheme.onSurfaceVariant),
+                OptionRow(title, current, icon,
+                    container = scheme.surfaceContainerHigh, headlineColor = scheme.onSurface,
+                    supportingColor = if (changed) scheme.primary else scheme.onSurfaceVariant, leadingColor = scheme.onSurfaceVariant,
                     modifier = Modifier.clip(groupedShape(i, rows.size, outer = 20.dp))
                         .selectable(false, role = Role.Button) { open(target) },
-                )
+                ) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) }
             }
         }
         Spacer(Modifier.height(16.dp))
@@ -136,33 +131,30 @@ private fun OptionsDetail(page: OptionsPage, state: ChatState, actions: AnswerOp
             Choice(m.id, m.name, note, null, m.id == state.activeModelId) { actions.onSetModel(m.id) }
         }, t("design.options.modelFoot"))
         else -> Triple(t("design.options.sources"), listOf(
-            Choice("all", t("design.options.sourcesAll"), t("design.options.sourcesAllNote"), BoarIcons.MenuBook, !state.sourcesOwn) { actions.onSetSourcesOwn(false) },
+            Choice("all", t("design.options.sourcesAll"), t("design.options.sourcesAllNote"), BoarIcons.LibraryBooks, !state.sourcesOwn) { actions.onSetSourcesOwn(false) },
             Choice("own", t("design.options.sourcesOwn"), t("design.options.sourcesOwnNote"), BoarIcons.Description, state.sourcesOwn) { actions.onSetSourcesOwn(true) },
         ), null)
     }
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = t("design.options.back")) }
+            // The title on the rows' text column (16 + 24 + 16 dp from the row edge; the back button ends at 48 dp).
+            Spacer(Modifier.width(8.dp))
             Text(title, style = MaterialTheme.typography.titleLarge, color = scheme.onSurface)
         }
         Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             choices.forEachIndexed { i, c ->
-                ListItem(
-                    headlineContent = { Text(c.label) },
-                    supportingContent = { Text(c.note) },
-                    leadingContent = c.icon?.let { icon -> { Icon(icon, contentDescription = null) } },
-                    trailingContent = { RadioButton(c.selected, onClick = null) },
-                    colors = ListItemDefaults.colors(
-                        containerColor = if (c.selected) scheme.secondaryContainer else scheme.surfaceContainerHigh,
-                        headlineColor = if (c.selected) scheme.onSecondaryContainer else scheme.onSurface,
-                        supportingColor = if (c.selected) scheme.onSecondaryContainer.copy(alpha = 0.8f) else scheme.onSurfaceVariant,
-                        leadingIconColor = if (c.selected) scheme.onSecondaryContainer else scheme.onSurfaceVariant),
+                OptionRow(c.label, c.note, c.icon,
+                    container = if (c.selected) scheme.secondaryContainer else scheme.surfaceContainerHigh,
+                    headlineColor = if (c.selected) scheme.onSecondaryContainer else scheme.onSurface,
+                    supportingColor = if (c.selected) scheme.onSecondaryContainer.copy(alpha = 0.8f) else scheme.onSurfaceVariant,
+                    leadingColor = if (c.selected) scheme.onSecondaryContainer else scheme.onSurfaceVariant,
                     // Picking goes back to the list, where the row now shows the new value.
                     modifier = Modifier.clip(groupedShape(i, choices.size, outer = 20.dp))
                         .selectable(c.selected, role = Role.RadioButton) { c.pick(); back() },
-                )
+                ) { RadioButton(c.selected, onClick = null) }
             }
         }
-        foot?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, modifier = Modifier.padding(start = 8.dp, top = 12.dp)) }
+        foot?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, modifier = Modifier.padding(start = 16.dp, top = 12.dp)) }
     }
 }

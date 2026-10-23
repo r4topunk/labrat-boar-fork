@@ -30,7 +30,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
  * One map for every screen: a text glyph or emoji used as an icon is replaced by the icon on its row, drawn with
  * Icon(imageVector, contentDescription) (null when the parent button already carries the label). Sizes: 24 dp in an
  * IconButton (the default), ButtonDefaults.IconSize (18 dp) inside a Button with ButtonDefaults.IconSpacing, 16 dp in
- * a badge or a meta line.
+ * a badge or a meta line (named in ui/theme/IconAlign.kt: IconSize). One family: Outlined for chrome; Filled only for an
+ * on/selected state or the primary send.
  *
  * | Glyph        | Meaning                              | Icon                                                         |
  * |--------------|--------------------------------------|--------------------------------------------------------------|
@@ -45,8 +46,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
  * | ↻            | try again / restart                  | Icons.Filled.Refresh                                         |
  * | ⧉            | copy (Check once copied)             | BoarIcons.ContentCopy, then Icons.Filled.Check               |
  * | 💭           | thinking / reasoning                 | BoarIcons.Psychology                                         |
- * | 📚 ▤         | sources, knowledge, library          | BoarIcons.MenuBook                                           |
- * | 🔬           | deep research (off / on)             | BoarIcons.Science / BoarIcons.ScienceFilled                  |
+ * | 📚 ▤         | sources, knowledge, library          | BoarIcons.LibraryBooks (BoarIcons.MenuBook in onboarding)    |
+ * | (none yet)   | the Detailed answer style            | BoarIcons.Book                                               |
+ * | 🔬           | deep research (off / on)             | BoarIcons.Science / BoarIcons.ScienceFilled (on state only)  |
  * | ⚡           | fast / quick answer                  | BoarIcons.Bolt                                               |
  * | ◆            | the answer model (setup category)    | BoarIcons.AutoAwesome                                        |
  * | ⌕ 🔍         | search                               | Icons.Outlined.Search                                        |
@@ -690,7 +692,7 @@ object BoarIcons {
         }
     }
 
-    /** Material Icons Filled.Bolt (material-icons-extended filled/Bolt.kt). */
+    /** Material Icons Outlined.Bolt (material-icons-extended outlined/Bolt.kt): the Succinct style. */
     val Bolt: ImageVector by lazy {
         materialIcon(name = "Boar.Bolt") {
             materialPath {
@@ -698,15 +700,97 @@ object BoarIcons {
                 horizontalLineToRelative(-1.0f)
                 lineToRelative(1.0f, -7.0f)
                 horizontalLineTo(7.5f)
-                curveToRelative(-0.58f, 0.0f, -0.57f, -0.32f, -0.38f, -0.66f)
-                curveToRelative(0.19f, -0.34f, 0.05f, -0.08f, 0.07f, -0.12f)
-                curveTo(8.48f, 10.94f, 10.42f, 7.54f, 13.0f, 3.0f)
+                curveToRelative(-0.88f, 0.0f, -0.33f, -0.75f, -0.31f, -0.78f)
+                curveTo(8.48f, 10.94f, 10.42f, 7.54f, 13.01f, 3.0f)
                 horizontalLineToRelative(1.0f)
                 lineToRelative(-1.0f, 7.0f)
-                horizontalLineToRelative(3.5f)
-                curveToRelative(0.49f, 0.0f, 0.56f, 0.33f, 0.47f, 0.51f)
-                lineToRelative(-0.07f, 0.15f)
-                curveTo(12.96f, 17.55f, 11.0f, 21.0f, 11.0f, 21.0f)
+                horizontalLineToRelative(3.51f)
+                curveToRelative(0.4f, 0.0f, 0.62f, 0.19f, 0.4f, 0.66f)
+                curveTo(12.97f, 17.55f, 11.0f, 21.0f, 11.0f, 21.0f)
+                close()
+            }
+        }
+    }
+
+    /** Material Icons AutoMirrored.Outlined.LibraryBooks (material-icons-extended automirrored/outlined/LibraryBooks.kt): sources, knowledge. */
+    val LibraryBooks: ImageVector by lazy {
+        materialIcon(name = "Boar.LibraryBooks", autoMirror = true) {
+            materialPath {
+                moveTo(4.0f, 6.0f)
+                lineTo(2.0f, 6.0f)
+                verticalLineToRelative(14.0f)
+                curveToRelative(0.0f, 1.1f, 0.9f, 2.0f, 2.0f, 2.0f)
+                horizontalLineToRelative(14.0f)
+                verticalLineToRelative(-2.0f)
+                lineTo(4.0f, 20.0f)
+                lineTo(4.0f, 6.0f)
+                close()
+                moveTo(20.0f, 2.0f)
+                lineTo(8.0f, 2.0f)
+                curveToRelative(-1.1f, 0.0f, -2.0f, 0.9f, -2.0f, 2.0f)
+                verticalLineToRelative(12.0f)
+                curveToRelative(0.0f, 1.1f, 0.9f, 2.0f, 2.0f, 2.0f)
+                horizontalLineToRelative(12.0f)
+                curveToRelative(1.1f, 0.0f, 2.0f, -0.9f, 2.0f, -2.0f)
+                lineTo(22.0f, 4.0f)
+                curveToRelative(0.0f, -1.1f, -0.9f, -2.0f, -2.0f, -2.0f)
+                close()
+                moveTo(20.0f, 16.0f)
+                lineTo(8.0f, 16.0f)
+                lineTo(8.0f, 4.0f)
+                horizontalLineToRelative(12.0f)
+                verticalLineToRelative(12.0f)
+                close()
+                moveTo(10.0f, 9.0f)
+                horizontalLineToRelative(8.0f)
+                verticalLineToRelative(2.0f)
+                horizontalLineToRelative(-8.0f)
+                close()
+                moveTo(10.0f, 12.0f)
+                horizontalLineToRelative(4.0f)
+                verticalLineToRelative(2.0f)
+                horizontalLineToRelative(-4.0f)
+                close()
+                moveTo(10.0f, 6.0f)
+                horizontalLineToRelative(8.0f)
+                verticalLineToRelative(2.0f)
+                horizontalLineToRelative(-8.0f)
+                close()
+            }
+        }
+    }
+
+    /** Material Icons Outlined.Book (material-icons-extended outlined/Book.kt): the Detailed style. */
+    val Book: ImageVector by lazy {
+        materialIcon(name = "Boar.Book") {
+            materialPath {
+                moveTo(18.0f, 2.0f)
+                lineTo(6.0f, 2.0f)
+                curveToRelative(-1.1f, 0.0f, -2.0f, 0.9f, -2.0f, 2.0f)
+                verticalLineToRelative(16.0f)
+                curveToRelative(0.0f, 1.1f, 0.9f, 2.0f, 2.0f, 2.0f)
+                horizontalLineToRelative(12.0f)
+                curveToRelative(1.1f, 0.0f, 2.0f, -0.9f, 2.0f, -2.0f)
+                lineTo(20.0f, 4.0f)
+                curveToRelative(0.0f, -1.1f, -0.9f, -2.0f, -2.0f, -2.0f)
+                close()
+                moveTo(9.0f, 4.0f)
+                horizontalLineToRelative(2.0f)
+                verticalLineToRelative(5.0f)
+                lineToRelative(-1.0f, -0.75f)
+                lineTo(9.0f, 9.0f)
+                lineTo(9.0f, 4.0f)
+                close()
+                moveTo(18.0f, 20.0f)
+                lineTo(6.0f, 20.0f)
+                lineTo(6.0f, 4.0f)
+                horizontalLineToRelative(1.0f)
+                verticalLineToRelative(9.0f)
+                lineToRelative(3.0f, -2.25f)
+                lineTo(13.0f, 13.0f)
+                lineTo(13.0f, 4.0f)
+                horizontalLineToRelative(5.0f)
+                verticalLineToRelative(16.0f)
                 close()
             }
         }

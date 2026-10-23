@@ -367,7 +367,7 @@ private fun ChatHost(services: BoarServices, vm: ChatViewModel, onNavigate: (Str
                         // ChatScreen.tsx's items. Evaluation stands in for Execution Telemetry and shows only with developer
                         // options; Models is reached from Settings, and About from there too.
                         items = buildList {
-                            add(DrawerItem("knowledge", t("nav.knowledge"), BoarIcons.MenuBook) { go { onNavigate("documents") } })
+                            add(DrawerItem("knowledge", t("nav.knowledge"), BoarIcons.LibraryBooks) { go { onNavigate("documents") } })
                             if (devOptions) add(DrawerItem("evaluation", t("evaluation.title"), BoarIcons.Science) { go { onNavigate("evaluation") } })
                             add(DrawerItem("settings", t("chatScreen.drawerItems.settings"), Icons.Outlined.Settings) { go { onNavigate("settings") } })
                         },

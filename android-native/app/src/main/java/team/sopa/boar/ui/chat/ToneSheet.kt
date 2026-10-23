@@ -12,11 +12,9 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
@@ -37,9 +35,9 @@ import team.sopa.boar.ui.t
 /** The icon of an answer style (ids from personalities.json; the JSON's emoji are not used). */
 internal fun toneVector(id: String): ImageVector = when (id) {
     "succinct" -> BoarIcons.Bolt
-    "detailed" -> BoarIcons.MenuBook
+    "detailed" -> BoarIcons.Book
     "summary" -> BoarIcons.Description
-    else -> Icons.Filled.Edit
+    else -> Icons.Outlined.Edit
 }
 
 /**
@@ -58,7 +56,7 @@ fun ToneSheet(state: ChatState, onSetTone: (String) -> Unit, onSetDeepResearch: 
         scrimColor = scheme.scrim.copy(alpha = if (dark) 0.6f else 0.32f)) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp)) {
             Text(t("modelSetupScreen.sections.tone"), style = MaterialTheme.typography.titleLarge, color = scheme.onSurface,
-                modifier = Modifier.padding(start = 8.dp, top = 4.dp, bottom = 16.dp))
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 16.dp))
             ToneChoices(state.tones.map { it.first }, state.personalityId, state.deepResearch, onSetTone = { onSetTone(it); onDismiss() }, onSetDeepResearch = onSetDeepResearch)
         }
     }
@@ -75,19 +73,14 @@ fun ToneChoices(tones: List<String>, selectedId: String?, deepResearch: Boolean,
         Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             tones.forEachIndexed { i, id ->
                 val selected = id == selectedId
-                ListItem(
-                    headlineContent = { Text(t("personalities.$id.label")) },
-                    supportingContent = { Text(t("personalities.$id.description")) },
-                    leadingContent = { Icon(toneVector(id), contentDescription = null) },
-                    trailingContent = { RadioButton(selected, onClick = null) },
-                    colors = ListItemDefaults.colors(
-                        containerColor = if (selected) scheme.secondaryContainer else scheme.surfaceContainerHigh,
-                        headlineColor = if (selected) scheme.onSecondaryContainer else scheme.onSurface,
-                        supportingColor = if (selected) scheme.onSecondaryContainer.copy(alpha = 0.8f) else scheme.onSurfaceVariant,
-                        leadingIconColor = if (selected) scheme.onSecondaryContainer else scheme.onSurfaceVariant),
+                OptionRow(t("personalities.$id.label"), t("personalities.$id.description"), toneVector(id),
+                    container = if (selected) scheme.secondaryContainer else scheme.surfaceContainerHigh,
+                    headlineColor = if (selected) scheme.onSecondaryContainer else scheme.onSurface,
+                    supportingColor = if (selected) scheme.onSecondaryContainer.copy(alpha = 0.8f) else scheme.onSurfaceVariant,
+                    leadingColor = if (selected) scheme.onSecondaryContainer else scheme.onSurfaceVariant,
                     modifier = Modifier.clip(groupedShape(i, tones.size, outer = 20.dp))
                         .selectable(selected, role = Role.RadioButton) { onSetTone(id) },
-                )
+                ) { RadioButton(selected, onClick = null) }
             }
         }
         Spacer(Modifier.height(16.dp))
@@ -106,16 +99,12 @@ fun DeepResearchRow(deepResearch: Boolean, onSetDeepResearch: (Boolean) -> Unit,
     val enabled = disabledNote == null
     val on = deepResearch && enabled
     val dim = scheme.onSurface.copy(alpha = 0.38f)
-    ListItem(
-        headlineContent = { Text(t("personalitySettings.deepResearchTitle")) },
-        supportingContent = { Text(disabledNote ?: t("design.tone.deepResearchNote")) },
-        leadingContent = { Icon(if (on) BoarIcons.ScienceFilled else BoarIcons.Science, contentDescription = null,
-            tint = if (on) scheme.tertiary else if (enabled) scheme.onSurfaceVariant else dim) },
-        trailingContent = { Switch(on, onCheckedChange = null, enabled = enabled) },
-        colors = ListItemDefaults.colors(containerColor = scheme.surfaceContainerHigh,
-            headlineColor = if (enabled) scheme.onSurface else dim,
-            supportingColor = scheme.onSurfaceVariant),
+    // Filled flask only while it is on (the selected state); outlined otherwise, like its sibling rows.
+    OptionRow(t("personalitySettings.deepResearchTitle"), disabledNote ?: t("design.tone.deepResearchNote"),
+        if (on) BoarIcons.ScienceFilled else BoarIcons.Science,
+        container = scheme.surfaceContainerHigh, headlineColor = if (enabled) scheme.onSurface else dim,
+        supportingColor = scheme.onSurfaceVariant, leadingColor = if (on) scheme.tertiary else if (enabled) scheme.onSurfaceVariant else dim,
         modifier = Modifier.clip(RoundedCornerShape(20.dp))
             .toggleable(on, enabled = enabled, role = Role.Switch, onValueChange = onSetDeepResearch),
-    )
+    ) { Switch(on, onCheckedChange = null, enabled = enabled) }
 }

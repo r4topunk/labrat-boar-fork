@@ -1,5 +1,7 @@
 package team.sopa.boar.ui.drawer
 
+import team.sopa.boar.ui.theme.IconSize
+import team.sopa.boar.ui.theme.onTextLine
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -107,7 +109,8 @@ fun BoarDrawer(
         // it, so the menu doesn't move when the sessions load.
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)) {
-                Image(painterResource(R.drawable.mascot), null, Modifier.size(40.dp))
+                // The mark in the destinations' 24 dp icon column, so "BOAR" starts on their label column.
+                Image(painterResource(R.drawable.mascot), null, Modifier.size(IconSize.Standard))
                 Column {
                     Text("BOAR", style = type.titleMedium, color = scheme.onSurface)
                     // The same line the setup welcome carries: one product, one tagline.
@@ -116,7 +119,7 @@ fun BoarDrawer(
             }
             // The button's edge on the same 16 dp inset as the header and the destinations' icons.
             FilledTonalButton(onClick = onNewChat, enabled = !answering, modifier = Modifier.padding(start = 16.dp, bottom = 8.dp).height(48.dp)) {
-                Icon(Icons.Filled.Add, null, Modifier.size(ButtonDefaults.IconSize))
+                Icon(Icons.Filled.Add, null, Modifier.size(ButtonDefaults.IconSize).onTextLine(MaterialTheme.typography.labelLarge))
                 Spacer(Modifier.width(ButtonDefaults.IconSpacing))
                 Text(t("clean.drawer.newChat"))
             }
@@ -125,7 +128,7 @@ fun BoarDrawer(
             items.forEach { item ->
                 val icon = item.icon
                 NavigationDrawerItem(
-                    icon = if (icon != null) ({ Icon(icon, null) }) else null,
+                    icon = if (icon != null) ({ Icon(icon, null, Modifier.onTextLine(type.labelLarge)) }) else null,
                     label = { Text(item.label, style = type.labelLarge) },
                     selected = false,
                     onClick = item.onClick,
