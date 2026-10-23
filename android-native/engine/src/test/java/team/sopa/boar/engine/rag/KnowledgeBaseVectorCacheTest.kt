@@ -69,4 +69,23 @@ class KnowledgeBaseVectorCacheTest {
         other.insertChunk(Chunk("b", "b", "B", "Beta"), floatArrayOf(0f, 0.9f, 0.1f))
         assertEquals(listOf("a", "b"), kb.semanticSearch(q, 5).map { it.chunkId })
     }
+
+    @Test fun `one copy for both searches, freed on demand and read again by the next search`() {
+        val db = JdbcSqlite()
+        val kb = KnowledgeBase(db)
+        val r = Random(11)
+        kb.createCollection("col1", "Notes", null, 1, 1, 1, now = 1)
+        kb.insertChunks((1..50).map { i -> Chunk("c-$i", "d-$i", "T$i", "B$i", collectionId = if (i % 5 == 0) "col1" else null) to randomVec(r) })
+        val q = randomVec(r)
+        val all = kb.semanticSearch(q, 10)
+        val own = kb.semanticSearch(q, 10, ownOnly = true)
+        // The My files search reuses the rows already read: 50 held, not 50 + the user's 10 again.
+        assertEquals(50, kb.cachedVectorRows())
+        kb.dropVectorCache()
+        assertEquals(0, kb.cachedVectorRows())
+        assertEquals(own, kb.semanticSearch(q, 10, ownOnly = true))
+        assertEquals(all, kb.semanticSearch(q, 10))
+        assertEquals(50, kb.cachedVectorRows())
+        assertEquals(own, reference(db, q, 10, ownOnly = true))
+    }
 }

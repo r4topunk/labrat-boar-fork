@@ -23,30 +23,38 @@ class KnowledgeBase(private val db: SqlDatabase) {
      * The semantic search's vectors, read once and kept (in the search's own row order) until the knowledge base changes:
      * reading every embedding, title and body back from SQLite took about 130 ms per question (Pixel 8a, Oct 23).
      * [writes] counts this object's own writes, the only writer of these tables; PRAGMA data_version catches another
-     * connection's. Titles and bodies are read for the few hits only.
+     * connection's. Titles and bodies are read for the few hits only. One copy for both searches: Sources = My files
+     * uses the rows marked [own] (the user's chunks), not a second read of them. Freed by [dropVectorCache] (memory
+     * trimmed, the model freed when BOAR leaves) and read again by the next search.
      */
-    private class Vectors(val writes: Long, val dataVersion: Long?, val ids: List<String>, val docIds: List<String>, val vecs: List<FloatArray>)
+    private class Vectors(val writes: Long, val dataVersion: Long?, val ids: List<String>, val docIds: List<String>, val vecs: List<FloatArray>, val own: BooleanArray)
     @Volatile private var writes = 0L
-    private val vectorCache = arrayOfNulls<Vectors>(2)
+    private val cacheLock = Any()
+    private var vectorCache: Vectors? = null
 
     /** Every write goes through here, so the vector cache never answers from a changed knowledge base. */
-    private inline fun <T> write(block: () -> T): T = try { block() } finally { synchronized(vectorCache) { writes++; vectorCache.fill(null) } }
+    private inline fun <T> write(block: () -> T): T = try { block() } finally { synchronized(cacheLock) { writes++; vectorCache = null } }
+
+    /** Frees the semantic search's vectors (several MB per thousand chunks); the next search reads them again. */
+    fun dropVectorCache() = synchronized(cacheLock) { vectorCache = null }
+
+    /** Rows the vector cache holds now (0 when freed or not read yet). For tests. */
+    internal fun cachedVectorRows(): Int = synchronized(cacheLock) { vectorCache?.ids?.size ?: 0 }
 
     private fun dataVersion(): Long? = runCatching { db.query("PRAGMA data_version") { it.long(0) }.firstOrNull() }.getOrNull()
 
-    private fun vectors(ownOnly: Boolean): Vectors = synchronized(vectorCache) {
-        val slot = if (ownOnly) 1 else 0
+    private fun vectors(): Vectors = synchronized(cacheLock) {
         val version = dataVersion()
-        vectorCache[slot]?.takeIf { it.writes == writes && it.dataVersion == version }?.let { return it }
-        val ids = ArrayList<String>(); val docIds = ArrayList<String>(); val vecs = ArrayList<FloatArray>()
+        vectorCache?.takeIf { it.writes == writes && it.dataVersion == version }?.let { return it }
+        val ids = ArrayList<String>(); val docIds = ArrayList<String>(); val vecs = ArrayList<FloatArray>(); val own = ArrayList<Boolean>()
         db.query(
-            """SELECT c.chunk_id, c.doc_id, e.embedding
+            """SELECT c.chunk_id, c.doc_id, e.embedding, c.collection_id IS NOT NULL
                FROM chunk_embeddings e
                JOIN chunks c ON c.chunk_id = e.chunk_id
                LEFT JOIN custom_collections cc ON cc.id = c.collection_id
-               WHERE (c.collection_id IS NULL OR cc.active = 1)${if (ownOnly) OWN_ONLY else ""}""",
-        ) { ids += it.string(0)!!; docIds += it.string(1)!!; vecs += fromBlob(it.blob(2)!!) }
-        Vectors(writes, version, ids, docIds, vecs).also { vectorCache[slot] = it }
+               WHERE (c.collection_id IS NULL OR cc.active = 1)""",
+        ) { ids += it.string(0)!!; docIds += it.string(1)!!; vecs += fromBlob(it.blob(2)!!); own += it.long(3) != 0L }
+        Vectors(writes, version, ids, docIds, vecs, own.toBooleanArray()).also { vectorCache = it }
     }
 
     private fun migrate() {
@@ -209,9 +217,9 @@ class KnowledgeBase(private val db: SqlDatabase) {
 
     /** Brute-force cosine search over the stored embeddings, with the MIN_SEMANTIC_SIMILARITY floor. [ownOnly]: the user's collections only. */
     fun semanticSearch(queryVec: FloatArray, limit: Int, ownOnly: Boolean = false): List<Chunk> {
-        val v = vectors(ownOnly)
+        val v = vectors()
         // Scored and ordered as one SQL pass over every row did (a stable sort keeps the row order between equal scores).
-        val top = v.vecs.indices.map { it to RagPure.cosine(queryVec, v.vecs[it]) }
+        val top = v.vecs.indices.filter { !ownOnly || v.own[it] }.map { it to RagPure.cosine(queryVec, v.vecs[it]) }
             .sortedByDescending { it.second }.filter { it.second >= RagPure.MIN_SEMANTIC_SIMILARITY }.take(limit)
         if (top.isEmpty()) return emptyList()
         val ids = top.map { v.ids[it.first] }

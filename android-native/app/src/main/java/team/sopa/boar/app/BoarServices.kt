@@ -101,7 +101,20 @@ class BoarServices private constructor(private val context: Context) {
     }.getOrDefault(0L)
 
     private val kbDb = NativeSqlite.open(File(files, "SQLite").apply { mkdirs() }.resolve("aoair_knowledge.db").path)
-    val knowledgeBase = KnowledgeBase(kbDb)
+    val knowledgeBase = KnowledgeBase(kbDb).also { kb ->
+        // The semantic search's vectors stay in the heap between questions (several MB per thousand chunks): Android
+        // asking for memory back frees them, and the next question reads them again (about 130 ms).
+        context.registerComponentCallbacks(object : android.content.ComponentCallbacks2 {
+            @Suppress("DEPRECATION")
+            override fun onTrimMemory(level: Int) {
+                if (level >= android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND ||
+                    level == android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW || level == android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL) kb.dropVectorCache()
+            }
+            override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {}
+            @Deprecated("Deprecated in Java")
+            override fun onLowMemory() { kb.dropVectorCache() }
+        })
+    }
     val chats = ChatStore(kbDb)
     /** The PIN that opens the app and seals the chats (none until the user sets one). */
     val pinLock = team.sopa.boar.security.PinLock(settings, chats)
@@ -343,6 +356,8 @@ class BoarServices private constructor(private val context: Context) {
                     team.sopa.boar.engine.settings.FreeMemory.Decision.WAIT -> kotlinx.coroutines.delay(team.sopa.boar.engine.settings.FreeMemory.BUSY_POLL_MS)
                     team.sopa.boar.engine.settings.FreeMemory.Decision.UNLOAD -> {
                         host.unload()
+                        // The search's vectors too: read again by the next question.
+                        knowledgeBase.dropVectorCache()
                         android.util.Log.i("BOAR", "model unloaded after ${wait / 1000} s in the background")
                         return@launch
                     }
