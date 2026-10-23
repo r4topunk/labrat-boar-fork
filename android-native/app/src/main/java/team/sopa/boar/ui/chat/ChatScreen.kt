@@ -213,7 +213,7 @@ fun ChatScreen(
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
                 // The answer gets the whole screen: the keyboard closes on send.
                 send(input); input = ""; keyboard?.hide(); focus.clearFocus()
-            }, onStop, state.stopping, state.deepResearch, state.sourcesOwn, state.optionsChanged) { toneSheet = true }
+            }, onStop, state.stopping, state.deepResearch && !state.sourcesOwn, state.sourcesOwn, state.optionsChanged) { toneSheet = true }
         }
     }
     state.toast?.let { Toast(it, onToastHidden) }

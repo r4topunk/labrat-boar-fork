@@ -103,14 +103,29 @@ class ChatFlowDeviceTest {
             assertTrue("changed options button", compose.exists(hasContentDescription(tr("design.options.buttonChanged"))))
             assertTrue("My files placeholder", compose.exists(hasContentDescription(tr("design.options.placeholderOwn"))))
 
-            // Deep Research is the sheet's switch (it doesn't close the sheet); Reset to defaults puts everything back.
+            // With My files on, Deep Research is off and can't be turned on: the row says why and the switch is disabled.
             compose.pressIcon(tr("design.options.buttonChanged"))
             compose.waitForText(title)
+            assertTrue("Deep Research's note under My files", compose.shows(tr("design.options.deepResearchOff")))
+            compose.press(tr("personalitySettings.deepResearchTitle"))
+            compose.waitForIdle()
+            assertFalse("Deep Research stays off under My files", services.settings.deepResearchMode)
+
+            // Reset to defaults puts everything back.
+            compose.press(tr("design.options.reset"))
+            compose.waitUntil(5_000) { services.settings.personalityId == "succinct" && !services.settings.deepResearchMode }
+
+            // Back on All: Deep Research is the sheet's switch (it doesn't close the sheet), and turning My files on turns it off.
             compose.press(tr("personalitySettings.deepResearchTitle"))
             compose.waitUntil(5_000) { services.settings.deepResearchMode }
             assertTrue("the switch doesn't close the sheet", compose.shows(title))
+            compose.press(tr("design.options.sources"))
+            compose.waitForText(tr("design.options.sourcesOwnNote"))
+            compose.press(tr("design.options.sourcesOwn"))
+            compose.waitUntil(5_000) { !services.settings.deepResearchMode }
+            compose.waitForText(title)
             compose.press(tr("design.options.reset"))
-            compose.waitUntil(5_000) { services.settings.personalityId == "succinct" && !services.settings.deepResearchMode }
+            compose.waitUntil(5_000) { !services.settings.deepResearchMode }
             androidx.test.espresso.Espresso.pressBack()
             compose.waitForTextGone(title)
             assertTrue("defaults again", compose.exists(hasContentDescription(tr("design.options.button"))))

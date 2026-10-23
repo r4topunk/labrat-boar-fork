@@ -96,18 +96,26 @@ fun ToneChoices(tones: List<String>, selectedId: String?, deepResearch: Boolean,
     }
 }
 
-/** Deep Research as one switch block: in Settings, and in the chat's Answer options sheet. */
+/**
+ * Deep Research as one switch block: in Settings, and in the chat's Answer options sheet. [disabledNote]: why it can't be
+ * turned on now (Sources = My files); the row dims, the switch is off and disabled, and the note replaces the description.
+ */
 @Composable
-fun DeepResearchRow(deepResearch: Boolean, onSetDeepResearch: (Boolean) -> Unit) {
+fun DeepResearchRow(deepResearch: Boolean, onSetDeepResearch: (Boolean) -> Unit, disabledNote: String? = null) {
     val scheme = MaterialTheme.colorScheme
+    val enabled = disabledNote == null
+    val on = deepResearch && enabled
+    val dim = scheme.onSurface.copy(alpha = 0.38f)
     ListItem(
         headlineContent = { Text(t("personalitySettings.deepResearchTitle")) },
-        supportingContent = { Text(t("design.tone.deepResearchNote")) },
-        leadingContent = { Icon(if (deepResearch) BoarIcons.ScienceFilled else BoarIcons.Science, contentDescription = null,
-            tint = if (deepResearch) scheme.tertiary else scheme.onSurfaceVariant) },
-        trailingContent = { Switch(deepResearch, onCheckedChange = null) },
-        colors = ListItemDefaults.colors(containerColor = scheme.surfaceContainerHigh),
+        supportingContent = { Text(disabledNote ?: t("design.tone.deepResearchNote")) },
+        leadingContent = { Icon(if (on) BoarIcons.ScienceFilled else BoarIcons.Science, contentDescription = null,
+            tint = if (on) scheme.tertiary else if (enabled) scheme.onSurfaceVariant else dim) },
+        trailingContent = { Switch(on, onCheckedChange = null, enabled = enabled) },
+        colors = ListItemDefaults.colors(containerColor = scheme.surfaceContainerHigh,
+            headlineColor = if (enabled) scheme.onSurface else dim,
+            supportingColor = scheme.onSurfaceVariant),
         modifier = Modifier.clip(RoundedCornerShape(20.dp))
-            .toggleable(deepResearch, role = Role.Switch, onValueChange = onSetDeepResearch),
+            .toggleable(on, enabled = enabled, role = Role.Switch, onValueChange = onSetDeepResearch),
     )
 }

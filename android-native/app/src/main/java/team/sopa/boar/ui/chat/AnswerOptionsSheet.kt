@@ -115,7 +115,8 @@ private fun OptionsList(state: ChatState, actions: AnswerOptionsActions, open: (
             }
         }
         Spacer(Modifier.height(16.dp))
-        DeepResearchRow(state.deepResearch, actions.onSetDeepResearch)
+        DeepResearchRow(state.deepResearch, actions.onSetDeepResearch,
+            disabledNote = if (state.sourcesOwn) t("design.options.deepResearchOff") else null)
         TextButton(actions.onReset, enabled = state.optionsChanged, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 8.dp)) {
             Text(t("design.options.reset"))
         }

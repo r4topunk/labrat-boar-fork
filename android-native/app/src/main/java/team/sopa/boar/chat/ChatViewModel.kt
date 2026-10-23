@@ -375,6 +375,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun setDeepResearch(on: Boolean) {
+        // Not with Sources = My files: its write-up isn't held to the files (exp/dr-files-only, Oct 23: C lost 3 of 8 answers).
+        if (on && _state.value.sourcesOwn) return
         services.settings.deepResearchMode = on
         _state.update { it.copy(deepResearch = on) }
     }
@@ -391,7 +393,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     fun setSourcesOwn(own: Boolean) {
         optionPrefs.edit().putBoolean(SOURCES_OWN, own).apply()
         _state.update { it.copy(sourcesOwn = own) }
+        // My files answers through the plain pipeline only, so Deep Research goes off rather than showing on and not running.
+        if (own && _state.value.deepResearch) setDeepResearch(false)
     }
+
+    // Saved before this rule (both on): My files wins, as setSourcesOwn would have decided.
+    init { if (_state.value.sourcesOwn && _state.value.deepResearch) setDeepResearch(false) }
 
     /** The installed answer models, and the default: the one setup recommends for this phone's memory, if it is here. */
     private fun refreshModelChoices() {

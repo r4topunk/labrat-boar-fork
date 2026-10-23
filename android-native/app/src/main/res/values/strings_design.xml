@@ -19,4 +19,5 @@
     <string name="design_chat_filesNotFound" formatted="false">I couldn\'t find this in your files.</string>
     <string name="design_documents_imported" formatted="false">Added “{{name}}”. To get answers only from your files, ask with Sources set to My files.</string>
     <string name="design_documents_askFiles" formatted="false">Ask about your files</string>
+    <string name="design_options_deepResearchOff" formatted="false">Not with My files: Deep Research could answer from outside your files.</string>
 </resources>
