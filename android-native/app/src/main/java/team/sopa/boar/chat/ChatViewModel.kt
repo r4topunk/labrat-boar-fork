@@ -213,7 +213,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      * force-stops a frozen BOAR still holding the model (F3, Oct 19, 17:46:30-40).
      */
     @Volatile private var deferredAfterAnswer: (() -> Unit)? = null
-    private val onForeground: () -> Unit = { resumeAfterAnswer() }
+    private val onForeground: () -> Unit = { resumeAfterAnswer(); reloadOnReturn() }
     /**
      * BOAR left the screen: the warm prefill stops (natively too, unless an answer is running), so it doesn't hold the
      * model without the answering service and Free memory when I leave can unload at once.
@@ -284,6 +284,28 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
         safeScope.launch { preloading?.join(); retrieval.join(); qaMark("preload.done") }
+    }
+
+    /**
+     * Back on screen after Free memory when I leave BOAR unloaded the model (Auto: as soon as BOAR leaves): load it and
+     * warm the instructions again, as the chat's preload does. Before, only the next question loaded it, and it also read
+     * the ~250-token instructions again (2.7 s on the 1.5B, Pixel 8a). Not while an answer, a title or summary (which
+     * loads the model itself) or a preload runs, nor for a model the chat would ask about first.
+     */
+    private fun reloadOnReturn() {
+        if (services.activeModel() == null || services.host.current() != null) return
+        if (job?.isActive == true || preloading?.isActive == true || background?.isActive == true) return
+        if (services.startDecision() !is StartLoad.Decision.Load) return
+        _state.update { it.copy(loadingKey = "chatScreen.mountingWeights") }
+        preloading = safeScope.launch(Dispatchers.Default) {
+            val session = runCatching { services.activeSession() }.getOrNull()
+            _state.update { it.copy(loadingKey = null) }
+            if (session != null && services.isInForeground && job?.isActive != true) {
+                val key = chatWarmKey()
+                warmKey = key
+                warmJob = launch { runCatching { warmPrefix(session, key.systemPrompt, true, key.filesOnly) } }
+            }
+        }
     }
 
     /**
