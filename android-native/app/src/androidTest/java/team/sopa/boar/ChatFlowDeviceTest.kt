@@ -169,6 +169,10 @@ class ChatFlowDeviceTest {
         prefs.edit().clear().commit()
         val wasDeep = services.settings.deepResearchMode
         services.settings.deepResearchMode = false
+        // The button reads "changed" for any style but the default, so the run starts from it (Oct 23: a devtest app left
+        // on Detailed failed here at the first tap).
+        val wasStyle = services.settings.personalityId
+        services.settings.personalityId = services.personalities.defaultId
         try {
             launchApp(opened)
             compose.waitForChat()
@@ -230,6 +234,7 @@ class ChatFlowDeviceTest {
             assertTrue("nothing left out", prefs.getStringSet("sourcesOff", null).isNullOrEmpty() && !prefs.getBoolean("sourcesOwnOnly", false))
         } finally {
             services.settings.deepResearchMode = wasDeep
+            services.settings.personalityId = wasStyle
             prefs.edit().clear().commit()
         }
     }

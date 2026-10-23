@@ -92,6 +92,12 @@ class SetupFlowDeviceTest {
 
     private fun back() = compose.pressIcon(tr("clean.onboarding.back"))
 
+    /** A knowledge library in the catalog that isn't on the phone yet. */
+    private fun libraryMissing(): Boolean {
+        val installed = services.installed(AssetKind.CORPUS).map { it.id }.toSet()
+        return services.catalog.models.any { it.kind == AssetKind.CORPUS && it.id !in installed }
+    }
+
     @Test fun everyStepNavigatesForwardAndBackAndBackToTheAppReturnsToTheChat() {
         needsAWorkingInstall()
         val activeBefore = services.activeModel()!!.id
@@ -153,8 +159,12 @@ class SetupFlowDeviceTest {
         }
         val minimal = preset("clean.onboarding.preset.minimal")
         val everything = preset("clean.onboarding.preset.everything")
-        assertTrue("Everything ($everything) selects more than Minimal ($minimal)", everything > minimal)
-        assertTrue("Everything downloads something", compose.exists(hasText(tr("clean.onboarding.knowledge.download")) and hasClickAction()))
+        // The count is what will be on the phone (installed or selected): with every library already installed, every chip
+        // counts them all and Everything has nothing to download (Oct 23: a devtest app with all 13).
+        if (libraryMissing()) {
+            assertTrue("Everything ($everything) selects more than Minimal ($minimal)", everything > minimal)
+            assertTrue("Everything downloads something", compose.exists(hasText(tr("clean.onboarding.knowledge.download")) and hasClickAction()))
+        } else assertEquals("every library is on the phone", minimal, everything)
         preset("clean.onboarding.preset.recommended")
 
         // Back to Models, Welcome, and out to the chat; the app's model is untouched.
@@ -169,6 +179,7 @@ class SetupFlowDeviceTest {
     }
 
     @Test fun theKnowledgePreviewSheetShowsALibraryAndAddsOrRemovesIt() {
+        assumeTrue("needs Wikivoyage not on the phone", services.installed(AssetKind.CORPUS).none { it.id == "boar-wikivoyage-en" })
         needsAWorkingInstall()
         reopenSetup()
         compose.press(tr("clean.onboarding.welcome.start"))
