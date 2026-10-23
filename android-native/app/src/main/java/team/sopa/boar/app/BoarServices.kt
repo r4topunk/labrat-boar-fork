@@ -207,6 +207,12 @@ class BoarServices private constructor(private val context: Context) {
         e.embed(text)
     }
 
+    /** Opens the packs and loads the search model ahead of the first question (the chat's preload). */
+    suspend fun warmRetrieval() {
+        packs
+        embed("warm-up")
+    }
+
     val retriever: Retriever by lazy {
         Retriever(knowledgeBase, { packs }, { text -> runBlocking { embed(text) } }, { lexicon })
     }

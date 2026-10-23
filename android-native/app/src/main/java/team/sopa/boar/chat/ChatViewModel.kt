@@ -218,12 +218,28 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         }
         _state.update { it.copy(loadingKey = "chatScreen.mountingWeights") }
         preloading = safeScope.launch(Dispatchers.Default) {
-            runCatching { services.activeSession() }
+            // Meanwhile the packs open and the search model loads, which the first question waited for (about 0.5 s).
+            val retrieval = launch(Dispatchers.IO) { runCatching { services.warmRetrieval() } }
+            val session = runCatching { services.activeSession() }.getOrNull()
             // Shown once: the model that closed the app last time, and the one answering instead.
             val crash = services.loadGuard.consume()
             _state.update { it.copy(loadingKey = null, loadNote = crash?.let(::crashNote) ?: it.loadNote) }
             if (crash != null) refreshModel()
+            // The default answer's instructions go into the KV cache while the user types, as after a title: the first
+            // answer then reads only its sources and question, like every later one (about 250 tokens, 2.7 s on the
+            // 1.5B, Pixel 8a). A question sent meanwhile waits for it at the model's lock and reuses all of it.
+            if (session != null && crash == null) runCatching { warmPrefix(session, defaultSystemPrompt(), true) }
+            retrieval.join()
+            qaMark("preload.done")
         }
+    }
+
+    /** The system prompt a question in the user's chosen style gets (send's own choice, before any short-answer rule). */
+    private fun defaultSystemPrompt(): String? {
+        val settings = services.settings
+        val style = settings.personalityId ?: services.personalities.defaultId
+        val smallModel = (services.answerModel()?.sizeBytes ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
+        return services.personalities.promptFor(style, settings.customSystemPrompt, smallModel).first
     }
 
     /** The note for a decision that doesn't load the user's model on its own; null when it loads. */
