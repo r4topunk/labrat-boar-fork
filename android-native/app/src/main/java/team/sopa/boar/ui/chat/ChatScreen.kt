@@ -157,9 +157,14 @@ fun ChatScreen(
     onOpenModels: () -> Unit = {},
     onReused: () -> Unit = {},
     onToastHidden: () -> Unit = {},
-    /** Answer options: the model to answer with, Sources (true = only the user's files), and Reset to defaults. */
+    /**
+     * Answer options: the model to answer with, Sources (true = Only my files, false = Everything; a checklist row
+     * ticked or unticked by id; the list read again when the sheet opens), and Reset to defaults.
+     */
     onSetModel: (String) -> Unit = {},
     onSetSourcesOwn: (Boolean) -> Unit = {},
+    onToggleSource: (String) -> Unit = {},
+    onRefreshSources: () -> Unit = {},
     onResetOptions: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -173,7 +178,7 @@ fun ChatScreen(
     var toneSheet by remember { mutableStateOf(false) }
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     val focus = androidx.compose.ui.platform.LocalFocusManager.current
-    if (toneSheet) AnswerOptionsSheet(state, AnswerOptionsActions(onSetTone, onSetModel, onSetSourcesOwn, onSetDeepResearch, onResetOptions)) { toneSheet = false }
+    if (toneSheet) AnswerOptionsSheet(state, AnswerOptionsActions(onSetTone, onSetModel, onSetSourcesOwn, onSetDeepResearch, onResetOptions, onToggleSource, onRefreshSources)) { toneSheet = false }
     val last = state.messages.lastOrNull()
     // Follow the end of the answer while it streams, unless the user scrolled up to read: a drag that ends short of
     // the bottom stops following, reaching the bottom again resumes it, and a new message always does.

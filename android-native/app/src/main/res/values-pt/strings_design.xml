@@ -17,7 +17,12 @@
     <string name="design_knowledge_remove" formatted="false">Remover do celular</string>
     <string name="design_onboarding_installedNote" formatted="false">Já está no celular. Você pode removê-lo depois em Conhecimento.</string>
     <string name="design_chat_filesNotFound" formatted="false">Não encontrei isso nos seus arquivos.</string>
-    <string name="design_documents_imported" formatted="false">“{{name}}” adicionado. Para respostas só dos seus arquivos, pergunte com Fontes em Meus arquivos.</string>
+    <string name="design_documents_imported" formatted="false">“{{name}}” adicionado. Para respostas só dos seus arquivos, pergunte com Fontes em Só meus arquivos.</string>
     <string name="design_documents_askFiles" formatted="false">Perguntar sobre seus arquivos</string>
-    <string name="design_options_deepResearchOff" formatted="false">Não com Meus arquivos: a Pesquisa profunda poderia responder com algo de fora dos seus arquivos.</string>
+    <string name="design_options_deepResearchOff" formatted="false">Não com Só meus arquivos: a Pesquisa profunda poderia responder com algo de fora dos seus arquivos.</string>
+    <string name="design_options_sourcesSome" formatted="false">{{on}} de {{total}} fontes</string>
+    <string name="design_options_sourcesSearchIn" formatted="false">Buscar em</string>
+    <string name="design_options_sourcesFiles" formatted="false">Seus arquivos</string>
+    <string name="design_options_sourcesFilesNote" formatted="false">Documentos que você adicionou</string>
+    <string name="design_options_sourcesFoot" formatted="false">Pelo menos uma fonte fica ligada.</string>
 </resources>

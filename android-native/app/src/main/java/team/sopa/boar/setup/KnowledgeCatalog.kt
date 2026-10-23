@@ -230,6 +230,9 @@ object KnowledgeCatalog {
         )
     }
 
+    /** t() key of an installed pack's name by its catalog id; null for an id this build doesn't know (use the catalog label). */
+    fun packNameKey(id: String): String? = DEFS.firstOrNull { id in it.assetIds && it.id != WIKI_ESSENTIALS }?.let { "clean.onboarding.pack.${it.slug}.name" }
+
     /**
      * t() key of an install row's name, or null to use the model's [CatalogAsset.shortName] (answer models) or the
      * catalog label (unknown corpora). The Wikipedia pair gets one key per file.

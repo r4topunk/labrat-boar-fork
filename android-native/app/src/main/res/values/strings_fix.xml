@@ -187,9 +187,9 @@
     <string name="design_options_model" formatted="false">Model</string>
     <string name="design_options_sources" formatted="false">Sources</string>
     <string name="design_options_noModel" formatted="false">No model yet</string>
-    <string name="design_options_sourcesAll" formatted="false">All</string>
-    <string name="design_options_sourcesAllNote" formatted="false">Knowledge packs and your files</string>
-    <string name="design_options_sourcesOwn" formatted="false">My files</string>
+    <string name="design_options_sourcesAll" formatted="false">Everything</string>
+    <string name="design_options_sourcesAllNote" formatted="false">Every library and your files</string>
+    <string name="design_options_sourcesOwn" formatted="false">Only my files</string>
     <string name="design_options_sourcesOwnNote" formatted="false">Only the documents you added</string>
     <string name="design_options_recommended" formatted="false">Recommended for this phone</string>
     <string name="design_options_modelFoot" formatted="false">Switching loads the model first. Installed models only.</string>

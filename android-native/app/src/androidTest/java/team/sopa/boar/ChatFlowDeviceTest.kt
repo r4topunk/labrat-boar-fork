@@ -158,6 +158,82 @@ class ChatFlowDeviceTest {
         }
     }
 
+    /**
+     * Answer options → Sources' checklist: unticking one pack flags the options button and the Sources row reads "N-1 of N
+     * sources"; the last ticked row can't be unticked; Only my files gives the files placeholder; Everything resets.
+     */
+    @Test fun theSourcesChecklistFiltersPacksAndItsQuickChoicesReset() {
+        assumeTrue("needs a model and no PIN", services.activeModel() != null && !services.pinLock.isSet)
+        assumeTrue("needs an installed pack", services.packs.isNotEmpty())
+        val prefs = ctx.getSharedPreferences("answer_options", Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        val wasDeep = services.settings.deepResearchMode
+        services.settings.deepResearchMode = false
+        try {
+            launchApp(opened)
+            compose.waitForChat()
+            compose.pressIcon(tr("clean.drawer.newChat"))
+            val title = tr("design.options.title")
+            compose.pressIcon(tr("design.options.button"))
+            compose.waitForText(title)
+            assertTrue("defaults: Sources = Everything", compose.shows(tr("design.options.sourcesAll")))
+            compose.press(tr("design.options.sources"))
+            compose.waitForText(tr("design.options.sourcesSearchIn"))
+            compose.waitForText(tr("design.options.sourcesFiles"))
+            val pack = services.packs.first().id
+            val name = team.sopa.boar.setup.KnowledgeCatalog.packNameKey(pack)?.let { tr(it) } ?: services.catalog.byId(pack)?.label ?: pack.removePrefix("local-")
+            compose.waitForText(name)
+            // Every row ticked: Your files, the library (when indexed) and each pack.
+            val total = 1 + (if (services.knowledgeBase.seedChunkCount() > 0) 1 else 0) + services.packs.size
+            assertEquals(total, compose.onAllNodes(androidx.compose.ui.test.isToggleable()).fetchSemanticsNodes().size)
+            compose.press(name)
+            compose.waitUntil(5_000) { prefs.getStringSet("sourcesOff", null)?.contains(pack) == true }
+            assertFalse("a pack unticked is not Only my files", prefs.getBoolean("sourcesOwnOnly", false))
+            compose.pressIcon(tr("design.options.back"))
+            compose.waitForText(tr("design.options.sourcesSome", "on" to total - 1, "total" to total))
+            androidx.test.espresso.Espresso.pressBack()
+            compose.waitForTextGone(title)
+            assertTrue("changed options button", compose.exists(hasContentDescription(tr("design.options.buttonChanged"))))
+            assertTrue("a partial selection keeps the default placeholder", compose.exists(hasContentDescription(tr("chatScreen.inputPlaceholder"))))
+
+            // Untick everything but one row: that last row is disabled.
+            compose.pressIcon(tr("design.options.buttonChanged"))
+            compose.waitForText(title)
+            compose.press(tr("design.options.sources"))
+            compose.waitForText(tr("design.options.sourcesSearchIn"))
+            val toggles = androidx.compose.ui.test.isToggleable()
+            val onRows = { compose.onAllNodes(toggles and androidx.compose.ui.test.isOn()).fetchSemanticsNodes() }
+            while (onRows().size > 1) {
+                compose.onAllNodes(toggles and androidx.compose.ui.test.isOn())[0].performSemanticsAction(SemanticsActions.OnClick)
+                compose.waitForIdle()
+            }
+            assertTrue("the last ticked row is disabled", onRows().single().config.contains(SemanticsProperties.Disabled))
+            assertEquals(1, onRows().size)
+
+            // Only my files: the files placeholder. Everything: the plain button and placeholder again.
+            compose.press(tr("design.options.sourcesOwn"))
+            compose.waitForText(title)
+            assertTrue(compose.shows(tr("design.options.sourcesOwn")))
+            androidx.test.espresso.Espresso.pressBack()
+            compose.waitForTextGone(title)
+            assertTrue("Only my files placeholder", compose.exists(hasContentDescription(tr("design.options.placeholderOwn"))))
+            compose.pressIcon(tr("design.options.buttonChanged"))
+            compose.waitForText(title)
+            compose.press(tr("design.options.sources"))
+            compose.waitForText(tr("design.options.sourcesSearchIn"))
+            compose.press(tr("design.options.sourcesAll"))
+            compose.waitForText(title)
+            androidx.test.espresso.Espresso.pressBack()
+            compose.waitForTextGone(title)
+            assertTrue("Everything: defaults again", compose.exists(hasContentDescription(tr("design.options.button"))))
+            assertTrue("default placeholder", compose.exists(hasContentDescription(tr("chatScreen.inputPlaceholder"))))
+            assertTrue("nothing left out", prefs.getStringSet("sourcesOff", null).isNullOrEmpty() && !prefs.getBoolean("sourcesOwnOnly", false))
+        } finally {
+            services.settings.deepResearchMode = wasDeep
+            prefs.edit().clear().commit()
+        }
+    }
+
     @Test fun aSentQuestionIsAnsweredOnScreenWithSourcesThatOpenAndClose() {
         assumeTrue("needs a model and no PIN", services.activeModel() != null && !services.pinLock.isSet)
         val wasStyle = services.settings.personalityId

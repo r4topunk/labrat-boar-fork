@@ -188,8 +188,8 @@
     <string name="design_options_sources" formatted="false">Fontes</string>
     <string name="design_options_noModel" formatted="false">Nenhum modelo ainda</string>
     <string name="design_options_sourcesAll" formatted="false">Tudo</string>
-    <string name="design_options_sourcesAllNote" formatted="false">Pacotes de conhecimento e seus arquivos</string>
-    <string name="design_options_sourcesOwn" formatted="false">Meus arquivos</string>
+    <string name="design_options_sourcesAllNote" formatted="false">Todas as bibliotecas e seus arquivos</string>
+    <string name="design_options_sourcesOwn" formatted="false">Só meus arquivos</string>
     <string name="design_options_sourcesOwnNote" formatted="false">Só os documentos que você adicionou</string>
     <string name="design_options_recommended" formatted="false">Recomendado para este celular</string>
     <string name="design_options_modelFoot" formatted="false">Trocar carrega o modelo antes. Só modelos instalados.</string>

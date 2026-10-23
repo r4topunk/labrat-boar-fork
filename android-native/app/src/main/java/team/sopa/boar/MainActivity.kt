@@ -373,6 +373,8 @@ private fun ChatHost(services: BoarServices, vm: ChatViewModel, onNavigate: (Str
             onSetDeepResearch = vm::setDeepResearch,
             onSetModel = vm::setModel,
             onSetSourcesOwn = vm::setSourcesOwn,
+            onToggleSource = vm::toggleSource,
+            onRefreshSources = vm::refreshSources,
             onResetOptions = vm::resetOptions,
             onRedo = vm::redoWithLimit,
             onRetry = vm::retry,

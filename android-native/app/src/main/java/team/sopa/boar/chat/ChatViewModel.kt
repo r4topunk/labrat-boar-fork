@@ -120,8 +120,12 @@ data class ChatState(
     val online: Boolean = false,
     /** Suggested question keys for the empty chat (chat.suggestions.*). */
     val suggestions: List<String> = emptyList(),
-    /** Answer options → Sources: only the user's own files (Retriever ownOnly), not the library and packs. */
+    /** Answer options → Sources = Only my files: the user's own files only (files-only answers, Retriever ownOnly). */
     val sourcesOwn: Boolean = false,
+    /** Answer options → Sources: what the checklist lists (the user's files, the built-in library when indexed, each installed pack). */
+    val sourceRows: List<SourceRow> = emptyList(),
+    /** Sources left out of the search (ids of [sourceRows]); empty = Everything. Not read while [sourcesOwn]. */
+    val sourcesOff: Set<String> = emptySet(),
     /** Answer options → Model: the answer models on the phone, the one answering, and the one recommended for it. */
     val models: List<ModelChoice> = emptyList(),
     val activeModelId: String? = null,
@@ -130,10 +134,30 @@ data class ChatState(
     val switchingModelId: String? = null,
     val defaultPersonalityId: String = BoarServices.DEFAULT_PERSONALITY_ID,
 ) {
+    /** Sources = Everything: every listed source searched (a pack installed later too). */
+    val sourcesEverything: Boolean
+        get() = !sourcesOwn && (if (sourceRows.isEmpty()) sourcesOff.isEmpty() else sourceRows.none { it.id in sourcesOff })
+
+    /** The checklist's ticked rows. */
+    val sourcesChecked: Set<String>
+        get() = if (sourcesOwn) setOf(SourceRow.FILES) else sourceRows.map { it.id }.filter { it !in sourcesOff }.toSet()
+
     /** Anything the composer's options button must flag: a style, model or sources other than the defaults, or Deep Research. */
     val optionsChanged: Boolean
-        get() = personalityId != defaultPersonalityId || sourcesOwn || deepResearch ||
+        get() = personalityId != defaultPersonalityId || !sourcesEverything || deepResearch ||
             (defaultModelId != null && activeModelId != null && activeModelId != defaultModelId)
+}
+
+/**
+ * One row of Answer options → Sources: the user's files ([FILES]), the built-in library's seed chunks ([LIBRARY]), or an
+ * installed pack by its id. [nameKey] is the t() key of its name, [name] the fallback (catalog label); [articles] from
+ * pack-previews.json when known.
+ */
+data class SourceRow(val id: String, val nameKey: String?, val name: String, val articles: Int?) {
+    companion object {
+        const val FILES = "@files"
+        const val LIBRARY = "@library"
+    }
 }
 
 /** An installed answer model as Answer options → Model lists it. */
@@ -163,6 +187,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
     private val _state = MutableStateFlow(ChatState(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats,
         sourcesOwn = app.getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE).getBoolean(SOURCES_OWN, false),
+        sourcesOff = app.getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE).getStringSet(SOURCES_OFF, null).orEmpty().toSet(),
         defaultPersonalityId = services.personalities.defaultId))
     val state: StateFlow<ChatState> = _state
     private var job: Job? = null
@@ -437,20 +462,92 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     private val optionPrefs get() = getApplication<Application>().getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE)
 
-    /** Every search of an answer goes through here, so Sources = My files reaches Deep Research and plans too. */
+    /** Every search of an answer goes through here, so Answer options → Sources reaches Deep Research and plans too. */
     private val retrieve: (String, Int) -> List<team.sopa.boar.engine.rag.Chunk> =
-        { query, k -> services.retriever.retrieve(query, k, ownOnly = _state.value.sourcesOwn) }
+        { query, k -> services.retriever.retrieve(query, k, sources = sourceFilter()) }
 
-    /** Answer options → Sources: My files (true) searches only the documents the user added. Kept across launches. */
+    /** The search's sources from Answer options → Sources: the packs left out by id, so a pack installed later is searched. */
+    private fun sourceFilter(): team.sopa.boar.engine.rag.SourceFilter {
+        val s = _state.value
+        if (s.sourcesOwn) return team.sopa.boar.engine.rag.SourceFilter.OWN_ONLY
+        val off = s.sourcesOff
+        if (off.isEmpty()) return team.sopa.boar.engine.rag.SourceFilter.ALL
+        val packsOff = off - SourceRow.FILES - SourceRow.LIBRARY
+        val f = team.sopa.boar.engine.rag.SourceFilter(
+            seed = SourceRow.LIBRARY !in off, own = SourceRow.FILES !in off,
+            packs = if (packsOff.isEmpty()) null else services.packs.map { it.id }.filter { it !in packsOff }.toSet(),
+        )
+        // Nothing left (the only kept pack was removed since): everything, never an empty search.
+        return if (!f.seed && !f.own && f.packs?.isEmpty() == true) team.sopa.boar.engine.rag.SourceFilter.ALL else f
+    }
+
+    private val packPreviews by lazy {
+        runCatching { getApplication<Application>().assets.open("boar-data/pack-previews.json").bufferedReader().use { it.readText() } }
+            .map(team.sopa.boar.setup.KnowledgeCatalog::parsePreviews).getOrDefault(emptyMap())
+    }
+
+    /**
+     * Answer options → Sources' checklist: the user's files, the built-in library (when its seed chunks are indexed) and
+     * every installed pack, named and counted as in Knowledge. Off the main thread: it opens the packs.
+     */
+    fun refreshSources() {
+        safeScope.launch(Dispatchers.IO) {
+            val essentials = services.installed(team.sopa.boar.engine.models.AssetKind.CORPUS)
+                .filter { it.id in team.sopa.boar.setup.KnowledgeCatalog.WIKI_ESSENTIALS_ASSETS }
+            val rows = buildList {
+                add(SourceRow(SourceRow.FILES, "design.options.sourcesFiles", "", null))
+                if (services.knowledgeBase.seedChunkCount() > 0) add(SourceRow(SourceRow.LIBRARY, "clean.onboarding.pack.wikiEssentials.name", "",
+                    team.sopa.boar.setup.KnowledgeCatalog.mergePreviews(essentials.mapNotNull { packPreviews[it.id] })?.articles))
+                services.packs.forEach { p ->
+                    val asset = services.catalog.byId(p.id)
+                    add(SourceRow(p.id, team.sopa.boar.setup.KnowledgeCatalog.packNameKey(p.id), asset?.label ?: p.id.removePrefix("local-"), packPreviews[p.id]?.articles))
+                }
+            }
+            _state.update { it.copy(sourceRows = rows) }
+            // Nothing ticked any more (the packs kept were removed): back to Everything.
+            val s = _state.value
+            if (!s.sourcesOwn && s.sourceRows.isNotEmpty() && s.sourcesChecked.isEmpty()) setSourcesOwn(false)
+        }
+    }
+
+    /**
+     * Answer options → Sources' quick choices: Only my files (true) searches only the documents the user added, with
+     * files-only answers; Everything (false) every source. Kept across launches.
+     */
     fun setSourcesOwn(own: Boolean) {
-        optionPrefs.edit().putBoolean(SOURCES_OWN, own).apply()
-        _state.update { it.copy(sourcesOwn = own) }
+        saveSources(own, emptySet())
         // My files answers through the plain pipeline only, so Deep Research goes off rather than showing on and not running.
         if (own && _state.value.deepResearch) setDeepResearch(false)
     }
 
+    /**
+     * Ticks or unticks one checklist row. The last ticked row can't be unticked (the sheet disables it); all ticked is
+     * Everything, only Your files is Only my files, anything else filters the search with the normal answer.
+     */
+    fun toggleSource(id: String) {
+        val s = _state.value
+        val all = s.sourceRows.map { it.id }.toSet()
+        if (id !in all) return
+        val next = if (id in s.sourcesChecked) s.sourcesChecked - id else s.sourcesChecked + id
+        when {
+            next.isEmpty() -> return
+            next == all -> setSourcesOwn(false)
+            next == setOf(SourceRow.FILES) -> setSourcesOwn(true)
+            else -> saveSources(false, all - next)
+        }
+    }
+
+    private fun saveSources(own: Boolean, off: Set<String>) {
+        optionPrefs.edit().putBoolean(SOURCES_OWN, own).putStringSet(SOURCES_OFF, off).apply()
+        _state.update { it.copy(sourcesOwn = own, sourcesOff = off) }
+    }
+
     // Saved before this rule (both on): My files wins, as setSourcesOwn would have decided.
-    init { if (_state.value.sourcesOwn && _state.value.deepResearch) setDeepResearch(false) }
+    init {
+        if (_state.value.sourcesOwn && _state.value.deepResearch) setDeepResearch(false)
+        // A partial selection: the Sources row's "4 of 7" needs the list.
+        if (_state.value.sourcesOff.isNotEmpty()) refreshSources()
+    }
 
     /** The installed answer models, and the default: the one setup recommends for this phone's memory, if it is here. */
     private fun refreshModelChoices() {
@@ -906,8 +1003,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }.getOrDefault(emptyList())
 
     companion object {
-        /** Answer options → Sources = My files, in the "answer_options" preferences. */
+        /** Answer options → Sources = Only my files, in the "answer_options" preferences (the flag of the earlier All / My files choice). */
         const val SOURCES_OWN = "sourcesOwnOnly"
+        /** Answer options → Sources: the ids left out (SourceRow ids), a string set; absent or empty = Everything. */
+        const val SOURCES_OFF = "sourcesOff"
         /** Messages sent verbatim as history (ChatScreen.tsx VERBATIM_MESSAGE_COUNT). */
         const val VERBATIM_MESSAGE_COUNT = 6
         /** How often an answer being written is saved (savePartial). */

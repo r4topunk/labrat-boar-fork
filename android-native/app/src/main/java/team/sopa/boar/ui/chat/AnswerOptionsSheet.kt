@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -24,11 +27,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -41,7 +46,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import team.sopa.boar.chat.ChatState
+import team.sopa.boar.chat.SourceRow
 import team.sopa.boar.engine.models.Units
+import team.sopa.boar.ui.setup.countText
 import team.sopa.boar.ui.icons.BoarIcons
 import team.sopa.boar.ui.t
 
@@ -52,6 +59,8 @@ class AnswerOptionsActions(
     val onSetSourcesOwn: (Boolean) -> Unit,
     val onSetDeepResearch: (Boolean) -> Unit,
     val onReset: () -> Unit,
+    val onToggleSource: (String) -> Unit = {},
+    val onRefreshSources: () -> Unit = {},
 )
 
 private enum class OptionsPage { LIST, STYLE, MODEL, SOURCES }
@@ -68,6 +77,8 @@ fun AnswerOptionsSheet(state: ChatState, actions: AnswerOptionsActions, onDismis
     val dark = scheme.surface.luminance() < 0.5f
     var page by rememberSaveable { mutableStateOf(OptionsPage.LIST) }
     BackHandler(page != OptionsPage.LIST) { page = OptionsPage.LIST }
+    // The Sources checklist lists what is installed now (a pack downloaded since the last look is on).
+    LaunchedEffect(Unit) { actions.onRefreshSources() }
     ModalBottomSheet(onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = if (dark) scheme.surfaceContainer else scheme.surfaceContainerLow,
         scrimColor = scheme.scrim.copy(alpha = if (dark) 0.6f else 0.32f)) {
@@ -75,6 +86,7 @@ fun AnswerOptionsSheet(state: ChatState, actions: AnswerOptionsActions, onDismis
             AnimatedContent(page, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "answerOptions") { p ->
                 when (p) {
                     OptionsPage.LIST -> OptionsList(state, actions) { page = it }
+                    OptionsPage.SOURCES -> SourcesDetail(state, actions) { page = OptionsPage.LIST }
                     else -> OptionsDetail(p, state, actions) { page = OptionsPage.LIST }
                 }
             }
@@ -95,7 +107,7 @@ private fun OptionsList(state: ChatState, actions: AnswerOptionsActions, open: (
             Triple(OptionsPage.MODEL, BoarIcons.Memory, Pair(t("design.options.model"),
                 (model?.name ?: t("design.options.noModel")) to (state.defaultModelId != null && state.activeModelId != state.defaultModelId))),
             Triple(OptionsPage.SOURCES, BoarIcons.LibraryBooks, Pair(t("design.options.sources"),
-                t(if (state.sourcesOwn) "design.options.sourcesOwn" else "design.options.sourcesAll") to state.sourcesOwn)),
+                sourcesSummary(state) to !state.sourcesEverything)),
         )
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             rows.forEachIndexed { i, (target, icon, text) ->
@@ -130,10 +142,7 @@ private fun OptionsDetail(page: OptionsPage, state: ChatState, actions: AnswerOp
             val note = listOfNotNull(Units.formatBytes(m.sizeBytes), if (m.recommended) t("design.options.recommended") else null).joinToString(" · ")
             Choice(m.id, m.name, note, BoarIcons.Memory, m.id == state.activeModelId) { actions.onSetModel(m.id) }
         }, t("design.options.modelFoot"))
-        else -> Triple(t("design.options.sources"), listOf(
-            Choice("all", t("design.options.sourcesAll"), t("design.options.sourcesAllNote"), BoarIcons.LibraryBooks, !state.sourcesOwn) { actions.onSetSourcesOwn(false) },
-            Choice("own", t("design.options.sourcesOwn"), t("design.options.sourcesOwnNote"), BoarIcons.Description, state.sourcesOwn) { actions.onSetSourcesOwn(true) },
-        ), null)
+        else -> return
     }
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -156,5 +165,77 @@ private fun OptionsDetail(page: OptionsPage, state: ChatState, actions: AnswerOp
             }
         }
         foot?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, modifier = Modifier.padding(start = 16.dp, top = 12.dp)) }
+    }
+}
+
+/** The Sources row's value: Everything, Only my files, or "4 of 7 sources". */
+@Composable
+private fun sourcesSummary(state: ChatState): String = when {
+    state.sourcesOwn -> t("design.options.sourcesOwn")
+    state.sourcesEverything -> t("design.options.sourcesAll")
+    else -> t("design.options.sourcesSome", "on" to state.sourcesChecked.size, "total" to state.sourceRows.size)
+}
+
+/**
+ * Sources: two quick choices (Everything, Only my files; picking one goes back to the list, as the radio pages do), then
+ * the checklist of what is searched: Your files, Wikipedia essentials (the built-in library) and each installed pack with
+ * its article count. The last ticked row is disabled, so at least one source stays on (the note under the list says so).
+ * Only Your files ticked is Only my files; any other partial selection only filters the search.
+ */
+@Composable
+private fun SourcesDetail(state: ChatState, actions: AnswerOptionsActions, back: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val checked = state.sourcesChecked
+    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+        Row(Modifier.padding(bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = t("design.options.back")) }
+            Spacer(Modifier.width(8.dp))
+            Text(t("design.options.sources"), style = MaterialTheme.typography.titleLarge, color = scheme.onSurface)
+        }
+        val quick = listOf(
+            Triple(t("design.options.sourcesAll"), t("design.options.sourcesAllNote"), BoarIcons.LibraryBooks) to (state.sourcesEverything to false),
+            Triple(t("design.options.sourcesOwn"), t("design.options.sourcesOwnNote"), BoarIcons.Description) to (state.sourcesOwn to true),
+        )
+        Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            quick.forEachIndexed { i, (text, pick) ->
+                val (label, note, icon) = text
+                val (selected, own) = pick
+                OptionRow(label, note, icon,
+                    container = if (selected) scheme.secondaryContainer else scheme.surfaceContainerHigh,
+                    headlineColor = if (selected) scheme.onSecondaryContainer else scheme.onSurface,
+                    supportingColor = if (selected) scheme.onSecondaryContainer.copy(alpha = 0.8f) else scheme.onSurfaceVariant,
+                    leadingColor = if (selected) scheme.onSecondaryContainer else scheme.onSurfaceVariant,
+                    modifier = Modifier.clip(groupedShape(i, quick.size, outer = 20.dp))
+                        .selectable(selected, role = Role.RadioButton) { actions.onSetSourcesOwn(own); back() },
+                ) { RadioButton(selected, onClick = null) }
+            }
+        }
+        Text(t("design.options.sourcesSearchIn"), style = MaterialTheme.typography.labelLarge, color = scheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 16.dp, top = 20.dp, bottom = 8.dp))
+        val rows = state.sourceRows
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            rows.forEachIndexed { i, row ->
+                val on = row.id in checked
+                // The only ticked row can't be unticked.
+                val enabled = !(on && checked.size == 1)
+                val name = row.nameKey?.let { t(it) } ?: row.name
+                val note = when (row.id) {
+                    SourceRow.FILES -> t("design.options.sourcesFilesNote")
+                    else -> row.articles?.takeIf { it > 0 }?.let { t("clean.onboarding.articles", "count" to it, "value" to countText(it)) }
+                }
+                val icon = when (row.id) {
+                    SourceRow.FILES -> BoarIcons.Description
+                    else -> BoarIcons.LibraryBooks
+                }
+                OptionRow(name, note, icon,
+                    container = scheme.surfaceContainerHigh, headlineColor = scheme.onSurface,
+                    supportingColor = scheme.onSurfaceVariant, leadingColor = scheme.onSurfaceVariant,
+                    modifier = Modifier.clip(groupedShape(i, rows.size, outer = 20.dp))
+                        .toggleable(on, enabled = enabled, role = Role.Checkbox) { actions.onToggleSource(row.id) },
+                ) { Checkbox(on, onCheckedChange = null, enabled = enabled) }
+            }
+        }
+        Text(t("design.options.sourcesFoot"), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp))
     }
 }

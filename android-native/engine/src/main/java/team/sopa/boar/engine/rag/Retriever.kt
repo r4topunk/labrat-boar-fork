@@ -25,9 +25,15 @@ class Retriever(
     /**
      * [ownOnly]: the user's own files only (search only my files): no library, no packs, and a meaning hit passes at the
      * search floor (MIN_SEMANTIC_SIMILARITY) instead of the answer floor, since nothing else can come back.
+     * [sources]: the sources picked in Answer options → Sources (knowledge base seed, own files, packs by id); a pack it
+     * leaves out is not searched at all. [ownOnly] true is [SourceFilter.OWN_ONLY].
      */
-    fun retrieve(query: String, topK: Int = 6, queryVec: FloatArray? = null, includeWikiPacks: Boolean = true, ownOnly: Boolean = false): List<Chunk> {
-        val main = retrieveOne(query, topK, queryVec, includeWikiPacks, null, null, null, ownOnly)
+    fun retrieve(
+        query: String, topK: Int = 6, queryVec: FloatArray? = null, includeWikiPacks: Boolean = true, ownOnly: Boolean = false,
+        sources: SourceFilter = SourceFilter.ALL,
+    ): List<Chunk> {
+        val filter = if (ownOnly) SourceFilter.OWN_ONLY else sources
+        val main = retrieveOne(query, topK, queryVec, includeWikiPacks, null, null, null, filter)
         // A Portuguese question against English sources: search again with the English names it mentions and put
         // those results first. The English embedder and keyword index barely match Portuguese words.
         if (!PtLexicon.looksPortuguese(query)) return main
@@ -36,7 +42,7 @@ class Retriever(
         val names = ids + PtLexicon.englishNamesIn(query, lexicon()).filter { it !in ids }
         if (names.isEmpty()) return main
         val action = WikiPackText.ACTION_INTENT.containsMatchIn(query)
-        val found = retrieveOne(names.joinToString(" "), topK, null, includeWikiPacks, names, action, Explain.EXPLAIN_INTENT.containsMatchIn(query), ownOnly)
+        val found = retrieveOne(names.joinToString(" "), topK, null, includeWikiPacks, names, action, Explain.EXPLAIN_INTENT.containsMatchIn(query), filter)
         val named = names.map { it.lowercase() }.toSet()
         // What-to-do sections first in an action question, then articles named exactly; disambiguation lists never.
         fun rank(c: Chunk) = if (action && c.action) 0 else if (c.title.lowercase() in named) 1 else 2
@@ -50,15 +56,16 @@ class Retriever(
 
     private fun retrieveOne(
         query: String, topK: Int, queryVec: FloatArray?, includeWikiPacks: Boolean, titles: List<String>?, action: Boolean?, explain: Boolean?,
-        ownOnly: Boolean = false,
+        filter: SourceFilter = SourceFilter.ALL,
     ): List<Chunk> {
         val vec = queryVec ?: embed(query)
-        // Only my files: the user's own files only, never the packs.
-        val installed = if (ownOnly) emptyList() else packs()
+        val ownOnly = filter.ownOnly
+        // Only the packs the user kept in Sources (none with Only my files); the rest are never opened for this search.
+        val installed = if (filter.packs?.isEmpty() == true) emptyList() else packs().filter { filter.allowsPack(it.id) }
         // The knowledge base and every pack are searched at the same time: each is its own SQLite connection, and one
         // after the other the packs took up to a second per question (11 packs, Pixel 8a, Oct 23). Results keep the
         // packs' order, so the answer reads the same passages.
-        val kbSearch = SearchPool.submit { kb.lexicalSearch(query, vec, topK * 2, ownOnly) to kb.semanticSearch(vec, topK * 2, ownOnly) }
+        val kbSearch = SearchPool.submit { kb.lexicalSearch(query, vec, topK * 2, seed = filter.seed, own = filter.own) to kb.semanticSearch(vec, topK * 2, seed = filter.seed, own = filter.own) }
         // A failing pack is skipped, never fatal.
         val f1 = SearchPool.map(installed.filterIsInstance<OpenPack.Format1>()) { p ->
             runCatching { Packs.searchFormat1(p.db, p.id, query, vec, topK * 2, explain) }.getOrNull()

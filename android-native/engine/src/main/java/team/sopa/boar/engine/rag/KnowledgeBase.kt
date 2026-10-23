@@ -192,9 +192,10 @@ class KnowledgeBase(private val db: SqlDatabase) {
     /**
      * BM25 keyword search over the question's content words, gated by term coverage (no numeric bm25 floor:
      * its scale depends on the corpus). Hits carry their real similarity when they have an embedding. [ownOnly]: the
-     * user's collections only.
+     * user's collections only. [seed] / [own]: whether the built-in seed chunks / the user's collections are searched.
      */
-    fun lexicalSearch(query: String, queryVec: FloatArray, limit: Int, ownOnly: Boolean = false): List<Chunk> {
+    fun lexicalSearch(query: String, queryVec: FloatArray, limit: Int, ownOnly: Boolean = false, seed: Boolean = !ownOnly, own: Boolean = true): List<Chunk> {
+        if (!seed && !own) return emptyList()
         val lq = RagPure.buildLexicalQuery(query) ?: return emptyList()
         val rows = db.query(
             """SELECT f.chunk_id, f.doc_id, f.title, f.body, bm25(chunks_fts) AS rank, e.embedding, c.collection_id
@@ -202,7 +203,7 @@ class KnowledgeBase(private val db: SqlDatabase) {
                JOIN chunks c ON c.chunk_id = f.chunk_id
                LEFT JOIN chunk_embeddings e ON e.chunk_id = f.chunk_id
                LEFT JOIN custom_collections cc ON cc.id = c.collection_id
-               WHERE chunks_fts MATCH ? AND (c.collection_id IS NULL OR cc.active = 1)${if (ownOnly) OWN_ONLY else ""}
+               WHERE chunks_fts MATCH ? AND (c.collection_id IS NULL OR cc.active = 1)${scope(seed, own)}
                ORDER BY rank LIMIT ?""",
             listOf(lq.match, limit * LEXICAL_CANDIDATE_MULTIPLIER),
         ) {
@@ -216,11 +217,15 @@ class KnowledgeBase(private val db: SqlDatabase) {
         return RagPure.filterByTermCoverage(rows, lq.terms).take(limit)
     }
 
-    /** Brute-force cosine search over the stored embeddings, with the MIN_SEMANTIC_SIMILARITY floor. [ownOnly]: the user's collections only. */
-    fun semanticSearch(queryVec: FloatArray, limit: Int, ownOnly: Boolean = false): List<Chunk> {
+    /**
+     * Brute-force cosine search over the stored embeddings, with the MIN_SEMANTIC_SIMILARITY floor. [ownOnly]: the user's
+     * collections only. [seed] / [own]: whether seed rows / the user's rows are scored (the cache's [Vectors.own] flags).
+     */
+    fun semanticSearch(queryVec: FloatArray, limit: Int, ownOnly: Boolean = false, seed: Boolean = !ownOnly, own: Boolean = true): List<Chunk> {
+        if (!seed && !own) return emptyList()
         val v = vectors()
         // Scored and ordered as one SQL pass over every row did (a stable sort keeps the row order between equal scores).
-        val top = v.vecs.indices.filter { !ownOnly || v.own[it] }.map { it to RagPure.cosine(queryVec, v.vecs[it]) }
+        val top = v.vecs.indices.filter { if (v.own[it]) own else seed }.map { it to RagPure.cosine(queryVec, v.vecs[it]) }
             .sortedByDescending { it.second }.filter { it.second >= RagPure.MIN_SEMANTIC_SIMILARITY }.take(limit)
         if (top.isEmpty()) return emptyList()
         val ids = top.map { v.ids[it.first] }
@@ -237,8 +242,12 @@ class KnowledgeBase(private val db: SqlDatabase) {
         /** Extra BM25 candidates so the coverage gate has something to choose from. */
         const val LEXICAL_CANDIDATE_MULTIPLIER = 4
         const val FILE = "SQLite/aoair_knowledge.db"
-        /** Keeps a search to the user's own collections (the active ones, as the rest of the WHERE says). */
-        private const val OWN_ONLY = " AND c.collection_id IS NOT NULL"
+        /** Keeps a search to the user's own collections (the active ones, as the rest of the WHERE says) or to the seed rows. */
+        private fun scope(seed: Boolean, own: Boolean) = when {
+            seed && own -> ""
+            own -> " AND c.collection_id IS NOT NULL"
+            else -> " AND c.collection_id IS NULL"
+        }
 
         fun toBlob(v: FloatArray): ByteArray = ByteBuffer.allocate(v.size * 4).order(ByteOrder.LITTLE_ENDIAN).apply { asFloatBuffer().put(v) }.array()
         fun fromBlob(b: ByteArray): FloatArray = FloatArray(b.size / 4).also { ByteBuffer.wrap(b).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer().get(it) }
