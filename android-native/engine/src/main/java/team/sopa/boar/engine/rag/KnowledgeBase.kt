@@ -30,13 +30,14 @@ class KnowledgeBase(private val db: SqlDatabase) {
     private class Vectors(val writes: Long, val dataVersion: Long?, val ids: List<String>, val docIds: List<String>, val vecs: List<FloatArray>, val own: BooleanArray)
     @Volatile private var writes = 0L
     private val cacheLock = Any()
-    private var vectorCache: Vectors? = null
+    // Volatile: freeing it (main thread, onTrimMemory) must not wait for a search that is reading the vectors under the lock.
+    @Volatile private var vectorCache: Vectors? = null
 
     /** Every write goes through here, so the vector cache never answers from a changed knowledge base. */
     private inline fun <T> write(block: () -> T): T = try { block() } finally { synchronized(cacheLock) { writes++; vectorCache = null } }
 
     /** Frees the semantic search's vectors (several MB per thousand chunks); the next search reads them again. */
-    fun dropVectorCache() = synchronized(cacheLock) { vectorCache = null }
+    fun dropVectorCache() { vectorCache = null }
 
     /** Rows the vector cache holds now (0 when freed or not read yet). For tests. */
     internal fun cachedVectorRows(): Int = synchronized(cacheLock) { vectorCache?.ids?.size ?: 0 }

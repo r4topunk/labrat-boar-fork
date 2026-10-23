@@ -196,7 +196,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private val onBackground: () -> Unit = {
         warmJob?.takeIf { it.isActive }?.let { w ->
             w.cancel()
-            if (job?.isActive != true) services.host.current()?.cancel()
+            // Natively only when the warm prefill itself holds the model: not an answer, nor a bench or eval run it waits behind.
+            if (job?.isActive != true && warmInside) services.host.current()?.cancel()
         }
     }
     /** For Free memory when I leave BOAR: the model isn't unloaded while an answer, title, summary or preload runs. */
@@ -820,9 +821,15 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val prompt = if (session.info.optBoolean("hasChatTemplate", false))
             session.formatChat(listOf(team.sopa.boar.engine.ChatMessage("system", head)), services.settings.engineTweaks.thinkingEnabled).prompt
         else plain
-        // Cancelled while it waited for the lock: skipped, not run after a native cancel that came too early.
-        session.generate(prompt, team.sopa.boar.engine.Sampling(nPredict = 0), shouldStop = { self?.isActive == false }).collect {}
+        // Cancelled while it waited for the lock: skipped, not run after a native cancel that came too early. shouldStop
+        // is first asked once the lock is held, which tells the background hook the prefill is the one in native code.
+        try {
+            session.generate(prompt, team.sopa.boar.engine.Sampling(nPredict = 0), shouldStop = { warmInside = true; self?.isActive == false }).collect {}
+        } finally { warmInside = false }
     }
+
+    /** The warm prefill holds the model's lock (set from its first shouldStop check, cleared when it ends). */
+    @Volatile private var warmInside = false
 
     /** runAdaptiveChat: plan with the installed models and the user's routing settings, then execute. */
     /** The last adaptive plan's task type and whether it had a verify step, for the receipt. */
