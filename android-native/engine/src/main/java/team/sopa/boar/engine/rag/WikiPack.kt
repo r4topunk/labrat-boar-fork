@@ -25,7 +25,8 @@ enum class PackSource { ENWIKI, ENWIKIVOYAGE, ENWIKIBOOKS, APPROPEDIA, USGOV, EI
 data class Stem(val stem: String, val idf: Double)
 
 /** A ranked BM25 chunk before its text is read. */
-data class Candidate(val chunkId: Long, val articleId: Long, val start: Int, val end: Int, val score: Double)
+/** [source]: the article's library when the query read it (bm25Candidates), so a source check needn't load the article. */
+data class Candidate(val chunkId: Long, val articleId: Long, val start: Int, val end: Int, val score: Double, val source: PackSource? = null)
 
 data class PackArticle(val id: Long, val title: String, val source: PackSource, val views: Long, val text: String, val url: String? = null, val license: String? = null)
 
@@ -455,11 +456,11 @@ class WikiPack private constructor(
         if (terms.isEmpty()) return emptyList()
         val w = tuning.weights.joinToString(", ") { jsNumber(it) }
         val rows = db.query(
-            """SELECT f.rowid AS id, f.s, c.article_id, c.start, c.end, a.views
+            """SELECT f.rowid AS id, f.s, c.article_id, c.start, c.end, a.views, a.source
                FROM (SELECT rowid, bm25(fts, $w) AS s FROM fts WHERE fts MATCH ? ORDER BY s LIMIT ?) f
                JOIN chunks c ON c.id = f.rowid JOIN articles a ON a.id = c.article_id""",
             listOf(terms.joinToString(" OR ") { WikiPackText.matchTerm(it) }, pool),
-        ) { Candidate(it.long(0), it.long(2), it.long(3).toInt(), it.long(4).toInt(), -it.double(1) + prior * log10(1.0 + it.long(5))) }
+        ) { Candidate(it.long(0), it.long(2), it.long(3).toInt(), it.long(4).toInt(), -it.double(1) + prior * log10(1.0 + it.long(5)), SOURCES.getOrElse(it.long(6).toInt()) { PackSource.ENWIKI }) }
         val sorted = rows.sortedWith(compareByDescending<Candidate> { it.score }.thenByDescending { it.articleId }.thenByDescending { it.start })
         val per = HashMap<Long, Int>()
         return sorted.filter { c -> val n = per[c.articleId] ?: 0; per[c.articleId] = n + 1; n < perArticle }
@@ -611,7 +612,9 @@ class WikiPack private constructor(
             val pool = keyword ?: bm25Candidates(stems)
             if (hits.none { it.source == PackSource.USGOV }) {
                 for (c in pool) {
-                    if (c.chunkId in seen) continue
+                    // The source first: loading every candidate's article (a 64 KB block each) to find none from it cost
+                    // up to 80 reads per pack on a what-to-do question.
+                    if (c.chunkId in seen || (c.source != null && c.source != PackSource.USGOV)) continue
                     val h = materialize(c)
                     if (h.source != PackSource.USGOV || WikiPackText.coverage("${h.title} ${h.text}", topicOrStems) < 0.5) continue
                     val acts = articlePassages(c.articleId, stems, 3, true).filter { it.action && it.chunkId !in seen }.take(2)
@@ -625,7 +628,7 @@ class WikiPack private constructor(
             if (hits.none { it.source in WikiPackText.LAY_SOURCES }) {
                 for (c in pool) {
                     if (lay >= 2) break
-                    if (c.chunkId in seen) continue
+                    if (c.chunkId in seen || (c.source != null && c.source !in WikiPackText.LAY_SOURCES)) continue
                     val h = materialize(c)
                     if (h.source !in WikiPackText.LAY_SOURCES || WikiPackText.coverage("${h.title} ${h.text}", topicOrStems) < 0.5) continue
                     if (hits.any { WikiPackText.nearDuplicate(it.text, h.text) }) continue

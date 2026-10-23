@@ -630,9 +630,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     fun openSession(id: String) {
         if (job?.isActive == true) return
         safeScope.launch {
+            // Off the main thread, each meta parsed once: it holds every source's text (5-20 KB per answer), and parsing a
+            // long chat three times on Main hitched the drawer closing.
             val msgs = runCatching {
-                withContext(Dispatchers.IO) { services.chats.messages(id) }.map { r ->
-                    UiMessage(r.id, r.role, r.text, sourcesFromMeta(r.meta), r.feedback, receipt = receiptFromMeta(r.meta), error = errorFromMeta(r.meta))
+                withContext(Dispatchers.IO) {
+                    services.chats.messages(id).map { r ->
+                        val meta = metaObject(r.meta)
+                        UiMessage(r.id, r.role, r.text, sourcesFromMeta(meta), r.feedback, receipt = receiptFromMeta(meta), error = errorFromMeta(meta))
+                    }
                 }
             }.getOrElse { showToast("native.chat.dbFailed"); return@launch }
             _state.update { it.copy(sessionId = id, messages = msgs, error = null) }
@@ -1004,8 +1009,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         )
     }
 
-    private fun receiptFromMeta(meta: String?): Receipt? = runCatching {
-        Json.parseToJsonElement(meta ?: return null).jsonObject["receipt"]?.jsonObject?.let(Receipt::fromJson)
+    private fun metaObject(meta: String?): JsonObject? = runCatching { Json.parseToJsonElement(meta ?: return null).jsonObject }.getOrNull()
+
+    private fun receiptFromMeta(meta: JsonObject?): Receipt? = runCatching {
+        meta?.get("receipt")?.jsonObject?.let(Receipt::fromJson)
     }.getOrNull()
 
     private fun metaOf(sources: List<Source>, receipt: Receipt?, errorKey: String? = null): String = JsonObject(listOfNotNull("sources" to JsonArray(sources.map { s ->
@@ -1015,12 +1022,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         ).toMap())
     }), receipt?.let { "receipt" to it.toJson() }, errorKey?.let { "error" to JsonPrimitive(it) }).toMap()).toString()
 
-    private fun errorFromMeta(meta: String?): String? = runCatching {
-        Json.parseToJsonElement(meta ?: return null).jsonObject["error"]?.jsonPrimitive?.content
+    private fun errorFromMeta(meta: JsonObject?): String? = runCatching {
+        meta?.get("error")?.jsonPrimitive?.content
     }.getOrNull()
 
-    private fun sourcesFromMeta(meta: String?): List<Source> = runCatching {
-        Json.parseToJsonElement(meta ?: return emptyList()).jsonObject["sources"]!!.jsonArray.map { e ->
+    private fun sourcesFromMeta(meta: JsonObject?): List<Source> = runCatching {
+        (meta ?: return emptyList())["sources"]!!.jsonArray.map { e ->
             val o = e.jsonObject
             Source(
                 o["title"]!!.jsonPrimitive.content, o["source"]?.jsonPrimitive?.content, o["relevance"]?.jsonPrimitive?.content?.toDoubleOrNull(),
