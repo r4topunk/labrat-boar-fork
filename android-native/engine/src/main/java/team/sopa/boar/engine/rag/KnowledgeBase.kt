@@ -19,18 +19,48 @@ class KnowledgeBase(private val db: SqlDatabase) {
 
     init { migrate() }
 
+    /**
+     * The semantic search's vectors, read once and kept (in the search's own row order) until the knowledge base changes:
+     * reading every embedding, title and body back from SQLite took about 130 ms per question (Pixel 8a, Oct 23).
+     * [writes] counts this object's own writes, the only writer of these tables; PRAGMA data_version catches another
+     * connection's. Titles and bodies are read for the few hits only.
+     */
+    private class Vectors(val writes: Long, val dataVersion: Long?, val ids: List<String>, val docIds: List<String>, val vecs: List<FloatArray>)
+    @Volatile private var writes = 0L
+    private val vectorCache = arrayOfNulls<Vectors>(2)
+
+    /** Every write goes through here, so the vector cache never answers from a changed knowledge base. */
+    private inline fun <T> write(block: () -> T): T = try { block() } finally { synchronized(vectorCache) { writes++; vectorCache.fill(null) } }
+
+    private fun dataVersion(): Long? = runCatching { db.query("PRAGMA data_version") { it.long(0) }.firstOrNull() }.getOrNull()
+
+    private fun vectors(ownOnly: Boolean): Vectors = synchronized(vectorCache) {
+        val slot = if (ownOnly) 1 else 0
+        val version = dataVersion()
+        vectorCache[slot]?.takeIf { it.writes == writes && it.dataVersion == version }?.let { return it }
+        val ids = ArrayList<String>(); val docIds = ArrayList<String>(); val vecs = ArrayList<FloatArray>()
+        db.query(
+            """SELECT c.chunk_id, c.doc_id, e.embedding
+               FROM chunk_embeddings e
+               JOIN chunks c ON c.chunk_id = e.chunk_id
+               LEFT JOIN custom_collections cc ON cc.id = c.collection_id
+               WHERE (c.collection_id IS NULL OR cc.active = 1)${if (ownOnly) OWN_ONLY else ""}""",
+        ) { ids += it.string(0)!!; docIds += it.string(1)!!; vecs += fromBlob(it.blob(2)!!) }
+        Vectors(writes, version, ids, docIds, vecs).also { vectorCache[slot] = it }
+    }
+
     private fun migrate() {
         db.exec(SCHEMA)
         val columns = db.query("PRAGMA table_info(chunks)") { it.string("name") }
         if ("collection_id" !in columns) db.exec("ALTER TABLE chunks ADD COLUMN collection_id TEXT REFERENCES custom_collections(id)")
     }
 
-    fun insertChunk(chunk: Chunk, embedding: FloatArray) = db.transaction { insertRows(chunk, embedding) }
+    fun insertChunk(chunk: Chunk, embedding: FloatArray) = write { db.transaction { insertRows(chunk, embedding) } }
 
     /** Many chunks in one transaction: the seed index commits every few hundred articles, not one fsync per article. */
     fun insertChunks(rows: List<Pair<Chunk, FloatArray>>) {
         if (rows.isEmpty()) return
-        db.transaction { rows.forEach { (chunk, embedding) -> insertRows(chunk, embedding) } }
+        write { db.transaction { rows.forEach { (chunk, embedding) -> insertRows(chunk, embedding) } } }
     }
 
     private fun insertRows(chunk: Chunk, embedding: FloatArray) {
@@ -68,7 +98,7 @@ class KnowledgeBase(private val db: SqlDatabase) {
      * win, and imported documents and chats are never touched. Returns the seed chunks added, or throws when the file
      * isn't such a snapshot (the caller then indexes as before).
      */
-    fun importSnapshot(path: String, dims: Int): Int {
+    fun importSnapshot(path: String, dims: Int): Int = write {
         db.execute("ATTACH DATABASE ? AS kbsnap", listOf(path))
         try {
             val tables = db.query("SELECT name FROM kbsnap.sqlite_master WHERE type = 'table'") { it.string(0) }.toSet()
@@ -100,22 +130,22 @@ class KnowledgeBase(private val db: SqlDatabase) {
         if (ids.isEmpty()) return
         val marks = ids.joinToString(", ") { "?" }
         val seed = "SELECT chunk_id FROM chunks WHERE collection_id IS NULL AND chunk_id IN ($marks)"
-        db.transaction {
+        write { db.transaction {
             db.execute("DELETE FROM chunks_fts WHERE chunk_id IN ($seed)", ids)
             db.execute("DELETE FROM chunk_embeddings WHERE chunk_id IN ($seed)", ids)
             db.execute(seed.replace("SELECT chunk_id FROM", "DELETE FROM"), ids)
-        }
+        } }
     }
 
     /** Deletes seed-corpus chunks whose id starts with [prefix] (GLOB: case-sensitive, "_" literal); returns how many. */
     fun deleteSeedChunksWithPrefix(prefix: String): Long {
         val pattern = prefix.replace(Regex("[*?\\[\\]]"), "") + "*"
         val seed = "SELECT chunk_id FROM chunks WHERE collection_id IS NULL AND chunk_id GLOB ?"
-        return db.transaction {
+        return write { db.transaction {
             db.execute("DELETE FROM chunks_fts WHERE chunk_id IN ($seed)", listOf(pattern))
             db.execute("DELETE FROM chunk_embeddings WHERE chunk_id IN ($seed)", listOf(pattern))
             db.execute(seed.replace("SELECT chunk_id FROM", "DELETE FROM"), listOf(pattern))
-        }
+        } }
     }
 
     fun collections(): List<Collection> = db.query("SELECT * FROM custom_collections ORDER BY created_at DESC") {
@@ -123,7 +153,7 @@ class KnowledgeBase(private val db: SqlDatabase) {
             it.long("size_bytes"), it.long("active") == 1L, it.long("created_at"))
     }
 
-    fun createCollection(id: String, name: String, sourceFilename: String?, docCount: Long, chunkCount: Long, sizeBytes: Long, now: Long = System.currentTimeMillis()) {
+    fun createCollection(id: String, name: String, sourceFilename: String?, docCount: Long, chunkCount: Long, sizeBytes: Long, now: Long = System.currentTimeMillis()) = write {
         db.execute(
             "INSERT INTO custom_collections (id, name, source_filename, doc_count, chunk_count, size_bytes, active, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?)",
             listOf(id, name, sourceFilename, docCount, chunkCount, sizeBytes, now),
@@ -136,18 +166,18 @@ class KnowledgeBase(private val db: SqlDatabase) {
             CollectionDoc(it.string("title")!!, it.string("source") ?: "", it.string("body")!!)
         }
 
-    fun setCollectionActive(id: String, active: Boolean) {
+    fun setCollectionActive(id: String, active: Boolean) = write {
         db.execute("UPDATE custom_collections SET active = ? WHERE id = ?", listOf(if (active) 1 else 0, id))
     }
 
     fun deleteCollection(id: String) {
         val rows = "SELECT chunk_id FROM chunks WHERE collection_id = ?"
-        db.transaction {
+        write { db.transaction {
             db.execute("DELETE FROM chunk_embeddings WHERE chunk_id IN ($rows)", listOf(id))
             db.execute("DELETE FROM chunks_fts WHERE chunk_id IN ($rows)", listOf(id))
             db.execute("DELETE FROM chunks WHERE collection_id = ?", listOf(id))
             db.execute("DELETE FROM custom_collections WHERE id = ?", listOf(id))
-        }
+        } }
     }
 
     /**
@@ -179,17 +209,19 @@ class KnowledgeBase(private val db: SqlDatabase) {
 
     /** Brute-force cosine search over the stored embeddings, with the MIN_SEMANTIC_SIMILARITY floor. [ownOnly]: the user's collections only. */
     fun semanticSearch(queryVec: FloatArray, limit: Int, ownOnly: Boolean = false): List<Chunk> {
-        val scored = db.query(
-            """SELECT c.chunk_id, c.doc_id, c.title, c.body, e.embedding
-               FROM chunk_embeddings e
-               JOIN chunks c ON c.chunk_id = e.chunk_id
-               LEFT JOIN custom_collections cc ON cc.id = c.collection_id
-               WHERE (c.collection_id IS NULL OR cc.active = 1)${if (ownOnly) OWN_ONLY else ""}""",
-        ) {
-            val sim = RagPure.cosine(queryVec, fromBlob(it.blob("embedding")!!))
-            Chunk(it.string("chunk_id")!!, it.string("doc_id")!!, it.string("title") ?: "", it.string("body") ?: "", score = sim, similarity = sim, matchType = MatchType.SEMANTIC)
+        val v = vectors(ownOnly)
+        // Scored and ordered as one SQL pass over every row did (a stable sort keeps the row order between equal scores).
+        val top = v.vecs.indices.map { it to RagPure.cosine(queryVec, v.vecs[it]) }
+            .sortedByDescending { it.second }.filter { it.second >= RagPure.MIN_SEMANTIC_SIMILARITY }.take(limit)
+        if (top.isEmpty()) return emptyList()
+        val ids = top.map { v.ids[it.first] }
+        val text = db.query("SELECT chunk_id, title, body FROM chunks WHERE chunk_id IN (${ids.joinToString(",") { "?" }})", ids) {
+            it.string(0)!! to ((it.string(1) ?: "") to (it.string(2) ?: ""))
+        }.toMap()
+        return top.mapNotNull { (i, sim) ->
+            val (title, body) = text[v.ids[i]] ?: return@mapNotNull null
+            Chunk(v.ids[i], v.docIds[i], title, body, score = sim, similarity = sim, matchType = MatchType.SEMANTIC)
         }
-        return scored.sortedByDescending { it.score }.filter { it.score >= RagPure.MIN_SEMANTIC_SIMILARITY }.take(limit)
     }
 
     companion object {
