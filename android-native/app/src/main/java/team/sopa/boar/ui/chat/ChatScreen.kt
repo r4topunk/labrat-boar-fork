@@ -87,6 +87,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -181,11 +182,21 @@ fun ChatScreen(
         snapshotFlow { list.isScrollInProgress }.collect { moving -> if (!moving) follow = !list.canScrollForward }
     }
     LaunchedEffect(state.messages.size) { follow = true }
-    LaunchedEffect(state.messages.size, last?.text?.length, list.isScrollInProgress) {
-        // Jump to the end of the last message (the offset is clamped to the list's end); not animated, since this
-        // runs on every streamed token.
-        if (follow && !list.isScrollInProgress && state.messages.isNotEmpty()) list.scrollToItem(state.messages.size - 1, Int.MAX_VALUE / 2)
+    // Jump to the end of the last message (the offset is clamped to the list's end); not animated, since this runs on
+    // every streamed token. Requested from the composition that shows the token, so the list lands in that same frame:
+    // a scrollToItem launched after it drew a second frame per token (the text, then the scroll).
+    val count = state.messages.size
+    val lastLength = last?.text?.length ?: 0
+    val followed = remember { intArrayOf(-1, -1) }
+    val scrolling = list.isScrollInProgress
+    SideEffect {
+        if (follow && !scrolling && count > 0 && (followed[0] != count || followed[1] != lastLength)) {
+            followed[0] = count; followed[1] = lastLength
+            list.requestScrollToItem(count - 1, Int.MAX_VALUE / 2)
+        }
     }
+    // Back at the end after a drag: follow again from where the finger left it.
+    LaunchedEffect(follow, scrolling) { if (follow && !scrolling && count > 0) list.scrollToItem(count - 1, Int.MAX_VALUE / 2) }
     // The bar tints to surfaceContainer once the messages scroll under it.
     val barScroll = TopAppBarDefaults.pinnedScrollBehavior()
     Box(Modifier.fillMaxSize().background(scheme.background)) {
