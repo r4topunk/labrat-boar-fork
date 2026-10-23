@@ -105,6 +105,15 @@ class LoadGuard(private val store: MarkerStore, private val ledger: Ledger, priv
         if (modelId in ledger.crashedIds) ledger.crashedIds = ledger.crashedIds - modelId
     }
 
+    /**
+     * After a generation of [modelId]: only one that wrote tokens without an error proves the model fits and [settled] it.
+     * The chat's warm-up prefill (0 tokens, seconds after the load), a cancelled or a failed one doesn't: a model killed on
+     * its first real answer must still leave its marker. The minute-later rule (BoarServices.LOAD_SETTLE_MS) still applies.
+     */
+    fun generated(modelId: String, generatedTokens: Int, error: String?) {
+        if (provesFit(generatedTokens, error)) settled(modelId)
+    }
+
     /** "Try again with less memory": the user's call to load [modelId] again now, keeping the mapped file. */
     fun retryMapped(modelId: String) {
         ensureChecked()
@@ -134,6 +143,9 @@ class LoadGuard(private val store: MarkerStore, private val ledger: Ledger, priv
          * memoryFit.ts isDecodeStall (#73): repacked weights pushed to swap make every token wait for them to be
          * decompressed (0.1 tok/s on a Pixel 6a with the 4B, about 1 answer in 6 in long conversations).
          */
+        /** A generation that wrote at least one token and ended without an error (a stop word or the limit). */
+        fun provesFit(generatedTokens: Int, error: String?): Boolean = generatedTokens > 0 && error.isNullOrEmpty()
+
         fun isDecodeStall(generatedTokens: Int, decodeMs: Double): Boolean =
             decodeMs >= STALL_MIN_MS && generatedTokens * 1000.0 / decodeMs < STALL_TOK_PER_SEC
 

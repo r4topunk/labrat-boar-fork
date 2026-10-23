@@ -13,8 +13,8 @@ class LoadGuardTest {
         override fun write(json: String) { v = json }
         override fun clear() { v = null }
     }
-    private class L : LoadGuard.Ledger {
-        override var crashedIds: List<String> = emptyList()
+    private class L(crashed: List<String> = emptyList()) : LoadGuard.Ledger {
+        override var crashedIds: List<String> = crashed
         override var mappedIds: List<String> = emptyList()
         override var pendingCrash: LoadGuard.Crash? = null
     }
@@ -176,5 +176,38 @@ class LoadGuardTest {
         LoadGuard(store, ledger) { 1000 }.begin(big, small, repacked = true)
         val g = LoadGuard(store, ledger).apply { exitWasNotLoadKill = { error("no record") } }
         assertTrue(g.isBlocked("qwen3-4b"))
+    }
+
+    @Test fun `the warm-up prefill does not settle the load, a real answer does`() {
+        val store = Mem(); val ledger = L()
+        val g = LoadGuard(store, ledger)
+        g.begin(big, small, repacked = true)
+        g.end(big, loaded = true)
+        // The chat's 0-token warm prefill, then a cancelled and a failed generation: the marker stays.
+        g.generated("qwen3-4b", 0, null)
+        g.generated("qwen3-4b", 0, "cancelled")
+        g.generated("qwen3-4b", 0, "prefill failed")
+        assertTrue(store.v != null)
+        // Killed now (on the first real answer): the next process still sees the load kill and blocks the model.
+        val next = LoadGuard(store, ledger)
+        assertTrue(next.isBlocked("qwen3-4b"))
+        assertEquals("qwen3-4b", next.consume()?.crashedModelId)
+    }
+
+    @Test fun `an answer that wrote tokens settles the load and unblocks the model`() {
+        val store = Mem(); val ledger = L(crashed = listOf("qwen3-4b"))
+        val g = LoadGuard(store, ledger)
+        g.begin(big, null, repacked = false)
+        g.end(big, loaded = true)
+        g.generated("qwen3-4b", 42, null)
+        assertNull(store.v)
+        assertFalse(LoadGuard(store, ledger).isBlocked("qwen3-4b"))
+    }
+
+    @Test fun `only tokens without an error prove the model fits`() {
+        assertFalse(LoadGuard.provesFit(0, null))
+        assertFalse(LoadGuard.provesFit(5, "prompt longer than the context"))
+        assertTrue(LoadGuard.provesFit(1, null))
+        assertTrue(LoadGuard.provesFit(1, ""))
     }
 }

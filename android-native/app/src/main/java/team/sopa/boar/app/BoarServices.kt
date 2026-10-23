@@ -262,8 +262,9 @@ class BoarServices private constructor(private val context: Context) {
                 residentRepacked = repack
                 openedContext = resolved.nCtx
                 s.onGenerated = { m ->
-                    // A finished answer proves the model fits: the load guard's marker can go.
-                    loadGuard.settled(asset.id)
+                    // A finished answer proves the model fits: the load guard's marker can go. Not the chat's warm-up
+                    // prefill (0 tokens), which ran seconds after the load and cleared the marker before any answer.
+                    loadGuard.generated(asset.id, m.generatedTokens, m.error)
                     if (repack && LoadGuard.isDecodeStall(m.generatedTokens, m.decodeMs) && keepMapped.add(asset.id))
                         android.util.Log.w("BOAR", "${asset.id} stalled with repacked weights (${m.generatedTokens} tokens in ${m.decodeMs.toInt()} ms): mapped from the next answer")
                 }
