@@ -260,7 +260,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(loadingKey = "chatScreen.mountingWeights") }
         // Meanwhile the packs open and the search model loads, which the first question waited for (about 0.5 s). Its own
         // job: the busy check (Free memory when I leave) waits for the model's work only, not for the search model.
-        val retrieval = safeScope.launch(Dispatchers.IO) { runCatching { services.warmRetrieval() } }
+        // After the first frame: opening every pack and the search model at launch competed with the first draw for the CPU
+        // (cold start 1.45 → 1.65 s debug, 0.62 → 0.76 s perf on the Pixel 8a, Oct 23).
+        val retrieval = safeScope.launch(Dispatchers.Main) {
+            kotlinx.coroutines.android.awaitFrame()
+            withContext(Dispatchers.IO) { runCatching { services.warmRetrieval() } }
+        }
         preloading = safeScope.launch(Dispatchers.Default) {
             val session = runCatching { services.activeSession() }.getOrNull()
             // Shown once: the model that closed the app last time, and the one answering instead.
