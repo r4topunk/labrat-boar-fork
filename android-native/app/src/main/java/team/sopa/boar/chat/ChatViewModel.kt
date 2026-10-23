@@ -538,6 +538,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 turns = HistoryBudget.budget(prior.takeLast(VERBATIM_MESSAGE_COUNT).map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) }),
             )
             val startAt = System.nanoTime()
+            qaMark("answer.start")
             var metrics: GenerationMetrics? = null
             var retrievalMs: Double? = null
             val text = StringBuilder()
@@ -575,7 +576,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             savePartial(force = true)
             fun onPiece(piece: String) {
                 tokens++
-                if (firstAt == 0L) firstAt = System.nanoTime()
+                if (firstAt == 0L) { firstAt = System.nanoTime(); qaMark("answer.first") }
+                if (tokens == 100 || tokens == 400) qaMark("answer.t$tokens")
                 text.append(piece)
                 savePartial()
                 val elapsed = (System.nanoTime() - firstAt) / 1e9
@@ -586,6 +588,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
             try {
                 val session = services.activeSession()
+                qaMark("answer.loaded")
                 // Read after the load: Auto fits the length to the context the model was opened with.
                 val budget = (limit ?: settings.answerTokens(services.host.openedContext)).let {
                     // A thank-you or greeting: Succinct's length in any style. Not the router's 128: a model that thinks first
@@ -677,6 +680,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
                 _state.update { it.copy(error = e.message ?: e.toString()) }
             }
+            qaMark("answer.done tokens=$tokens stopped=$stopped chars=${text.length}")
             if (!stopped && text.isNotEmpty()) team.sopa.boar.app.Haptics.finished(getApplication())
             _state.update { s ->
                 s.copy(answeringId = null, answeringModel = null, activity = null, stopping = false,
@@ -863,4 +867,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
          */
         val BENCH_IDEAS = (1..21).map { "b$it" }
     }
+}
+
+/** Timing markers for the on-device fluidity scenarios (logcat tag BOARQA): debug and the local perf build only. */
+internal fun qaMark(what: String) {
+    if (team.sopa.boar.BuildConfig.DEBUG || team.sopa.boar.BuildConfig.BUILD_TYPE == "perf") android.util.Log.i("BOARQA", what)
 }

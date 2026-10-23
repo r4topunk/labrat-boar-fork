@@ -71,6 +71,15 @@ android {
             versionNameSuffix = "-devtest"
             matchingFallbacks += listOf("debug")
         }
+        // Local QA only: the release code, debug-signed, profileable from the shell (perfetto, gfxinfo), installed beside
+        // every other BOAR. Compose in a debug build is several times slower, so fluidity is measured here.
+        create("perf") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".perf"
+            versionNameSuffix = "-perf"
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+        }
         release {
             isMinifyEnabled = false
             signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
