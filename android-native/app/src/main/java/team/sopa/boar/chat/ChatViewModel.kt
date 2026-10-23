@@ -189,6 +189,16 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      */
     @Volatile private var deferredAfterAnswer: (() -> Unit)? = null
     private val onForeground: () -> Unit = { resumeAfterAnswer() }
+    /**
+     * BOAR left the screen: the warm prefill stops (natively too, unless an answer is running), so it doesn't hold the
+     * model without the answering service and Free memory when I leave can unload at once.
+     */
+    private val onBackground: () -> Unit = {
+        warmJob?.takeIf { it.isActive }?.let { w ->
+            w.cancel()
+            if (job?.isActive != true) services.host.current()?.cancel()
+        }
+    }
     /** For Free memory when I leave BOAR: the model isn't unloaded while an answer, title, summary or preload runs. */
     private val busy: () -> Boolean = { job?.isActive == true || background?.isActive == true || preloading?.isActive == true }
 
@@ -199,11 +209,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         preload()
         services.addBusyCheck(busy)
         services.addForegroundHook(onForeground)
+        services.addBackgroundHook(onBackground)
     }
 
     override fun onCleared() {
         services.removeBusyCheck(busy)
         services.removeForegroundHook(onForeground)
+        services.removeBackgroundHook(onBackground)
         super.onCleared()
     }
 
@@ -220,9 +232,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         _state.update { it.copy(loadingKey = "chatScreen.mountingWeights") }
+        // Meanwhile the packs open and the search model loads, which the first question waited for (about 0.5 s). Its own
+        // job: the busy check (Free memory when I leave) waits for the model's work only, not for the search model.
+        val retrieval = safeScope.launch(Dispatchers.IO) { runCatching { services.warmRetrieval() } }
         preloading = safeScope.launch(Dispatchers.Default) {
-            // Meanwhile the packs open and the search model loads, which the first question waited for (about 0.5 s).
-            val retrieval = launch(Dispatchers.IO) { runCatching { services.warmRetrieval() } }
             val session = runCatching { services.activeSession() }.getOrNull()
             // Shown once: the model that closed the app last time, and the one answering instead.
             val crash = services.loadGuard.consume()
@@ -231,15 +244,15 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             // The default answer's instructions go into the KV cache while the user types, as after a title: the first
             // answer then reads only its sources and question, like every later one (about 250 tokens, 2.7 s on the
             // 1.5B, Pixel 8a). A question sent meanwhile waits for it at the model's lock and reuses all of it, when it
-            // uses this prefix (send stops it otherwise). Not with a question already on its way (it would only make it wait).
-            if (session != null && crash == null && job?.isActive != true) {
+            // uses this prefix (send stops it otherwise). Not once BOAR has left the screen, nor with a question already
+            // on its way (it would only make it wait).
+            if (session != null && crash == null && services.isInForeground && job?.isActive != true) {
                 val key = chatWarmKey()
                 warmKey = key
                 warmJob = launch { runCatching { warmPrefix(session, key.systemPrompt, true, key.filesOnly) } }
             }
-            retrieval.join()
-            qaMark("preload.done")
         }
+        safeScope.launch { preloading?.join(); retrieval.join(); qaMark("preload.done") }
     }
 
     /**

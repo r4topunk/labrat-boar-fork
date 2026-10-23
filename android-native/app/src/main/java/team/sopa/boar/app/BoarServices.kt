@@ -329,6 +329,11 @@ class BoarServices private constructor(private val context: Context) {
 
     fun addForegroundHook(hook: () -> Unit) { foregroundHooks += hook }
     fun removeForegroundHook(hook: () -> Unit) { foregroundHooks -= hook }
+    /** Run when BOAR leaves the screen (the chat's warm prefill stops, so it doesn't hold the model in the background). */
+    private val backgroundHooks = java.util.concurrent.CopyOnWriteArrayList<() -> Unit>()
+
+    fun addBackgroundHook(hook: () -> Unit) { backgroundHooks += hook }
+    fun removeBackgroundHook(hook: () -> Unit) { backgroundHooks -= hook }
     /** What uses the model besides a single generation: the chat's answer, its title or summary job, its preload. */
     private val busyChecks = java.util.concurrent.CopyOnWriteArrayList<() -> Boolean>()
 
@@ -342,6 +347,7 @@ class BoarServices private constructor(private val context: Context) {
      */
     @Synchronized fun onBackground() {
         inForeground = false
+        backgroundHooks.forEach { runCatching { it() } }
         host.settleResident()
         backgroundRelease?.cancel()
         backgroundRelease = null
