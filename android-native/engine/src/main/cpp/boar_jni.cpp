@@ -47,6 +47,12 @@ struct Session {
 
 Session * S(jlong h) { return reinterpret_cast<Session *>(h); }
 
+// ggml's abort hook: a cancel (Stop, BOAR leaving) interrupts llama_decode mid-graph, not only between n_batch chunks,
+// so a 250-token prefill no longer runs to its end after Stop. llama.cpp removes the aborted ubatch's positions from
+// the KV cache, and sync_prompt clears it on failure, so the cache stays consistent. Answers are unchanged: it only
+// ever fires when cancel is set.
+bool abort_on_cancel(void * data) { return static_cast<Session *>(data)->cancel.load(std::memory_order_relaxed); }
+
 std::string jstr(JNIEnv * env, jstring s) {
     if (!s) return {};
     const char * c = env->GetStringUTFChars(s, nullptr);
@@ -202,6 +208,8 @@ Java_team_sopa_boar_engine_BoarNative_load(JNIEnv * env, jobject, jstring jpath,
     cp.n_seq_max = (uint32_t) std::max(1, p.value("nSeqMax", 1));
     if (cp.n_seq_max > 1) cp.kv_unified = true;
     cp.no_perf = false;
+    cp.abort_callback = abort_on_cancel;
+    cp.abort_callback_data = s;
     s->ctx = llama_init_from_model(model, cp);
     if (!s->ctx) { LOGE("context init failed"); llama_model_free(model); delete s; return 0; }
 
@@ -375,7 +383,7 @@ Java_team_sopa_boar_engine_BoarNative_generate(JNIEnv * env, jobject, jlong h, j
         }
         if (hit_stop) { stop_reason = "stop"; n_gen++; break; }
         llama_batch batch = llama_batch_get_one(&tok, 1);
-        if (llama_decode(s->ctx, batch) != 0) { stop_reason = "decode failed"; break; }
+        if (llama_decode(s->ctx, batch) != 0) { stop_reason = s->cancel.load() ? "cancelled" : "decode failed"; break; }
         s->cached.push_back(tok);
     }
     llama_sampler_free(smpl);
