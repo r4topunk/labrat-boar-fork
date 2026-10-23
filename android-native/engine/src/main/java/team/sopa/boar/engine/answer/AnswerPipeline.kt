@@ -1,7 +1,12 @@
 package team.sopa.boar.engine.answer
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withTimeoutOrNull
 import team.sopa.boar.engine.ChatMessage
 import team.sopa.boar.engine.GenerationEvent
 import team.sopa.boar.engine.GenerationMetrics
@@ -89,7 +94,15 @@ class AnswerPipeline(
             emit(AnswerEvent.Stage(AnswerStage.RETRIEVING))
             val t0 = clock()
             // A follow-up ("What did he publish?") is searched with the previous question (FollowUp).
-            val found = FollowUp.search(req.query, req.history, { c: Chunk -> "${c.title} ${c.body}" }) { retrieve(it, ANSWER_CONTEXT_CHUNKS) }
+            val search = SEARCH_SCOPE.async { FollowUp.search(req.query, req.history, { c: Chunk -> "${c.title} ${c.body}" }) { retrieve(it, ANSWER_CONTEXT_CHUNKS) } }
+            // Stop during the search ends the answer now: the first question's search took up to 1.8 s while the warm-up
+            // shared the CPU (Pixel 8a, Oct 23). The search can't be interrupted; it finishes on its own and is dropped.
+            var waited = withTimeoutOrNull(STOP_POLL_MS) { search.await() }
+            while (waited == null) {
+                if (shouldStop()) return@flow
+                waited = withTimeoutOrNull(STOP_POLL_MS) { search.await() }
+            }
+            val found = waited
             // Only the sentences that answer: a shorter prompt brings the first word sooner. My files sends the user's
             // parts whole while they fit (WholePassages).
             val c = if (req.filesOnly) WholePassages.fit(found.searchedFor, found.chunks, req.contextSize ?: FALLBACK_CONTEXT, promptTokens(req), req.maxTokens)
@@ -144,6 +157,10 @@ class AnswerPipeline(
         const val FALLBACK_CONTEXT = 2048
         /** Passages retrieved per answer (src/rag/pure.ts ANSWER_CONTEXT_CHUNKS). */
         const val ANSWER_CONTEXT_CHUNKS = 4
+        /** How often Stop is checked while the search runs; a search that ends sooner is read at once. */
+        private const val STOP_POLL_MS = 25L
+        /** The answer's search runs here, so a stopped answer needn't wait for it. */
+        private val SEARCH_SCOPE = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         /** Turn ends for the hand-built prompt only (src/inference/LlamaEngine.ts DEFAULT_STOP_SEQUENCES). */
         val DEFAULT_STOP_SEQUENCES = listOf("\nUser:", "\n\nUser:", "\nQuestion:", "\n\nQuestion:")
     }
