@@ -77,7 +77,8 @@ class AnswerPipeline(
         clock: () -> Double = { System.nanoTime() / 1e6 },
     ) : this({ session }, retrieve, classify, retrievalIrrelevant, clock)
 
-    fun answer(req: AnswerRequest): Flow<AnswerEvent> = flow {
+    /** [shouldStop]: the chat's Stop, honoured right before and while the answer is generated ([LlamaSession.generate]). */
+    fun answer(req: AnswerRequest, shouldStop: () -> Boolean = { false }): Flow<AnswerEvent> = flow {
         val task = classify(req.query)
         var sources: List<Chunk> = emptyList()
         var retrievalMs: Double? = null
@@ -121,7 +122,7 @@ class AnswerPipeline(
         val text = StringBuilder()
         var metrics: GenerationMetrics? = null
         var first = true
-        session.generate(prompt, Sampling(nPredict = req.maxTokens, temperature = 0.7f, seed = req.seed, stops = stops)).collect { e ->
+        session.generate(prompt, Sampling(nPredict = req.maxTokens, temperature = 0.7f, seed = req.seed, stops = stops), shouldStop).collect { e ->
             when (e) {
                 is GenerationEvent.Piece -> {
                     if (first) { first = false; emit(AnswerEvent.Stage(AnswerStage.GENERATING)) }

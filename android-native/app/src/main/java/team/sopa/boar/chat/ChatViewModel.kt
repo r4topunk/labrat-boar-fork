@@ -179,6 +179,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private var ideaPool: List<String> = emptyList()
 
     private var preloading: Job? = null
+    /** The preload's warm prefill (inside [preloading]) and the prefix it fills; a question that can't reuse it stops it. */
+    @Volatile private var warmJob: Job? = null
+    @Volatile private var warmKey: team.sopa.boar.engine.answer.WarmPrefix.Key? = null
     /**
      * A title or summary skipped because the answer ended with BOAR in the background, written when BOAR is back on
      * screen. Run then, it would hold the model past MIUI's freeze about 8 s after the answering service stops, and MIUI
@@ -227,19 +230,38 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             if (crash != null) refreshModel()
             // The default answer's instructions go into the KV cache while the user types, as after a title: the first
             // answer then reads only its sources and question, like every later one (about 250 tokens, 2.7 s on the
-            // 1.5B, Pixel 8a). A question sent meanwhile waits for it at the model's lock and reuses all of it.
-            if (session != null && crash == null) runCatching { warmPrefix(session, defaultSystemPrompt(), true) }
+            // 1.5B, Pixel 8a). A question sent meanwhile waits for it at the model's lock and reuses all of it, when it
+            // uses this prefix (send stops it otherwise). Not with a question already on its way (it would only make it wait).
+            if (session != null && crash == null && job?.isActive != true) {
+                val key = chatWarmKey()
+                warmKey = key
+                warmJob = launch { runCatching { warmPrefix(session, key.systemPrompt, true, key.filesOnly) } }
+            }
             retrieval.join()
             qaMark("preload.done")
         }
     }
 
-    /** The system prompt a question in the user's chosen style gets (send's own choice, before any short-answer rule). */
-    private fun defaultSystemPrompt(): String? {
+    /**
+     * The prefix a question in the user's chosen style gets (send's own choice, before any short-answer rule), with the
+     * current Sources choice: My files' instruction differs from the first words after the style's.
+     */
+    private fun chatWarmKey(): team.sopa.boar.engine.answer.WarmPrefix.Key {
         val settings = services.settings
         val style = settings.personalityId ?: services.personalities.defaultId
         val smallModel = (services.answerModel()?.sizeBytes ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
-        return services.personalities.promptFor(style, settings.customSystemPrompt, smallModel).first
+        return team.sopa.boar.engine.answer.WarmPrefix.forChat(services.personalities, style, settings.customSystemPrompt, smallModel, _state.value.sourcesOwn)
+    }
+
+    /**
+     * Stops the preload's warm prefill (the coroutine, and the native prefill in progress) and waits for it to end.
+     * Called only when no generation of the chat's own is in native code, so the native cancel can only stop the warm-up.
+     */
+    private suspend fun cancelWarm() {
+        val w = warmJob?.takeIf { it.isActive } ?: return
+        w.cancel()
+        services.host.current()?.cancel()
+        w.join()
     }
 
     /** The note for a decision that doesn't load the user's model on its own; null when it loads. */
@@ -620,6 +642,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                         if (filesOnly && (it == team.sopa.boar.engine.routing.AnswerPath.RESEARCH || it == team.sopa.boar.engine.routing.AnswerPath.ADAPTIVE))
                             team.sopa.boar.engine.routing.AnswerPath.PIPELINE else it
                     }
+                // The preload's warm prefill holds the model's lock: waited for only when it fills this question's prefix
+                // (the plain path, same style and Sources), else stopped now instead of making the question wait for it.
+                if (way != team.sopa.boar.engine.routing.AnswerPath.PIPELINE ||
+                    !team.sopa.boar.engine.answer.WarmPrefix.reusable(warmKey, team.sopa.boar.engine.answer.WarmPrefix.Key(systemPrompt, filesOnly))) cancelWarm()
                 if (stopRequested) {
                     // Stop pressed while the model loaded: the load can't be interrupted, the answer can be skipped.
                 } else if (session == null) {
@@ -651,7 +677,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     val pipeline = AnswerPipeline(session, retrieve, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
                     val base = AnswerRequest(q, systemPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)
                     val req = if (filesOnly) PersonalFiles.request(base, services.host.openedContext ?: AnswerPipeline.FALLBACK_CONTEXT, notFoundLine) else base
-                    pipeline.answer(req).collect { e ->
+                    // Stop pressed while this waited for the model (behind the warm prefill) is honoured inside the lock.
+                    pipeline.answer(req, shouldStop = { stopRequested }).collect { e ->
                         when (e) {
                             is AnswerEvent.Stage -> _state.update { it.copy(activity = when (e.stage) { AnswerStage.RETRIEVING -> Activity.Retrieving; AnswerStage.THINKING -> Activity.Thinking; AnswerStage.GENERATING -> Activity.Generating }) }
                             is AnswerEvent.Sources -> sources = e.chunks
@@ -689,7 +716,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 chats.upsertMessage(sessionId, "assistant", text.toString(), answerId)
                 // Always written: it replaces the interrupted mark of the partial saves.
                 chats.setMessageMeta(answerId, metaOf(shown, receipt, errorKey))
-                afterAnswer(sessionId, isNewSession, stopped, prior + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", text.toString()), systemPrompt, sources.isNotEmpty())
+                afterAnswer(sessionId, isNewSession, stopped, prior + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", text.toString()), systemPrompt, sources.isNotEmpty(), filesOnly)
                 chats.prune(settings.maxSavedSessions)
             } catch (e: Exception) {
                 // Not saved (disk full): the answer stays on screen with the error under it; the app keeps running.
@@ -725,11 +752,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      * As ChatScreen.tsx after an answer: a new chat gets a model-written title (autoGenerateTitles); a long one gets its
      * older turns summarized (autoSummarize, past historyTurnThreshold), in the background.
      */
-    private fun afterAnswer(sessionId: String, isNewSession: Boolean, stopped: Boolean, all: List<UiMessage>, systemPrompt: String?, hadSources: Boolean) {
+    private fun afterAnswer(sessionId: String, isNewSession: Boolean, stopped: Boolean, all: List<UiMessage>, systemPrompt: String?, hadSources: Boolean, filesOnly: Boolean) {
         if (stopped) return
         // In the background the model is freed now; the question stays the title until BOAR is back on screen.
         if (!services.isInForeground) {
-            deferredAfterAnswer = { afterAnswer(sessionId, isNewSession, false, all, systemPrompt, hadSources) }
+            deferredAfterAnswer = { afterAnswer(sessionId, isNewSession, false, all, systemPrompt, hadSources, filesOnly) }
             return
         }
         val s = services.settings
@@ -739,7 +766,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         if (isNewSession && s.autoGenerateTitles) {
             background = safeScope.launch(Dispatchers.Default) {
                 runCatching { services.chats.setTitle(sessionId, Summarize.title(gen, all.first { it.role == "user" }.text)) }
-                runCatching { warmPrefix(session, systemPrompt, hadSources) }
+                runCatching { warmPrefix(session, systemPrompt, hadSources, filesOnly) }
             }
         } else if (s.autoSummarize && all.size / 2 > s.historyTurnThreshold) {
             val older = all.dropLast(VERBATIM_MESSAGE_COUNT)
@@ -751,7 +778,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     val turns = HistoryBudget.budget(older.map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) })
                     services.chats.setSummary(sessionId, Summarize.summary(gen, turns, previous))
                 }
-                runCatching { warmPrefix(session, systemPrompt, hadSources) }
+                runCatching { warmPrefix(session, systemPrompt, hadSources, filesOnly) }
             }
         }
     }
@@ -773,13 +800,15 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      * A title or summary left its own prompt in the KV cache, so the next question would read the whole system prompt
      * again (about 230 tokens, 8 s on a 4B). Prefill it back: the next answer reuses it (#72's warm-up).
      */
-    private suspend fun warmPrefix(session: team.sopa.boar.engine.LlamaSession, systemPrompt: String?, withSources: Boolean) {
-        // The variant the last answer used (with or without sources): a follow-up in the same chat most often matches it.
-        val (head, plain) = team.sopa.boar.engine.rag.RagPure.answerPromptPrefix(systemPrompt, withSources)
+    private suspend fun warmPrefix(session: team.sopa.boar.engine.LlamaSession, systemPrompt: String?, withSources: Boolean, filesOnly: Boolean) {
+        // The variant the last answer used (with or without sources, My files or all): a follow-up most often matches it.
+        val (head, plain) = team.sopa.boar.engine.rag.RagPure.answerPromptPrefix(systemPrompt, withSources, filesOnly)
+        val self = kotlin.coroutines.coroutineContext[Job]
         val prompt = if (session.info.optBoolean("hasChatTemplate", false))
             session.formatChat(listOf(team.sopa.boar.engine.ChatMessage("system", head)), services.settings.engineTweaks.thinkingEnabled).prompt
         else plain
-        session.generate(prompt, team.sopa.boar.engine.Sampling(nPredict = 0)).collect {}
+        // Cancelled while it waited for the lock: skipped, not run after a native cancel that came too early.
+        session.generate(prompt, team.sopa.boar.engine.Sampling(nPredict = 0), shouldStop = { self?.isActive == false }).collect {}
     }
 
     /** runAdaptiveChat: plan with the installed models and the user's routing settings, then execute. */

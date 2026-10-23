@@ -113,6 +113,9 @@ data class GenerationMetrics(
                 error = if (o.has("error")) o.getString("error") else null,
             )
         }
+
+        /** A generation skipped before it started (Stop pressed while it waited for the model). */
+        fun cancelled() = GenerationMetrics(0, 0, 0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, "cancelled", "cancelled")
     }
 }
 
@@ -153,11 +156,19 @@ class LlamaSession private constructor(@Volatile private var handle: Long, val p
         }
     }
 
-    /** Streams the answer piece by piece, then one [GenerationEvent.Done] with the measurements. */
-    fun generate(prompt: String, sampling: Sampling = Sampling()): Flow<GenerationEvent> = callbackFlow {
+    /**
+     * Streams the answer piece by piece, then one [GenerationEvent.Done] with the measurements. [shouldStop] is read once
+     * the lock is held and after every piece: a Stop pressed while this call waited for the lock (behind the chat's warm
+     * prefill) would otherwise be lost, since the native generate clears the cancel flag [cancel] set when it starts.
+     */
+    fun generate(prompt: String, sampling: Sampling = Sampling(), shouldStop: () -> Boolean = { false }): Flow<GenerationEvent> = callbackFlow {
         lock.withLock {
+            if (shouldStop()) {
+                send(GenerationEvent.Done(GenerationMetrics.cancelled()))
+                return@withLock
+            }
             val metrics = BoarNative.generate(live(), prompt.toByteArray(Charsets.UTF_8), sampling.toJson()) { bytes ->
-                trySend(GenerationEvent.Piece(String(bytes, Charsets.UTF_8))).isSuccess
+                trySend(GenerationEvent.Piece(String(bytes, Charsets.UTF_8))).isSuccess && !shouldStop()
             }
             val m = GenerationMetrics.parse(String(metrics, Charsets.UTF_8))
             runCatching { onGenerated?.invoke(m) }
