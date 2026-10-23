@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -83,34 +84,53 @@ private fun inline(text: String): AnnotatedString {
 @Composable
 fun MarkdownMessage(content: String, streaming: Boolean, modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
-    val type = MaterialTheme.typography
-    val body = type.bodyLarge.copy(color = scheme.onSurface)
     SelectionContainer {
         Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            // One skippable composable per line: while an answer streams only its last line changes, so the lines
+            // above keep their parsed text and layout instead of being rebuilt (regex, AnnotatedString) on every token.
             for (block in parseBlocks(content)) when (block) {
-                is MdBlock.Code -> Column(
-                    Modifier.fillMaxWidth().background(scheme.surfaceContainerHighest, MaterialTheme.shapes.medium).padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text(block.language.uppercase(), style = type.labelSmall, color = scheme.onSurfaceVariant)
-                    Text(block.code, style = type.bodyMedium.copy(fontFamily = FontFamily.Monospace), color = scheme.onSurface)
-                }
-                is MdBlock.Text -> for (line in block.content.split("\n")) {
-                    val t = line.trim()
-                    when {
-                        t.isEmpty() -> Spacer(Modifier.height(4.dp))
-                        t.startsWith("### ") -> Text(t.drop(4), style = type.titleSmall, color = scheme.onSurface, modifier = Modifier.padding(top = 4.dp))
-                        t.startsWith("## ") -> Text(t.drop(3), style = type.titleMedium, color = scheme.onSurface, modifier = Modifier.padding(top = 8.dp))
-                        t.startsWith("# ") -> Text(t.drop(2), style = type.titleLarge, color = scheme.onSurface, modifier = Modifier.padding(top = 8.dp))
-                        t.startsWith("- ") || t.startsWith("* ") -> Row(Modifier.padding(start = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text("•", style = body, color = scheme.primary)
-                            Text(inline(t.drop(2)), style = body)
-                        }
-                        else -> Text(inline(line), style = body)
-                    }
-                }
+                is MdBlock.Code -> MdCode(block.code, block.language)
+                is MdBlock.Text -> for (line in block.content.split("\n")) MdLine(line)
             }
             if (streaming) Box(Modifier.padding(top = 2.dp).size(10.dp).background(scheme.primary, CircleShape))
         }
+    }
+}
+
+/**
+ * Each line draws in its own layer: the answer's column is redrawn as it grows, and without one every line above
+ * re-recorded its glyphs on every token (a fifth of the main thread late in a long answer).
+ */
+private val LineLayer = Modifier.graphicsLayer()
+
+@Composable
+private fun MdCode(code: String, language: String) {
+    val scheme = MaterialTheme.colorScheme
+    val type = MaterialTheme.typography
+    Column(
+        LineLayer.fillMaxWidth().background(scheme.surfaceContainerHighest, MaterialTheme.shapes.medium).padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(language.uppercase(), style = type.labelSmall, color = scheme.onSurfaceVariant)
+        Text(code, style = type.bodyMedium.copy(fontFamily = FontFamily.Monospace), color = scheme.onSurface)
+    }
+}
+
+@Composable
+private fun MdLine(line: String) {
+    val scheme = MaterialTheme.colorScheme
+    val type = MaterialTheme.typography
+    val body = type.bodyLarge.copy(color = scheme.onSurface)
+    val t = line.trim()
+    when {
+        t.isEmpty() -> Spacer(Modifier.height(4.dp))
+        t.startsWith("### ") -> Text(t.drop(4), style = type.titleSmall, color = scheme.onSurface, modifier = LineLayer.padding(top = 4.dp))
+        t.startsWith("## ") -> Text(t.drop(3), style = type.titleMedium, color = scheme.onSurface, modifier = LineLayer.padding(top = 8.dp))
+        t.startsWith("# ") -> Text(t.drop(2), style = type.titleLarge, color = scheme.onSurface, modifier = LineLayer.padding(top = 8.dp))
+        t.startsWith("- ") || t.startsWith("* ") -> Row(LineLayer.padding(start = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("•", style = body, color = scheme.primary)
+            Text(inline(t.drop(2)), style = body)
+        }
+        else -> Text(inline(line), style = body, modifier = LineLayer)
     }
 }
