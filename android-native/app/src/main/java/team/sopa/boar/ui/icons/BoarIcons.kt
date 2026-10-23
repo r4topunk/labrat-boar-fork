@@ -72,6 +72,26 @@ import androidx.compose.ui.graphics.vector.ImageVector
  * header subtitle, and the ✓/✗ feature list in the developer telemetry.
  */
 object BoarIcons {
+    /** Material Icons AutoMirrored.Outlined.ShortText (material-icons-extended): the Succinct answer style. */
+    val ShortText: ImageVector by lazy {
+        materialIcon(name = "Boar.ShortText", autoMirror = true) {
+            materialPath {
+                moveTo(4.0f, 9.0f)
+                horizontalLineToRelative(16.0f)
+                verticalLineToRelative(2.0f)
+                lineTo(4.0f, 11.0f)
+                lineTo(4.0f, 9.0f)
+                close()
+                moveTo(4.0f, 13.0f)
+                horizontalLineToRelative(10.0f)
+                verticalLineToRelative(2.0f)
+                lineTo(4.0f, 15.0f)
+                verticalLineToRelative(-2.0f)
+                close()
+            }
+        }
+    }
+
     /** Material Icons Outlined.Tune (material-icons-extended outlined/Tune.kt): the chat's answer options. */
     val Tune: ImageVector by lazy {
         materialIcon(name = "Boar.Tune") {

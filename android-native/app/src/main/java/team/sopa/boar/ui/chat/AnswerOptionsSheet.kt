@@ -128,7 +128,7 @@ private fun OptionsDetail(page: OptionsPage, state: ChatState, actions: AnswerOp
         }, null)
         OptionsPage.MODEL -> Triple(t("design.options.model"), state.models.map { m ->
             val note = listOfNotNull(Units.formatBytes(m.sizeBytes), if (m.recommended) t("design.options.recommended") else null).joinToString(" · ")
-            Choice(m.id, m.name, note, null, m.id == state.activeModelId) { actions.onSetModel(m.id) }
+            Choice(m.id, m.name, note, BoarIcons.Memory, m.id == state.activeModelId) { actions.onSetModel(m.id) }
         }, t("design.options.modelFoot"))
         else -> Triple(t("design.options.sources"), listOf(
             Choice("all", t("design.options.sourcesAll"), t("design.options.sourcesAllNote"), BoarIcons.LibraryBooks, !state.sourcesOwn) { actions.onSetSourcesOwn(false) },

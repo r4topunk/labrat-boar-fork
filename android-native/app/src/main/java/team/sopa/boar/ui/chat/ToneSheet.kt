@@ -34,7 +34,7 @@ import team.sopa.boar.ui.t
 
 /** The icon of an answer style (ids from personalities.json; the JSON's emoji are not used). */
 internal fun toneVector(id: String): ImageVector = when (id) {
-    "succinct" -> BoarIcons.Bolt
+    "succinct" -> BoarIcons.ShortText
     "detailed" -> BoarIcons.Book
     "summary" -> BoarIcons.Description
     else -> Icons.Outlined.Edit

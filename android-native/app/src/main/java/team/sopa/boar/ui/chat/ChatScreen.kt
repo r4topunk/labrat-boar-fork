@@ -267,10 +267,14 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
                         .padding(end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    // The empty chat already shows the boar large in the middle: one brand mark per screen. Its slot is
-                    // always there (the mark fades in with the first message), so the title never jumps sideways.
-                    val markAlpha by animateFloatAsState(if (state.messages.isNotEmpty()) 1f else 0f, label = "headerMark")
-                    Image(painterResource(R.drawable.mascot), null, Modifier.size(IconSize.Standard).alpha(markAlpha), contentScale = ContentScale.Fit)
+                    // The empty chat already shows the boar large in the middle: one brand mark per screen. With the first
+                    // message the mark slides in (width and fade), so the title moves smoothly instead of jumping, and the
+                    // empty chat has no blank gap before the title.
+                    androidx.compose.animation.AnimatedVisibility(state.messages.isNotEmpty(),
+                        enter = androidx.compose.animation.expandHorizontally() + androidx.compose.animation.fadeIn(),
+                        exit = androidx.compose.animation.shrinkHorizontally() + androidx.compose.animation.fadeOut()) {
+                        Image(painterResource(R.drawable.mascot), null, Modifier.size(IconSize.Standard), contentScale = ContentScale.Fit)
+                    }
                     Column {
                         Text("BOAR", style = MaterialTheme.typography.titleMedium, maxLines = 1)
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
