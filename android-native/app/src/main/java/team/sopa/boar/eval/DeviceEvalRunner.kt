@@ -16,6 +16,8 @@ import kotlinx.serialization.json.jsonPrimitive
 import team.sopa.boar.engine.CpuTopology
 import team.sopa.boar.engine.EngineParams
 import team.sopa.boar.engine.EngineTweaks
+import team.sopa.boar.engine.FlashAttn
+import team.sopa.boar.engine.KvType
 import team.sopa.boar.engine.LlamaSession
 import team.sopa.boar.engine.answer.AnswerEvent
 import team.sopa.boar.engine.answer.AnswerPipeline
@@ -50,6 +52,12 @@ class DeviceEvalRunner(
     private val classify: (String) -> String,
     private val retrievalIrrelevant: (String) -> Boolean,
     private val log: (String) -> Unit = { Log.i(TAG, it) },
+    /**
+     * Speed-run knobs from adb (BenchActivity extras "ov.<name>"), never set by the app: seed, threads, threadsBatch, cpus
+     * ("auto", "all", "fast<n>" or a list), batch, ubatch, kv, fa, ctx, embThreads, embCpus, coolC (wait for the battery to
+     * cool to this before each question), probe (time each retrieval stage after each answer).
+     */
+    private val overrides: Map<String, String> = emptyMap(),
 ) {
     private val files = context.filesDir
     private val evalDir = File(files, "eval")
@@ -176,6 +184,7 @@ class DeviceEvalRunner(
                 try {
                     for ((qi, q) in queries.withIndex()) {
                         if (stopRequested) break@run
+                        overrides["coolC"]?.toDoubleOrNull()?.let { coolTo(it) }
                         val current = "${config.id} / ${q.id}"
                         listener.onProgress(Progress(ci, configs.size, qi, queries.size, config, q))
                         atomicWrite(File(evalDir, "$runId.run.json"), json(
@@ -187,7 +196,9 @@ class DeviceEvalRunner(
                                 if (session == null) {
                                     val file = installed.firstOrNull { it.first.id == config.modelId }?.second
                                     val t0 = System.nanoTime()
-                                    session = file?.let { LlamaSession.load(it.absolutePath, EngineTweaks().resolve(topology, totalRam).params) }
+                                    val params = modelParams(EngineTweaks().resolve(topology, totalRam).params, topology)
+                                    log("[EVAL] model params ${params.toJson()}")
+                                    session = file?.let { LlamaSession.load(it.absolutePath, params) }
                                     loadMs = (System.nanoTime() - t0) / 1e6
                                 } else {
                                     residency = "resident"
@@ -227,7 +238,7 @@ class DeviceEvalRunner(
     }
 
     /** The knowledge base, embedder and packs at the Expo app's paths; null when the knowledge base is missing. */
-    private class Retrieval(val retriever: Retriever, val embedder: LlamaSession, val closeables: List<AutoCloseable>) : AutoCloseable {
+    private class Retrieval(val retriever: Retriever, val embedder: LlamaSession, val closeables: List<AutoCloseable>, val kb: KnowledgeBase, val packs: List<OpenPack>) : AutoCloseable {
         override fun close() { closeables.forEach { runCatching { it.close() } }; embedder.close() }
     }
 
@@ -235,7 +246,11 @@ class DeviceEvalRunner(
         val dbFile = File(files, "SQLite/aoair_knowledge.db")
         val embFile = File(files, "models/embedding.gguf")
         if (!dbFile.isFile || !embFile.isFile) { log("[EVAL] no knowledge base or embedding model: answers without retrieval"); return null }
-        val embedder = LlamaSession.load(embFile.absolutePath, EngineParams(nCtx = 512, threads = 2, embeddings = true)) ?: return null
+        val embParams = EngineParams(nCtx = 512, threads = overrides["embThreads"]?.toIntOrNull() ?: 2, embeddings = true,
+            cpus = overrides["embCpus"]?.let { cpusFor(it, topology) } ?: "")
+        val te = System.nanoTime()
+        val embedder = LlamaSession.load(embFile.absolutePath, embParams) ?: return null
+        log("[EVAL] embedder loaded in ${"%.0f".format((System.nanoTime() - te) / 1e6)} ms, ${embParams.toJson()}")
         val kbDb = NativeSqlite.open(dbFile.absolutePath)
         val closeables = mutableListOf<AutoCloseable>(kbDb)
         val sha = Json.parseToJsonElement(asset("catalog.json")).jsonObject["models"]!!.jsonArray.map { it.jsonObject }
@@ -257,9 +272,72 @@ class DeviceEvalRunner(
         val lexicon: Map<String, String> = runCatching {
             context.assets.open("lexicon/pt-en.json").bufferedReader().use { r -> Json.parseToJsonElement(r.readText()).jsonObject.mapValues { it.value.jsonPrimitive.content } }
         }.getOrDefault(emptyMap())
-        val retriever = Retriever(KnowledgeBase(kbDb), { packs }, { text -> runBlocking { embedder.embed(text) } }, { lexicon })
+        val kb = KnowledgeBase(kbDb)
+        val retriever = Retriever(kb, { packs }, { text -> runBlocking { embedder.embed(text) } }, { lexicon })
         log("[EVAL] retrieval: knowledge base + ${packs.size} packs, lexicon ${lexicon.size} names")
-        return Retrieval(retriever, embedder, closeables)
+        return Retrieval(retriever, embedder, closeables, kb, packs)
+    }
+
+    private fun cpusFor(spec: String, topology: CpuTopology): String = when {
+        spec == "auto" -> topology.cpuList(topology.autoCores)
+        spec == "all" -> ""
+        spec.startsWith("fast") -> topology.cpuList(topology.fastest(spec.removePrefix("fast").toIntOrNull() ?: 4))
+        else -> spec
+    }
+
+    /** The chat's engine parameters with the speed-run overrides applied. */
+    private fun modelParams(base: EngineParams, topology: CpuTopology): EngineParams {
+        val o = overrides
+        val t = o["threads"]?.toIntOrNull() ?: base.threads
+        return base.copy(
+            threads = t, threadsBatch = o["threadsBatch"]?.toIntOrNull() ?: if (o["threads"] != null) t else base.threadsBatch,
+            cpus = o["cpus"]?.let { cpusFor(it, topology) } ?: base.cpus,
+            nBatch = o["batch"]?.toIntOrNull() ?: base.nBatch,
+            nUbatch = o["ubatch"]?.toIntOrNull() ?: o["batch"]?.toIntOrNull()?.let { minOf(it, 512) } ?: base.nUbatch,
+            typeK = o["kv"]?.let { KvType.valueOf(it) } ?: base.typeK, typeV = o["kv"]?.let { KvType.valueOf(it) } ?: base.typeV,
+            flashAttn = o["fa"]?.let { FlashAttn.valueOf(it) } ?: base.flashAttn,
+            nCtx = o["ctx"]?.toIntOrNull() ?: base.nCtx,
+            strictCpu = o["strict"]?.toBoolean() ?: base.strictCpu,
+        )
+    }
+
+    private fun batteryTempC(): Double? = runCatching {
+        context.registerReceiver(null, android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED))
+            ?.getIntExtra(android.os.BatteryManager.EXTRA_TEMPERATURE, -1)?.takeIf { it > 0 }?.div(10.0)
+    }.getOrNull()
+
+    /** Waits (up to 15 minutes) for the battery to cool to [c] °C, so thermal throttling doesn't decide a comparison. */
+    private suspend fun coolTo(c: Double) {
+        val until = System.currentTimeMillis() + 15 * 60_000L
+        while (System.currentTimeMillis() < until) {
+            val t = batteryTempC() ?: return
+            if (t <= c) return
+            log("[EVAL] cooling: battery $t °C > $c")
+            delay(20_000)
+        }
+    }
+
+    /** Each retrieval stage timed alone (the answer's own search already ran, so caches are warm as in a chat). */
+    private fun probe(r: Retrieval, query: String): JsonObject {
+        fun <T> timed(block: () -> T): Pair<T, Double> { val t0 = System.nanoTime(); val v = block(); return v to (System.nanoTime() - t0) / 1e6 }
+        val (vec, embedMs) = timed { runBlocking { r.embedder.embed(query) } }
+        val k = team.sopa.boar.engine.answer.AnswerPipeline.ANSWER_CONTEXT_CHUNKS
+        val (_, lexMs) = timed { r.kb.lexicalSearch(query, vec, k * 2) }
+        val (_, semMs) = timed { r.kb.semanticSearch(vec, k * 2) }
+        val packMs = r.packs.map { p ->
+            val (_, ms) = timed {
+                runCatching {
+                    when (p) {
+                        is OpenPack.Format1 -> Packs.searchFormat1(p.db, p.id, query, vec, k * 2, null)
+                        is OpenPack.Format2 -> p.pack.searchDetailed(query, team.sopa.boar.engine.rag.PackSearchOptions(k = k, queryVec = vec))
+                    }
+                }
+            }
+            p.id to ms
+        }
+        val (_, totalMs) = timed { r.retriever.retrieve(query, k) }
+        return json("embedMs" to embedMs, "kbLexicalMs" to lexMs, "kbSemanticMs" to semMs,
+            "packMs" to JsonObject(packMs.associate { it.first to JsonPrimitive(it.second) }), "retrieveMs" to totalMs)
     }
 
     private suspend fun answerRow(
@@ -267,6 +345,7 @@ class DeviceEvalRunner(
         systemPrompt: String, styleReminder: String?, maxTokens: Int, residency: String, loadMs: Double,
     ): JsonObject {
         val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k) ?: emptyList() }, classify, retrievalIrrelevant)
+        val tempBefore = batteryTempC()
         val peak = PeakRss().apply { start() }
         val start = System.nanoTime()
         var genStart = 0L
@@ -275,7 +354,7 @@ class DeviceEvalRunner(
         var done: AnswerEvent.Done? = null
         var error: String? = null
         try {
-            pipeline.answer(AnswerRequest(q.query, systemPrompt, styleReminder, maxTokens)).collect { e ->
+            pipeline.answer(AnswerRequest(q.query, systemPrompt, styleReminder, maxTokens, seed = overrides["seed"]?.toIntOrNull() ?: -1)).collect { e ->
                 when (e) {
                     is AnswerEvent.Stage -> if (e.stage == team.sopa.boar.engine.answer.AnswerStage.THINKING) genStart = System.nanoTime()
                     is AnswerEvent.Piece -> { tokens++; if (firstToken == 0L) firstToken = System.nanoTime() }
@@ -288,6 +367,7 @@ class DeviceEvalRunner(
         }
         val end = System.nanoTime()
         val peakRss = peak.stop()
+        val probed = if (overrides["probe"] == "1" && retrieval != null && d0(done)) runCatching { probe(retrieval, q.query) }.getOrNull() else null
         val d = done
         val answer = d?.text ?: ""
         val ttftMs = if (genStart > 0) ((if (firstToken > 0) firstToken else end) - genStart) / 1e6 else null
@@ -311,8 +391,13 @@ class DeviceEvalRunner(
             "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to answer, "promptFormat" to d?.promptFormat,
             "retrievedTitles" to titles, "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, titles),
             "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
+            "batteryTempBefore" to tempBefore, "batteryTempAfter" to batteryTempC(), "stopReason" to m?.stopReason,
+            "nativeTtftMs" to m?.ttftMs, "userTtftMs" to (if (firstToken > 0) (firstToken - start) / 1e6 else null), "decodeTokPerSec" to m?.decodeTokPerSec, "probe" to probed,
+            "params" to overrides.takeIf { it.isNotEmpty() }?.entries?.joinToString(" ") { "${it.key}=${it.value}" },
         )
     }
+
+    private fun d0(d: AnswerEvent.Done?) = d?.retrieved == true
 
     private fun failureRow(runId: String, config: EvalConfig, q: EvalQuery, personalityId: String, maxTokens: Int, error: String) = json(
         "modelId" to (config as? EvalConfig.Model)?.modelId, "taskType" to classify(q.query), "adaptiveRoutingUsed" to (config is EvalConfig.Adaptive),

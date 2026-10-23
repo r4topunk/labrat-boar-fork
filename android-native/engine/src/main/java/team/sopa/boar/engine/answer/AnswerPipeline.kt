@@ -28,6 +28,8 @@ data class AnswerRequest(
     val contextSize: Int? = null,
     /** [filesOnly]'s answer when the search found nothing: written as is, without the model. */
     val notFoundText: String = PersonalFiles.NOT_FOUND,
+    /** Sampling seed; -1 (the app) = random. A fixed seed makes an answer repeatable (the device eval's speed runs). */
+    val seed: Int = -1,
 )
 
 enum class AnswerStage { RETRIEVING, THINKING, GENERATING }
@@ -119,7 +121,7 @@ class AnswerPipeline(
         val text = StringBuilder()
         var metrics: GenerationMetrics? = null
         var first = true
-        session.generate(prompt, Sampling(nPredict = req.maxTokens, temperature = 0.7f, stops = stops)).collect { e ->
+        session.generate(prompt, Sampling(nPredict = req.maxTokens, temperature = 0.7f, seed = req.seed, stops = stops)).collect { e ->
             when (e) {
                 is GenerationEvent.Piece -> {
                     if (first) { first = false; emit(AnswerEvent.Stage(AnswerStage.GENERATING)) }

@@ -70,12 +70,17 @@ class BenchActivity : ComponentActivity() {
 
         // Only on a fresh start: a recreated activity must not load a second copy of the model.
         if (savedInstanceState == null && intent.getStringExtra("run") == "eval") {
+            // A timing run keeps the screen on: with the screen off Android moves the app to the slow cores (10x slower).
+            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             // scripts/eval-device.mjs --package team.sopa.aoair.native --no-reload: wait for its request, answer it.
             val runner = team.sopa.boar.eval.DeviceEvalRunner(
                 this,
                 classify = { q -> Classify.classifyTask(q).value },
                 retrievalIrrelevant = { t -> Classify.isRetrievalIrrelevant(TaskType.of(t)) },
                 log = { line -> log.value += line + "\n"; Log.i(team.sopa.boar.eval.DeviceEvalRunner.TAG, line) },
+                // Speed-run knobs: --es ov.threads 5 --es ov.seed 42 … (DeviceEvalRunner.overrides).
+                overrides = intent.extras?.keySet().orEmpty().filter { it.startsWith("ov.") }
+                    .associate { it.removePrefix("ov.") to intent.extras!!.get(it).toString() },
             )
             val waitMs = intent.getIntExtra("waitmin", 10) * 60_000L
             // A release build can't be reached with run-as: the request can come base64 in the intent (request64), and
