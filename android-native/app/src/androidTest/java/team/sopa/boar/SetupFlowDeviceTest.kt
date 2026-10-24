@@ -285,9 +285,13 @@ class SetupFlowDeviceTest {
         compose.waitForText(tr("clean.onboarding.knowledge.title"))
         compose.press(tr("clean.onboarding.preset.minimal"))
         compose.pressNode(hasText(tr("clean.onboarding.knowledge.finish")) or hasText(tr("clean.onboarding.knowledge.download")))
-        waitSlowly(30 * 60_000L, "setup finished and the chat opened", stepMs = 2_000) {
-            runCatching { compose.exists(hasContentDescription(tr("chatHeader.openDrawer"))) }.getOrDefault(false)
+        val chatOpen = { runCatching { compose.exists(hasContentDescription(tr("chatHeader.openDrawer"))) }.getOrDefault(false) }
+        // Slow poll through the download, then compose.waitUntil: only it advances the Compose clock that the
+        // 800 ms "All set" hold (a LaunchedEffect delay) runs on; a plain sleep never lets it finish.
+        waitSlowly(30 * 60_000L, "setup finished", stepMs = 2_000) {
+            chatOpen() || runCatching { compose.shows(tr("clean.onboarding.install.doneTitle")) }.getOrDefault(false)
         }
+        compose.waitUntil(30_000) { chatOpen() }
         assertFalse(compose.shows(tr("native.pin.offerTitle")))
         assertFalse(services.pinLock.isSet)
         assertEquals(compact.id, services.activeModel()?.id)
