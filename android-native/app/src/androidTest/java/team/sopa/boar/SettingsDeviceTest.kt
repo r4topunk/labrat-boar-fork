@@ -79,7 +79,6 @@ class SettingsDeviceTest {
      * with Developer options on. Literal English, since the removed options' strings are gone from the resources.
      */
     @Test fun noAnswerStyleDeepResearchOrAnswerLengthIsOffered() {
-        org.junit.Assume.assumeTrue("English texts", ctx.resources.configuration.locales[0]?.language == "en")
         InstrumentationRegistry.getInstrumentation().runOnMainSync { DevOptions.setEnabled(ctx, true) }
         show()
         visible(tr("clean.settings.section.developer"))

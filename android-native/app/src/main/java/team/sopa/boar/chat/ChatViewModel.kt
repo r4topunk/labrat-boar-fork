@@ -819,7 +819,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 r.copy(style = style, path = path, task = task, checked = checked, styleNote = shortReason?.takeIf { it != team.sopa.boar.engine.routing.ShortAnswer.SMALL_TALK })
             }
             val cutAt = limited?.takeIf { !stopped && !timedOut && text.isNotBlank() && AnswerLimit.reached(metrics?.generatedTokens ?: tokens, it) }
-            val nextLimit = cutAt?.let { AnswerLimit.next(it, services.personalities.maxTokensOptions, services.host.openedContext) }
+            // No "Allow more and redo": the answer length is the Succinct value with no user control, and longer answers measured
+            // more wrong-without-warning, so the cut note stays and the redo offer is gone.
+            val nextLimit: Int? = null
             try {
                 chats.upsertMessage(sessionId, "assistant", text.toString(), answerId)
                 // Always written: it replaces the interrupted mark of the partial saves.

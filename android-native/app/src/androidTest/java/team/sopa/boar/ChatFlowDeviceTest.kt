@@ -96,10 +96,9 @@ class ChatFlowDeviceTest {
             compose.waitForText(title)
             assertTrue(compose.shows(tr("design.options.model")))
             assertTrue(compose.shows(tr("design.options.sources")))
-            if (ctx.resources.configuration.locales[0]?.language == "en") {
-                assertFalse("no Style row", compose.shows("Style"))
-                assertFalse("no Deep Research", compose.shows("Deep Research", substring = true))
-            }
+            // Only English resources ship, so these literals hold on every phone.
+            assertFalse("no Style row", compose.shows("Style"))
+            assertFalse("no Deep Research", compose.shows("Deep Research", substring = true))
             assertTrue("Reset is off at the defaults", compose.onNode(hasText(tr("design.options.reset")) and hasClickAction())
                 .fetchSemanticsNode().config.contains(SemanticsProperties.Disabled))
 

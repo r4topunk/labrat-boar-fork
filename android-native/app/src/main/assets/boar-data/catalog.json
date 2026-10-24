@@ -41,6 +41,26 @@
       }
     },
     {
+      "id": "qwen3-1.7b-q4km",
+      "kind": "llm",
+      "label": "Qwen3-1.7B (Q4_K_M)",
+      "displayName": "Qwen3 1.7B",
+      "filename": "models/qwen3-1.7b-q4km.gguf",
+      "sizeBytes": 1107409472,
+      "sha256": "b139949c5bd74937ad8ed8c8cf3d9ffb1e99c866c823204dc42c0d91fa181897",
+      "sourceUrl": "https://huggingface.co/unsloth/Qwen3-1.7B-GGUF/resolve/d7f544eead698dbd1f15126ef60b45a1e1933222/Qwen3-1.7B-Q4_K_M.gguf",
+      "license": "Apache-2.0",
+      "description": "1.7B dense, light, thinking off. The answer model BOAR recommends for every phone.",
+      "required": false,
+      "answerTier": "compact",
+      "capabilities": {
+        "roles": [
+          "fast"
+        ],
+        "usesChatTemplate": true
+      }
+    },
+    {
       "id": "qwen3-4b-instruct-2507-q4km",
       "kind": "llm",
       "label": "Qwen3-4B-Instruct-2507 (Q4_K_M)",
@@ -56,26 +76,6 @@
       "capabilities": {
         "roles": [
           "general",
-          "fast"
-        ],
-        "usesChatTemplate": true
-      }
-    },
-    {
-      "id": "qwen3-1.7b-q4km",
-      "kind": "llm",
-      "label": "Qwen3-1.7B (Q4_K_M)",
-      "displayName": "Qwen3 1.7B",
-      "filename": "models/qwen3-1.7b-q4km.gguf",
-      "sizeBytes": 1107409472,
-      "sha256": "b139949c5bd74937ad8ed8c8cf3d9ffb1e99c866c823204dc42c0d91fa181897",
-      "sourceUrl": "https://huggingface.co/unsloth/Qwen3-1.7B-GGUF/resolve/d7f544eead698dbd1f15126ef60b45a1e1933222/Qwen3-1.7B-Q4_K_M.gguf",
-      "license": "Apache-2.0",
-      "description": "1.7B dense, light, thinking off. The answer model BOAR recommends for every phone.",
-      "required": false,
-      "answerTier": "compact",
-      "capabilities": {
-        "roles": [
           "fast"
         ],
         "usesChatTemplate": true

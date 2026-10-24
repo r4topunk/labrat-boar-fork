@@ -233,10 +233,10 @@ private fun FooterStats(lastTokPerSec: Double?, storageUsed: () -> Long, downloa
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderSubtle))
         Bar(t("drawerFooterStats.ram"), listOf(minOf(app, phone.usedBytes) to c.emerald400, maxOf(phone.usedBytes - app, 0L) to c.textDim), phone.totalBytes,
             usage(phone.usedBytes, phone.totalBytes))
-        Caption(t("native.drawerStats.ramBoar", "app" to Units.formatBytes(app, Locale.getDefault())))
+        Caption(t("native.drawerStats.ramBoar", "app" to Units.formatBytes(app, Locale.ENGLISH)))
         Bar(t("drawerFooterStats.disk"), listOf(disk to c.cyan400, fetching to c.cyan400.copy(alpha = 0.35f)), storageBudget, usage(disk + fetching, storageBudget))
         Caption(
-            if (fetching > 0) t("native.drawerStats.diskDownloading", "size" to Units.formatBytes(fetching, Locale.getDefault()))
+            if (fetching > 0) t("native.drawerStats.diskDownloading", "size" to Units.formatBytes(fetching, Locale.ENGLISH))
             else t("native.drawerStats.diskLimit"),
         )
         if (lastTokPerSec != null) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 2.dp)) {

@@ -419,7 +419,9 @@ private fun ChatDrawer(
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { confirmDelete = null },
             title = { Text(t("clean.nav.deleteConfirmTitle")) },
-            text = { Text(t("clean.nav.deleteConfirmMessage", "title" to (sessions.firstOrNull { it.id == id }?.title ?: ""))) },
+            // The drawer's own title (no "Title:" prefix, quotes or final period); a blank one gets the title-only dialog.
+            text = sessions.firstOrNull { it.id == id }?.title?.let { team.sopa.boar.ui.drawer.displayTitle(it) }?.takeIf { it.isNotBlank() }
+                ?.let { shown -> { Text(t("clean.nav.deleteConfirmMessage", "title" to shown)) } },
             confirmButton = {
                 androidx.compose.material3.TextButton({ confirmDelete = null; deleteNow(id) },
                     colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text(t("clean.nav.deleteButton")) }
