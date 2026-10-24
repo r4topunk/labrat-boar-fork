@@ -188,23 +188,23 @@ private fun StatusStrip(setup: SetupState, status: TourStatus, onRetry: () -> Un
 private fun TourNav(page: Int, count: Int, last: Boolean, status: TourStatus, onBack: () -> Unit, onNext: () -> Unit) {
     val cs = MaterialTheme.colorScheme
     val where = t("clean.tour.cardA11y", "index" to page + 1, "count" to count)
-    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.weight(1f)) {
+    // The dots sit on their own row so the buttons below take the width they need (Open BoarLite stays on one line).
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(Modifier.padding(vertical = 8.dp).semantics { contentDescription = where }, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            repeat(count) { n -> Box(Modifier.size(if (n == page) 8.dp else 6.dp).background(if (n == page) cs.primary else cs.outlineVariant, CircleShape)) }
+        }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             if (page > 0) TextButton(onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, null, Modifier.size(18.dp))
                 Spacer(Modifier.size(6.dp))
-                Text(t("clean.tour.back"))
+                Text(t("clean.tour.back"), maxLines = 1)
             }
-        }
-        Row(Modifier.semantics { contentDescription = where }, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            repeat(count) { n -> Box(Modifier.size(if (n == page) 8.dp else 6.dp).background(if (n == page) cs.primary else cs.outlineVariant, CircleShape)) }
-        }
-        Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+            Spacer(Modifier.weight(1f))
             if (!last) FilledTonalButton(onNext) {
-                Text(t("clean.tour.next"))
+                Text(t("clean.tour.next"), maxLines = 1)
                 Spacer(Modifier.size(6.dp))
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(18.dp))
-            } else Button(onNext, enabled = status.canOpen()) { Text(t("clean.tour.open")) }
+            } else Button(onNext, enabled = status.canOpen()) { Text(t("clean.tour.open"), maxLines = 1, softWrap = false) }
         }
     }
 }
