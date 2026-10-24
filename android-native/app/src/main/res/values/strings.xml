@@ -95,7 +95,6 @@
     <string name="drawerFooterStats_lastQuery" formatted="false">{{rate}} tok/s last query</string>
     <string name="modelSetupScreen_header_title" formatted="false">Settings</string>
     <string name="modelSetupScreen_header_subtitle" formatted="false">BOAR — Adaptive Local Intelligence</string>
-    <string name="modelSetupScreen_sections_tone" formatted="false">How BOAR answers</string>
     <string name="modelSetupScreen_sections_models" formatted="false">Reasoning Models</string>
     <string name="modelSetupScreen_sections_knowledgeBase" formatted="false">Offline Knowledge Base (RAG)</string>
     <string name="modelSetupScreen_sections_memory" formatted="false">Memory &amp; Context Settings</string>
@@ -185,12 +184,6 @@
     <string name="setupWizard_phaseStatus_indexing" formatted="false">INDEXING</string>
     <string name="setupWizard_phaseStatus_pending" formatted="false">PENDING</string>
     <string name="setupWizard_phaseStatus_queued" formatted="false">QUEUED</string>
-    <string name="personalitySettings_title" formatted="false">How BOAR answers</string>
-    <string name="personalitySettings_customPromptPlaceholder" formatted="false">Write your own system prompt…</string>
-    <string name="personalitySettings_maxOutputTokens" formatted="false">Max output tokens</string>
-    <string name="personalitySettings_maxOutputTokensNote" formatted="false">Caps how long a single response can be — lower is faster and more battery-friendly on phone hardware.</string>
-    <string name="personalitySettings_deepResearchTitle" formatted="false">Deep Research Mode</string>
-    <string name="personalitySettings_deepResearchNote" formatted="false">Breaks your question into sub-questions, researches each separately, then synthesizes one answer. Several sequential model calls on the same model — noticeably slower than a normal reply, not multiple AI models running at once. Independent from the response style above: it changes how much research goes into an answer, not its tone — the two combine (e.g. Deep Research + Succinct still synthesizes a short final answer).</string>
     <string name="personalitySettings_adaptiveRoutingTitle" formatted="false">Adaptive Routing</string>
     <string name="personalitySettings_adaptiveRoutingNote" formatted="false">Classifies each message and picks which downloaded model answers it (e.g. a lightweight model for small talk, a stronger one for research/comparison questions), switching between them as needed. On by default and independent from Deep Research — if it fails for any reason, chat falls back to your normal active model automatically, it never leaves you without a response.</string>
     <string name="corpusSettingsTab_downloadablePacks" formatted="false">Downloadable knowledge packs</string>
@@ -240,10 +233,7 @@
     <string name="chatHeader_openDrawer" formatted="false">Open Navigation Drawer</string>
     <string name="chatHeader_offline" formatted="false">OFFLINE</string>
     <string name="chatHeader_localLlmCore" formatted="false">No model yet</string>
-    <string name="chatHeader_cycleTone" formatted="false">Change how BOAR answers</string>
     <string name="chatHeader_newChatSession" formatted="false">New Chat Session</string>
-    <string name="chatHeader_deepResearch" formatted="false">Deep Research</string>
-    <string name="chatHeader_deepResearchActive" formatted="false">Deep Research Active</string>
     <string name="chatHeader_online" formatted="false">ONLINE</string>
     <string name="chatHeader_onlineTitle" formatted="false">You\'re online</string>
     <string name="chatHeader_onlineBody" formatted="false">Your phone is connected to the internet. BOAR doesn\'t need it: answers, search and your library all work on this phone. Only downloading models or packs and searching Hugging Face for models use the connection. Turn on airplane mode to see it work fully offline.</string>
@@ -258,7 +248,6 @@
     <string name="chatScreen_hideReasoning" formatted="false">Hide reasoning</string>
     <string name="chatScreen_messageReused" formatted="false">Message copied to the input</string>
     <string name="chatScreen_stopping" formatted="false">Stopping… (finishing the current step)</string>
-    <string name="chatScreen_toneChanged" formatted="false">Tone: {{tone}}</string>
     <string name="chatScreen_modelDownloadComplete" formatted="false">✅ \"{{label}}\" download complete</string>
     <string name="chatScreen_drawerItems_prompts" formatted="false">Prompt Ideas</string>
     <string name="chatScreen_drawerItems_myDocuments" formatted="false">My Documents</string>
@@ -274,7 +263,6 @@
     <string name="chatScreen_roleYou" formatted="false">You</string>
     <string name="chatScreen_roleAssistant" formatted="false">BOAR</string>
     <string name="chatScreen_stoppedByUser" formatted="false">Stopped by user</string>
-    <string name="chatScreen_deepResearchBanner" formatted="false">Mixture of agents: decompose ➔ local embeddings ➔ synthesis</string>
     <string name="chatScreen_copyResponse" formatted="false">Copy response</string>
     <string name="chatScreen_copied" formatted="false">Copied</string>
     <string name="chatScreen_rateUp" formatted="false">Good response</string>
@@ -305,14 +293,6 @@
     <string name="processingIndicator_retrieving" formatted="false">Searching the library…</string>
     <string name="processingIndicator_thinking" formatted="false">Reading the sources…</string>
     <string name="processingIndicator_generating" formatted="false">Writing the answer…</string>
-    <string name="personalities_succinct_label" formatted="false">Succinct &amp; Direct</string>
-    <string name="personalities_succinct_description" formatted="false">Fastest — 2–3 brief paragraphs or bullets, no preamble. Default for mobile.</string>
-    <string name="personalities_detailed_label" formatted="false">Thorough &amp; Detailed</string>
-    <string name="personalities_detailed_description" formatted="false">Structured, thorough explanations with comparisons and reasoning.</string>
-    <string name="personalities_summary_label" formatted="false">Executive Summary</string>
-    <string name="personalities_summary_description" formatted="false">One top-line takeaway, then 3 key bullet points.</string>
-    <string name="personalities_custom_label" formatted="false">Custom</string>
-    <string name="personalities_custom_description" formatted="false">Write your own system prompt.</string>
     <string name="executionTelemetry_title" formatted="false">Execution Telemetry</string>
     <string name="executionTelemetry_subtitle" formatted="false">{{count}} recent runs</string>
     <string name="executionTelemetry_exportJson" formatted="false">⬇ JSON</string>

@@ -94,7 +94,6 @@
     <string name="drawerFooterStats_lastQuery" formatted="false">{{rate}} tok/s na última consulta</string>
     <string name="modelSetupScreen_header_title" formatted="false">Configurações</string>
     <string name="modelSetupScreen_header_subtitle" formatted="false">BOAR — Inteligência Local Adaptativa</string>
-    <string name="modelSetupScreen_sections_tone" formatted="false">Como o BOAR responde</string>
     <string name="modelSetupScreen_sections_models" formatted="false">Modelos de Raciocínio</string>
     <string name="modelSetupScreen_sections_knowledgeBase" formatted="false">Base de Conhecimento Offline (RAG)</string>
     <string name="modelSetupScreen_sections_memory" formatted="false">Configurações de Memória e Contexto</string>
@@ -184,12 +183,6 @@
     <string name="setupWizard_phaseStatus_indexing" formatted="false">INDEXANDO</string>
     <string name="setupWizard_phaseStatus_pending" formatted="false">PENDENTE</string>
     <string name="setupWizard_phaseStatus_queued" formatted="false">NA FILA</string>
-    <string name="personalitySettings_title" formatted="false">Como o BOAR responde</string>
-    <string name="personalitySettings_customPromptPlaceholder" formatted="false">Escreva seu próprio prompt de sistema…</string>
-    <string name="personalitySettings_maxOutputTokens" formatted="false">Máximo de tokens de saída</string>
-    <string name="personalitySettings_maxOutputTokensNote" formatted="false">Limita o tamanho de uma única resposta — quanto menor, mais rápido e mais econômico para a bateria do celular.</string>
-    <string name="personalitySettings_deepResearchTitle" formatted="false">Modo Pesquisa Profunda</string>
-    <string name="personalitySettings_deepResearchNote" formatted="false">Divide sua pergunta em subperguntas, pesquisa cada uma separadamente e depois sintetiza uma resposta. Várias chamadas sequenciais ao mesmo modelo — visivelmente mais lento que uma resposta normal, não é o mesmo que múltiplos modelos de IA rodando ao mesmo tempo. Independente do estilo de resposta acima: isso muda o quanto de pesquisa entra na resposta, não o seu tom — os dois se combinam (ex.: Pesquisa Profunda + Sucinto ainda sintetiza uma resposta final curta).</string>
     <string name="personalitySettings_adaptiveRoutingTitle" formatted="false">Roteamento Adaptativo</string>
     <string name="personalitySettings_adaptiveRoutingNote" formatted="false">Classifica cada mensagem e escolhe qual modelo baixado responde a ela (ex.: um modelo leve para conversa casual, um mais forte para perguntas de pesquisa/comparação), alternando entre eles conforme necessário. Ativado por padrão e independente da Pesquisa Profunda — se falhar por qualquer motivo, o chat volta automaticamente ao seu modelo ativo normal, nunca deixando você sem resposta.</string>
     <string name="corpusSettingsTab_downloadablePacks" formatted="false">Pacotes de conhecimento para download</string>
@@ -239,10 +232,7 @@
     <string name="chatHeader_openDrawer" formatted="false">Abrir menu de navegação</string>
     <string name="chatHeader_offline" formatted="false">OFFLINE</string>
     <string name="chatHeader_localLlmCore" formatted="false">Nenhum modelo ainda</string>
-    <string name="chatHeader_cycleTone" formatted="false">Mudar como o BOAR responde</string>
     <string name="chatHeader_newChatSession" formatted="false">Nova sessão de chat</string>
-    <string name="chatHeader_deepResearch" formatted="false">Pesquisa Aprofundada</string>
-    <string name="chatHeader_deepResearchActive" formatted="false">Pesquisa Aprofundada Ativa</string>
     <string name="chatHeader_online" formatted="false">ONLINE</string>
     <string name="chatHeader_onlineTitle" formatted="false">Você está online</string>
     <string name="chatHeader_onlineBody" formatted="false">Seu celular está conectado à internet. O BOAR não precisa dela: respostas, busca e sua biblioteca funcionam neste celular. Só baixar modelos ou pacotes e buscar modelos no Hugging Face usam a conexão. Ative o modo avião para vê-lo funcionar totalmente offline.</string>
@@ -257,7 +247,6 @@
     <string name="chatScreen_hideReasoning" formatted="false">Ocultar raciocínio</string>
     <string name="chatScreen_messageReused" formatted="false">Mensagem copiada para a caixa de texto</string>
     <string name="chatScreen_stopping" formatted="false">Parando… (terminando a etapa atual)</string>
-    <string name="chatScreen_toneChanged" formatted="false">Tom: {{tone}}</string>
     <string name="chatScreen_modelDownloadComplete" formatted="false">✅ Download de \"{{label}}\" concluído</string>
     <string name="chatScreen_drawerItems_prompts" formatted="false">Ideias de Prompts</string>
     <string name="chatScreen_drawerItems_myDocuments" formatted="false">Meus Documentos</string>
@@ -273,7 +262,6 @@
     <string name="chatScreen_roleYou" formatted="false">Você</string>
     <string name="chatScreen_roleAssistant" formatted="false">BOAR</string>
     <string name="chatScreen_stoppedByUser" formatted="false">Interrompido pelo usuário</string>
-    <string name="chatScreen_deepResearchBanner" formatted="false">Mistura de agentes: decompor ➔ embeddings locais ➔ sintetizar</string>
     <string name="chatScreen_copyResponse" formatted="false">Copiar resposta</string>
     <string name="chatScreen_copied" formatted="false">Copiado</string>
     <string name="chatScreen_rateUp" formatted="false">Boa resposta</string>
@@ -304,14 +292,6 @@
     <string name="processingIndicator_retrieving" formatted="false">Buscando na biblioteca…</string>
     <string name="processingIndicator_thinking" formatted="false">Lendo as fontes…</string>
     <string name="processingIndicator_generating" formatted="false">Escrevendo a resposta…</string>
-    <string name="personalities_succinct_label" formatted="false">Sucinto e Direto</string>
-    <string name="personalities_succinct_description" formatted="false">Mais rápido — 2–3 parágrafos curtos ou tópicos, sem introdução. Padrão para celular.</string>
-    <string name="personalities_detailed_label" formatted="false">Completo e Detalhado</string>
-    <string name="personalities_detailed_description" formatted="false">Explicações estruturadas e completas, com comparações e raciocínio.</string>
-    <string name="personalities_summary_label" formatted="false">Resumo Executivo</string>
-    <string name="personalities_summary_description" formatted="false">Uma conclusão principal, seguida de 3 tópicos-chave.</string>
-    <string name="personalities_custom_label" formatted="false">Personalizado</string>
-    <string name="personalities_custom_description" formatted="false">Escreva seu próprio prompt de sistema.</string>
     <string name="executionTelemetry_title" formatted="false">Telemetria de Execução</string>
     <string name="executionTelemetry_subtitle" formatted="false">{{count}} execuções recentes</string>
     <string name="executionTelemetry_exportJson" formatted="false">⬇ JSON</string>

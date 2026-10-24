@@ -39,7 +39,7 @@ object I18n {
             if (id(context, plural) != 0) resolved = plural else if (id(context, "${key}_other") != 0) resolved = "${key}_other"
         }
         // Native wording wins where it differs from the Expo app's (strings.xml is generated from the shared locales):
-        // "native.personalities.succinct.description" over "personalities.succinct.description".
+        // "native.interfaceSettings.hapticFeedbackValue" over "interfaceSettings.hapticFeedbackValue".
         if (!resolved.startsWith("native.") && id(context, "native.$resolved") != 0) resolved = "native.$resolved"
         val rid = id(context, resolved)
         var s = if (rid != 0) context.getString(rid) else key

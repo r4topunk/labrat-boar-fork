@@ -3,7 +3,6 @@
 <resources>
     <string name="native_tweaks_title" formatted="false">Ajustes avançados</string>
     <string name="native_tweaks_intro" formatted="false">Todos os ajustes do motor, para quem quer experimentar. Auto é o que medimos como melhor em celulares reais; o que você escolher aqui vale. Um valor que o seu celular não roda é ajustado, nunca trava o app.</string>
-    <string name="native_tweaks_auto" formatted="false">Auto</string>
     <string name="native_tweaks_autoValue" formatted="false">Auto ({{value}})</string>
     <string name="native_tweaks_resetAll" formatted="false">Voltar tudo para Auto</string>
     <string name="native_tweaks_appliesNext" formatted="false">Vale a partir da próxima resposta (o modelo recarrega).</string>
@@ -33,7 +32,6 @@
     <string name="native_tweaks_loadRead" formatted="false">Lidos para a memória</string>
     <string name="native_tweaks_moe" formatted="false">Carregar experts MoE sob demanda</string>
     <string name="native_tweaks_timeout" formatted="false">Tempo máximo por geração</string>
-    <string name="native_tweaks_timeoutNote" formatted="false">Auto cresce com o máximo de tokens da resposta, para respostas longas e a Pesquisa profunda não serem cortadas. Uma geração que chega ao limite mantém o que já escreveu.</string>
     <string name="native_tweaks_noLimit" formatted="false">Sem limite</string>
     <string name="native_tweaks_minutes" formatted="false">{{n}} min</string>
     <string name="native_tweaks_seconds" formatted="false">{{n}} s</string>
@@ -218,7 +216,6 @@
     <string name="native_chat_errorGeneric" formatted="false">Algo deu errado ao responder. Tente de novo.</string>
     <string name="native_chat_errorEmpty" formatted="false">O modelo parou sem escrever uma resposta.</string>
     <string name="native_chat_errorInterrupted" formatted="false">Interrompida: o BOAR foi fechado enquanto respondia.</string>
-    <string name="native_chat_deepResearchPlaceholder" formatted="false">Pergunta para o Deep Research…</string>
     <string name="native_chat_roleDeepResearch" formatted="false">BOAR · Deep Research</string>
     <string name="native_answering_channel" formatted="false">Respondendo</string>
     <string name="native_answering_title" formatted="false">O BOAR está respondendo…</string>
@@ -227,9 +224,7 @@
     <string name="native_chat_holdToReuse" formatted="false">Toque e segure qualquer mensagem sua para copiá-la de volta para o campo de texto.</string>
     <string name="native_chat_stopping" formatted="false">Parando…</string>
     <!-- The native default is Detailed: no "Default for mobile" here (the Expo app's default is Succinct). -->
-    <string name="native_personalities_succinct_description" formatted="false">Mais rápido. 2 ou 3 parágrafos curtos ou tópicos, sem introdução.</string>
     <string name="native_settings_resetTitle" formatted="false">Redefinir configurações</string>
-    <string name="native_settings_resetDesc" formatted="false">Tema, estilo de resposta, Pesquisa Profunda, Ajustes avançados e opções de exibição voltam ao padrão. Seus modelos, conversas, PIN e idioma ficam.</string>
     <string name="native_settings_resetButton" formatted="false">Redefinir configurações</string>
     <string name="native_settings_resetConfirmTitle" formatted="false">Redefinir todas as configurações?</string>
     <string name="native_settings_resetConfirmBody" formatted="false">As configurações voltam ao padrão e a configuração inicial abre de novo. Modelos e pacotes baixados, suas conversas, seu PIN e seu idioma são mantidos.</string>
@@ -237,10 +232,6 @@
     <string name="native_chat_foundBeforeStop" formatted="false">Encontradas antes de parar</string>
     <string name="native_chat_cutAtLimit" formatted="false">Parou no limite de tamanho</string>
     <string name="native_chat_allowMore" formatted="false">Permitir {{limit}} e refazer</string>
-    <string name="native_chat_deepResearchOn" formatted="false">LIGADA · respostas mais profundas e lentas</string>
-    <string name="native_chat_deepResearchOff" formatted="false">DESLIGADA · respostas normais</string>
-    <string name="native_chat_deepResearchExplain" formatted="false">O BOAR divide sua pergunta em partes menores, procura cada uma no seu conhecimento e escreve uma resposta com fontes. É mais profunda, porém mais lenta: espere alguns minutos por resposta no celular.</string>
-    <string name="native_personalitySettings_deepResearchNote" formatted="false">Divide sua pergunta em partes menores, pesquisa cada uma e escreve uma resposta. Leva várias etapas, por isso é mais lenta que uma resposta normal. Funciona com qualquer estilo.</string>
     <string name="native_chat_suggestions_b1" formatted="false">Quem criou a ideia de seleção natural?</string>
     <string name="native_chat_suggestionTopics_b1" formatted="false">História da ciência</string>
     <string name="native_chat_suggestions_b2" formatted="false">Como as vacinas funcionam?</string>
@@ -289,7 +280,6 @@
     <string name="native_tweaks_runWarningLowRam" formatted="false">Este celular tem menos de 8 GB de RAM: modelos grandes podem ficar sem memória.</string>
     <string name="native_tweaks_runWarningGo" formatted="false">Correr</string>
     <string name="native_tweaks_runWarningKeepPath" formatted="false">Manter Trilha do Javali</string>
-    <string name="native_personalitySettings_maxOutputTokensNote" formatted="false">Limita o tamanho de uma resposta. Menor é mais rápido e gasta menos bateria.</string>
     <string name="native_personalDocumentsManager_hint" formatted="false">Importe suas notas em .txt, .md, .csv, .json ou .pdf. Elas são indexadas só neste aparelho e nunca enviadas. PDFs precisam de texto selecionável: páginas digitalizadas ou só com imagem não são lidas (não há OCR), e PDFs com senha não são suportados.</string>
     <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">Isso exclui \"{{name}}\" ({{count}} trechos) da sua base de conhecimento local. Isso não pode ser desfeito. Exporte antes se quiser guardar uma cópia.</string>
     <string name="native_voiceSettings_unavailableNote" formatted="false">Nenhum serviço de reconhecimento de voz foi encontrado neste celular. Isso é comum no GrapheneOS e em outros sistemas sem Google. Digitar funciona normalmente.</string>
@@ -353,6 +343,5 @@
     <string name="native_memorySettings_clearAllButton" formatted="false">Limpar</string>
     <string name="native_modelSetupScreen_sections_displayTheme" formatted="false">Exibição e tema</string>
     <string name="native_voiceSettings_unavailable" formatted="false">Indisponível neste celular</string>
-    <string name="native_personalities_detailed_description" formatted="false">Respostas estruturadas e aprofundadas sobre o que conhece bem.</string>
     <string name="native_documents_unsupported" formatted="false">O BOAR não consegue ler {{name}}: ele importa .txt, .md, .csv, .json e .pdf. Salve a página em um desses formatos (o navegador salva como PDF) e importe de novo.</string>
 </resources>

@@ -3,7 +3,6 @@
 <resources>
     <string name="native_tweaks_title" formatted="false">Advanced tweaks</string>
     <string name="native_tweaks_intro" formatted="false">Every engine setting, for people who want to try them. Auto is what we measured best on real phones; anything you set here wins. A value your phone can\'t run is adjusted, never fatal.</string>
-    <string name="native_tweaks_auto" formatted="false">Auto</string>
     <string name="native_tweaks_autoValue" formatted="false">Auto ({{value}})</string>
     <string name="native_tweaks_resetAll" formatted="false">Reset all to Auto</string>
     <string name="native_tweaks_appliesNext" formatted="false">Applies from the next answer (the model reloads).</string>
@@ -33,7 +32,6 @@
     <string name="native_tweaks_loadRead" formatted="false">Read into memory</string>
     <string name="native_tweaks_moe" formatted="false">Stream MoE experts</string>
     <string name="native_tweaks_timeout" formatted="false">Time limit per generation</string>
-    <string name="native_tweaks_timeoutNote" formatted="false">Auto grows with the max output tokens, so long answers and Deep Research aren\'t cut short. A generation that hits the limit keeps what it wrote.</string>
     <string name="native_tweaks_noLimit" formatted="false">No limit</string>
     <string name="native_tweaks_minutes" formatted="false">{{n}} min</string>
     <string name="native_tweaks_seconds" formatted="false">{{n}} s</string>
@@ -218,7 +216,6 @@
     <string name="native_chat_errorGeneric" formatted="false">Something went wrong while answering. Try again.</string>
     <string name="native_chat_errorEmpty" formatted="false">The model stopped without writing an answer.</string>
     <string name="native_chat_errorInterrupted" formatted="false">Interrupted: BOAR was closed while answering.</string>
-    <string name="native_chat_deepResearchPlaceholder" formatted="false">Deep Research question…</string>
     <string name="native_chat_roleDeepResearch" formatted="false">BOAR · Deep Research</string>
     <string name="native_answering_channel" formatted="false">Answering</string>
     <string name="native_answering_title" formatted="false">BOAR is answering…</string>
@@ -226,10 +223,7 @@
     <string name="native_chat_tryAgain" formatted="false">Try again</string>
     <string name="native_chat_holdToReuse" formatted="false">Press and hold any of your messages to copy it back into the input.</string>
     <string name="native_chat_stopping" formatted="false">Stopping…</string>
-    <!-- The native default is Detailed: no "Default for mobile" here (the Expo app's default is Succinct). -->
-    <string name="native_personalities_succinct_description" formatted="false">Fastest. 2 or 3 short paragraphs or bullets, no preamble.</string>
     <string name="native_settings_resetTitle" formatted="false">Reset settings</string>
-    <string name="native_settings_resetDesc" formatted="false">Theme, answer style, Deep Research, Advanced tweaks and display options back to their defaults. Your models, chats, PIN and language stay.</string>
     <string name="native_settings_resetButton" formatted="false">Reset settings</string>
     <string name="native_settings_resetConfirmTitle" formatted="false">Reset all settings?</string>
     <string name="native_settings_resetConfirmBody" formatted="false">Settings go back to their defaults and setup opens again. Downloaded models and packs, your chats, your PIN and your language are kept.</string>
@@ -237,10 +231,6 @@
     <string name="native_chat_foundBeforeStop" formatted="false">Found before stopping</string>
     <string name="native_chat_cutAtLimit" formatted="false">Stopped at the length limit</string>
     <string name="native_chat_allowMore" formatted="false">Allow {{limit}} and redo</string>
-    <string name="native_chat_deepResearchOn" formatted="false">ON · deeper, slower answers</string>
-    <string name="native_chat_deepResearchOff" formatted="false">OFF · normal answers</string>
-    <string name="native_chat_deepResearchExplain" formatted="false">BOAR splits your question into a few smaller ones, looks each one up in your knowledge, then writes one answer with sources. It is deeper but slower: expect a few minutes per answer on a phone.</string>
-    <string name="native_personalitySettings_deepResearchNote" formatted="false">Splits your question into smaller ones, researches each, then writes one answer. It takes several steps, so it is slower than a normal reply. Works with any style.</string>
     <string name="native_chat_suggestions_b1" formatted="false">Who came up with natural selection?</string>
     <string name="native_chat_suggestionTopics_b1" formatted="false">History of science</string>
     <string name="native_chat_suggestions_b2" formatted="false">How do vaccines work?</string>
@@ -289,7 +279,6 @@
     <string name="native_tweaks_runWarningLowRam" formatted="false">This phone has less than 8 GB of RAM: large models may run out of memory.</string>
     <string name="native_tweaks_runWarningGo" formatted="false">Run</string>
     <string name="native_tweaks_runWarningKeepPath" formatted="false">Keep Boar\'s Path</string>
-    <string name="native_personalitySettings_maxOutputTokensNote" formatted="false">Caps how long a single answer can be. Lower is faster and easier on the battery.</string>
     <string name="native_personalDocumentsManager_hint" formatted="false">Import your own .txt, .md, .csv, .json or .pdf notes. They are indexed on this device only and never uploaded. PDFs need selectable text: scanned or image-only pages can\'t be read (there\'s no OCR), and password-protected PDFs aren\'t supported.</string>
     <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">This deletes \"{{name}}\" ({{count}} chunks) from your local knowledge base. This can\'t be undone. Export it first if you want to keep a copy.</string>
     <string name="native_voiceSettings_unavailableNote" formatted="false">No speech recognition service was found on this phone. This is common on GrapheneOS and other builds without Google. Typing works as usual.</string>
@@ -353,7 +342,6 @@
     <string name="native_memorySettings_clearAllButton" formatted="false">Clear</string>
     <string name="native_modelSetupScreen_sections_displayTheme" formatted="false">Display &amp; theme</string>
     <string name="native_voiceSettings_unavailable" formatted="false">Not available on this phone</string>
-    <string name="native_personalities_detailed_description" formatted="false">Structured, in-depth answers on what it knows well.</string>
     <string name="native_documents_unsupported" formatted="false">BOAR can\'t read {{name}}: it imports .txt, .md, .csv, .json and .pdf. Save the page as one of those (a browser can save it as PDF) and import it again.</string>
     <string name="native_download_errorGated" formatted="false">This model needs a Hugging Face account and its license accepted. BOAR downloads without an account, so it can\'t get this one.</string>
     <string name="native_browse_gated" formatted="false">Needs a Hugging Face account: BOAR can\'t download it.</string>

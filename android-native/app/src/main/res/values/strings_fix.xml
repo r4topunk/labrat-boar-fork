@@ -186,7 +186,6 @@
     <string name="design_options_title" formatted="false">Answer options</string>
     <string name="design_options_button" formatted="false">Answer options</string>
     <string name="design_options_buttonChanged" formatted="false">Answer options, changed</string>
-    <string name="design_options_style" formatted="false">Style</string>
     <string name="design_options_model" formatted="false">Model</string>
     <string name="design_options_sources" formatted="false">Sources</string>
     <string name="design_options_noModel" formatted="false">No model yet</string>
@@ -210,15 +209,12 @@
     <string name="clean_tour_keepGoing" formatted="false">Keep going</string>
     <string name="clean_tour_ready" formatted="false">BOAR is ready.</string>
     <string name="clean_tour_inviteTitle" formatted="false">While you wait</string>
-    <string name="clean_tour_inviteBody" formatted="false">Set how BOAR answers, its look and your chats. About 2 minutes.</string>
+    <string name="clean_tour_inviteBody" formatted="false">Set BOAR\'s look, your chats and its sources. About 2 minutes.</string>
     <string name="clean_tour_lineDownloading" formatted="false">Downloading · {{pct}}%</string>
     <string name="clean_tour_lineReady" formatted="false">Ready</string>
     <string name="clean_tour_lineProblem" formatted="false">Setup needs you · tap to see</string>
     <string name="clean_tour_welcome_title" formatted="false">While BOAR downloads</string>
     <string name="clean_tour_welcome_body" formatted="false">This takes a few minutes, once. Meanwhile you can make BOAR yours. Whatever you change here applies right away, and every choice is in Settings later.</string>
-    <string name="clean_tour_style_title" formatted="false">How BOAR answers</string>
-    <string name="clean_tour_style_body" formatted="false">Succinct &amp; Direct is the default: short answers with their sources. Thorough &amp; Detailed explains more. Deep Research searches in several steps and takes longer.</string>
-    <string name="clean_tour_style_where" formatted="false">Also in the chat: Answer options → Style</string>
     <string name="clean_tour_look_title" formatted="false">Look and feel</string>
     <string name="clean_tour_look_body" formatted="false">Pick a theme and a text size. They change as you tap.</string>
     <string name="clean_tour_look_where" formatted="false">Settings → Display &amp; Theme</string>

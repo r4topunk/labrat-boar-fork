@@ -9,7 +9,6 @@
     <string name="design_drawer_yesterday" formatted="false">Ontem</string>
     <string name="design_drawer_week" formatted="false">Últimos 7 dias</string>
     <string name="design_drawer_older" formatted="false">Mais antigas</string>
-    <string name="design_tone_deepResearchNote" formatted="false">Pesquisa cada parte da sua pergunta e depois escreve uma resposta. Mais lenta; funciona com qualquer estilo.</string>
     <string name="design_settings_about" formatted="false">Sobre</string>
     <string name="design_knowledge_summary" formatted="false">Bibliotecas que o BOAR busca offline quando você faz uma pergunta.</string>
     <string name="design_knowledge_notOnPhone" formatted="false">Não baixado</string>
@@ -19,7 +18,6 @@
     <string name="design_chat_filesNotFound" formatted="false">Não encontrei isso nos seus arquivos.</string>
     <string name="design_documents_imported" formatted="false">“{{name}}” adicionado. Para respostas só dos seus arquivos, pergunte com Fontes em Só meus arquivos.</string>
     <string name="design_documents_askFiles" formatted="false">Perguntar sobre seus arquivos</string>
-    <string name="design_options_deepResearchOff" formatted="false">Não com Só meus arquivos: a Pesquisa profunda poderia responder com algo de fora dos seus arquivos.</string>
     <string name="design_options_sourcesSome" formatted="false">{{on}} de {{total}} fontes</string>
     <string name="design_options_sourcesSearchIn" formatted="false">Buscar em</string>
     <string name="design_options_sourcesFiles" formatted="false">Seus arquivos</string>

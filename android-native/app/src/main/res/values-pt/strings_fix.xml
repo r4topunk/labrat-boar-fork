@@ -183,7 +183,6 @@
     <string name="design_options_title" formatted="false">Opções de resposta</string>
     <string name="design_options_button" formatted="false">Opções de resposta</string>
     <string name="design_options_buttonChanged" formatted="false">Opções de resposta, alteradas</string>
-    <string name="design_options_style" formatted="false">Estilo</string>
     <string name="design_options_model" formatted="false">Modelo</string>
     <string name="design_options_sources" formatted="false">Fontes</string>
     <string name="design_options_noModel" formatted="false">Nenhum modelo ainda</string>
@@ -207,15 +206,12 @@
     <string name="clean_tour_keepGoing" formatted="false">Continuar</string>
     <string name="clean_tour_ready" formatted="false">O BOAR está pronto.</string>
     <string name="clean_tour_inviteTitle" formatted="false">Enquanto espera</string>
-    <string name="clean_tour_inviteBody" formatted="false">Escolha como o BOAR responde, a aparência e suas conversas. Cerca de 2 minutos.</string>
+    <string name="clean_tour_inviteBody" formatted="false">Escolha a aparência do BOAR, suas conversas e as fontes. Cerca de 2 minutos.</string>
     <string name="clean_tour_lineDownloading" formatted="false">Baixando · {{pct}}%</string>
     <string name="clean_tour_lineReady" formatted="false">Pronto</string>
     <string name="clean_tour_lineProblem" formatted="false">A instalação precisa de você · toque para ver</string>
     <string name="clean_tour_welcome_title" formatted="false">Enquanto o BOAR baixa</string>
     <string name="clean_tour_welcome_body" formatted="false">Isso leva alguns minutos, uma vez só. Enquanto isso, deixe o BOAR do seu jeito. O que você mudar aqui vale na hora, e tudo fica em Configurações depois.</string>
-    <string name="clean_tour_style_title" formatted="false">Como o BOAR responde</string>
-    <string name="clean_tour_style_body" formatted="false">Sucinto e Direto é o padrão: respostas curtas, com as fontes. Completo e Detalhado explica mais. A Pesquisa profunda pesquisa em várias etapas e demora mais.</string>
-    <string name="clean_tour_style_where" formatted="false">Também no chat: Opções de resposta → Estilo</string>
     <string name="clean_tour_look_title" formatted="false">Aparência</string>
     <string name="clean_tour_look_body" formatted="false">Escolha um tema e o tamanho do texto. Eles mudam conforme você toca.</string>
     <string name="clean_tour_look_where" formatted="false">Configurações → Exibição &amp; Tema</string>
