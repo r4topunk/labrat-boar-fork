@@ -395,7 +395,7 @@ internal fun Toast(message: String, onHide: () -> Unit) {
         onHide()
     }
     Box(Modifier.fillMaxSize().statusBarsPadding().padding(top = 96.dp), contentAlignment = Alignment.TopCenter) {
-        // Material's snackbar pair: inverseSurface with inverseOnSurface, so it follows the wallpaper and the theme.
+        // Material's snackbar pair: inverseSurface with inverseOnSurface, so it follows the color scheme and the theme.
         Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.inverseOnSurface,
             modifier = Modifier.graphicsLayer { this.alpha = alpha.value }.clip(MaterialTheme.shapes.extraSmall)
                 .background(MaterialTheme.colorScheme.inverseSurface)

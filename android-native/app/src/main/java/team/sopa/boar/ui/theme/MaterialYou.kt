@@ -1,16 +1,13 @@
 package team.sopa.boar.ui.theme
 
 import android.content.Context
-import android.os.Build
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
 /**
- * The three theme choices in Settings. Campfire and Moonlight are gone: the app follows the wallpaper (Material You),
+ * The three theme choices in Settings. Campfire and Moonlight are gone: the app uses the brand scheme in light or dark,
  * so a saved "campfire"/"moonlight" (or nothing) reads as System.
  */
 object ThemeMode {
@@ -23,13 +20,12 @@ object ThemeMode {
 }
 
 /**
- * The Material color scheme: the wallpaper's on Android 12+, otherwise one seeded from the brand (Moonlight's navy
- * and amber at night, a warm cream with the same amber by day), so phones before 12 still look like BOAR.
+ * The Material color scheme, always the brand's (Moonlight's navy and amber at night, a warm cream with the same amber
+ * by day) on every Android version. No wallpaper colors (Material You): the warm palette matches the mascot and the
+ * onboarding, and BoarLite looks the same on every phone. `context` stays for the callers.
  */
-fun boarColorScheme(context: Context, dark: Boolean): ColorScheme =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-    } else if (dark) brandDark else brandLight
+@Suppress("UNUSED_PARAMETER")
+fun boarColorScheme(context: Context, dark: Boolean): ColorScheme = if (dark) brandDark else brandLight
 
 private val brandDark = ThemeTokens.moonlight.let { m ->
     darkColorScheme(
@@ -57,7 +53,7 @@ private val brandLight = lightColorScheme(
 )
 
 /**
- * The app's color tokens taken from the Material scheme, so every screen that reads Boar.colors follows the wallpaper
+ * The app's color tokens taken from the Material scheme, so every screen that reads Boar.colors follows the scheme
  * and the light/dark choice without changes of its own. Each token keeps its old role: page and card backgrounds ->
  * surface and the surface containers (one step up per level), text -> onSurface / onSurfaceVariant / outline, the two
  * accents (emerald, cyan) -> primary and tertiary, danger (crimson) -> error. Amber ("may be slow", "keep BOAR open",

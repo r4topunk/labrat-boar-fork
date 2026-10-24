@@ -127,7 +127,7 @@ object Boar {
 }
 
 /**
- * The app theme: Material You colors (the wallpaper's on Android 12+, the brand's before) in System, Light or Dark, the
+ * The app theme: the brand's Material colors (never the wallpaper's) in System, Light or Dark, the
  * Boar.colors tokens derived from them, and the brand type at the user's text size. Old ids (campfire, moonlight) read
  * as System.
  */
