@@ -14,7 +14,7 @@ import {
 
 describe("parseArgs", () => {
   it("defaults to everything installed, with reload on", () => {
-    expect(parseArgs([])).toMatchObject({ models: undefined, adaptive: false, queries: undefined, pkg: "team.sopa.aoair", reload: true, dryRun: false, timeoutMin: 240 });
+    expect(parseArgs([])).toMatchObject({ models: undefined, adaptive: false, queries: undefined, pkg: "team.sopa.boar.lite", reload: true, dryRun: false, timeoutMin: 240 });
   });
 
   it("parses selections and flags", () => {
@@ -63,11 +63,11 @@ describe("device selection", () => {
 });
 
 describe("commands", () => {
-  const cmd = commands({ serial: "S1", pkg: "team.sopa.aoair", slug: "boar-app", requestId: "req-1" });
+  const cmd = commands({ serial: "S1", pkg: "team.sopa.boar.lite", slug: "boar-app", requestId: "req-1" });
 
   it("targets the chosen device", () => {
     expect(cmd.reverse).toEqual(["adb", "-s", "S1", "reverse", "tcp:8081", "tcp:8081"]);
-    expect(cmd.readStatus).toEqual(["adb", "-s", "S1", "exec-out", "run-as team.sopa.aoair cat files/eval/requests/req-1.status.json"]);
+    expect(cmd.readStatus).toEqual(["adb", "-s", "S1", "exec-out", "run-as team.sopa.boar.lite cat files/eval/requests/req-1.status.json"]);
   });
 
   it("writes the request as base64 into private storage, with a private umask", () => {
@@ -85,7 +85,7 @@ describe("commands", () => {
 
   it("only reads result files inside files/eval", () => {
     expect(cmd.readResult("files/eval/eval-2026-09-23T10-00-00-000Z.jsonl")[4]).toBe(
-      "run-as team.sopa.aoair cat files/eval/eval-2026-09-23T10-00-00-000Z.jsonl"
+      "run-as team.sopa.boar.lite cat files/eval/eval-2026-09-23T10-00-00-000Z.jsonl"
     );
     expect(() => cmd.readResult("files/eval/../../databases/x.jsonl")).toThrow();
     expect(() => cmd.readResult("files/settings.json")).toThrow();
@@ -96,8 +96,8 @@ describe("helpers", () => {
   it("detects debuggable, installed packages", () => {
     expect(isDebuggable("    pkgFlags=[ DEBUGGABLE HAS_CODE ALLOW_BACKUP ]")).toBe(true);
     expect(isDebuggable("    pkgFlags=[ HAS_CODE ALLOW_BACKUP ]")).toBe(false);
-    expect(isPackageListed("package:team.sopa.aoair\n", "team.sopa.aoair")).toBe(true);
-    expect(isPackageListed("package:team.sopa.aoair.other\n", "team.sopa.aoair")).toBe(false);
+    expect(isPackageListed("package:team.sopa.boar.lite\n", "team.sopa.boar.lite")).toBe(true);
+    expect(isPackageListed("package:team.sopa.boar.lite.other\n", "team.sopa.boar.lite")).toBe(false);
   });
 
   it("builds minimal requests", () => {

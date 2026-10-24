@@ -2,7 +2,7 @@
 // parsing and the exact adb commands, as data. Nothing here runs a
 // process, so --dry-run and the tests can use it without a phone.
 
-export const DEFAULT_PACKAGE = "team.sopa.aoair";
+export const DEFAULT_PACKAGE = "team.sopa.boar.lite";
 export const METRO_PORT = 8081;
 export const REQUESTS_DIR = "files/eval/requests";
 

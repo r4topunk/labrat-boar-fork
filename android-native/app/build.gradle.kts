@@ -27,8 +27,8 @@ android {
         buildConfigField("boolean", "ALLOW_UNCENSORED_MODELS", "$allowUncensored")
         buildConfigField("String", "SUPABASE_URL", "\"${if (evalSharing) env["EXPO_PUBLIC_SUPABASE_URL"] ?: "" else ""}\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"${if (evalSharing) env["EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ?: "" else ""}\"")
-        // The release keeps the Expo app's id and key, so it installs over v1.1.x with its models.
-        applicationId = "team.sopa.aoair"
+        // BoarLite has its own id: it installs beside BOAR (team.sopa.aoair) and never over it or its models.
+        applicationId = "team.sopa.boar.lite"
         minSdk = 26
         targetSdk = 36
         versionCode = 4
@@ -58,8 +58,8 @@ android {
     buildTypes {
         debug {
             // Development builds install beside the current BOAR, never over it.
-            applicationIdSuffix = ".native"
-            versionNameSuffix = "-native"
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
         }
         // A throwaway install for the on-device tests that wipe data (first-run setup, Purge All Data), so they never
         // touch the debug app someone is using.

@@ -36,7 +36,7 @@ const xml = (strings, note) =>
   `\n</resources>\n`;
 // Portuguese falls back to English for a missing key (i18next's fallbackLng), so values-pt holds only translated keys.
 const files = {
-  [join(res, "values/strings.xml")]: xml({ app_name: "BOAR", ...en }, "src/i18n/locales/en.json"),
+  [join(res, "values/strings.xml")]: xml({ app_name: "BoarLite", ...en }, "src/i18n/locales/en.json"),
   [join(res, "values-pt/strings.xml")]: xml(Object.fromEntries(Object.entries(pt).filter(([k]) => k in en)), "src/i18n/locales/pt.json"),
 };
 const check = process.argv.includes("--check");

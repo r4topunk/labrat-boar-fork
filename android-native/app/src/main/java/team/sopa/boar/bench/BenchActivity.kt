@@ -54,7 +54,7 @@ import java.io.File
 /**
  * Week-1 bench: load a GGUF with any engine setting, run a llama-bench style test or ask a question.
  * Also runs headless from adb (Xiaomi blocks injected taps), for example:
- *   adb shell am start -n team.sopa.aoair.native/team.sopa.boar.bench.BenchActivity \
+ *   adb shell am start -n team.sopa.boar.lite.debug/team.sopa.boar.bench.BenchActivity \
  *     --es model qwen2.5-1.5b-instruct-q4km.gguf --ei threads 4 --es cpus big --es run bench
  * Results go to logcat (tag BOAR_BENCH) and to Android/data/<pkg>/files/results/.
  */
@@ -74,7 +74,7 @@ class BenchActivity : ComponentActivity() {
             window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             // Over the lock screen too (never unlocking it): behind the keyguard the activity isn't resumed either.
             if (android.os.Build.VERSION.SDK_INT >= 27) { setShowWhenLocked(true); setTurnScreenOn(true) }
-            // scripts/eval-device.mjs --package team.sopa.aoair.native --no-reload: wait for its request, answer it.
+            // scripts/eval-device.mjs --package team.sopa.boar.lite.debug --no-reload: wait for its request, answer it.
             val runner = team.sopa.boar.eval.DeviceEvalRunner(
                 this,
                 classify = { q -> Classify.classifyTask(q).value },
@@ -231,7 +231,7 @@ private fun BenchScreen(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text("BOAR engine bench", color = Color(0xFFFFF4E8), fontSize = 22.sp)
-        if (models.isEmpty()) Text("Push a .gguf to Android/data/team.sopa.aoair.native/files/models", color = Color(0xFFF2C14E))
+        if (models.isEmpty()) Text("Push a .gguf to Android/data/team.sopa.boar.lite.debug/files/models", color = Color(0xFFF2C14E))
         models.forEach { f ->
             FilterChip(selected = model == f, onClick = { model = f }, label = { Text("${f.name} · ${f.length() / 1_000_000} MB") })
         }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Checks a release APK before it is uploaded to a GitHub Release. Exit 1 unless:
-# - the application id is BOAR's (team.sopa.aoair, or team.sopa.aoair.offline for the offline variant),
+# - the application id is BoarLite's (team.sopa.boar.lite, or team.sopa.aoair.offline for the offline variant),
 # - versionCode equals app.json's expo.android.versionCode (an APK with the same or a lower code
 #   won't install over the previous release),
 # - the APK is signed with v1.0.0's key: a different signer can't update an installed BOAR.
@@ -22,7 +22,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RELEASE_SIGNER=7cf514f9ab8253cbd78eb7d112d66fd05c2ad27e6fc987bf8f3276a7eedf1f01
 
 case "$variant" in
-  downloader) want_package=team.sopa.aoair ;;
+  downloader) want_package=team.sopa.boar.lite ;;
   offline) want_package=team.sopa.aoair.offline ;;
   *) echo "RELEASE_VARIANT must be downloader or offline" >&2; exit 2 ;;
 esac
