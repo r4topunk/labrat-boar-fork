@@ -54,7 +54,6 @@
     <string name="native_about_copied" formatted="false">Copied</string>
     <string name="native_about_holdToCopy" formatted="false">Press and hold an address to copy it.</string>
     <string name="native_receipt_mode" formatted="false">Mode</string>
-    <string name="native_receipt_warning" formatted="false">Warning line</string>
     <string name="native_receipt_style_succinct" formatted="false">Succinct &amp; Direct</string>
     <string name="native_receipt_style_detailed" formatted="false">Thorough &amp; Detailed</string>
     <string name="native_receipt_style_summary" formatted="false">Executive Summary</string>

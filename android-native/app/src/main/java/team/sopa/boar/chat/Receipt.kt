@@ -31,8 +31,8 @@ data class Receipt(
     val checked: Boolean = false,
     /** Why BOAR answered in another style than the one picked ("health": kept brief); null when it used the pick. */
     val styleNote: String? = null,
-    /** The rule that put the warning line before the answer (AnswerWarning: "no-source", "uncited-with-sources"…), or null. */
-    val warning: String? = null,
+    /** The model wrote this answer (not small talk): the chat shows AnswerNote's line under it. */
+    val note: Boolean = false,
 ) {
     fun toJson() = JsonObject(listOfNotNull(
         "totalMs" to JsonPrimitive(totalMs), "ttftMs" to JsonPrimitive(ttftMs), "tokPerSec" to JsonPrimitive(tokPerSec), "tokens" to JsonPrimitive(tokens),
@@ -40,7 +40,7 @@ data class Receipt(
         prefillMs?.let { "prefillMs" to JsonPrimitive(it) }, contextTokens?.let { "contextTokens" to JsonPrimitive(it) },
         style?.let { "style" to JsonPrimitive(it) }, path?.let { "path" to JsonPrimitive(it) }, task?.let { "task" to JsonPrimitive(it) },
         if (checked) "checked" to JsonPrimitive(true) else null,
-        styleNote?.let { "styleNote" to JsonPrimitive(it) }, warning?.let { "warning" to JsonPrimitive(it) },
+        styleNote?.let { "styleNote" to JsonPrimitive(it) }, if (note) "note" to JsonPrimitive(true) else null,
     ).toMap())
 
     companion object {
@@ -48,7 +48,7 @@ data class Receipt(
             fun d(k: String) = o[k]?.jsonPrimitive?.content?.toDoubleOrNull()
             fun s(k: String) = o[k]?.jsonPrimitive?.content
             return Receipt(d("totalMs")!!, d("ttftMs")!!, d("tokPerSec")!!, d("tokens")!!.toInt(), s("model"),
-                d("retrievalMs"), d("prefillMs"), d("contextTokens")?.toInt(), s("style"), s("path"), s("task"), s("checked") == "true", s("styleNote"), s("warning"))
+                d("retrievalMs"), d("prefillMs"), d("contextTokens")?.toInt(), s("style"), s("path"), s("task"), s("checked") == "true", s("styleNote"), s("note") == "true")
         }
     }
 }

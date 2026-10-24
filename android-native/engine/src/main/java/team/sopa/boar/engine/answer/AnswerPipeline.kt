@@ -36,8 +36,8 @@ data class AnswerRequest(
     /** Sampling seed; -1 (the app) = random. A fixed seed makes an answer repeatable (the device eval's speed runs). */
     val seed: Int = -1,
     /**
-     * The answering model is compact (answer.ts isCompactModel: [AnswerWarning.COMPACT_MODEL_BYTES] or smaller): its
-     * unsupported answers start with the warning line ([AnswerWarning]). BoarLite's one model, Qwen3 1.7B, is.
+     * The answering model is compact (answer.ts isCompactModel: [AnswerNote.COMPACT_MODEL_BYTES] or smaller): its
+     * answers go through CT-1 and attribution ([Citations]). BoarLite's one model, Qwen3 1.7B, is.
      */
     val compactModel: Boolean = true,
 )
@@ -50,7 +50,7 @@ sealed interface AnswerEvent {
     data class Sources(val chunks: List<Chunk>, val retrievalMs: Double, val tokensBefore: Int, val tokensAfter: Int) : AnswerEvent
     data class Piece(val text: String) : AnswerEvent
     data class Done(
-        /** The model's full text (thinking included, as the TS stores it), with the warning line before the answer when one fired. */
+        /** The model's full text (thinking included, as the TS stores it), or the fixed text no model wrote. */
         val text: String,
         val sources: List<Chunk>,
         val taskType: String,
@@ -62,8 +62,8 @@ sealed interface AnswerEvent {
         val metrics: GenerationMetrics?,
         /** My files found nothing: the answer is the fixed line, and no model ran. */
         val notFound: Boolean = false,
-        /** The warning line put before the answer ([AnswerWarning]), or null; the streamed pieces never carry it. */
-        val warning: AnswerWarning.Warning? = null,
+        /** A health question with no health passage kept: the answer is [HealthGate]'s fixed text, and no model ran. */
+        val healthFixed: Boolean = false,
     ) : AnswerEvent
 }
 
@@ -129,6 +129,13 @@ class AnswerPipeline(
                 emit(AnswerEvent.Done(req.notFoundText, sources, task, true, retrievalMs, before, after, "none", null, notFound = true))
                 return@flow
             }
+            // A health question with no passage from a health pack: the fixed safe text, never an answer from memory.
+            val fixed = if (req.filesOnly) null else HealthGate.fixedText(req.query, sources)
+            if (fixed != null) {
+                emit(AnswerEvent.Piece(fixed))
+                emit(AnswerEvent.Done(fixed, emptyList(), task, true, retrievalMs, before, after, "none", null, healthFixed = true))
+                return@flow
+            }
         }
         val session = sessionOf()
         emit(AnswerEvent.Stage(AnswerStage.THINKING))
@@ -155,21 +162,15 @@ class AnswerPipeline(
                 is GenerationEvent.Done -> metrics = e.metrics
             }
         }
-        // Decided once the answer is whole: whether it cites a passage is known only at its end. A stopped answer gets none,
-        // as in answer.ts (it returns before the line is added). CT-1 and attribution come first, as there: a [n] its
-        // passage doesn't support goes, a sentence a passage supports at the 0.75 bar gets its [n], and the line goes by what is left.
+        // CT-1 and attribution once the answer is whole (answer.ts): a [n] its passage doesn't support goes, a sentence a
+        // passage supports at the 0.75 bar gets its [n]. A stopped answer is left as written.
         val stopped = shouldStop()
         var shown = text.toString()
-        var removedAny = false
         if (!stopped && req.compactModel && retrieved && !req.filesOnly) {
             val full = sources.map { s -> fullChunks.firstOrNull { it.chunkId == s.chunkId } ?: s }
-            val (revised, r) = Citations.applyShown(shown, full)
-            shown = revised
-            removedAny = r.removed.isNotEmpty()
+            shown = Citations.applyShown(shown, full).first
         }
-        val warning = if (req.compactModel && !stopped) AnswerWarning.of(req.query, task, retrieved, sources.size, AnswerText.stripThinking(shown), req.filesOnly, removedAny) else null
-        emit(AnswerEvent.Done(AnswerWarning.withLine(shown, warning?.line), sources, task, retrieved, retrievalMs, before, after,
-            if (useTemplate) "chat-template" else "plain", metrics, warning = warning))
+        emit(AnswerEvent.Done(shown, sources, task, retrieved, retrievalMs, before, after, if (useTemplate) "chat-template" else "plain", metrics))
     }
 
     /** The prompt without its passages, estimated as the plain prompt plus the files-only instruction and its heading. */
