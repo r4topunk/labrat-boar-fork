@@ -198,6 +198,27 @@ class BoarServices private constructor(private val context: Context) {
     /** One generation model at a time, loaded with the user's Advanced tweaks. */
     val host = SessionHost()
 
+    /** Where the generation model is: not loaded, loading (about 2 minutes the first time on a Pixel 8a), ready, or failed. */
+    enum class ModelLoadState { IDLE, LOADING, READY, FAILED }
+
+    private val _modelState = kotlinx.coroutines.flow.MutableStateFlow(ModelLoadState.IDLE)
+    /** Observable by any screen (the first-run onboarding reads it); set by [SessionHost.load] and [SessionHost.unload]. */
+    val modelState: kotlinx.coroutines.flow.StateFlow<ModelLoadState> = _modelState
+
+    /**
+     * Starts loading the answer model and the search model in the background, now: called when the first-run install
+     * ends, so the first question doesn't wait for a load that took ~2 min (Pixel 8a smoke, Oct 24). The chat's own
+     * preload joins the same load at the model's lock. Not for a model whose last load closed the app, nor one that may
+     * not fit (the chat asks first, StartLoad). Returns at once.
+     */
+    fun startModelLoad() {
+        if (activeModel() == null || modelState.value == ModelLoadState.LOADING || modelState.value == ModelLoadState.READY) return
+        val d = startDecision()
+        if (d is team.sopa.boar.engine.models.StartLoad.Decision.AskRisky || d is team.sopa.boar.engine.models.StartLoad.Decision.NoFallback) return
+        lifeScope.launch { runCatching { warmRetrieval() } }
+        lifeScope.launch { runCatching { activeSession() } }
+    }
+
     inner class SessionHost : ModelHost {
         private val lock = Mutex()
         @Volatile private var session: LlamaSession? = null
@@ -229,9 +250,11 @@ class BoarServices private constructor(private val context: Context) {
                 loadGuard.begin(meta, previous, repack)
                 val resolved = tweaks.resolve(topology, totalRamBytes).params.copy(repack = repack)
                 // A cancelled load clears its marker: it didn't kill the app, and must not block the model next time.
-                val s = try { LlamaSession.load(fileOf(asset).path, resolved) } catch (e: kotlinx.coroutines.CancellationException) { loadGuard.end(meta, false); throw e }
+                _modelState.value = ModelLoadState.LOADING
+                val s = try { LlamaSession.load(fileOf(asset).path, resolved) } catch (e: kotlinx.coroutines.CancellationException) { loadGuard.end(meta, false); _modelState.value = ModelLoadState.IDLE; throw e }
                 loadGuard.end(meta, s != null)
-                if (s == null) return null
+                if (s == null) { _modelState.value = ModelLoadState.FAILED; return null }
+                _modelState.value = ModelLoadState.READY
                 session = s
                 filename = asset.filename
                 residentId = asset.id
@@ -277,6 +300,7 @@ class BoarServices private constructor(private val context: Context) {
             session = null
             filename = null
             residentId = null
+            _modelState.value = ModelLoadState.IDLE
         }
     }
 

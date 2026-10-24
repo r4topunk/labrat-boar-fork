@@ -165,6 +165,8 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
             external?.takeIf { it.isDirectory }?.let(::DirBundleSource)?.let { it.discard(); Log.i(TAG, "removed the pushed bundle at ${it.name}") }
             Log.i(TAG, "bundle installed in ${"%.1f".format((System.currentTimeMillis() - started) / 1000.0)} s " +
                 "(${result.copied} files copied, ${result.bytesCopied / 1_000_000} MB; ${result.skipped} already installed; source ${source?.name ?: "none"})")
+            // The model loads while the user reads the last screen (it took ~2 min on the first question, Pixel 8a smoke).
+            services.startModelLoad()
             _ready.value = true
             _state.value = SetupState(SetupPhase.DONE)
         } catch (e: kotlinx.coroutines.CancellationException) {
