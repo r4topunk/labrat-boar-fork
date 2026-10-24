@@ -79,19 +79,19 @@ class BoarServices private constructor(private val context: Context) {
         catalog = withDiscovered()
     }
     /**
-     * The answer styles. The app starts on Succinct (personalities.json's defaultId, the one source for the default in
-     * the chat, Settings and the benchmark runner); a style the user picked is kept.
+     * The answer styles' prompts. The app answers in Succinct only (AppSettings.personalityId); the others stay in
+     * personalities.json for the benchmark runner.
      */
     val personalities: Personalities = Personalities.parse(asset("boar-data/personalities.json"))
     init { applyDefaults() }
 
     /**
-     * At start and after "Reset settings". The engine's AppSettings.autoMaxTokens reads a missing style as Detailed (a
-     * longer answer budget), so the default is written down rather than left implicit; technical details only show
-     * while developer options are on, since their switch lives there.
+     * At start and after "Reset settings". The style is written down as Succinct and an older build's length pick and
+     * Deep Research switch are dropped (AppSettings.retireRemovedOptions), so settings.json matches what the app does;
+     * technical details only show while developer options are on, since their switch lives there.
      */
     fun applyDefaults() {
-        if (settings.personalityId == null) settings.personalityId = personalities.defaultId
+        settings.retireRemovedOptions()
         if (settings.showLiveStats && !DevOptions.enabled(context)) settings.showLiveStats = false
     }
     val topology: CpuTopology = CpuTopology.read()
@@ -389,13 +389,6 @@ class BoarServices private constructor(private val context: Context) {
     companion object {
         /** How long a loaded model must stay alive before its load counts as safe (LoadGuard.settled). */
         const val LOAD_SETTLE_MS = 60_000L
-        /**
-         * The Custom answer style (a prompt the user writes) is hidden from Settings and the style sheet: it could be used to
-         * make BOAR say anything and post it as BOAR's own words. The setting and prompt still work if already chosen.
-         */
-        const val SHOW_CUSTOM_STYLE = false
-        /** The chat's style before settings load; the same as personalities.json's defaultId. */
-        const val DEFAULT_PERSONALITY_ID = "succinct"
 
         @Volatile private var instance: BoarServices? = null
 

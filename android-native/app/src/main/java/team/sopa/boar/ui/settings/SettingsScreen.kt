@@ -42,7 +42,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -71,7 +70,6 @@ import androidx.compose.ui.unit.dp
 import team.sopa.boar.app.BoarServices
 import team.sopa.boar.app.DevOptions
 import team.sopa.boar.engine.models.AssetKind
-import team.sopa.boar.engine.settings.AppSettings
 import team.sopa.boar.ui.components.BoarTopBar
 import team.sopa.boar.ui.icons.BoarIcons
 import team.sopa.boar.ui.t
@@ -86,9 +84,9 @@ interface DisplayPrefs {
 }
 
 /**
- * Settings as a Material grouped list: how BOAR answers, the model, knowledge, chats (with the PIN lock), display,
- * language, About, then Start over. The measurement knobs (technical details, answer length, adaptive routing, Custom
- * style, memory numbers) live in Developer options, shown only after seven taps on the version in About. The engine's
+ * Settings as a Material grouped list: the model, knowledge, chats (with the PIN lock), display, language, About, then
+ * Start over. No answer style, answer length or Deep Research: the app answers in Succinct at its Auto length (r4to,
+ * Oct 24). The measurement knobs (technical details, adaptive routing, memory numbers) live in Developer options, shown only after seven taps on the version in About. The engine's
  * own knobs keep their saved values (Auto by default) and the engine reads them as before.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,8 +95,6 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
     val s = services.settings
     val ctx = LocalContext.current
     var tech by remember { mutableStateOf(s.showLiveStats) }
-    // Shared by the style choices and Developer options → Custom style, so either one shows the other's pick.
-    var styleId by remember { mutableStateOf(s.personalityId ?: services.personalities.defaultId) }
     // State, so switching Developer options off in its own section hides it at once.
     var dev by remember { mutableStateOf(DevOptions.enabled(ctx)) }
     val scroll = TopAppBarDefaults.pinnedScrollBehavior()
@@ -110,7 +106,6 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
         // Capped like the chat so rows and cards don't span a tablet or a landscape phone.
         Column(Modifier.padding(inner).fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
             Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
-                ToneSection(services, styleId) { styleId = it }
                 ModelsSection(services, onOpen)
                 KnowledgeSection(services, onOpen)
                 Section(t("modelSetupScreen.sections.memory")) {
@@ -137,7 +132,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 }
                 AnimatedVisibility(tech, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) { TelemetrySection(services) }
                 AnimatedVisibility(dev, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-                    DeveloperSection(services, styleId, { styleId = it }, tech, { tech = it }) { dev = false }
+                    DeveloperSection(services, tech, { tech = it }) { dev = false }
                 }
                 // About under its own header, like every other group; the version is the supporting line.
                 Section(t("design.settings.about")) {
@@ -322,56 +317,23 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
 }
 
 /**
- * The answer styles and Deep Research: the chat's style sheet list itself (ToneChoices), same rows, icons and copy, so
- * the one choice looks the same in both places. Custom only through Developer options.
- */
-@Composable
-private fun ToneSection(services: BoarServices, id: String, onStyle: (String) -> Unit) {
-    val s = services.settings
-    var deep by remember { mutableStateOf(s.deepResearchMode) }
-    SectionHeader(t("modelSetupScreen.sections.tone"))
-    team.sopa.boar.ui.chat.ToneChoices(
-        tones = services.personalities.personalities.filter { it.id != "custom" || BoarServices.SHOW_CUSTOM_STYLE }.map { it.id },
-        selectedId = id, deepResearch = deep,
-        onSetTone = { onStyle(it); s.personalityId = it },
-        onSetDeepResearch = { deep = it; s.deepResearchMode = it },
-    )
-}
-
-/**
- * Developer options (DevOptions, seven taps on the version in About): the technical details switch, answer length,
- * adaptive routing, the Custom style, the memory numbers, and a switch that hides it all again. Turning it off also
+ * Developer options (DevOptions, seven taps on the version in About): the technical details switch, adaptive routing,
+ * the memory numbers, and a switch that hides it all again. Turning it off also
  * turns technical details off ([onDisable] hides the section), since its switch would no longer be anywhere to find.
  */
 @Composable
-private fun DeveloperSection(services: BoarServices, styleId: String, onStyle: (String) -> Unit, technical: Boolean, onTechnical: (Boolean) -> Unit, onDisable: () -> Unit) {
+private fun DeveloperSection(services: BoarServices, technical: Boolean, onTechnical: (Boolean) -> Unit, onDisable: () -> Unit) {
     val s = services.settings
     val ctx = LocalContext.current
     Section(t("clean.settings.section.developer")) {
         Note(t("clean.settings.dev.intro"))
         // One switch for everything technical in the chat and the menu (the receipt's time and speed stay for everyone).
         SwitchRow(t("native.tweaks.technicalDetails"), t("native.tweaks.technicalDetailsNote"), technical) { s.showLiveStats = it; onTechnical(it) }
-        var tokens by remember { mutableStateOf(s.maxTokensChoice) }
-        val auto = AppSettings.autoMaxTokens(styleId, s.deepResearchMode)
-        Choices(t("personalitySettings.maxOutputTokens"),
-            listOf<Pair<Int?, String>>(null to "${t("native.tweaks.auto")} ($auto)") + services.personalities.maxTokensOptions.map { it to "$it" },
-            tokens) { tokens = it; s.maxTokensChoice = it }
-        Note(t("personalitySettings.maxOutputTokensNote"))
         // An engine knob, off by default: it changes how the answer is produced even with a single model installed.
         var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }
         SwitchRow(t("native.settings.adaptiveTitle"), t("native.settings.adaptiveNote"), adaptive) { adaptive = it; s.adaptiveRoutingEnabled = it }
         val emb = services.catalog.models.firstOrNull { it.kind == AssetKind.EMBEDDING }
         if (emb != null && services.fileOf(emb).isFile) Note(t("native.settings.embeddingOk", "model" to emb.shortName))
-        val custom = styleId == "custom"
-        SwitchRow(t("clean.settings.dev.customStyle"), t("clean.settings.dev.customStyleNote"), custom) { on ->
-            val next = if (on) "custom" else services.personalities.defaultId
-            onStyle(next); s.personalityId = next
-        }
-        AnimatedVisibility(custom, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-            var prompt by remember { mutableStateOf(s.customSystemPrompt ?: "") }
-            OutlinedTextField(prompt, { prompt = it; s.customSystemPrompt = it }, placeholder = { Text(t("personalitySettings.customPromptPlaceholder")) },
-                minLines = 3, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp))
-        }
         var turns by remember { mutableStateOf(s.historyTurnThreshold) }
         Choices(t("memorySettings.turnsBeforeSummarizing"), listOf(4, 6, 8, 12).map { it to "$it" }, turns) { turns = it; s.historyTurnThreshold = it }
         var max by remember { mutableStateOf(s.maxSavedSessions) }

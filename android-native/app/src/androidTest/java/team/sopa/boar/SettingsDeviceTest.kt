@@ -25,9 +25,9 @@ import team.sopa.boar.ui.settings.SettingsScreen
 import team.sopa.boar.ui.theme.BoarTheme
 
 /**
- * The Settings screen on the phone, regrouped (answer style, Models, Knowledge, Chats & history, Display, Language,
- * About, Recovery; Developer options only after seven taps on the version): each row does what it says, and the
- * choices reach settings.json. The app's own settings are put back after each test.
+ * The Settings screen on the phone, regrouped (Models, Knowledge, Chats & history, Display, Language, About, Recovery;
+ * Developer options only after seven taps on the version): each row does what it says, the choices reach settings.json,
+ * and no answer style, Deep Research or answer length is offered. The app's own settings are put back after each test.
  */
 @RunWith(AndroidJUnit4::class)
 class SettingsDeviceTest {
@@ -35,8 +35,6 @@ class SettingsDeviceTest {
     private val ctx = InstrumentationRegistry.getInstrumentation().targetContext
     private val services get() = BoarServices.get(ctx)
 
-    private var wasStyle: String? = null
-    private var wasDeep = false
     private var wasTheme: String? = null
     private var wasScale: String? = null
     private var wasLive = false
@@ -55,13 +53,13 @@ class SettingsDeviceTest {
 
     @Before fun remember() {
         val s = services.settings
-        wasStyle = s.personalityId; wasDeep = s.deepResearchMode; wasTheme = s.themeId; wasScale = s.fontScale; wasLive = s.showLiveStats
+        wasTheme = s.themeId; wasScale = s.fontScale; wasLive = s.showLiveStats
         wasDev = DevOptions.enabled(ctx)
     }
 
     @After fun restore() {
         val s = services.settings
-        s.personalityId = wasStyle; s.deepResearchMode = wasDeep; s.themeId = wasTheme ?: "system"; wasScale?.let { s.fontScale = it }
+        s.themeId = wasTheme ?: "system"; wasScale?.let { s.fontScale = it }
         InstrumentationRegistry.getInstrumentation().runOnMainSync { DevOptions.setEnabled(ctx, wasDev) }
         s.showLiveStats = wasLive
     }
@@ -77,21 +75,18 @@ class SettingsDeviceTest {
         assertTrue("'$text' not on the Settings screen", compose.shows(text))
     }
 
-    @Test fun theAnswerStyleAndDeepResearchAreChosenAtTheTop() {
-        services.settings.personalityId = "succinct"
-        services.settings.deepResearchMode = false
+    /**
+     * The app answers in Succinct only, without Deep Research or a length setting: none of them is on the screen, not even
+     * with Developer options on. Literal English, since the removed options' strings are gone from the resources.
+     */
+    @Test fun noAnswerStyleDeepResearchOrAnswerLengthIsOffered() {
+        org.junit.Assume.assumeTrue("English texts", ctx.resources.configuration.locales[0]?.language == "en")
+        InstrumentationRegistry.getInstrumentation().runOnMainSync { DevOptions.setEnabled(ctx, true) }
         show()
-        visible(tr("modelSetupScreen.sections.tone"))
-        val detailed = tr("personalities.detailed.label")
-        compose.press(detailed)
-        assertEquals("detailed", services.settings.personalityId)
-        assertTrue("the chosen style is marked", compose.exists(hasText(detailed) and isSelected()))
-        compose.press(tr("personalities.summary.label"))
-        assertEquals("summary", services.settings.personalityId)
-        // Deep Research is its own switch under the styles.
-        compose.press(tr("personalitySettings.deepResearchTitle"))
-        assertTrue(services.settings.deepResearchMode)
-        compose.press(tr("personalitySettings.deepResearchTitle"))
+        visible(tr("clean.settings.section.developer"))
+        for (text in listOf("How BOAR answers", "Thorough", "Executive Summary", "Deep Research", "Max output tokens", "Custom style"))
+            assertFalse("'$text' is offered in Settings", compose.shows(text, substring = true))
+        assertEquals("succinct", services.settings.personalityId)
         assertFalse(services.settings.deepResearchMode)
     }
 

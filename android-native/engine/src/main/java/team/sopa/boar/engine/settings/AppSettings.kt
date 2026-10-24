@@ -65,20 +65,33 @@ class AppSettings(private val file: File) {
     fun modelRoleAssignments(): Map<String, String> =
         (data["modelRoleAssignments"] as? JsonObject)?.mapNotNull { (k, v) -> (v as? JsonPrimitive)?.contentOrNull?.ifEmpty { null }?.let { k to it } }?.toMap() ?: emptyMap()
 
-    var personalityId: String? get() = str("personalityId"); set(v) = set("personalityId", v?.let(::JsonPrimitive))
+    /**
+     * Always Succinct: the app has one answer style and no picker (r4to, Oct 24): in the Oct 23 UX tests 35 % of answers
+     * were right with Succinct against 28 % with it off, and an audit of Detailed answers (Oct 17) found 20 % of claims wrong. A style stored by an earlier build (Detailed,
+     * Summary, Custom) is ignored here and rewritten by [retireRemovedOptions].
+     */
+    val personalityId: String get() = ANSWER_STYLE
     var customSystemPrompt: String? get() = str("customSystemPrompt"); set(v) = set("customSystemPrompt", v?.let(::JsonPrimitive))
-    /** The answer length the user picked in Settings; null is Auto. */
-    var maxTokensChoice: Int? get() = int("maxTokens"); set(v) = set("maxTokens", v?.let(::JsonPrimitive))
-    /** The answer's token limit: the user's pick, else Auto by style (and Deep Research). */
-    val maxTokens: Int get() = maxTokensChoice ?: autoMaxTokens(personalityId, deepResearchMode)
+    /** The answer's token limit: Succinct's Auto length. There is no length setting; a stored "maxTokens" is ignored. */
+    val maxTokens: Int get() = autoMaxTokens(personalityId)
 
-    /** The limit for an answer now: the user's pick as is, else Auto fitted to the context the model was opened with. */
-    fun answerTokens(openedContext: Int?): Int = maxTokensChoice ?: fitToContext(autoMaxTokens(personalityId, deepResearchMode), openedContext)
+    /** The limit for an answer now: Succinct's Auto length fitted to the context the model was opened with. */
+    fun answerTokens(openedContext: Int?): Int = fitToContext(autoMaxTokens(personalityId), openedContext)
 
     /**
-     * Settings → Reset settings: every preference back to its default (theme, answer style and length, Deep Research,
-     * Advanced tweaks, display and voice switches, chat history options). Kept: models and their roles, the PIN, the
-     * language, the custom prompt and the app's own bookkeeping. Chats live elsewhere and stay too.
+     * Writes over what an earlier build let the user choose: the style becomes Succinct, and a picked answer length and the
+     * Deep Research switch are dropped, so settings.json says what the app does. Writes nothing when already clean.
+     */
+    fun retireRemovedOptions() {
+        if (str("personalityId") == ANSWER_STYLE && "maxTokens" !in data && "deepResearchMode" !in data) return
+        update { put("personalityId", JsonPrimitive(ANSWER_STYLE)); remove("maxTokens"); remove("deepResearchMode") }
+    }
+
+    /**
+     * Settings → Reset settings: every preference back to its default (theme, Advanced tweaks, display and voice switches,
+     * chat history options; an old build's style, length and Deep Research keys too). The style stays Succinct, which
+     * [personalityId] always is. Kept: models and their roles, the PIN, the language, the custom prompt and the app's own
+     * bookkeeping. Chats live elsewhere and stay too.
      */
     fun resetPreferences() = update { PREFERENCE_KEYS.forEach { remove(it) } }
 
@@ -94,6 +107,8 @@ class AppSettings(private val file: File) {
         const val MODEL_ADDED = "modelAddedAt"
         /** Portrait unless the user picks Auto or Landscape (Oct 18): the chat reads best upright on a phone. */
         const val DEFAULT_ORIENTATION = "portrait"
+        /** The one answer style (personalities.json's "succinct"). */
+        const val ANSWER_STYLE = "succinct"
         const val AUTO_MAX_TOKENS = 512
         /** Detailed answers ran past 512 tokens and stopped mid-sentence (X6, Oct 11). */
         const val AUTO_MAX_TOKENS_DETAILED = 1024
@@ -116,8 +131,8 @@ class AppSettings(private val file: File) {
             if (openedContext == null) cap else minOf(cap, maxOf(MIN_AUTO_TOKENS, openedContext - PROMPT_RESERVE))
 
         /**
-         * Only Detailed gets the longer cap. No style set is Succinct, the app's default (personalities.json's defaultId,
-         * BoarServices.DEFAULT_PERSONALITY_ID): reading it as Detailed gave a fresh install 1024 tokens while it answered
+         * Only Detailed gets the longer cap. No style set is Succinct, the app's one style ([ANSWER_STYLE], personalities.json's
+         * defaultId): reading it as Detailed gave a fresh install 1024 tokens while it answered
          * in Succinct.
          */
         fun autoMaxTokens(personalityId: String?, deepResearch: Boolean = false): Int = when {
@@ -126,7 +141,11 @@ class AppSettings(private val file: File) {
             else -> AUTO_MAX_TOKENS
         }
     }
-    var deepResearchMode: Boolean get() = bool("deepResearchMode") ?: false; set(v) = set("deepResearchMode", JsonPrimitive(v))
+    /**
+     * Always off: Deep Research is not offered in this app (r4to, Oct 24: only what surely works ships). The engine's
+     * Deep Research code stays, unreachable from the chat; a stored "deepResearchMode": true is ignored.
+     */
+    val deepResearchMode: Boolean get() = false
     /** The user closed the "Mixture of agents" line under the header (it stays closed). */
     var researchBannerHidden: Boolean get() = bool("researchBannerHidden") ?: false; set(v) = set("researchBannerHidden", JsonPrimitive(v))
     /** The one-time note on the first 👍/👎 (kept on the phone, not used yet) was shown. Not a preference: Reset keeps it. */

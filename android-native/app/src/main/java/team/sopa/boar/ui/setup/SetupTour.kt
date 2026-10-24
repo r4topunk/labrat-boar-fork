@@ -80,8 +80,9 @@ import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.ThemeMode
 
 /** The tour's cards in order; each one's strings are clean.tour.<key>.title / .body (and .where where it has one). */
-internal val TOUR_CARDS = listOf("welcome", "style", "look", "chats", "sources", "end")
-private val TOUR_WHERE = setOf("style", "look", "chats", "sources")
+// No answer style card: the app answers in Succinct only and offers no Deep Research (r4to, Oct 24).
+internal val TOUR_CARDS = listOf("welcome", "look", "chats", "sources", "end")
+private val TOUR_WHERE = setOf("look", "chats", "sources")
 
 /** The download under the tour, in one line, its fraction, whether BOAR is ready, and whether it needs the install screen. */
 internal data class TourProgress(val line: String, val fraction: Float, val ready: Boolean, val problem: Boolean)
@@ -126,7 +127,7 @@ internal fun TourInvite(onStart: () -> Unit) {
 
 /**
  * BOAR's setup tour, full screen over the install step, one card at a time. Unlike a tour that only shows, its cards
- * are the real settings: the answer style and Deep Research, theme and text size, chat titles, memory and the PIN, so
+ * are the real settings: theme and text size, chat titles, memory and the PIN, so
  * the minutes of downloading leave BOAR set up the way the user wants. The download stays on top; when it's done the
  * tour says so and Open BOAR leaves it. [index] is held by the caller, so the card stays while setup moves under it.
  */
@@ -255,16 +256,6 @@ private fun TourControls(key: String, prefs: DisplayPrefs) {
     val services = BoarServices.get(LocalContext.current)
     val s = services.settings
     when (key) {
-        "style" -> {
-            var style by remember { mutableStateOf(s.personalityId ?: services.personalities.defaultId) }
-            var deep by remember { mutableStateOf(s.deepResearchMode) }
-            team.sopa.boar.ui.chat.ToneChoices(
-                tones = services.personalities.personalities.filter { it.id != "custom" || BoarServices.SHOW_CUSTOM_STYLE }.map { it.id },
-                selectedId = style, deepResearch = deep,
-                onSetTone = { style = it; s.personalityId = it },
-                onSetDeepResearch = { deep = it; s.deepResearchMode = it },
-            )
-        }
         "look" -> Group {
             var theme by remember { mutableStateOf(ThemeMode.normalize(s.themeId)) }
             Choices(t("clean.settings.theme"), ThemeMode.all.map { it to t("clean.settings.theme.$it") }, theme) { theme = it; s.themeId = it; prefs.setTheme(it) }

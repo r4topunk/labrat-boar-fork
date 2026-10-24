@@ -101,7 +101,6 @@ data class ChatState(
     /** The model writing the answer in progress when it isn't [modelLabel] (adaptive routing sent it elsewhere). */
     val answeringModel: String? = null,
     val noModel: Boolean = false,
-    val deepResearch: Boolean = false,
     /** Advanced tweaks → Show technical details (AppSettings.showLiveStats). */
     val technicalDetails: Boolean = false,
     val error: String? = null,
@@ -109,14 +108,10 @@ data class ChatState(
     val loadNote: LoadNote? = null,
     /** While the model loads or the corpus indexes: the line the Expo app shows under the header (chatScreen.*). */
     val loadingKey: String? = null,
-    val personalityId: String = BoarServices.DEFAULT_PERSONALITY_ID,
-    /** A short message over the chat for about 2 s (Toast.tsx): the new tone, a reused question. */
+    /** A short message over the chat for about 2 s (Toast.tsx): a reused question. */
     val toast: String? = null,
-    val toneIcon: String = "",
     /** Stop was tapped and the answer hasn't ended yet (a step in progress finishes first). */
     val stopping: Boolean = false,
-    /** The styles the header sheet offers (id to icon): "custom" only when a custom prompt is written. */
-    val tones: List<Pair<String, String>> = emptyList(),
     val online: Boolean = false,
     /** Suggested question keys for the empty chat (chat.suggestions.*). */
     val suggestions: List<String> = emptyList(),
@@ -132,7 +127,6 @@ data class ChatState(
     val defaultModelId: String? = null,
     /** The answer model switch in progress (Answer options → Model): its id until it has loaded. */
     val switchingModelId: String? = null,
-    val defaultPersonalityId: String = BoarServices.DEFAULT_PERSONALITY_ID,
 ) {
     /** Sources = Everything: every listed source searched (a pack installed later too). */
     val sourcesEverything: Boolean
@@ -142,9 +136,9 @@ data class ChatState(
     val sourcesChecked: Set<String>
         get() = if (sourcesOwn) setOf(SourceRow.FILES) else sourceRows.map { it.id }.filter { it !in sourcesOff }.toSet()
 
-    /** Anything the composer's options button must flag: a style, model or sources other than the defaults, or Deep Research. */
+    /** Anything the composer's options button must flag: a model or sources other than the defaults. */
     val optionsChanged: Boolean
-        get() = personalityId != defaultPersonalityId || !sourcesEverything || deepResearch ||
+        get() = !sourcesEverything ||
             (defaultModelId != null && activeModelId != null && activeModelId != defaultModelId)
 }
 
@@ -185,10 +179,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private val safeScope = viewModelScope + team.sopa.boar.app.Safe.handler(app) { _ ->
         _state.update { it.copy(answeringId = null, answeringModel = null, activity = null, stopping = false, error = "generic") }
     }
-    private val _state = MutableStateFlow(ChatState(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats,
+    private val _state = MutableStateFlow(ChatState(technicalDetails = services.settings.showLiveStats,
         sourcesOwn = app.getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE).getBoolean(SOURCES_OWN, false),
-        sourcesOff = app.getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE).getStringSet(SOURCES_OFF, null).orEmpty().toSet(),
-        defaultPersonalityId = services.personalities.defaultId))
+        sourcesOff = app.getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE).getStringSet(SOURCES_OFF, null).orEmpty().toSet()))
     val state: StateFlow<ChatState> = _state
     private var job: Job? = null
     /** A chat title or summary still being written; a new question stops it (one model, one generation). */
@@ -230,7 +223,6 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         refreshModel()
-        refreshTone()
         watchConnectivity(app)
         preload()
         services.addBusyCheck(busy)
@@ -314,7 +306,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      */
     private fun chatWarmKey(): team.sopa.boar.engine.answer.WarmPrefix.Key {
         val settings = services.settings
-        val style = settings.personalityId ?: services.personalities.defaultId
+        val style = settings.personalityId
         val smallModel = (services.answerModel()?.sizeBytes ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
         return team.sopa.boar.engine.answer.WarmPrefix.forChat(services.personalities, style, settings.customSystemPrompt, smallModel, _state.value.sourcesOwn)
     }
@@ -400,24 +392,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private fun refreshTone() {
-        val id = services.settings.personalityId ?: services.personalities.defaultId
-        val custom = BoarServices.SHOW_CUSTOM_STYLE && services.settings.customSystemPrompt.orEmpty().isNotBlank()
-        val tones = services.personalities.personalities.filter { it.id != "custom" || custom }.map { it.id to it.icon }
-        _state.update { it.copy(personalityId = id, toneIcon = services.personalities.get(id).icon, tones = tones) }
-    }
-
-    /** The header sheet: answer in this style from the next question on. */
-    fun setTone(id: String) {
-        services.settings.personalityId = id
-        refreshTone()
-    }
-
-    /** Back from settings: the tone, Deep Research and model may have changed. */
+    /** Back from settings: the model and technical details may have changed. */
     fun refreshSettings() {
-        refreshTone()
         refreshModel()
-        _state.update { it.copy(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats) }
+        _state.update { it.copy(technicalDetails = services.settings.showLiveStats) }
         // The open chat was erased (Clear all chat history, or a forgotten PIN): start a new one.
         val open = _state.value.sessionId
         if (open != null && services.chats.listSessions().none { it.id == open }) newChat()
@@ -478,14 +456,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(loadNote = null) }
     }
 
-    fun setDeepResearch(on: Boolean) {
-        // Not with Sources = My files: its write-up isn't held to the files (exp/dr-files-only, Oct 23: C lost 3 of 8 answers).
-        if (on && _state.value.sourcesOwn) return
-        services.settings.deepResearchMode = on
-        _state.update { it.copy(deepResearch = on) }
-    }
-
-    // --- Answer options (the composer's one sheet: Style, Model, Sources, Deep Research) ---------------------------------
+    // --- Answer options (the composer's one sheet: Model and Sources) -----------------------------------------------------
 
     private val optionPrefs get() = getApplication<Application>().getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE)
 
@@ -543,8 +514,6 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      */
     fun setSourcesOwn(own: Boolean) {
         saveSources(own, emptySet())
-        // My files answers through the plain pipeline only, so Deep Research goes off rather than showing on and not running.
-        if (own && _state.value.deepResearch) setDeepResearch(false)
     }
 
     /**
@@ -569,9 +538,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(sourcesOwn = own, sourcesOff = off) }
     }
 
-    // Saved before this rule (both on): My files wins, as setSourcesOwn would have decided.
     init {
-        if (_state.value.sourcesOwn && _state.value.deepResearch) setDeepResearch(false)
         // A partial selection: the Sources row's "4 of 7" needs the list.
         if (_state.value.sourcesOff.isNotEmpty()) refreshSources()
     }
@@ -603,11 +570,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** Answer options → Reset to defaults: the default style, all sources, the recommended model, Deep Research off. */
+    /** Answer options → Reset to defaults: all sources and the recommended model. */
     fun resetOptions() {
-        setTone(services.personalities.defaultId)
         setSourcesOwn(false)
-        setDeepResearch(false)
         _state.value.defaultModelId?.let { if (it != _state.value.activeModelId) setModel(it) }
     }
 
@@ -705,7 +670,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val settings = services.settings
             // Health and first aid answer in Succinct even when Detailed is picked: a sentence-level audit of 15 Detailed
             // answers (r4to, Oct 17) found 20 % of claims wrong, 5 of them safety errors ("a first-degree burn is painless").
-            val chosenStyle = settings.personalityId ?: services.personalities.defaultId
+            val chosenStyle = settings.personalityId
             // Health and seed-phrase questions answer short even under Detailed: a padded detail there can hurt (r4to's audits).
             // A follow-up in such a chat too ("and for how long?" after a burn question).
             val shortReason = team.sopa.boar.engine.routing.ShortAnswer.reason(chosenStyle, q, prior.lastOrNull { it.role == "user" }?.text)
@@ -780,7 +745,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 // Small talk never starts a Deep Research or the router (AnswerPath): "hi" took minutes on a big model.
                 // My files answers through the plain pipeline only: Deep Research's and the router's write-ups have no
                 // files-only prompt or not-found line, so they could answer from memory. A recap of this chat still runs.
-                val way = team.sopa.boar.engine.routing.AnswerPath.of(_state.value.deepResearch, aboutConversation(q, history, conversation),
+                // Deep Research is not offered (AppSettings.deepResearchMode is always false), so its path is never taken.
+                val way = team.sopa.boar.engine.routing.AnswerPath.of(settings.deepResearchMode, aboutConversation(q, history, conversation),
                     settings.adaptiveRoutingEnabled, team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)).let {
                         if (filesOnly && (it == team.sopa.boar.engine.routing.AnswerPath.RESEARCH || it == team.sopa.boar.engine.routing.AnswerPath.ADAPTIVE))
                             team.sopa.boar.engine.routing.AnswerPath.PIPELINE else it

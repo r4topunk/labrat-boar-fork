@@ -16,26 +16,42 @@ class AppSettingsTest {
 
     private fun file(text: String?) = Files.createTempDirectory("boar-settings").toFile().resolve("settings.json").also { f -> text?.let { f.writeText(it) } }
 
-    @Test fun `reads the Expo app's settings`() {
+    @Test fun `reads the Expo app's settings, with its stored style, length and Deep Research ignored`() {
         val s = AppSettings(file(expo))
         assertEquals("qwen3-4b-instruct-2507-q4km", s.activeModelId("llm"))
-        assertEquals("detailed", s.personalityId)
-        assertEquals(1024, s.maxTokens)
+        // Stored "detailed", "maxTokens": 1024 and Deep Research on: the app answers in Succinct at its length anyway.
+        assertEquals("succinct", s.personalityId)
+        assertEquals(AppSettings.AUTO_MAX_TOKENS, s.maxTokens)
+        assertFalse(s.deepResearchMode)
         assertEquals("moonlight", s.themeId)
         assertEquals("large", s.fontScale)
-        assertTrue(s.deepResearchMode)
         assertFalse(s.adaptiveRoutingEnabled)
         assertEquals(EngineTweaks(), s.engineTweaks)
+    }
+
+    @Test fun `a style, length or Deep Research stored by an earlier build is rewritten to Succinct and dropped`() {
+        val f = file(expo)
+        AppSettings(f).retireRemovedOptions()
+        val again = AppSettings(f)
+        assertEquals("\"succinct\"", again.raw()["personalityId"].toString())
+        assertFalse("maxTokens" in again.raw())
+        assertFalse("deepResearchMode" in again.raw())
+        // Everything else is kept.
+        assertEquals("moonlight", again.themeId)
+        assertEquals("abc-123", again.raw()["installId"].toString().trim('"'))
+        // Already clean: nothing is written.
+        val stamp = f.lastModified()
+        f.setLastModified(stamp - 10_000)
+        again.retireRemovedOptions()
+        assertEquals(stamp - 10_000, f.lastModified())
     }
 
     @Test fun `keeps keys it doesn't know when it writes`() {
         val f = file(expo)
         val s = AppSettings(f)
-        s.maxTokensChoice = 2048
         s.engineTweaks = EngineTweaks(threads = 6, kvCache = KvType.Q8_0, stageTimeoutSeconds = 0)
         s.setActiveModelId("llm", "qwen2.5-1.5b-instruct-q4km")
         val again = AppSettings(f)
-        assertEquals(2048, again.maxTokens)
         assertEquals(EngineTweaks(threads = 6, kvCache = KvType.Q8_0, stageTimeoutSeconds = 0), again.engineTweaks)
         assertEquals("qwen2.5-1.5b-instruct-q4km", again.activeModelId("llm"))
         assertEquals("bge-small-en-v1.5-q8", again.activeModelId("embedding"))
@@ -45,13 +61,13 @@ class AppSettingsTest {
         assertFalse("engineTweaks" in AppSettings(f).raw())
     }
 
-    @Test fun `reset settings clears preferences and keeps models, the PIN, the language and the custom prompt`() {
-        val f = file(null)
+    @Test fun `reset settings clears preferences, keeps Succinct, models, the PIN, the language and the custom prompt`() {
+        val f = file(expo)
         val s = AppSettings(f)
         s.setActiveModelId("llm", "qwen3-4b")
         s.pinSalt = "salt"; s.pinWrapped = "wrapped"
         s.languageId = "pt"; s.customSystemPrompt = "Be brief."
-        s.themeId = "campfire"; s.personalityId = "succinct"; s.deepResearchMode = true; s.maxTokensChoice = 2048
+        s.themeId = "campfire"
         s.fontScale = "large"; s.showLiveStats = false; s.researchBannerHidden = true
         s.engineTweaks = EngineTweaks(threads = 2)
         s.resetPreferences()
@@ -59,7 +75,10 @@ class AppSettingsTest {
         assertEquals("qwen3-4b", again.activeModelId("llm"))
         assertEquals("salt", again.pinSalt); assertEquals("wrapped", again.pinWrapped)
         assertEquals("pt", again.languageId); assertEquals("Be brief.", again.customSystemPrompt)
-        assertNull(again.themeId); assertNull(again.personalityId); assertNull(again.maxTokensChoice)
+        assertNull(again.themeId)
+        assertEquals("succinct", again.personalityId)
+        assertEquals(AppSettings.AUTO_MAX_TOKENS, again.maxTokens)
+        assertFalse("personalityId" in again.raw() || "maxTokens" in again.raw() || "deepResearchMode" in again.raw())
         assertFalse(again.deepResearchMode); assertTrue(again.showLiveStats); assertFalse(again.researchBannerHidden)
         assertEquals("standard", again.fontScale)
         assertEquals(EngineTweaks(), again.engineTweaks)
@@ -68,59 +87,33 @@ class AppSettingsTest {
     @Test fun `missing or broken file means defaults`() {
         for (s in listOf(AppSettings(file(null)), AppSettings(file("{not json")))) {
             assertNull(s.activeModelId("llm"))
+            assertEquals("succinct", s.personalityId)
             assertEquals(AppSettings.AUTO_MAX_TOKENS, s.maxTokens)
             assertEquals("standard", s.fontScale)
             assertTrue(s.autoSummarize)
         }
     }
 
-    @Test fun `Auto answer length is 2048 with Deep Research on, in any style, and a pick still wins`() {
-        val s = AppSettings(file(null))
-        s.deepResearchMode = true
-        assertEquals(AppSettings.AUTO_MAX_TOKENS_RESEARCH, s.maxTokens)
-        s.personalityId = "succinct"
-        assertEquals(2048, s.maxTokens)
-        s.maxTokensChoice = 512
-        assertEquals(512, s.maxTokens)
-        s.maxTokensChoice = null
-        s.deepResearchMode = false
-        assertEquals(512, s.maxTokens)
-    }
-
-    @Test fun `Auto length fits the context the model was opened with, a pick is kept as is`() {
+    @Test fun `Auto length fits the context the model was opened with`() {
         assertEquals(2048, AppSettings.fitToContext(2048, null))
         assertEquals(2048, AppSettings.fitToContext(2048, 4096))
         assertEquals(1572, AppSettings.fitToContext(2048, 3072))
         assertEquals(548, AppSettings.fitToContext(2048, 2048))
         assertEquals(256, AppSettings.fitToContext(1024, 1024))
         val s = AppSettings(file(null))
-        s.deepResearchMode = true
-        assertEquals(548, s.answerTokens(2048))
-        assertEquals(2048, s.answerTokens(4096))
-        s.maxTokensChoice = 2048
-        assertEquals(2048, s.answerTokens(2048))
+        assertEquals(512, s.answerTokens(null))
+        assertEquals(512, s.answerTokens(4096))
+        assertEquals(512, s.answerTokens(2048))
+        assertEquals(256, s.answerTokens(1024))
     }
 
     @Test fun `no stored style gets the Succinct cap, not Detailed's`() {
         assertEquals(AppSettings.AUTO_MAX_TOKENS, AppSettings.autoMaxTokens(null))
         assertEquals(AppSettings.AUTO_MAX_TOKENS, AppSettings.autoMaxTokens("succinct"))
+        // The benchmark runner still sizes the other styles and Deep Research through the same function.
         assertEquals(AppSettings.AUTO_MAX_TOKENS_DETAILED, AppSettings.autoMaxTokens("detailed"))
+        assertEquals(AppSettings.AUTO_MAX_TOKENS_RESEARCH, AppSettings.autoMaxTokens("succinct", deepResearch = true))
         val s = AppSettings(file(null))
-        assertNull(s.personalityId)
-        assertEquals(512, s.maxTokens)
-        assertEquals(512, s.answerTokens(4096))
-    }
-
-    @Test fun `Auto answer length is 1024 for Detailed, 512 for the other styles, a pick wins`() {
-        val s = AppSettings(file(null))
-        assertNull(s.maxTokensChoice)
-        s.personalityId = "detailed"
-        assertEquals(1024, s.maxTokens)
-        s.personalityId = "succinct"
-        assertEquals(512, s.maxTokens)
-        s.maxTokensChoice = 2048
-        assertEquals(2048, s.maxTokens)
-        s.maxTokensChoice = null
         assertEquals(512, s.maxTokens)
     }
 }

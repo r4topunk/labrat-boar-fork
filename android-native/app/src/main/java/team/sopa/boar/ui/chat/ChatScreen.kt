@@ -13,7 +13,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
@@ -134,7 +133,7 @@ import team.sopa.boar.ui.theme.FixedSizeChrome
 
 /**
  * The chat on Material 3: a TopAppBar with the mascot, the bubbles, the loading strip, the empty state and the input
- * bar (style chip, text field, send or stop). Chrome text uses the typography roles and the colour scheme; tertiary is
+ * bar (options button, text field, send or stop). Chrome text uses the typography roles and the colour scheme; tertiary is
  * kept for Deep Research, error for failures.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -145,8 +144,6 @@ fun ChatScreen(
     onStop: () -> Unit,
     onNewChat: () -> Unit,
     onMenu: () -> Unit,
-    onSetTone: (String) -> Unit,
-    onSetDeepResearch: (Boolean) -> Unit,
     /** The cut answer's "Allow more and redo": its id and the higher limit. */
     onRedo: (String, Int) -> Unit = { _, _ -> },
     onRetry: (String) -> Unit = {},
@@ -178,7 +175,7 @@ fun ChatScreen(
     var toneSheet by remember { mutableStateOf(false) }
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     val focus = androidx.compose.ui.platform.LocalFocusManager.current
-    if (toneSheet) AnswerOptionsSheet(state, AnswerOptionsActions(onSetTone, onSetModel, onSetSourcesOwn, onSetDeepResearch, onResetOptions, onToggleSource, onRefreshSources)) { toneSheet = false }
+    if (toneSheet) AnswerOptionsSheet(state, AnswerOptionsActions(onSetModel, onSetSourcesOwn, onResetOptions, onToggleSource, onRefreshSources)) { toneSheet = false }
     val last = state.messages.lastOrNull()
     // Follow the end of the answer while it streams, unless the user scrolled up to read: a drag that ends short of
     // the bottom stops following, reaching the bottom again resumes it, and a new message always does.
@@ -242,7 +239,7 @@ fun ChatScreen(
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
                 // The answer gets the whole screen: the keyboard closes on send.
                 send(input); input = ""; keyboard?.hide(); focus.clearFocus()
-            }, onStop, state.stopping, state.deepResearch && !state.sourcesOwn, state.sourcesOwn, state.optionsChanged) { toneSheet = true }
+            }, onStop, state.stopping, state.sourcesOwn, state.optionsChanged) { toneSheet = true }
         }
     }
     state.toast?.let { Toast(it, onToastHidden) }
@@ -260,7 +257,7 @@ private fun modelName(raw: String, technical: Boolean): String {
 
 /**
  * ChatHeader.tsx as a small TopAppBar: menu, mascot with the name and the model, the constant "Works offline" chip
- * (it opens what online/offline means) and New chat. Deep Research lives in the style sheet and the input bar.
+ * (it opens what online/offline means) and New chat.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -703,22 +700,18 @@ private fun NoteBadge(icon: ImageVector, text: String) {
 
 /**
  * The composer: one rounded surfaceContainerHigh block on one line: the Answer options button (it opens the sheet with
- * Style, Model, Sources and Deep Research), the text field, and send or stop. No chips: anything not at its default
- * shows as the options button's tonal fill and dot ("Answer options, changed"); Deep Research keeps the block's tertiary
- * outline and its own placeholder, and My files its own placeholder. Canvas F1–F5 (V4 field without chips, r4to Oct 22).
+ * Model and Sources), the text field, and send or stop. No chips: anything not at its default shows as the options
+ * button's tonal fill and dot ("Answer options, changed"); My files has its own placeholder. Canvas F1–F5 (V4 field
+ * without chips, r4to Oct 22).
  */
 @Composable
 private fun InputBar(
     text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit,
-    stopping: Boolean, deepResearch: Boolean, sourcesOwn: Boolean, optionsChanged: Boolean, onOpenOptions: () -> Unit,
+    stopping: Boolean, sourcesOwn: Boolean, optionsChanged: Boolean, onOpenOptions: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(28.dp)
-    val hint = t(when {
-        deepResearch -> "native.chat.deepResearchPlaceholder"
-        sourcesOwn -> "design.options.placeholderOwn"
-        else -> "chatScreen.inputPlaceholder"
-    })
+    val hint = t(if (sourcesOwn) "design.options.placeholderOwn" else "chatScreen.inputPlaceholder")
     val canSend = text.isNotBlank() && !answering
     // After Stop, the button pulses until the answer really ends: a library search or a chunk of prompt finishes first.
     // The infinite transition exists only then: composed always, it ran on every frame (13 % of the main thread
@@ -733,8 +726,6 @@ private fun InputBar(
     Column(Modifier.fillMaxWidth().background(scheme.background).navigationBarsPadding().padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 8.dp)) {
         Row(
             Modifier.fillMaxWidth().clip(shape).background(scheme.surfaceContainerHigh)
-                // Deep Research on: the block's outline in the mode's color and its own placeholder, right where you type.
-                .then(if (deepResearch) Modifier.border(1.5.dp, scheme.tertiary, shape) else Modifier)
                 .padding(horizontal = 6.dp, vertical = 6.dp),
             verticalAlignment = Alignment.Bottom,
         ) {
@@ -763,7 +754,7 @@ private fun InputBar(
                     Box(Modifier.heightIn(min = 48.dp).padding(end = 8.dp, top = 12.dp, bottom = 12.dp), contentAlignment = Alignment.CenterStart) {
                         Box(Modifier.textOnRowCenter(bodyLarge)) {
                             if (text.isEmpty()) Text(hint, style = bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                color = if (deepResearch) scheme.tertiary else scheme.onSurfaceVariant)
+                                color = scheme.onSurfaceVariant)
                             inner()
                         }
                     }

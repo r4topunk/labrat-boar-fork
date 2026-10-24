@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -54,21 +53,20 @@ import team.sopa.boar.ui.t
 
 /** The callbacks of the Answer options sheet (the chat's ViewModel). */
 class AnswerOptionsActions(
-    val onSetTone: (String) -> Unit,
     val onSetModel: (String) -> Unit,
     val onSetSourcesOwn: (Boolean) -> Unit,
-    val onSetDeepResearch: (Boolean) -> Unit,
     val onReset: () -> Unit,
     val onToggleSource: (String) -> Unit = {},
     val onRefreshSources: () -> Unit = {},
 )
 
-private enum class OptionsPage { LIST, STYLE, MODEL, SOURCES }
+private enum class OptionsPage { LIST, MODEL, SOURCES }
 
 /**
- * The composer's options button opens this one sheet: Style, Model and Sources as a grouped list (each with its current
- * value, in the primary colour when it isn't the default, and a chevron into its own radio list on the same sheet), Deep
- * Research as its switch block, and Reset to defaults. Canvas F1–F5 ("V4 field without chips + V5 sheet", r4to, Oct 22).
+ * The composer's options button opens this one sheet: Model and Sources as a grouped list (each with its current value,
+ * in the primary colour when it isn't the default, and a chevron into its own list on the same sheet), and Reset to
+ * defaults. Canvas F1–F5 ("V4 field without chips + V5 sheet", r4to, Oct 22). The answer style (always Succinct) and
+ * Deep Research are not offered in this app (r4to, Oct 24), so neither has a row.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,8 +100,6 @@ private fun OptionsList(state: ChatState, actions: AnswerOptionsActions, open: (
         Text(t("design.options.title"), style = MaterialTheme.typography.titleLarge, color = scheme.onSurface,
             modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 16.dp))
         val rows = listOf(
-            Triple(OptionsPage.STYLE, toneVector(state.personalityId), Pair(t("design.options.style"),
-                t("personalities.${state.personalityId}.label") to (state.personalityId != state.defaultPersonalityId))),
             Triple(OptionsPage.MODEL, BoarIcons.Memory, Pair(t("design.options.model"),
                 (model?.name ?: t("design.options.noModel")) to (state.defaultModelId != null && state.activeModelId != state.defaultModelId))),
             Triple(OptionsPage.SOURCES, BoarIcons.LibraryBooks, Pair(t("design.options.sources"),
@@ -121,10 +117,7 @@ private fun OptionsList(state: ChatState, actions: AnswerOptionsActions, open: (
                 ) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) }
             }
         }
-        Spacer(Modifier.height(16.dp))
-        DeepResearchRow(state.deepResearch, actions.onSetDeepResearch,
-            disabledNote = if (state.sourcesOwn) t("design.options.deepResearchOff") else null)
-        TextButton(actions.onReset, enabled = state.optionsChanged, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 8.dp)) {
+        TextButton(actions.onReset, enabled = state.optionsChanged, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp)) {
             Text(t("design.options.reset"))
         }
     }
@@ -135,9 +128,6 @@ private fun OptionsDetail(page: OptionsPage, state: ChatState, actions: AnswerOp
     val scheme = MaterialTheme.colorScheme
     data class Choice(val id: String, val label: String, val note: String, val icon: ImageVector?, val selected: Boolean, val pick: () -> Unit)
     val (title, choices, foot) = when (page) {
-        OptionsPage.STYLE -> Triple(t("design.options.style"), state.tones.map { (id, _) ->
-            Choice(id, t("personalities.$id.label"), t("personalities.$id.description"), toneVector(id), id == state.personalityId) { actions.onSetTone(id) }
-        }, null)
         OptionsPage.MODEL -> Triple(t("design.options.model"), state.models.map { m ->
             val note = listOfNotNull(Units.formatBytes(m.sizeBytes), if (m.recommended) t("design.options.recommended") else null).joinToString(" · ")
             Choice(m.id, m.name, note, BoarIcons.Memory, m.id == state.activeModelId) { actions.onSetModel(m.id) }

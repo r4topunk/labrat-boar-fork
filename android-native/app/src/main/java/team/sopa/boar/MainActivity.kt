@@ -324,7 +324,7 @@ private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, prefs: DisplayPr
         return
     }
     SetupScreen(setupState, setup, prefs,
-        // Settings too: after "Reset settings" the chat must show the default style and Deep Research off.
+        // Settings too: after "Reset settings" the chat must show the default options.
         onSkip = if (wasReady) ({ setup.forget(); vm.refreshSettings(); goTo("chat") }) else null,
         // Cleared first: a model added earlier from Models must not be picked the moment the page opens.
         onBrowse = { setupModels.clearAdded(); browsing = true },
@@ -371,8 +371,6 @@ private fun ChatHost(services: BoarServices, vm: ChatViewModel, onNavigate: (Str
             onStop = vm::stop,
             onNewChat = vm::newChat,
             onMenu = { scope.launch { drawer.open() } },
-            onSetTone = vm::setTone,
-            onSetDeepResearch = vm::setDeepResearch,
             onSetModel = vm::setModel,
             onSetSourcesOwn = vm::setSourcesOwn,
             onToggleSource = vm::toggleSource,

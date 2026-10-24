@@ -75,12 +75,10 @@ class ChatFlowDeviceTest {
         catch (e: Throwable) { throw AssertionError("the answer did not end within 240 s", e) }
     }
 
-    @Test fun theEmptyChatOffersSuggestionsAndAnswerOptionsChangeStyleSourcesAndDeepResearch() {
+    @Test fun theEmptyChatOffersSuggestionsAndAnswerOptionsChangeSourcesAndReset() {
         assumeTrue("needs a model and no PIN", services.activeModel() != null && !services.pinLock.isSet)
-        val wasStyle = services.settings.personalityId
-        val wasDeep = services.settings.deepResearchMode
-        services.settings.personalityId = "succinct"
-        services.settings.deepResearchMode = false
+        val prefs = ctx.getSharedPreferences("answer_options", Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
         try {
             launchApp(opened)
             compose.waitForChat()
@@ -90,18 +88,20 @@ class ChatFlowDeviceTest {
             // The send button waits for text.
             assertTrue(compose.onNode(send).fetchSemanticsNode().config.contains(SemanticsProperties.Disabled))
 
-            // The composer's options button opens Answer options. Style → Detailed comes back to the list with the new value.
-            val detailed = tr("personalities.detailed.label")
+            // The composer's options button opens Answer options: Model and Sources, no style and no Deep Research (the app
+            // answers in Succinct only), and Reset is off while everything is at its default.
             val title = tr("design.options.title")
             assertTrue("defaults: the plain options button", compose.exists(hasContentDescription(tr("design.options.button"))))
             compose.pressIcon(tr("design.options.button"))
             compose.waitForText(title)
-            compose.press(tr("design.options.style"))
-            compose.waitForText(tr("personalities.summary.label"))
-            compose.press(detailed)
-            compose.waitForText(title)
-            assertEquals("detailed", services.settings.personalityId)
-            assertTrue("the Style row shows the new value", compose.shows(detailed))
+            assertTrue(compose.shows(tr("design.options.model")))
+            assertTrue(compose.shows(tr("design.options.sources")))
+            if (ctx.resources.configuration.locales[0]?.language == "en") {
+                assertFalse("no Style row", compose.shows("Style"))
+                assertFalse("no Deep Research", compose.shows("Deep Research", substring = true))
+            }
+            assertTrue("Reset is off at the defaults", compose.onNode(hasText(tr("design.options.reset")) and hasClickAction())
+                .fetchSemanticsNode().config.contains(SemanticsProperties.Disabled))
 
             // Sources → My files: back on the composer, the button reads changed and the placeholder asks about your files.
             compose.press(tr("design.options.sources"))
@@ -113,33 +113,16 @@ class ChatFlowDeviceTest {
             assertTrue("changed options button", compose.exists(hasContentDescription(tr("design.options.buttonChanged"))))
             assertTrue("My files placeholder", compose.exists(hasContentDescription(tr("design.options.placeholderOwn"))))
 
-            // With My files on, Deep Research is off and can't be turned on: the row says why and the switch is disabled.
+            // Reset to defaults puts Sources back to Everything.
             compose.pressIcon(tr("design.options.buttonChanged"))
             compose.waitForText(title)
-            assertTrue("Deep Research's note under My files", compose.shows(tr("design.options.deepResearchOff")))
-            compose.press(tr("personalitySettings.deepResearchTitle"))
-            compose.waitForIdle()
-            assertFalse("Deep Research stays off under My files", services.settings.deepResearchMode)
-
-            // Reset to defaults puts everything back.
             compose.press(tr("design.options.reset"))
-            compose.waitUntil(5_000) { services.settings.personalityId == "succinct" && !services.settings.deepResearchMode }
-
-            // Back on All: Deep Research is the sheet's switch (it doesn't close the sheet), and turning My files on turns it off.
-            compose.press(tr("personalitySettings.deepResearchTitle"))
-            compose.waitUntil(5_000) { services.settings.deepResearchMode }
-            assertTrue("the switch doesn't close the sheet", compose.shows(title))
-            compose.press(tr("design.options.sources"))
-            compose.waitForText(tr("design.options.sourcesOwnNote"))
-            compose.press(tr("design.options.sourcesOwn"))
-            compose.waitUntil(5_000) { !services.settings.deepResearchMode }
-            compose.waitForText(title)
-            compose.press(tr("design.options.reset"))
-            compose.waitUntil(5_000) { !services.settings.deepResearchMode }
+            compose.waitUntil(5_000) { !prefs.getBoolean("sourcesOwnOnly", false) }
             androidx.test.espresso.Espresso.pressBack()
             compose.waitForTextGone(title)
             assertTrue("defaults again", compose.exists(hasContentDescription(tr("design.options.button"))))
             assertTrue("default placeholder", compose.exists(hasContentDescription(tr("chatScreen.inputPlaceholder"))))
+            assertEquals("succinct", services.settings.personalityId)
 
             // A suggestion held down fills the composer instead of asking.
             val suggestion = compose.onAllNodes(hasClickAction() and hasText("?", substring = true)).fetchSemanticsNodes()
@@ -152,9 +135,7 @@ class ChatFlowDeviceTest {
                 assertFalse("send is enabled with text", compose.onNode(send).fetchSemanticsNode().config.contains(SemanticsProperties.Disabled))
             }
         } finally {
-            services.settings.personalityId = wasStyle
-            services.settings.deepResearchMode = wasDeep
-            ctx.getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE).edit().clear().apply()
+            prefs.edit().clear().commit()
         }
     }
 
@@ -167,12 +148,6 @@ class ChatFlowDeviceTest {
         assumeTrue("needs an installed pack", services.packs.isNotEmpty())
         val prefs = ctx.getSharedPreferences("answer_options", Context.MODE_PRIVATE)
         prefs.edit().clear().commit()
-        val wasDeep = services.settings.deepResearchMode
-        services.settings.deepResearchMode = false
-        // The button reads "changed" for any style but the default, so the run starts from it (Oct 23: a devtest app left
-        // on Detailed failed here at the first tap).
-        val wasStyle = services.settings.personalityId
-        services.settings.personalityId = services.personalities.defaultId
         try {
             launchApp(opened)
             compose.waitForChat()
@@ -233,56 +208,45 @@ class ChatFlowDeviceTest {
             assertTrue("default placeholder", compose.exists(hasContentDescription(tr("chatScreen.inputPlaceholder"))))
             assertTrue("nothing left out", prefs.getStringSet("sourcesOff", null).isNullOrEmpty() && !prefs.getBoolean("sourcesOwnOnly", false))
         } finally {
-            services.settings.deepResearchMode = wasDeep
-            services.settings.personalityId = wasStyle
             prefs.edit().clear().commit()
         }
     }
 
     @Test fun aSentQuestionIsAnsweredOnScreenWithSourcesThatOpenAndClose() {
         assumeTrue("needs a model and no PIN", services.activeModel() != null && !services.pinLock.isSet)
-        val wasStyle = services.settings.personalityId
-        val wasDeep = services.settings.deepResearchMode
-        services.settings.personalityId = "succinct" // the shortest answers
-        services.settings.deepResearchMode = false
-        try {
-            launchApp(opened)
-            compose.waitForChat()
-            compose.pressIcon(tr("clean.drawer.newChat"))
-            val before = screenText()
-            ask("What are the symptoms of asthma?")
-            val after = screenText()
-            android.util.Log.i("ChatFlowDeviceTest", "screen after answer:\n$after")
-            assertTrue("the question stays on screen", compose.shows("What are the symptoms of asthma?"))
-            assertTrue("no answer text appeared on screen", newAnswerLine(before, after, "What are the symptoms of asthma?") > 40)
-            assertTrue("the answer's label", compose.shows(tr("chatScreen.roleAssistant")))
-            val session = services.chats.listSessions().first()
-            val stored = services.chats.messages(session.id)
-            assertEquals(listOf("user", "assistant"), stored.map { it.role })
-            assertTrue("the answer is saved", stored[1].text.length > 20)
+        launchApp(opened)
+        compose.waitForChat()
+        compose.pressIcon(tr("clean.drawer.newChat"))
+        val before = screenText()
+        ask("What are the symptoms of asthma?")
+        val after = screenText()
+        android.util.Log.i("ChatFlowDeviceTest", "screen after answer:\n$after")
+        assertTrue("the question stays on screen", compose.shows("What are the symptoms of asthma?"))
+        assertTrue("no answer text appeared on screen", newAnswerLine(before, after, "What are the symptoms of asthma?") > 40)
+        assertTrue("the answer's label", compose.shows(tr("chatScreen.roleAssistant")))
+        val session = services.chats.listSessions().first()
+        val stored = services.chats.messages(session.id)
+        assertEquals(listOf("user", "assistant"), stored.map { it.role })
+        assertTrue("the answer is saved", stored[1].text.length > 20)
 
-            // The sources under the answer: each row opens the passage the model read, and closes again.
-            compose.waitForText(tr("sourceFootnotes.title"), 5_000)
-            val collapsed = hasStateDescription(tr("clean.chat.collapsed")) and hasClickAction()
-            val expanded = hasStateDescription(tr("clean.chat.expanded")) and hasClickAction()
-            val rows = compose.onAllNodes(collapsed).fetchSemanticsNodes().size
-            assertTrue("no source rows", rows >= 1)
-            val textBefore = screenText().length
-            compose.onAllNodes(collapsed)[0].performSemanticsAction(SemanticsActions.OnClick)
-            compose.waitUntil(5_000) { compose.exists(expanded) }
-            compose.waitForIdle()
-            assertTrue("the passage did not open", screenText().length > textBefore + 40)
-            compose.onAllNodes(expanded)[0].performSemanticsAction(SemanticsActions.OnClick)
-            compose.waitUntil(5_000) { !compose.exists(expanded) }
-            assertEquals(rows, compose.onAllNodes(collapsed).fetchSemanticsNodes().size)
+        // The sources under the answer: each row opens the passage the model read, and closes again.
+        compose.waitForText(tr("sourceFootnotes.title"), 5_000)
+        val collapsed = hasStateDescription(tr("clean.chat.collapsed")) and hasClickAction()
+        val expanded = hasStateDescription(tr("clean.chat.expanded")) and hasClickAction()
+        val rows = compose.onAllNodes(collapsed).fetchSemanticsNodes().size
+        assertTrue("no source rows", rows >= 1)
+        val textBefore = screenText().length
+        compose.onAllNodes(collapsed)[0].performSemanticsAction(SemanticsActions.OnClick)
+        compose.waitUntil(5_000) { compose.exists(expanded) }
+        compose.waitForIdle()
+        assertTrue("the passage did not open", screenText().length > textBefore + 40)
+        compose.onAllNodes(expanded)[0].performSemanticsAction(SemanticsActions.OnClick)
+        compose.waitUntil(5_000) { !compose.exists(expanded) }
+        assertEquals(rows, compose.onAllNodes(collapsed).fetchSemanticsNodes().size)
 
-            // Copy response puts the answer on the clipboard.
-            compose.pressIcon(tr("chatScreen.copyResponse"))
-            assertTrue("the clipboard holds the answer", (clipboard() ?: "").length > 20)
-        } finally {
-            services.settings.personalityId = wasStyle
-            services.settings.deepResearchMode = wasDeep
-        }
+        // Copy response puts the answer on the clipboard.
+        compose.pressIcon(tr("chatScreen.copyResponse"))
+        assertTrue("the clipboard holds the answer", (clipboard() ?: "").length > 20)
     }
 
     /**
@@ -293,10 +257,7 @@ class ChatFlowDeviceTest {
         assumeTrue("needs a model and no PIN", services.activeModel() != null && !services.pinLock.isSet)
         val prefs = ctx.getSharedPreferences("answer_options", Context.MODE_PRIVATE)
         val wasOwn = prefs.getBoolean("sourcesOwnOnly", false)
-        val wasDeep = services.settings.deepResearchMode
         prefs.edit().putBoolean("sourcesOwnOnly", true).commit()
-        // On: My files answers through the plain pipeline anyway (no Deep Research write-up from memory).
-        services.settings.deepResearchMode = true
         try {
             launchApp(opened)
             compose.waitForChat()
@@ -314,7 +275,6 @@ class ChatFlowDeviceTest {
             assertFalse("no answer from memory", screenText().contains("Thimphu"))
         } finally {
             prefs.edit().putBoolean("sourcesOwnOnly", wasOwn).commit()
-            services.settings.deepResearchMode = wasDeep
         }
     }
 
