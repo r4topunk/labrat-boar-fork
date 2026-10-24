@@ -72,8 +72,9 @@ class QuickMathTest {
     @Test fun `a stranded-in-the-cold temperature ask goes to the health gate, a plain one is computed`() {
         val n08 = "We're stranded in the car at -20 C, what is that in Fahrenheit?"
         assertNull(QuickMath.answer(n08)); assertFalse(QuickMath.isCalculation(n08))
+        // F5: the exposure turn with a conversion keeps the gate but shows the computed line first (no health passage kept: + the fixed text).
         val d = run(n08)!!
-        assertTrue(d.healthFixed); assertFalse(d.calculated); assertEquals(HealthGate.NO_SOURCE, d.text)
+        assertTrue(d.healthFixed); assertFalse(d.calculated); assertEquals("-20 °C = -4 °F.\n\n" + HealthGate.NO_SOURCE, d.text)
         assertComputed("-20 C in F?", "-20 °C = -4 °F (°F = °C × 9/5 + 32).")
         val traffic = "stuck in traffic for 2 hours, how far is 120 km at 60 km/h?"
         assertFalse(HealthGate.isHealth(traffic))

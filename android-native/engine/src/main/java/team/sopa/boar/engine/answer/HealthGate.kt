@@ -42,4 +42,41 @@ object HealthGate {
         if (!isHealth(query, history) || hasHealthSource(kept)) return null
         return EmergencyNumbers.emergencyNumbersLine(query, pt = false)?.let { "$NO_SOURCE\n$it" } ?: NO_SOURCE
     }
+
+    /** What an exposure turn with a conversion answers: [text] is final (no model wrote it); [source] is the one passage listed under it, if any. */
+    class ExposureAnswer(val text: String, val source: Chunk?)
+
+    private val SENTENCE_END = Regex("(?<=[.!?])\\s+")
+    private const val EXCERPT_CHARS = 300
+    private const val EXCERPT_SENTENCES = 3
+
+    /** The first sentences of [body], up to about [EXCERPT_CHARS] characters, cut at a sentence end. */
+    internal fun excerpt(body: String): String {
+        val out = StringBuilder()
+        var n = 0
+        for (sentence in body.trim().replace(Regex("\\s+"), " ").split(SENTENCE_END)) {
+            if (sentence.isBlank()) continue
+            if (n > 0 && (n >= EXCERPT_SENTENCES || out.length + 1 + sentence.length > EXCERPT_CHARS)) break
+            if (n > 0) out.append(' ')
+            out.append(sentence); n++
+        }
+        return out.toString()
+    }
+
+    private val FORMULA = Regex("""^(.+? °[CF] = .+? °[CF]) \(.*?\)\.""")
+
+    /**
+     * An exposure turn ("stranded in the car at -20 C, what is that in Fahrenheit?") that holds a conversion the calculators can
+     * compute: the computed line, then the top kept health passage's first sentences with its number [1] (or, with none kept,
+     * the fixed no-source text). No model text. Null when the exposure rule doesn't fire or nothing computes: those turns keep
+     * the gate's usual path.
+     */
+    fun exposureAnswer(query: String, kept: List<Chunk>): ExposureAnswer? {
+        if ("exposure" !in HealthTerms.hits(query)) return null
+        val line = QuickMath.compute(query)?.let { FORMULA.find(it)?.let { m -> m.groupValues[1] + "." } ?: it } ?: return null
+        val top = kept.firstOrNull { packOf(it) in HEALTH_PACKS }
+        if (top == null) return ExposureAnswer("$line\n\n${fixedText(query, kept) ?: NO_SOURCE}", null)
+        val ex = excerpt(top.body).ifBlank { return ExposureAnswer("$line\n\n${fixedText(query, emptyList()) ?: NO_SOURCE}", null) }
+        return ExposureAnswer("$line\n\n$ex [1]", top)
+    }
 }

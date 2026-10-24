@@ -66,6 +66,8 @@ sealed interface AnswerEvent {
         val healthFixed: Boolean = false,
         /** A plain conversion or arithmetic question: the answer was computed ([QuickMath]), no model, no search, no sources. */
         val calculated: Boolean = false,
+        /** An exposure turn with a conversion: the computed line plus a health passage's first sentences, no model; the one source stays listed ([HealthGate.exposureAnswer]). */
+        val exposureComputed: Boolean = false,
     ) : AnswerEvent
 }
 
@@ -142,6 +144,15 @@ class AnswerPipeline(
         }
         // A health question with no passage from a health pack (or no search at all, as a calculation): the fixed safe text,
         // never an answer from memory.
+        val exposure = if (req.filesOnly) null else HealthGate.exposureAnswer(req.query, sources)
+        if (exposure != null) {
+            val src = exposure.source
+            if (src != null) emit(AnswerEvent.Sources(listOf(src), retrievalMs ?: 0.0, before ?: 0, after ?: 0))
+            emit(AnswerEvent.Piece(exposure.text))
+            emit(AnswerEvent.Done(exposure.text, listOfNotNull(src), task, true, retrievalMs, before, after, "none", null,
+                healthFixed = src == null, exposureComputed = src != null))
+            return@flow
+        }
         val fixed = if (req.filesOnly) null else HealthGate.fixedText(req.query, sources, req.history)
         if (fixed != null) {
             emit(AnswerEvent.Piece(fixed))

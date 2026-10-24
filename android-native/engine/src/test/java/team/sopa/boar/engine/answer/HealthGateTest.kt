@@ -110,4 +110,31 @@ class HealthGateTest {
             "-20 C in F?")) assertFalse(q, HealthGate.isHealth(q))
         assertTrue(HealthGate.fixedText("lost in the desert, how much water per day?", emptyList()) != null)
     }
+
+    private val n08 = "We're stranded in the car at -20 C, what is that in Fahrenheit?"
+    private val carSafety = Chunk("pack:boar-firstaid-en:car", "pack:boar-firstaid-en:car", "Car Safety (Ready.gov)",
+        "Stay in the car and run the engine for about ten minutes each hour for heat. Keep the exhaust pipe clear of snow. " +
+            "Tie a bright cloth to the antenna. Move your arms and legs to keep blood flowing. Do not leave the vehicle unless help is in sight.")
+
+    @Test fun `an exposure turn with a conversion answers the computed line plus the top health passage, no model`() {
+        val done = run(n08, listOf(wikiBurn, carSafety))!!
+        assertEquals("-20 °C = -4 °F.\n\nStay in the car and run the engine for about ten minutes each hour for heat. " +
+            "Keep the exhaust pipe clear of snow. Tie a bright cloth to the antenna. [1]", done.text)
+        assertTrue(done.exposureComputed); assertFalse(done.healthFixed); assertFalse(done.calculated)
+        assertEquals(listOf(carSafety.chunkId), done.sources.map { it.chunkId })
+        assertFalse(done.text.contains("May contain errors"))
+    }
+
+    @Test fun `an exposure turn with a conversion and no health passage gets the computed line and the fixed text`() {
+        val done = run(n08, listOf(canberra))!!
+        assertEquals("-20 °C = -4 °F.\n\n" + HealthGate.NO_SOURCE, done.text)
+        assertTrue(done.healthFixed); assertTrue(done.sources.isEmpty())
+    }
+
+    @Test fun `exposure without a conversion, and a conversion without exposure, keep their paths`() {
+        assertEquals(HealthGate.NO_SOURCE, run("lost in the desert, how much water per day?", listOf(canberra))!!.text)
+        assertNull(run("lost in the desert, how much water per day?", listOf(carSafety)))
+        assertNull(HealthGate.exposureAnswer("-20 C in F?", listOf(carSafety)))
+        assertNull(HealthGate.exposureAnswer("what are the signs of hypothermia", listOf(carSafety)))
+    }
 }

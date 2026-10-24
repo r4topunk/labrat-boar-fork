@@ -112,6 +112,11 @@ object QuickMath {
     /** The computed answer to [q], or null (the question isn't a calculation, or the calculators can't compute it). */
     fun answer(q: String, history: ConversationHistory? = null): String? {
         if (healthy(q, history)) return null
+        return compute(q)
+    }
+
+    /** The computed answer to [q] whether or not the health gate would take it (the exposure answer, [HealthGate.exposureAnswer], uses it). */
+    internal fun compute(q: String): String? {
         PERCENT_OF.find(q)?.let { return "${fmt(num(it.groupValues[1]))}% of ${fmt(num(it.groupValues[2]))} = ${fmt(num(it.groupValues[1]) * num(it.groupValues[2]) / 100)}." }
         EXPR.find(q)?.let { m ->
             val body = m.groupValues[1].trim()
