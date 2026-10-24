@@ -355,4 +355,6 @@
     <string name="native_voiceSettings_unavailable" formatted="false">Not available on this phone</string>
     <string name="native_personalities_detailed_description" formatted="false">Structured, in-depth answers on what it knows well.</string>
     <string name="native_documents_unsupported" formatted="false">BOAR can\'t read {{name}}: it imports .txt, .md, .csv, .json and .pdf. Save the page as one of those (a browser can save it as PDF) and import it again.</string>
+    <string name="native_download_errorGated" formatted="false">This model needs a Hugging Face account and its license accepted. BOAR downloads without an account, so it can\'t get this one.</string>
+    <string name="native_browse_gated" formatted="false">Needs a Hugging Face account: BOAR can\'t download it.</string>
 </resources>

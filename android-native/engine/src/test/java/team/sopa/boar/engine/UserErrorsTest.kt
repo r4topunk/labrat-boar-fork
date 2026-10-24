@@ -24,6 +24,10 @@ class UserErrorsTest {
     @Test fun `download failures map by cause`() {
         assertEquals("native.download.errorStorage", UserErrors.downloadKey(DownloadException.Storage("needs 2 GB")))
         assertEquals("native.download.errorOffline", UserErrors.downloadKey(DownloadException.OfflineBuild()))
+        val gated = team.sopa.boar.engine.models.CatalogAsset("g", team.sopa.boar.engine.models.AssetKind.LLM, "g", null, "models/g.gguf", 1, "", "", "", "", false)
+        assertEquals("native.download.errorGated", UserErrors.downloadKey(DownloadException.Http(gated, 401)))
+        assertEquals("native.download.errorGated", UserErrors.downloadKey(DownloadException.Http(gated, 403)))
+        assertEquals("native.download.errorServer", UserErrors.downloadKey(DownloadException.Http(gated, 503)))
         assertEquals("native.download.errorNetwork", UserErrors.downloadKey(java.net.UnknownHostException("huggingface.co")))
         assertEquals("native.download.errorNetwork", UserErrors.downloadKey(java.net.SocketTimeoutException()))
         assertEquals("native.download.errorGeneric", UserErrors.downloadKey(IllegalStateException("boom")))

@@ -46,7 +46,7 @@ object HfQuery {
     fun searchUrl(query: String, size: Size, sort: Sort, limit: Int = 30): String {
         val q = query.trim().takeIf { it.isNotEmpty() }?.let { "search=${URLEncoder.encode(it, "UTF-8")}&" } ?: ""
         return "$API/models?${q}filter=gguf&pipeline_tag=text-generation&num_parameters=min:${size.min},max:${size.max}" +
-            "&sort=${sort.api}&direction=-1&limit=$limit&expand[]=gguf&expand[]=downloads&expand[]=likes&expand[]=tags"
+            "&sort=${sort.api}&direction=-1&limit=$limit&expand[]=gguf&expand[]=downloads&expand[]=likes&expand[]=tags&expand[]=gated"
     }
 
     /** The next page from the response's Link header, only when it stays on the models listing. */

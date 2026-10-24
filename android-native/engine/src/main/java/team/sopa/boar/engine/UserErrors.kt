@@ -45,7 +45,8 @@ object UserErrors {
         is DownloadException.SizeChanged -> "native.download.errorSizeChanged"
         is DownloadException.Paused -> "native.download.errorPaused"
         is DownloadException.Checksum -> "native.download.errorChecksum"
-        is DownloadException.Http -> "native.download.errorServer"
+        // 401/403: the file needs an account (a gated Hugging Face model): retrying won't help.
+        is DownloadException.Http -> if (e.code == 401 || e.code == 403) "native.download.errorGated" else "native.download.errorServer"
         // No route, DNS, a dropped or timed-out connection.
         is java.io.IOException -> "native.download.errorNetwork"
         else -> "native.download.errorGeneric"

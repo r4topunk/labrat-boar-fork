@@ -161,20 +161,22 @@ internal fun <T> ChipRow(label: String?, options: List<Pair<T, String>>, selecte
 private fun RepoCard(r: HfBrowser.Repo, state: ModelsState, vm: ModelsViewModel, rowActions: Boolean) {
     val scheme = MaterialTheme.colorScheme
     val type = MaterialTheme.typography
-    val open = state.hfOpenRepo == r.id
+    val open = state.hfOpenRepo == r.id && !r.gated
     val stateText = t(if (open) "clean.library.expanded" else "clean.library.collapsed")
     OutlinedCard(Modifier.fillMaxWidth(), colors = CardDefaults.outlinedCardColors(containerColor = scheme.surfaceContainerLow), border = androidx.compose.foundation.BorderStroke(1.dp, scheme.outlineVariant)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             // Only the header opens and closes the repo (with a chevron that says so); tapping a file below doesn't collapse it.
-            Row(Modifier.fillMaxWidth().clickable(role = Role.Button) { vm.hfOpen(r.id) }.semantics { stateDescription = stateText },
+            // A gated repo can't be downloaded without an account: it says so and doesn't open.
+            Row(Modifier.fillMaxWidth().clickable(enabled = !r.gated, role = Role.Button) { vm.hfOpen(r.id) }.semantics { if (!r.gated) stateDescription = stateText },
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(r.id, style = type.titleSmall)
                     Text(listOfNotNull(r.params?.let(HfQuery::formatParams), r.architecture).joinToString(" · "), style = type.bodySmall, color = scheme.onSurfaceVariant)
+                    if (r.gated) Text(t("native.browse.gated"), style = type.labelMedium, color = scheme.error)
                     Text(t("modelBrowser.downloadsLikes", "downloads" to (r.downloads ?: 0), "likes" to (r.likes ?: 0)) + " · " + t("native.browse.unvetted"),
                         style = type.labelMedium, color = scheme.onSurfaceVariant)
                 }
-                Icon(if (open) BoarIcons.ExpandLess else BoarIcons.ExpandMore, contentDescription = null, tint = scheme.onSurfaceVariant)
+                if (!r.gated) Icon(if (open) BoarIcons.ExpandLess else BoarIcons.ExpandMore, contentDescription = null, tint = scheme.onSurfaceVariant)
             }
             if (open) {
                 if (state.hfBusy) Busy("…")
