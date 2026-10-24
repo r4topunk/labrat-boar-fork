@@ -293,7 +293,7 @@
     <string name="aboutScreen_hardwareTitle" formatted="false">Hardware architecture &amp; budget</string>
     <string name="aboutScreen_hardwareBody" formatted="false">Complies with strict mobile field constraints: resident memory remains capped under 12GB RAM using memory-mapped weights (mmap), and total storage is audited against a 50GB storage envelope.</string>
     <string name="aboutScreen_benchmarkTitle" formatted="false">Benchmark it yourself</string>
-    <string name="aboutScreen_benchmarkBody" formatted="false">BOAR measures every answer on your own phone: model load time, time to first token, tokens/sec, peak memory and which sources were used. Run the built-in evaluation from Execution Telemetry → 🧪 Evaluate to compare any installed model on the same questions, or drive it from a computer with npm run eval:device.</string>
+    <string name="aboutScreen_benchmarkBody" formatted="false">BOAR measures every answer on your own phone: model load time, time to first token, tokens/sec, peak memory and which sources were used. Run the built-in evaluation from Execution Telemetry → 🧪 Evaluate to compare any installed model on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>
     <string name="aboutScreen_repoTitle" formatted="false">Open source repository</string>
     <string name="aboutScreen_repoBody" formatted="false">Source code, quantized model manifests, and offline indexing scripts are available at:</string>
     <string name="sourceFootnotes_title" formatted="false">Sources</string>
