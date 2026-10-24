@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Only the first-run setup and later model/pack downloads use it; answering never does (gate 6 checks this). -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <!-- The header's ONLINE / OFFLINE pill. -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <!-- BoarLite is a closed offline app: no network permission at all (D1, Oct 24). The removals make sure no library's
+         manifest can merge INTERNET or the network-state permission back in; the build check is aapt2 dump permissions. -->
+    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
     <!-- Settings → Haptic feedback (a normal permission: granted at install, no prompt). -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- AnswerService: "BOAR is answering…" while an answer is written, so the phone doesn't close BOAR mid-answer

@@ -147,18 +147,16 @@ fun ChatScreen(
     /** The cut answer's "Allow more and redo": its id and the higher limit. */
     onRedo: (String, Int) -> Unit = { _, _ -> },
     onRetry: (String) -> Unit = {},
-    /** The memory note (LoadNote): close it, its actions by model id, and the models list. */
+    /** The memory note (LoadNote): close it, and its actions by model id. */
     onDismissLoadNote: () -> Unit = {},
     onRetryLessMemory: (String) -> Unit = {},
     onLoadAnyway: (String) -> Unit = {},
-    onOpenModels: () -> Unit = {},
     onReused: () -> Unit = {},
     onToastHidden: () -> Unit = {},
     /**
      * Answer options: the model to answer with, Sources (true = Only my files, false = Everything; a checklist row
      * ticked or unticked by id; the list read again when the sheet opens), and Reset to defaults.
      */
-    onSetModel: (String) -> Unit = {},
     onSetSourcesOwn: (Boolean) -> Unit = {},
     onToggleSource: (String) -> Unit = {},
     onRefreshSources: () -> Unit = {},
@@ -175,7 +173,7 @@ fun ChatScreen(
     var toneSheet by remember { mutableStateOf(false) }
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     val focus = androidx.compose.ui.platform.LocalFocusManager.current
-    if (toneSheet) AnswerOptionsSheet(state, AnswerOptionsActions(onSetModel, onSetSourcesOwn, onResetOptions, onToggleSource, onRefreshSources)) { toneSheet = false }
+    if (toneSheet) AnswerOptionsSheet(state, AnswerOptionsActions(onSetSourcesOwn, onResetOptions, onToggleSource, onRefreshSources)) { toneSheet = false }
     val last = state.messages.lastOrNull()
     // Follow the end of the answer while it streams, unless the user scrolled up to read: a drag that ends short of
     // the bottom stops following, reaching the bottom again resumes it, and a new message always does.
@@ -208,11 +206,11 @@ fun ChatScreen(
             // Header and bubbles take only what they show: [state] is a new object on every streamed token, so passing it
             // whole re-ran the app bar and every earlier answer (its Markdown included) per token.
             FixedSizeChrome {
-                Header(state.messages.isNotEmpty(), state.online, state.answeringModel?.takeIf { state.answeringId != null }, state.modelLabel,
+                Header(state.messages.isNotEmpty(), state.answeringModel?.takeIf { state.answeringId != null }, state.modelLabel,
                     state.technicalDetails, state.liveTokPerSec.takeIf { state.activity == Activity.Generating && state.technicalDetails }, onMenu, onNewChat, barScroll)
             }
             state.loadingKey?.let { LoadingBanner(t(it)) }
-            state.loadNote?.let { LoadNoteBanner(it, onDismissLoadNote, onRetryLessMemory, onLoadAnyway, onOpenModels) }
+            state.loadNote?.let { LoadNoteBanner(it, onDismissLoadNote, onRetryLessMemory, onLoadAnyway) }
             // Deep Research shows in the composer (outline, placeholder, chip), not as a tint over the whole chat: the tint
             // washed out the tonal rows on it.
             val researchTint = Color.Transparent
@@ -257,12 +255,12 @@ private fun modelName(raw: String, technical: Boolean): String {
 
 /**
  * ChatHeader.tsx as a small TopAppBar: menu, mascot with the name and the model, the constant "Works offline" chip
- * (it opens what online/offline means) and New chat.
+ * (it opens what working offline means) and New chat.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Header(
-    hasMessages: Boolean, online: Boolean, routed: String?, picked: String?, technicalDetails: Boolean, tps: Double?,
+    hasMessages: Boolean, routed: String?, picked: String?, technicalDetails: Boolean, tps: Double?,
     onMenu: () -> Unit, onNewChat: () -> Unit, scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -270,8 +268,8 @@ private fun Header(
     if (info) AlertDialog(
         onDismissRequest = { info = false },
         confirmButton = { TextButton({ info = false }) { Text(t("common.close")) } },
-        title = { Text(t(if (online) "chatHeader.onlineTitle" else "chatHeader.offlineTitle")) },
-        text = { Text(t(if (online) "chatHeader.onlineBody" else "chatHeader.offlineBody")) },
+        title = { Text(t("chatHeader.offlineTitle")) },
+        text = { Text(t("chatHeader.offlineBody")) },
     )
     // While adaptive routing has another model write the answer ([routed]): "→ that model", then back to the pick.
     val subtitle = when {
@@ -285,7 +283,7 @@ private fun Header(
                 // One tappable identity block: the mascot, the name, and one quiet line with the on-device claim and the
                 // model. Tapping it opens what working offline means (it was a separate chip that crowded the bar).
                 Row(
-                    Modifier.clip(MaterialTheme.shapes.medium).clickable(onClickLabel = t(if (online) "chatHeader.onlineTitle" else "chatHeader.offlineTitle"), role = Role.Button) { info = true }
+                    Modifier.clip(MaterialTheme.shapes.medium).clickable(onClickLabel = t("chatHeader.offlineTitle"), role = Role.Button) { info = true }
                         .padding(end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
@@ -338,8 +336,8 @@ private val FooterPullBack = (-15.5).dp
 private fun Modifier.describe(text: String): Modifier = semantics { contentDescription = text }
 
 /**
- * The answer model and the phone's memory: it closed the app last time (with "Use less memory" and a way to pick another
- * model), or it may not fit (with "Load anyway" and another model). Nothing is blocked for good. Material's banner:
+ * The answer model and the phone's memory: it closed the app last time (with "Use less memory"), or it may not fit
+ * (with "Load anyway"). Nothing is blocked for good. Material's banner:
  * a tonal card with a leading icon, a short title and line, and text buttons at the end.
  */
 @Composable
@@ -348,22 +346,20 @@ private fun LoadNoteBanner(
     onDismiss: () -> Unit,
     onRetryLessMemory: (String) -> Unit,
     onLoadAnyway: (String) -> Unit,
-    onOpenModels: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    // The same short model name as the header ("Qwen2.5 · 1.5B"), so the title fits on one line.
+    // The same short model name as the header ("Qwen3 · 1.7B"), so the title fits on one line.
     val name = modelName(note.label, technical = false)
-    val change = t("clean.chat.loadNote.changeModel") to onOpenModels
     data class Copy(val title: String, val body: String, val actions: List<Pair<String, () -> Unit>>)
     val copy = when (note) {
         is team.sopa.boar.chat.LoadNote.Crashed -> {
             val retry = t("clean.chat.loadNote.lessMemory") to { onRetryLessMemory(note.modelId) }
             val title = t("clean.chat.loadNote.crashedTitle", "model" to name)
-            if (note.fallbackLabel != null) Copy(title, t("clean.chat.loadNote.crashedFallback", "fallback" to note.fallbackLabel), listOf(change, retry))
-            else Copy(title, t("clean.chat.loadNote.crashedBody"), listOf(change, retry))
+            if (note.fallbackLabel != null) Copy(title, t("clean.chat.loadNote.crashedFallback", "fallback" to note.fallbackLabel), listOf(retry))
+            else Copy(title, t("clean.chat.loadNote.crashedBody"), listOf(retry))
         }
         is team.sopa.boar.chat.LoadNote.Risky -> Copy(t("clean.chat.loadNote.riskyTitle", "model" to name), t("clean.chat.loadNote.riskyBody"),
-            listOf(change, t("native.chat.loadAnyway") to { onLoadAnyway(note.modelId) }))
+            listOf(t("native.chat.loadAnyway") to { onLoadAnyway(note.modelId) }))
     }
     Card(
         Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp),
@@ -387,7 +383,7 @@ private fun LoadNoteBanner(
     }
 }
 
-/** Toast.tsx: below the header, fades in, gone after 1.8 s. Also on the Models and Hugging Face pages. */
+/** Toast.tsx: below the header, fades in, gone after 1.8 s. */
 @Composable
 internal fun Toast(message: String, onHide: () -> Unit) {
     val alpha = remember(message) { androidx.compose.animation.core.Animatable(0f) }

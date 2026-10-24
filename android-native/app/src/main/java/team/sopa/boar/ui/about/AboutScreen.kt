@@ -48,7 +48,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
@@ -68,8 +67,8 @@ import team.sopa.boar.ui.theme.Boar
 
 /**
  * About BOAR as a short thread from @boar_app (brand book, manifesto register): what BOAR is, its addresses, and the
- * open work it stands on, with the brand mark (direction A, "Tusk moon") as the avatar. An address opens in the browser
- * on tap and has its own copy button. The version and build line closes the thread (the engine joins it once Developer
+ * open work it stands on, with the brand mark (direction A, "Tusk moon") as the avatar. An address is plain text with its
+ * own copy button: BoarLite has no network and opens nothing. The model line and the version and build line close the thread (the engine joins it once Developer
  * options are on); seven taps on it turn Developer options on or off.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -119,6 +118,10 @@ fun AboutScreen(onClose: () -> Unit) {
             val versionLine = t("aboutScreen.versionBadge", "version" to info, "build" to t(if (debug) "aboutScreen.buildDevelopment" else "aboutScreen.buildRelease")) +
                 // The engine is a developer detail: it shows once Developer options are on.
                 if (devShown) " • llama.cpp · ${BoarEngine.loadedVariant ?: "—"}" else ""
+            // The one fixed answer model, read only.
+            val model = remember { team.sopa.boar.app.BoarServices.get(ctx).catalog.answerModel }
+            Text(t("clean.about.model", "model" to model.shortName), style = Boar.type["mono.xs"], color = c.textSecondary,
+                modifier = Modifier.padding(start = 56.dp, top = 12.dp))
             Text(
                 versionLine,
                 style = Boar.type["mono.xs"], color = c.textSecondary,
@@ -199,8 +202,7 @@ private fun Credits() {
     var open by remember { mutableStateOf(false) }
     val models = remember {
         team.sopa.boar.app.BoarServices.get(ctx).catalog.models
-            // Hidden models (no longer offered, such as Phi-3.5) aren't credited.
-            .filter { !it.hidden && !it.license.startsWith("Unknown") && it.license.isNotBlank() }
+            .filter { !it.license.startsWith("Unknown") && it.license.isNotBlank() }
             .map { it.label to it.license }
             .distinct()
     }
@@ -233,18 +235,16 @@ private val TEAM = listOf("Bielcx" to "bielthegoat", "Jasper" to "btcjasper", "r
     "vaipraonde" to "arferrari", "vlad" to "sk8ordao")
 
 /**
- * An address: a tap opens https://[copy] in the browser, the trailing button copies it (the text itself by default).
- * [text] is what shows, so a team member reads as a name and the copy is the X address.
+ * An address as plain text, never opened (BoarLite has no network); the trailing button copies it (the text itself by
+ * default). [text] is what shows, so a team member reads as a name and the copy is the X address.
  */
 @Composable
 private fun Link(text: String, copy: String = text) {
     val c = Boar.colors
     val ctx = LocalContext.current
-    val uri = LocalUriHandler.current
     val copied = t("native.about.copied")
     val copyLabel = t("clean.settings.about.copyAddress")
     Surface(
-        onClick = { runCatching { uri.openUri("https://$copy") } },
         shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {

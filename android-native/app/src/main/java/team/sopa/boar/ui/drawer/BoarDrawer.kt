@@ -90,7 +90,6 @@ fun BoarDrawer(
     lastTokPerSec: Double?,
     storageUsed: () -> Long,
     /** What the running downloads still have to fetch: they count against BOAR's limit before they land. */
-    downloading: () -> Long,
     storageBudgetBytes: Long,
     /** The memory and storage bars at the bottom: a technical detail (Developer options → Show technical details). */
     showStats: Boolean,
@@ -171,7 +170,7 @@ fun BoarDrawer(
                 }
             }
         }
-        if (showStats) FooterStats(lastTokPerSec, storageUsed, downloading, storageBudgetBytes)
+        if (showStats) FooterStats(lastTokPerSec, storageUsed, storageBudgetBytes)
     }
 }
 
@@ -213,18 +212,17 @@ internal fun usage(used: Long, total: Long): String {
  * caption names so it isn't read as the phone's space. Then the last answer's speed.
  */
 @Composable
-private fun FooterStats(lastTokPerSec: Double?, storageUsed: () -> Long, downloading: () -> Long, storageBudget: Long) {
+private fun FooterStats(lastTokPerSec: Double?, storageUsed: () -> Long, storageBudget: Long) {
     val c = Boar.colors
     val ctx = LocalContext.current
     var app by remember { mutableLongStateOf(0L) }
     var phone by remember { mutableStateOf(team.sopa.boar.app.AppMemory.Phone(0L, 0L)) }
     var disk by remember { mutableLongStateOf(0L) }
-    var fetching by remember { mutableLongStateOf(0L) }
     LaunchedEffect(Unit) {
         while (true) {
             withContext(Dispatchers.IO) {
                 app = team.sopa.boar.app.AppMemory.residentBytes(); phone = team.sopa.boar.app.AppMemory.phone(ctx)
-                disk = storageUsed(); fetching = downloading()
+                disk = storageUsed()
             }
             delay(5000)
         }
@@ -234,11 +232,8 @@ private fun FooterStats(lastTokPerSec: Double?, storageUsed: () -> Long, downloa
         Bar(t("drawerFooterStats.ram"), listOf(minOf(app, phone.usedBytes) to c.emerald400, maxOf(phone.usedBytes - app, 0L) to c.textDim), phone.totalBytes,
             usage(phone.usedBytes, phone.totalBytes))
         Caption(t("native.drawerStats.ramBoar", "app" to Units.formatBytes(app, Locale.ENGLISH)))
-        Bar(t("drawerFooterStats.disk"), listOf(disk to c.cyan400, fetching to c.cyan400.copy(alpha = 0.35f)), storageBudget, usage(disk + fetching, storageBudget))
-        Caption(
-            if (fetching > 0) t("native.drawerStats.diskDownloading", "size" to Units.formatBytes(fetching, Locale.ENGLISH))
-            else t("native.drawerStats.diskLimit"),
-        )
+        Bar(t("drawerFooterStats.disk"), listOf(disk to c.cyan400), storageBudget, usage(disk, storageBudget))
+        Caption(t("native.drawerStats.diskLimit"))
         if (lastTokPerSec != null) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 2.dp)) {
             Text("●", fontSize = 8.sp, color = c.cyan400)
             Text(t("drawerFooterStats.lastQuery", "rate" to String.format(Locale.US, "%.1f", lastTokPerSec)), style = Boar.type["mono.xs"].copy(fontSize = 9.sp),

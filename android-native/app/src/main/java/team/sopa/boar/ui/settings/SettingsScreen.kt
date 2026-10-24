@@ -105,7 +105,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
         // Capped like the chat so rows and cards don't span a tablet or a landscape phone.
         Column(Modifier.padding(inner).fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
             Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
-                ModelsSection(services, onOpen)
+                ModelsSection(services)
                 KnowledgeSection(services, onOpen)
                 Section(t("modelSetupScreen.sections.memory")) {
                     var titles by remember { mutableStateOf(s.autoGenerateTitles) }
@@ -138,16 +138,10 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
     }
 }
 
-/** One row for the model that answers (name and how many are installed) that opens the catalog. */
+/** The memory switch, and a note when the search model's file is missing. The answer model is not a choice: About names it. */
 @Composable
-private fun ModelsSection(services: BoarServices, onOpen: (String) -> Unit) {
+private fun ModelsSection(services: BoarServices) {
     Section(t("modelSetupScreen.sections.models")) {
-        val llms = services.installed(AssetKind.LLM)
-        ActionRow(
-            t("clean.settings.model.title"),
-            note = t("clean.settings.model.summary", "model" to (services.answerModel()?.shortName ?: "—"), "count" to llms.size),
-            icon = BoarIcons.Memory, chevron = true,
-        ) { onOpen("models") }
         // The embedding model searches the packs and documents; it isn't a choice, so it shows here only when it's missing
         // (Developer options has the ok line).
         val emb = services.catalog.models.firstOrNull { it.kind == AssetKind.EMBEDDING }
@@ -176,19 +170,17 @@ private fun KnowledgeSection(services: BoarServices, onOpen: (String) -> Unit) {
 private fun TelemetrySection(services: BoarServices) {
     val c = Boar.colors
     val ctx = androidx.compose.ui.platform.LocalContext.current
-    val sharing = remember { team.sopa.boar.share.ResultsSharing(ctx, services.settings) }
-    val d = remember { sharing.device() }
+    val d = remember { team.sopa.boar.app.DeviceReader.device(ctx) }
     // Read every 5 s while the section is open, like the menu's bars.
     var app by remember { mutableStateOf(0L) }
     var phone by remember { mutableStateOf(team.sopa.boar.app.AppMemory.Phone(0L, 0L)) }
     var storage by remember { mutableStateOf(0L) }
-    var fetching by remember { mutableStateOf(0L) }
     var chatCount by remember { mutableStateOf<Int?>(null) }
     androidx.compose.runtime.LaunchedEffect(Unit) {
         while (true) {
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                 app = team.sopa.boar.app.AppMemory.residentBytes(); phone = team.sopa.boar.app.AppMemory.phone(ctx)
-                storage = services.storageUsedBytes(); fetching = team.sopa.boar.engine.models.AssetStore.downloadingBytes(services.filesDir)
+                storage = services.storageUsedBytes()
                 chatCount = runCatching { services.chats.listSessions().size }.getOrNull()
             }
             kotlinx.coroutines.delay(5000)
@@ -215,11 +207,9 @@ private fun TelemetrySection(services: BoarServices) {
         team.sopa.boar.ui.drawer.UsageBar(t("native.telemetry.memory"), listOf(minOf(app, phone.usedBytes) to c.emerald400, others to c.textSecondary),
             phone.totalBytes, team.sopa.boar.ui.drawer.usage(phone.usedBytes, phone.totalBytes), large = true)
         team.sopa.boar.ui.drawer.UsageCaption(t("native.telemetry.memoryCaption", "app" to gb(app), "others" to gb(others)), large = true)
-        team.sopa.boar.ui.drawer.UsageBar(t("native.telemetry.disk"), listOf(storage to c.cyan400, fetching to c.cyan400.copy(alpha = 0.35f)),
-            budget, team.sopa.boar.ui.drawer.usage(storage + fetching, budget), large = true)
-        team.sopa.boar.ui.drawer.UsageCaption(
-            if (fetching > 0) t("native.drawerStats.diskDownloading", "size" to gb(fetching)) else t("native.drawerStats.diskLimit"), large = true,
-        )
+        team.sopa.boar.ui.drawer.UsageBar(t("native.telemetry.disk"), listOf(storage to c.cyan400),
+            budget, team.sopa.boar.ui.drawer.usage(storage, budget), large = true)
+        team.sopa.boar.ui.drawer.UsageCaption(t("native.drawerStats.diskLimit"), large = true)
         @Composable fun rows(list: List<Pair<String, String>>) = list.forEach { (k, v) ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(k, style = Boar.type.subtext, color = c.textMuted, modifier = Modifier.weight(0.45f))
@@ -233,15 +223,14 @@ private fun TelemetrySection(services: BoarServices) {
         Text(t("native.telemetry.technical"), style = Boar.type["mono.xs"], color = c.textSecondary, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(top = 6.dp))
         val inf = d.cpuFeatures.orEmpty()
         rows(listOf(
-            t("native.telemetry.chip") to (team.sopa.boar.engine.eval.ShareResults.describeChipset(d) ?: "—"),
-            t("native.telemetry.cores") to (team.sopa.boar.engine.eval.ShareResults.describeCores(d.coreMaxFreqKHz) ?: "${d.cpuCores ?: "—"}"),
+            t("native.telemetry.chip") to (team.sopa.boar.engine.eval.DeviceInfo.describeChipset(d) ?: "—"),
+            t("native.telemetry.cores") to (team.sopa.boar.engine.eval.DeviceInfo.describeCores(d.coreMaxFreqKHz) ?: "${d.cpuCores ?: "—"}"),
             t("native.telemetry.features") to listOf("dotprod" to "asimddp", "i8mm" to "i8mm", "SVE" to "sve", "SME" to "sme").joinToString(" · ") { (n, f) -> (if (f in inf) "✓ " else "✗ ") + n },
             t("native.telemetry.build") to (team.sopa.boar.engine.BoarEngine.loadedVariant ?: "—"),
             t("native.telemetry.evals") to "${evals.size}",
             t("native.telemetry.lastEval") to last,
         ))
-        // The sharing half only in builds that can share (EVAL_SHARING); otherwise nothing is ever sent.
-        Text(t(if (sharing.available) "native.telemetry.noteSharing" else "native.telemetry.note"), style = Boar.type.micro, color = c.textSecondary)
+        Text(t("native.telemetry.note"), style = Boar.type.micro, color = c.textSecondary)
     } }
 }
 

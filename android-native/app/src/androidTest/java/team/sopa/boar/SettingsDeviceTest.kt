@@ -25,7 +25,7 @@ import team.sopa.boar.ui.settings.SettingsScreen
 import team.sopa.boar.ui.theme.BoarTheme
 
 /**
- * The Settings screen on the phone, regrouped (Models, Knowledge, Chats & history, Display, About, Recovery;
+ * The Settings screen on the phone, regrouped (Memory switch, Knowledge, Chats & history, Display, About, Recovery;
  * Developer options only after seven taps on the version): each row does what it says, the choices reach settings.json,
  * and no answer style, Deep Research or answer length is offered. The app's own settings are put back after each test.
  */
@@ -111,7 +111,7 @@ class SettingsDeviceTest {
 
     @Test fun eachRowOpensItsScreenOrFlow() {
         show()
-        compose.scrollAndPress(tr("clean.settings.model.title")); assertEquals("models", opened)
+        assertFalse("no model row: BoarLite has one model", compose.shows(tr("clean.settings.model.title")))
         compose.scrollAndPress(tr("clean.settings.knowledge.title")); assertEquals("documents", opened)
         compose.scrollAndPress(tr("aboutScreen.title")); assertEquals("about", opened)
         // No PIN on this install: the switch offers one.

@@ -5,32 +5,23 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * The model and corpus catalog, read from assets/boar-data/catalog.json, which
- * scripts/export-native-data.mjs writes from src/models/manifest.ts (one source of truth).
+ * The model and corpus catalog, read from assets/boar-data/catalog.json. BoarLite has one answer model (Qwen3 1.7B) and
+ * one search model; everything else in it is a knowledge pack.
  */
 @Serializable
 data class Catalog(
     val storageBudgetBytes: Long,
     val ramBudgetBytes: Long,
     val models: List<CatalogAsset>,
-    val tiers: List<SetupTier>,
 ) {
-    /** LLMs that can be the answer model at setup, the default tier first (manifest.ts ANSWER_MODELS). */
-    val answerModels: List<CatalogAsset>
-        get() = models.filter { it.kind == AssetKind.LLM && it.answerTier != null }
-            .sortedBy { if (it.answerTier == AnswerTier.DEFAULT) 0 else 1 }
+    /** The one language model BoarLite answers with. */
+    val answerModel: CatalogAsset get() = models.first { it.kind == AssetKind.LLM }
 
-    /** Every suggested LLM the user can pick at setup, smallest first: the two answer tiers plus the other catalog models. */
-    val setupModels: List<CatalogAsset>
-        get() = models.filter { it.kind == AssetKind.LLM && !it.hidden }.sortedBy { it.sizeBytes }
-
-    val defaultAnswerModel: CatalogAsset get() = answerModels.first { it.answerTier == AnswerTier.DEFAULT }
-    val compactAnswerModel: CatalogAsset get() = answerModels.first { it.answerTier == AnswerTier.COMPACT }
-    val requiredModels: List<CatalogAsset> get() = models.filter { it.required } + defaultAnswerModel
+    /** What the app needs on disk to answer: the search model and the answer model. */
+    val requiredModels: List<CatalogAsset> get() = models.filter { it.required }
     val corpusCatalog: List<CatalogAsset> get() = models.filter { it.kind == AssetKind.CORPUS }
 
     fun byId(id: String): CatalogAsset? = models.firstOrNull { it.id == id }
-    fun tier(id: String): SetupTier? = tiers.firstOrNull { it.id == id }
 
     companion object {
         private val json = Json { ignoreUnknownKeys = true }
@@ -48,12 +39,6 @@ enum class AssetKind {
 }
 
 @Serializable
-enum class AnswerTier {
-    @SerialName("default") DEFAULT,
-    @SerialName("compact") COMPACT,
-}
-
-@Serializable
 data class CatalogAsset(
     val id: String,
     val kind: AssetKind,
@@ -63,13 +48,11 @@ data class CatalogAsset(
     val filename: String,
     val sizeBytes: Long,
     val sha256: String,
-    val sourceUrl: String,
+    /** Where the file came from (provenance only: BoarLite has no network permission and never fetches it). */
+    val sourceUrl: String = "",
     val license: String,
     val description: String,
     val required: Boolean,
-    val answerTier: AnswerTier? = null,
-    /** No longer suggested (manifest.ts `hidden`): listed only where it's already on the phone, and it keeps working there. */
-    val hidden: Boolean = false,
     val bundled: Boolean = false,
     val format: String? = null,
     val requires: List<String> = emptyList(),
@@ -78,11 +61,8 @@ data class CatalogAsset(
     /** For an [AssetKind.INDEX]: the search model its vectors came from; any other search model must not use them. */
     val embeddingModelSha256: String? = null,
 ) {
-    /**
-     * Short UI name ("Qwen3 4B"), falling back to the technical label (manifest.ts displayNameOf); a model added from
-     * Hugging Face reads from its file name ("Meta Llama 3.1 8B Instruct · Q4_K_M").
-     */
-    val shortName: String get() = displayName ?: if (id.startsWith("hf-")) ModelNames.readable(label) else label
+    /** Short UI name ("Qwen3 1.7B"), falling back to the technical label. */
+    val shortName: String get() = displayName ?: label
 }
 
 /**
@@ -101,12 +81,4 @@ data class ModelCapabilities(
     val estimatedMemoryMb: Double? = null,
     /** Only from real telemetry or a benchmark, never invented. */
     val estimatedTokensPerSecond: Double? = null,
-)
-
-@Serializable
-data class SetupTier(
-    val id: String,
-    val label: String,
-    val description: String,
-    val corpusPackIds: List<String>,
 )

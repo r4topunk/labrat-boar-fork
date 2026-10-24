@@ -3,26 +3,6 @@
   "ramBudgetBytes": 12884901888,
   "models": [
     {
-      "id": "phi-3.5-mini-instruct-q4km",
-      "kind": "llm",
-      "label": "Phi-3.5-mini-instruct (Q4_K_M)",
-      "displayName": "Phi 3.5 Mini",
-      "filename": "models/primary-llm.gguf",
-      "sizeBytes": 2393232672,
-      "sha256": "e4165e3a71af97f1b4820da61079826d8752a2088e313af0c7d346796c38eff5",
-      "sourceUrl": "https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/6d70da17e749a471ccb62ade694486011a75cda3/Phi-3.5-mini-instruct-Q4_K_M.gguf",
-      "license": "MIT",
-      "description": "Thorough comparisons and summaries, but slow. Needs a lot of memory.",
-      "required": false,
-      "hidden": true,
-      "capabilities": {
-        "roles": [
-          "general",
-          "reasoning"
-        ]
-      }
-    },
-    {
       "id": "bge-small-en-v1.5-q8",
       "kind": "embedding",
       "label": "bge-small-en-v1.5 (Q8_0)",
@@ -50,100 +30,14 @@
       "sha256": "b139949c5bd74937ad8ed8c8cf3d9ffb1e99c866c823204dc42c0d91fa181897",
       "sourceUrl": "https://huggingface.co/unsloth/Qwen3-1.7B-GGUF/resolve/d7f544eead698dbd1f15126ef60b45a1e1933222/Qwen3-1.7B-Q4_K_M.gguf",
       "license": "Apache-2.0",
-      "description": "1.7B dense, light, thinking off. The answer model BOAR recommends for every phone.",
-      "required": false,
-      "answerTier": "compact",
+      "description": "1.7B dense, light, thinking off. BoarLite's one answer model.",
+      "required": true,
       "capabilities": {
         "roles": [
           "fast"
         ],
         "usesChatTemplate": true
       }
-    },
-    {
-      "id": "qwen3-4b-instruct-2507-q4km",
-      "kind": "llm",
-      "label": "Qwen3-4B-Instruct-2507 (Q4_K_M)",
-      "displayName": "Qwen3 4B",
-      "filename": "models/qwen3-4b-instruct-2507-q4km.gguf",
-      "sizeBytes": 2497281120,
-      "sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597",
-      "sourceUrl": "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/a06e946bb6b655725eafa393f4a9745d460374c9/Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
-      "license": "Apache-2.0",
-      "description": "Slower, more detailed answers. Needs more memory.",
-      "required": false,
-      "answerTier": "default",
-      "capabilities": {
-        "roles": [
-          "general",
-          "fast"
-        ],
-        "usesChatTemplate": true
-      }
-    },
-    {
-      "id": "qwen2.5-1.5b-instruct-q4km",
-      "kind": "llm",
-      "label": "Qwen2.5-1.5B-Instruct (Q4_K_M)",
-      "displayName": "Qwen2.5 1.5B",
-      "filename": "models/qwen2.5-1.5b-instruct-q4km.gguf",
-      "sizeBytes": 986048768,
-      "sha256": "1adf0b11065d8ad2e8123ea110d1ec956dab4ab038eab665614adba04b6c3370",
-      "sourceUrl": "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/9eadc66189c7641e1ddd226b8267a9119b2ce2d4/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf",
-      "license": "Apache-2.0",
-      "description": "1.5B dense, fast and light. The earlier compact model, still a good pick for phones with little RAM.",
-      "required": false,
-      "capabilities": {
-        "roles": [
-          "fast"
-        ],
-        "usesChatTemplate": true
-      }
-    },
-    {
-      "id": "qwen2.5-7b-instruct-q4km",
-      "kind": "llm",
-      "label": "Qwen2.5-7B-Instruct (Q4_K_M)",
-      "displayName": "Qwen2.5 7B",
-      "filename": "models/qwen2.5-7b-instruct-q4km.gguf",
-      "sizeBytes": 4683074240,
-      "sha256": "65b8fcd92af6b4fefa935c625d1ac27ea29dcb6ee14589c55a8f115ceaaa1423",
-      "sourceUrl": "https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/8911e8a47f92bac19d6f5c64a2e2095bd2f7d031/Qwen2.5-7B-Instruct-Q4_K_M.gguf",
-      "license": "Apache-2.0",
-      "description": "Stronger reasoning on harder questions. Needs a lot of memory, storage and time.",
-      "required": false,
-      "capabilities": {
-        "roles": [
-          "reasoning",
-          "verifier"
-        ]
-      }
-    },
-    {
-      "id": "lfm2.5-8b-a1b-q4km",
-      "kind": "llm",
-      "label": "LFM2.5-8B-A1B (Q4_K_M)",
-      "displayName": "LFM2.5 8B",
-      "filename": "models/hf-liquidai-lfm2-5-8b-a1b-gguf-lfm2-5-8b-a1b-q4-k-m-gguf.gguf",
-      "sizeBytes": 5155564768,
-      "sha256": "4923ec14f06b968b74d663e5949867d2d9c3bf13a20b8be1a9f9af39989b2bb0",
-      "sourceUrl": "https://huggingface.co/LiquidAI/LFM2.5-8B-A1B-GGUF/resolve/49c14831707011e64d70b2ebd8462ba08d608434/LFM2.5-8B-A1B-Q4_K_M.gguf",
-      "license": "LFM Open License v1.0",
-      "description": "Strong reasoning for hard questions. It thinks before it answers, so replies take longer. Best on a 12 GB phone.",
-      "required": false
-    },
-    {
-      "id": "gemma-4-e4b-it-q4_0",
-      "kind": "llm",
-      "label": "Gemma 4 E4B (QAT Q4_0)",
-      "displayName": "Gemma 4 E4B",
-      "filename": "models/hf-google-gemma-4-e4b-it-qat-q4-0-gguf-gemma-4-e4b-q4-0-it-gguf.gguf",
-      "sizeBytes": 5154941280,
-      "sha256": "676c35070db6dbe52f93e9c864ee0fba4eddea94b9c875d9cb10daff453fbaee",
-      "sourceUrl": "https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf/resolve/4b4a2c1d584be7264f87aac328a1bc739ce81b6c/gemma-4-E4B_q4_0-it.gguf",
-      "license": "Apache-2.0",
-      "description": "Google's on-device model, similar in size to Qwen3 4B.",
-      "required": false
     },
     {
       "id": "corpus-standard",
@@ -343,56 +237,6 @@
       "license": "CC BY-SA 4.0 (Simple English Wikipedia)",
       "description": "All 208,711 Simple English Wikipedia articles, full text (2026-10-01 dump, r2).",
       "required": false
-    }
-  ],
-  "tiers": [
-    {
-      "id": "minimum",
-      "label": "Minimum",
-      "description": "Models only. Uses the built-in 300-topic knowledge base — no extra download.",
-      "corpusPackIds": []
-    },
-    {
-      "id": "standard",
-      "label": "Standard",
-      "description": "+ 1,000 more Wikipedia-derived topics (~600KB extra download).",
-      "corpusPackIds": [
-        "corpus-standard"
-      ]
-    },
-    {
-      "id": "full",
-      "label": "Full",
-      "description": "+ 5,000 more Wikipedia-derived topics total (~3MB extra download).",
-      "corpusPackIds": [
-        "corpus-standard",
-        "corpus-full"
-      ]
-    },
-    {
-      "id": "encyclopedia",
-      "label": "Encyclopedia",
-      "description": "Full, plus Wikipedia's ~50,000 Vital Articles (~164MB extra download).",
-      "corpusPackIds": [
-        "corpus-standard",
-        "corpus-full",
-        "wiki-vital5"
-      ]
-    },
-    {
-      "id": "research",
-      "label": "Research",
-      "description": "Encyclopedia, plus offline first aid, health, country facts, travel guides and crypto reference (~424MB extra download).",
-      "corpusPackIds": [
-        "corpus-standard",
-        "corpus-full",
-        "wiki-vital5",
-        "boar-firstaid-en",
-        "boar-medlineplus-en",
-        "boar-factbook",
-        "boar-wikivoyage-en",
-        "boar-crypto"
-      ]
     }
   ]
 }

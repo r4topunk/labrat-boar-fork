@@ -36,7 +36,7 @@ import java.io.File
 
 /**
  * The Knowledge screen (drawer → Knowledge): the built-in libraries by theme, as setup names them (installed ones with
- * their ⋮ menu, missing ones with Download), then "Your documents". Files are staged in the cache folder and imported
+ * their ⋮ menu, missing ones with no Download), then "Your documents". Files are staged in the cache folder and imported
  * through [DocumentsViewModel.import] (the system file picker can't be driven), then the screen is used like a person
  * would: the row's switch, its ⋮ menu (Export, Remove) and Remove's confirmation. Needs the embedding model, no PIN.
  */
@@ -80,13 +80,13 @@ class KnowledgeDeviceTest {
         waitSlowly(180_000, "import of $name", stepMs = 250) { vm.state.value.stage == null }
     }
 
-    @Test fun theInstalledLibrariesAreListedByThemeAndMissingOnesOfferDownload() {
+    @Test fun theInstalledLibrariesAreListedByThemeAndMissingOnesHaveNoDownload() {
         val installed = services.catalog.models.filter { it.kind == AssetKind.CORPUS && it.format == "sqlite-pack" && services.fileOf(it).isFile }
         assumeTrue("no knowledge pack installed on this phone", installed.isNotEmpty())
         openKnowledge()
         compose.scrollTo(hasText(tr("design.knowledge.summary")))
         assertTrue(compose.shows(tr("design.knowledge.summary")))
-        // Each installed pack by its setup name, with its ⋮ menu (Remove from phone), not a Download button.
+        // Each installed pack by its setup name, with its ⋮ menu (Remove from phone).
         val names = mapOf("boar-medlineplus-en" to "clean.onboarding.pack.medlinePlus.name", "boar-factbook" to "clean.onboarding.pack.factbook.name")
         val shown = installed.mapNotNull { a -> names[a.id]?.let(::tr) }
         assumeTrue("neither MedlinePlus nor the Factbook is installed", shown.isNotEmpty())
@@ -99,11 +99,11 @@ class KnowledgeDeviceTest {
             compose.scrollTo(hasText(tr("clean.onboarding.caveat")))
             assertTrue(compose.shows(tr("clean.onboarding.caveat")))
         }
-        // A library that isn't on the phone offers Download in its row.
+        // A library that isn't on the phone has no Download button: BoarLite can't download anything.
         val wikivoyage = tr("clean.onboarding.pack.wikivoyage.name")
         if (!File(ctx.filesDir, "corpus/boar-wikivoyage-en.sqlite").isFile) {
             compose.scrollTo(hasText(wikivoyage))
-            assertTrue(compose.exists(hasContentDescription(tr("catalogItemCard.downloadAsset")) and hasClickAction()))
+            assertFalse(compose.exists(hasContentDescription("Download")))
         }
 
         // Remove from phone asks first; Cancel keeps the file.

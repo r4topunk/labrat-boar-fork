@@ -112,7 +112,6 @@ data class ChatState(
     val toast: String? = null,
     /** Stop was tapped and the answer hasn't ended yet (a step in progress finishes first). */
     val stopping: Boolean = false,
-    val online: Boolean = false,
     /** Suggested question keys for the empty chat (chat.suggestions.*). */
     val suggestions: List<String> = emptyList(),
     /** Answer options → Sources = Only my files: the user's own files only (files-only answers, Retriever ownOnly). */
@@ -121,12 +120,6 @@ data class ChatState(
     val sourceRows: List<SourceRow> = emptyList(),
     /** Sources left out of the search (ids of [sourceRows]); empty = Everything. Not read while [sourcesOwn]. */
     val sourcesOff: Set<String> = emptySet(),
-    /** Answer options → Model: the answer models on the phone, the one answering, and the one recommended for it. */
-    val models: List<ModelChoice> = emptyList(),
-    val activeModelId: String? = null,
-    val defaultModelId: String? = null,
-    /** The answer model switch in progress (Answer options → Model): its id until it has loaded. */
-    val switchingModelId: String? = null,
 ) {
     /** Sources = Everything: every listed source searched (a pack installed later too). */
     val sourcesEverything: Boolean
@@ -136,10 +129,9 @@ data class ChatState(
     val sourcesChecked: Set<String>
         get() = if (sourcesOwn) setOf(SourceRow.FILES) else sourceRows.map { it.id }.filter { it !in sourcesOff }.toSet()
 
-    /** Anything the composer's options button must flag: a model or sources other than the defaults. */
+    /** Anything the composer's options button must flag: sources other than the default. */
     val optionsChanged: Boolean
-        get() = !sourcesEverything ||
-            (defaultModelId != null && activeModelId != null && activeModelId != defaultModelId)
+        get() = !sourcesEverything
 }
 
 /**
@@ -154,8 +146,6 @@ data class SourceRow(val id: String, val nameKey: String?, val name: String, val
     }
 }
 
-/** An installed answer model as Answer options → Model lists it. */
-data class ModelChoice(val id: String, val name: String, val sizeBytes: Long, val recommended: Boolean)
 
 /** The history title until the model writes one: the question trimmed, cut at a word with "…" when it runs past 60 characters. */
 internal fun provisionalTitle(q: String): String {
@@ -223,7 +213,6 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         refreshModel()
-        watchConnectivity(app)
         preload()
         services.addBusyCheck(busy)
         services.addForegroundHook(onForeground)
@@ -349,7 +338,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             is StartLoad.Decision.NoFallback -> d.blockedId
             else -> return null
         }
-        // Already loaded in this process (picked in the Model Catalog): it answers.
+        // Already loaded in this process: it answers.
         val file = services.catalog.byId(id)?.filename
         if (file != null && services.host.residentFilename() == file && services.host.current() != null) return null
         return noteFor(d)
@@ -367,12 +356,6 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         // The user's call: a model that may not fit isn't asked about again at start.
         if (services.catalog.byId(modelId)?.let(services::isRisky) == true) services.rememberLoadAnyway(modelId)
         userLoad(modelId)
-    }
-
-    /** The note's "Model Catalog" / "Pick another model": the caller opens the catalog. */
-    fun openedCatalog() {
-        heldQuestion = null
-        _state.update { it.copy(loadNote = null) }
     }
 
     private fun userLoad(modelId: String) {
@@ -404,38 +387,17 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     fun showToast(key: String) = _state.update { it.copy(toast = team.sopa.boar.ui.I18n.t(getApplication(), key)) }
     fun hideToast() = _state.update { it.copy(toast = null) }
 
-    /** ONLINE / OFFLINE in the header (connectivity.pure.ts isOnline: connected and the internet not known unreachable). */
-    private fun watchConnectivity(app: Application) {
-        val cm = app.getSystemService(android.net.ConnectivityManager::class.java) ?: return
-        // connectivity.pure.ts isOnline: connected and reachable (Android's validated internet), not just a network.
-        fun online(caps: android.net.NetworkCapabilities?) = caps != null &&
-            caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-            caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-        _state.update { it.copy(online = online(cm.getNetworkCapabilities(cm.activeNetwork))) }
-        runCatching {
-            // The callback's own network and capabilities: re-reading activeNetwork in onLost can still return the
-            // network just lost (airplane mode showed ONLINE).
-            cm.registerDefaultNetworkCallback(object : android.net.ConnectivityManager.NetworkCallback() {
-                override fun onCapabilitiesChanged(network: android.net.Network, caps: android.net.NetworkCapabilities) { _state.update { it.copy(online = online(caps)) } }
-                override fun onLost(network: android.net.Network) { _state.update { it.copy(online = false) } }
-            })
-        }
-    }
-
-    /** After setup or a model change: the active model's name, or that there's none. */
+    /** After setup or a load: the answer model's name, or that there's none. */
     fun refreshModel() {
         val m = services.answerModel()
         val installed = services.catalog.corpusCatalog.filter { services.fileOf(it).isFile }.map { it.id }
         // shortModelLabel: the catalog label without its parenthesis ("Qwen3-4B-Instruct-2507").
         val label = m?.label?.let(::shortLabel)
-        // Fewer than 3 tested on this model (a Hugging Face model has none; Qwen2.5 1.5B has fewer than 3): fill from
-        // the ideas tested on the other models, only for packs on the phone.
-        val own = suggestionData.forModel(m?.id, "en", installed)
-        val tested = if (own.size >= 3) own else (own + suggestionData.validation.byModel.keys.flatMap { suggestionData.forModel(it, "en", installed) }).distinct()
+        // The ideas tested on the answer model, only for packs on the phone (also while its file is missing).
+        val tested = suggestionData.forModel((m ?: services.catalog.answerModel).id, "en", installed)
         // Plus the short questions of BOAR's own 17-question evaluation, so each new chat shows a different few.
         ideaPool = (tested + BENCH_IDEAS).distinct()
         _state.update { it.copy(modelLabel = label, noModel = m == null, suggestions = pickIdeas()) }
-        refreshModelChoices()
         // A note that no longer holds (the model was loaded, unblocked or replaced) goes away.
         val note = _state.value.loadNote
         val holds = when (note) {
@@ -455,7 +417,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(loadNote = null) }
     }
 
-    // --- Answer options (the composer's one sheet: Model and Sources) -----------------------------------------------------
+    // --- Answer options (the composer's one sheet: Sources) -----------------------------------------------------
 
     private val optionPrefs get() = getApplication<Application>().getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE)
 
@@ -542,38 +504,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         if (_state.value.sourcesOff.isNotEmpty()) refreshSources()
     }
 
-    /** The installed answer models, and the default: the one setup recommends for this phone's memory, if it is here. */
-    private fun refreshModelChoices() {
-        val installed = services.installed(team.sopa.boar.engine.models.AssetKind.LLM)
-        val rec = team.sopa.boar.engine.models.SetupModel.recommended(services.catalog.answerModels, services.totalRamBytes)?.id
-        val default = rec?.takeIf { id -> installed.any { it.id == id } } ?: installed.minByOrNull { it.sizeBytes }?.id
-        val choices = installed.sortedBy { it.sizeBytes }.map { ModelChoice(it.id, it.shortName, it.sizeBytes, it.id == rec) }
-        _state.update { it.copy(models = choices, activeModelId = services.answerModel()?.id, defaultModelId = default) }
-    }
-
-    /**
-     * Answer options → Model: answer with [id] from now on. Same steps as Models → Use (the user's pick confirms a model
-     * that closed the app before, or may not fit): the next model loads right away, with the loading line meanwhile.
-     */
-    fun setModel(id: String) {
-        val a = services.catalog.byId(id) ?: return
-        if (_state.value.switchingModelId != null || id == _state.value.activeModelId || job?.isActive == true) return
-        _state.update { it.copy(switchingModelId = id, loadingKey = "chatScreen.mountingWeights") }
-        safeScope.launch(Dispatchers.Default) {
-            services.settings.setActiveModelId("llm", id)
-            services.loadGuard.confirm(id)
-            if (services.isRisky(a)) services.rememberLoadAnyway(id)
-            runCatching { services.host.unload(); services.activeSession() }
-            _state.update { it.copy(switchingModelId = null, loadingKey = null) }
-            refreshModel()
-        }
-    }
-
-    /** Answer options → Reset to defaults: all sources and the recommended model. */
-    fun resetOptions() {
-        setSourcesOwn(false)
-        _state.value.defaultModelId?.let { if (it != _state.value.activeModelId) setModel(it) }
-    }
+    /** Answer options → Reset to defaults: all sources. */
+    fun resetOptions() = setSourcesOwn(false)
 
     private fun pickIdeas() = ideaPool.shuffled().take(IDEAS_SHOWN)
 

@@ -30,11 +30,12 @@ import java.io.File
 /**
  * Adaptive-routing planning (profiles, router, default model, compatibility, adaptiveChat's planning half) must match
  * the TypeScript engine on every golden case (scripts/export-native-golden-routing-plan.mjs). Outputs are compared as
- * plain trees (maps, lists, strings, booleans, doubles), every number exactly.
+ * plain trees (maps, lists, strings, booleans, doubles), every number exactly. The catalog is the old multi-model one
+ * (golden/routing-catalog.json): the router stays model-agnostic, though the app now ships one model.
  */
 class RoutingPlanGoldenTest {
     private val g = Json.parseToJsonElement(File("src/test/resources/golden/routing-plan.json").readText()).jsonObject
-    private val catalog = Catalog.parse(File("../app/src/main/assets/boar-data/catalog.json").readText())
+    private val catalog = Catalog.parse(File("src/test/resources/golden/routing-catalog.json").readText())
     private val JsonElement.str get() = if (this is JsonNull) null else jsonPrimitive.content
     private fun cases(name: String): JsonArray = g[name]!!.jsonArray.also { assertTrue("$name has cases", it.size > 0) }
 

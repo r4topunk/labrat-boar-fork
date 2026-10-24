@@ -34,13 +34,6 @@ data class EvaluationState(
     val savedPath: String? = null,
     val stopped: Boolean = false,
     val error: String? = null,
-    /** The share preview is open (what will be sent is listed before anything leaves the phone). */
-    val sharePreview: team.sopa.boar.engine.eval.ShareResults.Device? = null,
-    val shareLog: List<team.sopa.boar.share.ResultsSharing.StepInfo> = emptyList(),
-    val shareSending: Boolean = false,
-    val shareOutcome: team.sopa.boar.engine.eval.ShareResults.Outcome? = null,
-    /** The run already shared (its button shows "Shared"). */
-    val sharedRunId: String? = null,
 )
 
 /** The Evaluation screen (EvaluationScreen.tsx): the fixed set against the chosen models, saved and exportable. */
@@ -81,36 +74,6 @@ class EvaluationViewModel(app: Application) : AndroidViewModel(app) {
             }
             _state.update { it.copy(running = false, stopping = false, progress = null) }
         }
-    }
-
-    val sharing = team.sopa.boar.share.ResultsSharing(app, services.settings)
-
-    /** Opens the preview: nothing is sent until the user presses Share there. */
-    fun previewShare() {
-        if (_state.value.rows.isEmpty() || _state.value.running) return
-        safeScope.launch(Dispatchers.IO) { val d = sharing.device(); _state.update { it.copy(sharePreview = d, shareLog = emptyList(), shareOutcome = null) } }
-    }
-
-    fun closeShare() = _state.update { it.copy(sharePreview = null, shareLog = emptyList(), shareOutcome = null) }
-
-    fun confirmShare() {
-        val s = _state.value
-        if (s.shareSending || s.rows.isEmpty()) return
-        _state.update { it.copy(shareSending = true, shareLog = emptyList(), shareOutcome = null) }
-        safeScope.launch {
-            val started = System.currentTimeMillis()
-            val outcome = sharing.share(s.rows) { info ->
-                _state.update { it.copy(shareLog = it.shareLog + info) }
-                Thread.sleep(STEP_MIN_MS) // each step stays readable on a fast network (STEP_MIN_MS in the TS)
-            }
-            kotlinx.coroutines.delay((SHARE_MIN_MS - (System.currentTimeMillis() - started)).coerceAtLeast(0))
-            _state.update { it.copy(shareSending = false, shareOutcome = outcome, sharedRunId = if (outcome.result.succeeded) s.runId else it.sharedRunId) }
-        }
-    }
-
-    private companion object {
-        const val STEP_MIN_MS = 350L
-        const val SHARE_MIN_MS = 1500L
     }
 
     fun stop() {

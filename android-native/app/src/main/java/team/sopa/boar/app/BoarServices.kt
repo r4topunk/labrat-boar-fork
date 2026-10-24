@@ -31,53 +31,17 @@ import team.sopa.boar.engine.settings.AppSettings
 import java.io.File
 
 /**
- * Everything the screens share, opened once per process on the Expo app's own files (files/settings.json,
- * files/SQLite/aoair_knowledge.db, files/models, files/corpus), so an upgrade keeps models, chats and settings.
- * One generation model is loaded at a time ([host]); the embedder loads when retrieval first needs it.
+ * Everything the screens share, opened once per process on the app's own files (files/settings.json,
+ * files/SQLite/aoair_knowledge.db, files/models, files/corpus).
+ * One generation model (Qwen3 1.7B) is loaded at a time ([host]); the embedder loads when retrieval first needs it.
  */
 class BoarServices private constructor(private val context: Context) {
     private val files = context.filesDir
     /** The app's files dir, where models, packs and the chat database live. */
     val filesDir: java.io.File get() = files
     val settings = AppSettings(File(files, "settings.json"))
-    private val baseCatalog: Catalog = Catalog.parse(asset("boar-data/catalog.json"))
-    private val discoveredFile = File(files, "discovered_models.json")
-    private val discoveredJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; encodeDefaults = true }
-
-    /**
-     * Models added from the Hugging Face search (discoveredModels.ts, same file as the Expo app): not vetted, so kept
-     * apart from the built-in catalog and listed after it.
-     */
-    fun discovered(): List<CatalogAsset> = runCatching {
-        discoveredJson.decodeFromString(kotlinx.serialization.builtins.ListSerializer(CatalogAsset.serializer()), discoveredFile.readText())
-    }.getOrDefault(emptyList())
-
-    /** Written to a temporary file, then moved over the old one: a failed write never leaves a truncated list. */
-    private fun writeDiscovered(list: List<CatalogAsset>) {
-        val tmp = File(files, "discovered_models.json.tmp")
-        tmp.writeText(discoveredJson.encodeToString(kotlinx.serialization.builtins.ListSerializer(CatalogAsset.serializer()), list))
-        java.nio.file.Files.move(tmp.toPath(), discoveredFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE)
-    }
-
-    /** The built-in catalog plus the discovered models (a search result already in the catalog isn't listed twice). */
-    @Volatile var catalog: Catalog = withDiscovered()
-        private set
-
-    private fun withDiscovered(): Catalog {
-        val extra = discovered().filter { d -> baseCatalog.models.none { it.filename == d.filename } }
-        return baseCatalog.copy(models = baseCatalog.models + extra)
-    }
-
-    fun addDiscovered(asset: CatalogAsset) = synchronized(this) {
-        val all = discovered()
-        if (all.none { it.id == asset.id }) { writeDiscovered(all + asset); settings.stampModel(AppSettings.MODEL_ADDED, asset.id) }
-        catalog = withDiscovered()
-    }
-
-    fun removeDiscovered(id: String) = synchronized(this) {
-        writeDiscovered(discovered().filter { it.id != id })
-        catalog = withDiscovered()
-    }
+    /** Qwen3 1.7B, the search model and the knowledge packs: everything BoarLite can use is listed here, nothing is added later. */
+    val catalog: Catalog = Catalog.parse(asset("boar-data/catalog.json"))
     /**
      * The answer styles' prompts. The app answers in Succinct only (AppSettings.personalityId); the others stay in
      * personalities.json for the benchmark runner.
@@ -132,9 +96,8 @@ class BoarServices private constructor(private val context: Context) {
 
     fun installed(kind: AssetKind) = catalog.models.filter { it.kind == kind && fileOf(it).isFile }
 
-    /** The user's model, else the first installed one (the catalog's order puts the default first). */
-    fun activeModel(): CatalogAsset? =
-        settings.activeModelId("llm")?.let(catalog::byId)?.takeIf { fileOf(it).isFile } ?: installed(AssetKind.LLM).firstOrNull()
+    /** The one answer model, once its file is on the phone. */
+    fun activeModel(): CatalogAsset? = catalog.answerModel.takeIf { fileOf(it).isFile }
 
     /** CR-2: the marker next to the models and the bookkeeping in settings.json. */
     val loadGuard = LoadGuard(object : LoadGuard.MarkerStore {
@@ -166,7 +129,7 @@ class BoarServices private constructor(private val context: Context) {
         team.sopa.boar.engine.models.StartLoad.decide(activeModel()?.let(::startModel), installed(AssetKind.LLM).map(::startModel),
             loadGuard::isBlocked, settings.lastLoadedModelId, totalRamBytes, settings.loadAnywayIds.toSet())
 
-    /** Rated RED for this phone's memory (Compatibility, as the Model Catalog shows it). */
+    /** Rated RED for this phone's memory (Compatibility). */
     fun isRisky(a: CatalogAsset): Boolean = team.sopa.boar.engine.models.StartLoad.risky(startModel(a), totalRamBytes)
 
     /** "Load anyway": [modelId] loads at start from now on without asking. */
@@ -184,7 +147,7 @@ class BoarServices private constructor(private val context: Context) {
     /** Installed knowledge packs in knowledgePacks()'s order: catalog packs first, then other files by name. */
     val packs: List<OpenPack> get() = openPacks ?: synchronized(this) { openPacks ?: scanPacks().also { openPacks = it } }
 
-    /** After a pack is downloaded or removed: the next search opens the current set. */
+    /** After a pack is installed or removed: the next search opens the current set. */
     fun reloadPacks() = synchronized(this) {
         openPacks?.forEach { p -> runCatching { when (p) { is OpenPack.Format1 -> p.db.close(); is OpenPack.Format2 -> p.pack.close() } } }
         openPacks = null

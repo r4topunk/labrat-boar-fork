@@ -1,21 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Texts added by the MD3 fix round (judge/clean-native). -->
 <resources>
-    <string name="clean_setup_stage_assistant" formatted="false">Assistant</string>
-    <string name="clean_setup_knowledgeTitle" formatted="false">Your knowledge</string>
-    <string name="clean_setup_chosenFor" formatted="false">Chosen for this phone\'s {{ram}} of memory. Larger models are under More options.</string>
-    <string name="clean_setup_modelLarge" formatted="false">Larger and slower. Best on phones with plenty of memory.</string>
-    <string name="clean_setup_modelOther" formatted="false">Another answer model that fits this phone.</string>
-    <string name="clean_setup_cat_answer" formatted="false">Answers</string>
-    <string name="clean_setup_cat_search" formatted="false">Search</string>
-    <string name="clean_setup_cat_knowledge" formatted="false">Articles</string>
-    <string name="clean_setup_expanded" formatted="false">Expanded</string>
-    <string name="clean_setup_collapsed" formatted="false">Collapsed</string>
-    <string name="clean_setup_openWhenReady" formatted="false">You can open BOAR when everything is on the phone.</string>
-    <string name="clean_setup_indexTitle" formatted="false">Preparing your library</string>
-    <string name="clean_setup_indexSub" formatted="false">BOAR is sorting the articles it just downloaded so it can find them fast. It only reads those articles, never your photos or files. No internet needed.</string>
-    <string name="clean_setup_indexLabel" formatted="false">Organizing articles</string>
-    <string name="clean_setup_indexCounter" formatted="false">{{done}} of {{total}} articles</string>
     <string name="clean_chat_worksOffline" formatted="false">Works offline</string>
     <string name="clean_chat_expanded" formatted="false">Expanded</string>
     <string name="clean_chat_collapsed" formatted="false">Collapsed</string>
@@ -27,8 +12,6 @@
     <string name="clean_nav_deleteButton" formatted="false">Delete</string>
     <string name="clean_nav_undo" formatted="false">Undo</string>
     <string name="clean_settings_model_title" formatted="false">Model</string>
-    <string name="clean_settings_model_summary_one" formatted="false">{{model}} · {{count}} installed</string>
-    <string name="clean_settings_model_summary_other" formatted="false">{{model}} · {{count}} installed</string>
     <string name="clean_settings_knowledge_title" formatted="false">Packs and documents</string>
     <string name="clean_settings_knowledge_packs_one" formatted="false">{{count}} pack</string>
     <string name="clean_settings_knowledge_packs_other" formatted="false">{{count}} packs</string>
@@ -39,8 +22,6 @@
     <string name="clean_settings_chats_remember" formatted="false">Remember long chats</string>
     <string name="clean_settings_chats_rememberNote" formatted="false">Keeps a short summary of earlier messages so BOAR doesn\'t forget them.</string>
     <string name="clean_settings_about_copyAddress" formatted="false">Copy address</string>
-    <string name="clean_library_builtInTitle" formatted="false">Built-in knowledge</string>
-    <string name="clean_library_builtInSummary" formatted="false">Wikipedia topics BOAR searches offline whenever you ask a question.</string>
     <string name="clean_library_yourDocs" formatted="false">Your documents</string>
     <string name="clean_library_docsHint" formatted="false">Text, Markdown, CSV, JSON or PDF. Stays on this phone.</string>
     <string name="clean_library_collectionName" formatted="false">Collection name (optional)</string>
@@ -53,21 +34,13 @@
     <string name="clean_library_more" formatted="false">More options</string>
     <string name="clean_library_expanded" formatted="false">Expanded</string>
     <string name="clean_library_collapsed" formatted="false">Collapsed</string>
-    <string name="flows_onboarding_package_research_name" formatted="false">Research</string>
-    <string name="flows_onboarding_package_research_body" formatted="false">Encyclopedia plus offline first aid, health, country facts, travel guides and crypto reference.</string>
     <string name="clean_onboarding_section_encyclopedia" formatted="false">Encyclopedia</string>
     <string name="clean_onboarding_section_health" formatted="false">Health</string>
     <string name="clean_onboarding_section_travel" formatted="false">Travel</string>
     <string name="clean_onboarding_section_reference" formatted="false">Reference</string>
     <string name="clean_onboarding_section_crypto" formatted="false">Crypto</string>
     <string name="clean_onboarding_section_other" formatted="false">Other</string>
-    <string name="clean_onboarding_tag_fast" formatted="false">Fast</string>
-    <string name="clean_onboarding_tag_balanced" formatted="false">Balanced</string>
-    <string name="clean_onboarding_tag_accurate" formatted="false">Accurate</string>
     <string name="clean_onboarding_caveat" formatted="false">AI-reviewed, not clinically reviewed.</string>
-    <string name="clean_onboarding_file_searchModel" formatted="false">Search model</string>
-    <string name="clean_onboarding_file_wikiEssentials1" formatted="false">Wikipedia essentials, part 1</string>
-    <string name="clean_onboarding_file_wikiEssentials2" formatted="false">Wikipedia essentials, part 2</string>
     <string name="clean_onboarding_pack_wikiEssentials_name" formatted="false">Wikipedia essentials</string>
     <string name="clean_onboarding_pack_wikiEssentials_desc" formatted="false">5,000 core topics every answer can lean on.</string>
     <string name="clean_onboarding_pack_wikiVital_name" formatted="false">Wikipedia Vital Articles</string>
@@ -95,94 +68,16 @@
     <string name="clean_onboarding_pack_bitcoinQa_name" formatted="false">Bitcoin Q&amp;A</string>
     <string name="clean_onboarding_pack_bitcoinQa_desc" formatted="false">Bitcoin questions with community answers.</string>
     <string name="clean_onboarding_back" formatted="false">Back</string>
-    <string name="clean_onboarding_continue" formatted="false">Continue</string>
     <string name="clean_onboarding_progressA11y" formatted="false">Setup {{pct}}% done</string>
-    <string name="clean_onboarding_onPhone" formatted="false">On this phone</string>
-    <string name="clean_onboarding_welcome_title" formatted="false">Research anything. Offline.</string>
-    <string name="clean_onboarding_welcome_subtitle" formatted="false">BOAR is an AI research assistant that runs entirely on your phone.</string>
-    <string name="clean_onboarding_welcome_private_title" formatted="false">Private</string>
-    <string name="clean_onboarding_welcome_private_body" formatted="false">Your questions never leave the phone.</string>
-    <string name="clean_onboarding_welcome_offline_title" formatted="false">Offline</string>
-    <string name="clean_onboarding_welcome_offline_body" formatted="false">Works without internet after setup.</string>
-    <string name="clean_onboarding_welcome_cited_title" formatted="false">Cited</string>
-    <string name="clean_onboarding_welcome_cited_body" formatted="false">Every answer shows its sources.</string>
-    <string name="clean_onboarding_welcome_download" formatted="false">One download over Wi-Fi · about {{size}}</string>
-    <string name="clean_onboarding_welcome_downloadNone" formatted="false">Everything is already on this phone</string>
-    <string name="clean_onboarding_welcome_start" formatted="false">Get started</string>
     <string name="clean_onboarding_welcome_mascotA11y" formatted="false">BOAR mascot</string>
-    <string name="clean_onboarding_models_title" formatted="false">Choose your models</string>
-    <string name="clean_onboarding_models_subtitle" formatted="false">Pick one or more. Faster models answer sooner, larger ones go deeper.</string>
-    <string name="clean_onboarding_device_memory" formatted="false">{{size}} memory</string>
-    <string name="clean_onboarding_device_free" formatted="false">{{size}} free</string>
-    <string name="clean_onboarding_tag_recommended" formatted="false">Recommended</string>
-    <string name="clean_onboarding_tag_fits" formatted="false">Fits this phone</string>
-    <string name="clean_onboarding_tag_heavy" formatted="false">Slower on this phone</string>
-    <string name="clean_onboarding_tag_discovered" formatted="false">From Hugging Face</string>
-    <string name="clean_onboarding_models_heavyWarning" formatted="false">May run slowly or close on this phone.</string>
-    <string name="clean_onboarding_models_selected_one" formatted="false">{{count}} model selected</string>
-    <string name="clean_onboarding_models_selected_other" formatted="false">{{count}} models selected</string>
-    <string name="clean_onboarding_models_none" formatted="false">No model selected</string>
-    <string name="clean_onboarding_models_pickOne" formatted="false">Pick at least one to continue</string>
-    <string name="clean_onboarding_models_toDownload" formatted="false">{{size}} to download</string>
-    <string name="clean_onboarding_models_nothingToDownload" formatted="false">Already on this phone</string>
-    <string name="clean_onboarding_default_title" formatted="false">Which model answers by default?</string>
-    <string name="clean_onboarding_default_subtitle" formatted="false">BOAR starts with this one. The others stay ready.</string>
-    <string name="clean_onboarding_default_switchLater" formatted="false">You can switch anytime in Settings.</string>
-    <string name="clean_onboarding_default_none" formatted="false">Pick a model</string>
-    <string name="clean_onboarding_knowledge_title" formatted="false">Choose your knowledge</string>
-    <string name="clean_onboarding_knowledge_subtitle" formatted="false">Libraries BOAR searches and cites. They live on your phone.</string>
-    <string name="clean_onboarding_preset_recommended" formatted="false">Recommended</string>
-    <string name="clean_onboarding_preset_everything" formatted="false">Everything</string>
-    <string name="clean_onboarding_preset_minimal" formatted="false">Minimal</string>
     <string name="clean_onboarding_articles_one" formatted="false">{{value}} article</string>
     <string name="clean_onboarding_articles_other" formatted="false">{{value}} articles</string>
-    <string name="clean_onboarding_preview" formatted="false">Preview</string>
-    <string name="clean_onboarding_knowledge_summary_one" formatted="false">{{size}} · about {{count}} min</string>
-    <string name="clean_onboarding_knowledge_summary_other" formatted="false">{{size}} · about {{count}} min</string>
-    <string name="clean_onboarding_knowledge_nothingToDownload" formatted="false">Nothing to download</string>
-    <string name="clean_onboarding_knowledge_libraries_one" formatted="false">{{count}} library selected</string>
-    <string name="clean_onboarding_knowledge_libraries_other" formatted="false">{{count}} libraries selected</string>
-    <string name="clean_onboarding_knowledge_download" formatted="false">Download</string>
-    <string name="clean_onboarding_knowledge_finish" formatted="false">Finish setup</string>
-    <string name="clean_onboarding_sheet_sources" formatted="false">Sources</string>
-    <string name="clean_onboarding_sheet_license" formatted="false">License</string>
-    <string name="clean_onboarding_sheet_samples_one" formatted="false">Its {{value}} article</string>
-    <string name="clean_onboarding_sheet_samples_other" formatted="false">A few of the {{value}} articles</string>
-    <string name="clean_onboarding_sheet_add" formatted="false">Add to download</string>
-    <string name="clean_onboarding_sheet_remove" formatted="false">Remove from download</string>
-    <string name="clean_onboarding_install_title" formatted="false">Installing</string>
-    <string name="clean_onboarding_install_subtitle" formatted="false">Here is everything BOAR is downloading. This happens only once.</string>
-    <string name="clean_onboarding_install_doneTitle" formatted="false">All set</string>
-    <string name="clean_onboarding_install_doneSubtitle" formatted="false">Opening BOAR…</string>
-    <string name="clean_onboarding_install_bytes" formatted="false">{{done}} of {{total}}</string>
-    <string name="clean_onboarding_install_speed" formatted="false">{{speed}}/s</string>
-    <string name="clean_onboarding_install_models" formatted="false">Models</string>
-    <string name="clean_onboarding_install_knowledge" formatted="false">Knowledge</string>
-    <string name="clean_onboarding_install_pauseNote" formatted="false">Downloads pause if you close BOAR and resume where they stopped.</string>
-    <string name="clean_onboarding_install_lessKnowledge" formatted="false">Choose less knowledge</string>
-    <string name="clean_onboarding_status_queued" formatted="false">Queued</string>
-    <string name="clean_onboarding_status_downloading" formatted="false">Downloading {{pct}}%</string>
-    <string name="clean_onboarding_status_checking" formatted="false">Checking</string>
-    <string name="clean_onboarding_status_ready" formatted="false">Ready</string>
-    <string name="clean_onboarding_status_failed" formatted="false">Failed</string>
-    <string name="clean_onboarding_status_waiting" formatted="false">Waiting</string>
-    <string name="clean_onboarding_status_starting" formatted="false">Starting</string>
-    <string name="clean_onboarding_index_title" formatted="false">Organizing your library</string>
-    <string name="clean_onboarding_index_waiting" formatted="false">Starts as soon as the search model arrives</string>
-    <string name="clean_onboarding_index_starting" formatted="false">Getting the articles ready…</string>
-    <string name="clean_onboarding_index_progress" formatted="false">{{done}} of {{total}} articles</string>
-    <string name="clean_onboarding_leave_title" formatted="false">Stop downloading?</string>
-    <string name="clean_onboarding_leave_body" formatted="false">Downloads pause and pick up where they stopped when you continue.</string>
-    <string name="clean_onboarding_leave_confirm" formatted="false">Go back</string>
-    <string name="clean_onboarding_leave_stay" formatted="false">Keep downloading</string>
-    <string name="clean_onboarding_file_searchIndex" formatted="false">Ready-made search index</string>
     <string name="clean_chat_loadNote_crashedTitle" formatted="false">{{model}} closed while loading</string>
-    <string name="clean_chat_loadNote_crashedBody" formatted="false">The phone ran out of memory. Try again with less memory, or choose a smaller model.</string>
+    <string name="clean_chat_loadNote_crashedBody" formatted="false">The phone ran out of memory. Try again with less memory.</string>
     <string name="clean_chat_loadNote_crashedFallback" formatted="false">The phone ran out of memory. BOAR is answering with {{fallback}} for now.</string>
     <string name="clean_chat_loadNote_riskyTitle" formatted="false">{{model}} may not fit</string>
-    <string name="clean_chat_loadNote_riskyBody" formatted="false">It needs most of this phone\'s memory. A smaller model will answer faster.</string>
+    <string name="clean_chat_loadNote_riskyBody" formatted="false">It needs most of this phone\'s memory, so it may answer slowly or close the app.</string>
     <string name="clean_chat_loadNote_lessMemory" formatted="false">Use less memory</string>
-    <string name="clean_chat_loadNote_changeModel" formatted="false">Change model</string>
     <string name="design_options_title" formatted="false">Answer options</string>
     <string name="design_options_button" formatted="false">Answer options</string>
     <string name="design_options_buttonChanged" formatted="false">Answer options, changed</string>
@@ -194,37 +89,8 @@
     <string name="design_options_sourcesOwn" formatted="false">Only my files</string>
     <string name="design_options_sourcesOwnNote" formatted="false">Only the documents you added</string>
     <string name="design_options_recommended" formatted="false">Recommended for this phone</string>
-    <string name="design_options_modelFoot" formatted="false">Switching loads the model first. Installed models only.</string>
     <string name="design_options_reset" formatted="false">Reset to defaults</string>
     <string name="design_options_back" formatted="false">Back to options</string>
     <string name="design_options_placeholderOwn" formatted="false">Ask about your files</string>
     <!-- Setup tour (SetupTour.kt) -->
-    <string name="clean_tour_title" formatted="false">Set up BOAR</string>
-    <string name="clean_tour_close" formatted="false">Close</string>
-    <string name="clean_tour_back" formatted="false">Back</string>
-    <string name="clean_tour_next" formatted="false">Next</string>
-    <string name="clean_tour_done" formatted="false">Done</string>
-    <string name="clean_tour_start" formatted="false">Start</string>
-    <string name="clean_tour_openBoar" formatted="false">Open BOAR</string>
-    <string name="clean_tour_keepGoing" formatted="false">Keep going</string>
-    <string name="clean_tour_ready" formatted="false">BOAR is ready.</string>
-    <string name="clean_tour_inviteTitle" formatted="false">While you wait</string>
-    <string name="clean_tour_inviteBody" formatted="false">Set BOAR\'s look, your chats and its sources. About 2 minutes.</string>
-    <string name="clean_tour_lineDownloading" formatted="false">Downloading · {{pct}}%</string>
-    <string name="clean_tour_lineReady" formatted="false">Ready</string>
-    <string name="clean_tour_lineProblem" formatted="false">Setup needs you · tap to see</string>
-    <string name="clean_tour_welcome_title" formatted="false">While BOAR downloads</string>
-    <string name="clean_tour_welcome_body" formatted="false">This takes a few minutes, once. Meanwhile you can make BOAR yours. Whatever you change here applies right away, and every choice is in Settings later.</string>
-    <string name="clean_tour_look_title" formatted="false">Look and feel</string>
-    <string name="clean_tour_look_body" formatted="false">Pick a theme and a text size. They change as you tap.</string>
-    <string name="clean_tour_look_where" formatted="false">Settings → Display &amp; Theme</string>
-    <string name="clean_tour_chats_title" formatted="false">Your chats</string>
-    <string name="clean_tour_chats_body" formatted="false">Chats stay on this phone. A PIN keeps them sealed and blanks BOAR in recent apps and screenshots.</string>
-    <string name="clean_tour_chats_where" formatted="false">Settings → Memory &amp; Context Settings</string>
-    <string name="clean_tour_sources_title" formatted="false">Sources</string>
-    <string name="clean_tour_sources_body" formatted="false">Every answer from the library lists the articles it used: tap one to read it. You choose where BOAR searches: every library, some of them, or only the files you add.</string>
-    <string name="clean_tour_sources_where" formatted="false">In the chat: Answer options → Sources</string>
-    <string name="clean_tour_end_title" formatted="false">All set on your side</string>
-    <string name="clean_tour_end_body" formatted="false">BOAR opens as soon as the download finishes. You can change all of this in Settings.</string>
-    <string name="clean_tour_end_bodyReady" formatted="false">BOAR is ready. You can change all of this in Settings.</string>
 </resources>

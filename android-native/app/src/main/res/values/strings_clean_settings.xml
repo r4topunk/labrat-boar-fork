@@ -12,6 +12,7 @@
     <string name="clean_settings_dev_intro" formatted="false">Tools for measuring BOAR. Most people never need them.</string>
     <string name="clean_settings_dev_enabled" formatted="false">Show developer options</string>
     <string name="clean_settings_dev_enabledNote" formatted="false">Turn off to hide this section. Seven taps on the version in About bring it back.</string>
+    <string name="clean_about_model" formatted="false">Answer model: {{model}} (the only one in BoarLite)</string>
     <string name="clean_about_devOn" formatted="false">Developer options on</string>
     <string name="clean_about_devOff" formatted="false">Developer options off</string>
 </resources>

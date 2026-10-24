@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Texts added by the on-device design pass (judge/clean-native). -->
 <resources>
-    <string name="design_install_now" formatted="false">Downloading {{name}}</string>
-    <string name="design_install_organizing" formatted="false">Organizing your library</string>
     <string name="design_chat_emptyTitle" formatted="false">What do you want to know?</string>
     <string name="design_drawer_recent" formatted="false">Recent chats</string>
     <string name="design_drawer_today" formatted="false">Today</string>
@@ -11,10 +9,7 @@
     <string name="design_drawer_older" formatted="false">Older</string>
     <string name="design_settings_about" formatted="false">About</string>
     <string name="design_knowledge_summary" formatted="false">Libraries BOAR searches offline when you ask a question.</string>
-    <string name="design_knowledge_notOnPhone" formatted="false">Not downloaded</string>
-    <string name="design_knowledge_failed" formatted="false">Download failed. Tap download to try again.</string>
     <string name="design_knowledge_remove" formatted="false">Remove from phone</string>
-    <string name="design_onboarding_installedNote" formatted="false">Already on this phone. You can remove it later in Knowledge.</string>
     <string name="design_chat_filesNotFound" formatted="false">I couldn\'t find this in your files.</string>
     <string name="design_documents_imported" formatted="false">Added “{{name}}”. To get answers only from your files, ask with Sources set to Only my files.</string>
     <string name="design_documents_askFiles" formatted="false">Ask about your files</string>

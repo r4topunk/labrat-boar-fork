@@ -2,39 +2,8 @@
   "validation": {
     "version": 3,
     "validatedAt": "2026-09-27",
-    "evidence": "eval/results/suggestions/verdicts.v1.json + v2 + v3 (feat/eval-frontier 4655cbb, rechecks 8c66bc2, 519b4c2, 7566472); qwen3-1.7b-q4km inherits qwen2.5-1.5b's list (Oct 20), not re-validated",
+    "evidence": "eval/results/suggestions/verdicts.v1.json + v2 + v3 (feat/eval-frontier 4655cbb, rechecks 8c66bc2, 519b4c2, 7566472); qwen3-1.7b-q4km inherits qwen2.5-1.5b's list (Oct 20), not re-validated; the other models' lists were dropped when BoarLite went to one model (Oct 24)",
     "byModel": {
-      "qwen3-4b-instruct-2507-q4km": {
-        "en": [
-          "q1",
-          "q2",
-          "q3",
-          "q4",
-          "q7",
-          "q8"
-        ],
-        "pt": [
-          "q1",
-          "q2",
-          "q3",
-          "q4",
-          "q7",
-          "q8"
-        ]
-      },
-      "qwen2.5-1.5b-instruct-q4km": {
-        "en": [
-          "q1",
-          "q2",
-          "q3",
-          "q4",
-          "q7",
-          "q8"
-        ],
-        "pt": [
-          "q8"
-        ]
-      },
       "qwen3-1.7b-q4km": {
         "en": [
           "q1",

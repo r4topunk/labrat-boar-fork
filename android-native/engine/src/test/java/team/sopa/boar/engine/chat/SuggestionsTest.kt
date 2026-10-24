@@ -14,6 +14,6 @@ class SuggestionsTest {
             val got = s.forModel(m.takeIf { it != "null" }, l.takeIf { it != "null" }, inst.split(",").filter { it.isNotEmpty() })
             assertEquals(line, want, got.joinToString(","))
         }
-        assertEquals(80, lines.size)
+        assertEquals(20, lines.size)
     }
 }

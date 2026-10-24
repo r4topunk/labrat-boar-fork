@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Setup and drawer texts of the cleaner flow (recommended path, "More options"). Keys: clean.setup.*, clean.drawer.* -->
 <resources>
-    <string name="clean_setup_modelTitle" formatted="false">Your assistant</string>
-    <string name="clean_setup_modelSub" formatted="false">We picked the best fit for this phone. You can change it later in Settings.</string>
-    <string name="clean_setup_knowledgeSub" formatted="false">Downloaded once, then everything works offline. You can add more later in Knowledge.</string>
-    <string name="clean_setup_recommended" formatted="false">Recommended for this phone</string>
-    <string name="clean_setup_moreOptions" formatted="false">More options</string>
-    <string name="clean_setup_fewerOptions" formatted="false">Fewer options</string>
+    <string name="clean_setup_stubTitle" formatted="false">BoarLite is not installed yet</string>
+    <string name="clean_setup_stubBody" formatted="false">BoarLite works without a network, so its language model and its search model must be on this phone before it can answer. Still missing:</string>
+    <string name="clean_setup_stubCheck" formatted="false">Check again</string>
     <string name="clean_drawer_newChat" formatted="false">New chat</string>
 </resources>

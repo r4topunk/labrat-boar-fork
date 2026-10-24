@@ -79,7 +79,7 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
         Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(t("evaluation.title"), style = Boar.type.titleSm.copy(letterSpacing = 0.5.sp), color = c.textHeading)
-                Text(t("evaluation.subtitle", "version" to state.setVersion, "count" to state.queries.size) + " · BOAR " + vm.sharing.appVersion(), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim)
+                Text(t("evaluation.subtitle", "version" to state.setVersion, "count" to state.queries.size) + " · BOAR " + team.sopa.boar.app.DeviceReader.appVersion(ctx), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim)
             }
             if (!state.running) {
                 Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.SemiBold,
@@ -118,8 +118,6 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
                         if (state.runId != null && !state.running) {
                             Action(t("evaluation.exportJsonl")) { export("jsonl") }
                             Action(t("evaluation.exportCsv")) { export("csv") }
-                            if (vm.sharing.available) Action(if (state.sharedRunId == state.runId) t("evaluation.shared") else t("evaluation.share"),
-                                enabled = state.sharedRunId != state.runId) { vm.previewShare() }
                         }
                     }
                 }
@@ -158,68 +156,6 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
             }
         }
     }
-    ShareDialog(state, vm)
-}
-
-/** SharePreview.tsx + ShareProgress.tsx: what will be sent, then each step and the outcome. */
-@Composable
-private fun ShareDialog(state: EvaluationState, vm: EvaluationViewModel) {
-    val d = state.sharePreview ?: return
-    val c = Boar.colors
-    val outcome = state.shareOutcome
-    androidx.compose.material3.AlertDialog(
-        onDismissRequest = { if (!state.shareSending) vm.closeShare() },
-        containerColor = c.bgCardElevated,
-        title = {
-            Text(when {
-                outcome != null -> t("evaluation.shareProgress.title.${outcome.result.key}")
-                state.shareSending -> t("evaluation.shareProgress.sendingTitle")
-                else -> t("evaluation.shareTitle")
-            }, style = Boar.type.title, color = c.textHeading)
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (!state.shareSending && outcome == null) {
-                    val ram = d.ramBytes?.let { String.format(Locale.US, "%.1f GB RAM", it / 1073741824.0) }
-                    listOfNotNull(
-                        listOfNotNull(d.brand, d.model).joinToString(" ").ifEmpty { null },
-                        "Android ${d.osVersion} (API ${d.apiLevel})",
-                        team.sopa.boar.engine.eval.ShareResults.describeChipset(d),
-                        team.sopa.boar.engine.eval.ShareResults.describeCores(d.coreMaxFreqKHz),
-                        ram,
-                        "BOAR ${vm.sharing.appVersion()}",
-                        t("evaluation.shareProgress.log.prepare", "count" to state.rows.size),
-                    ).forEach { Text("• $it", style = Boar.type.subtext, color = c.textPrimary) }
-                }
-                state.shareLog.forEach { s ->
-                    val line = when {
-                        s.challenge != null -> t("evaluation.shareProgress.log.challengeGot", "code" to s.challenge)
-                        s.key != null -> t("evaluation.shareProgress.log.key-${s.key}")
-                        s.step == team.sopa.boar.share.ResultsSharing.Step.SEND -> t("evaluation.shareProgress.log.send",
-                            "size" to "${maxOf(1, (s.bytes ?: 0) / 1024)} KB", "count" to (s.rows ?: 0))
-                        else -> t("evaluation.shareProgress.log.${s.step.name.lowercase()}", "count" to (s.rows ?: 0))
-                    }
-                    Text("› $line", style = Boar.type["mono.xs"], color = c.textSecondary)
-                }
-                if (outcome != null) {
-                    outcome.status?.let { Text("› " + t("evaluation.shareProgress.log.status", "status" to it), style = Boar.type["mono.xs"], color = c.textSecondary) }
-                    Text(t("evaluation.shareProgress.why.${outcome.result.key}"), style = Boar.type.body, color = c.textPrimary)
-                    outcome.detail?.let { Text(t("evaluation.shareProgress.detail", "detail" to it), style = Boar.type["mono.xs"], color = c.textDim) }
-                }
-            }
-        },
-        confirmButton = {
-            when {
-                outcome != null && outcome.result.canRetry -> androidx.compose.material3.TextButton({ vm.confirmShare() }) { Text(t("evaluation.shareProgress.retry"), color = c.textAccentCyan) }
-                outcome != null -> androidx.compose.material3.TextButton({ vm.closeShare() }) { Text(t("common.done"), color = c.textAccentCyan) }
-                !state.shareSending -> androidx.compose.material3.TextButton({ vm.confirmShare() }) { Text(t("evaluation.shareConfirm"), color = c.textAccentCyan) }
-                else -> CircularProgressIndicator(color = c.textAccentEmerald, modifier = Modifier.size(20.dp))
-            }
-        },
-        dismissButton = {
-            if (!state.shareSending && (outcome == null || outcome.result.canRetry)) androidx.compose.material3.TextButton({ vm.closeShare() }) { Text(t("common.cancel"), color = c.textSecondary) }
-        },
-    )
 }
 
 /** A section heading that opens and closes what follows (▸ closed, ▾ open). */

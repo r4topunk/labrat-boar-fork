@@ -48,7 +48,7 @@ class AppSettings(private val file: File) {
         put("activeModelId", JsonObject(m))
     }
 
-    /** When each model was last loaded to answer ([MODEL_LAST_USED]) or added/downloaded ([MODEL_ADDED]): epoch ms by id. */
+    /** When each model was last loaded to answer ([MODEL_LAST_USED]): epoch ms by id. */
     fun modelTimes(key: String): Map<String, Long> =
         (data[key] as? JsonObject)?.mapNotNull { (k, v) -> (v as? JsonPrimitive)?.longOrNull?.let { k to it } }?.toMap() ?: emptyMap()
     fun stampModel(key: String, id: String, at: Long = System.currentTimeMillis()) = update {
@@ -56,10 +56,6 @@ class AppSettings(private val file: File) {
         m[id] = JsonPrimitive(at)
         put(key, JsonObject(m))
     }
-
-    /** The Models screen's sort and filter (ModelOrder names); null is the default (Smart, All). */
-    var modelSort: String? get() = str("modelCatalogSort"); set(v) = set("modelCatalogSort", v?.let(::JsonPrimitive))
-    var modelFilter: String? get() = str("modelCatalogFilter"); set(v) = set("modelCatalogFilter", v?.let(::JsonPrimitive))
 
     /** modelRoleAssignments: role ("fast", "general"…) to model id. */
     fun modelRoleAssignments(): Map<String, String> =
@@ -101,10 +97,9 @@ class AppSettings(private val file: File) {
             "themeId", "fontScale", "screenOrientation", "personalityId", "maxTokens", "deepResearchMode", "researchBannerHidden",
             "adaptiveRoutingEnabled", "routingPreset", "engineTweaks", "showLiveStats", "voiceInputEnabled", "hapticsEnabled",
             "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles",
-            "freeMemoryInBackground", "freeMemoryAfterMinutes", "modelCatalogSort", "modelCatalogFilter",
+            "freeMemoryInBackground", "freeMemoryAfterMinutes",
         )
         const val MODEL_LAST_USED = "modelLastUsedAt"
-        const val MODEL_ADDED = "modelAddedAt"
         /** Portrait unless the user picks Auto or Landscape (Oct 18): the chat reads best upright on a phone. */
         const val DEFAULT_ORIENTATION = "portrait"
         /** The one answer style (personalities.json's "succinct"). */
@@ -206,9 +201,6 @@ class AppSettings(private val file: File) {
 
     /** The last model that loaded: CR-2's fallback after a crash on a cold start. */
     var lastLoadedModelId: String? get() = str("lastLoadedModelId"); set(v) = set("lastLoadedModelId", v?.let(::JsonPrimitive))
-
-    /** The id submit-results gave this phone's key (settings.ts shareDeviceId). */
-    var shareDeviceId: String? get() = str("shareDeviceId"); set(v) = set("shareDeviceId", v?.let(::JsonPrimitive))
 
     // The PIN lock (native app): the data key sealed with the PIN and the device key, its salt, and the wrong-try count.
     var pinWrapped: String? get() = str("pinWrapped"); set(v) = set("pinWrapped", v?.let(::JsonPrimitive))

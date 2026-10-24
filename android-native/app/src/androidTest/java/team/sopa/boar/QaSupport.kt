@@ -28,7 +28,7 @@ internal val qaCtx get() = InstrumentationRegistry.getInstrumentation().targetCo
 
 internal fun tr(key: String, vararg args: Pair<String, Any?>) = I18n.t(qaCtx, key, *args)
 
-/** An instrumentation argument (-e name value), e.g. -e qaFirstRun true for the tests that are opt-in. */
+/** An instrumentation argument (-e name value), e.g. -e qaPurge true for the tests that are opt-in. */
 internal fun qaArg(name: String): String? = InstrumentationRegistry.getArguments().getString(name)
 
 /**
@@ -135,7 +135,7 @@ internal fun ComposeTestRule.openFromSettings(row: String) {
 
 /**
  * Presses the node matching [action] whose vertical centre is nearest to the row showing [label]: the screens repeat
- * the same icon button (⋮, Download) on every row, and only the row's title tells them apart.
+ * the same icon button (⋮) on every row, and only the row's title tells them apart.
  */
 internal fun ComposeTestRule.pressNear(label: String, action: SemanticsMatcher) {
     val y = onAllNodesWithText(label)[0].fetchSemanticsNode().boundsInRoot.center.y
@@ -152,7 +152,7 @@ internal fun ComposeTestRule.topOf(text: String): Float = onAllNodesWithText(tex
 /** Titles in the order they are listed on screen. */
 internal fun ComposeTestRule.orderOf(vararg titles: String): List<String> = titles.sortedBy { topOf(it) }
 
-/** Polls [condition] every [stepMs] without keeping Compose busy (long waits: downloads, imports). */
+/** Polls [condition] every [stepMs] without keeping Compose busy (long waits: imports). */
 internal fun waitSlowly(timeoutMs: Long, what: String, stepMs: Long = 500, condition: () -> Boolean) {
     val end = android.os.SystemClock.uptimeMillis() + timeoutMs
     while (!condition()) {

@@ -16,56 +16,9 @@
     <string name="drawer_subtitle" formatted="false">Adaptive Local Intelligence</string>
     <string name="drawer_newChat" formatted="false">New Research Session</string>
     <string name="drawer_recentSessions" formatted="false">Recent sessions</string>
-    <string name="modelCatalogScreen_title" formatted="false">Model Catalog</string>
-    <string name="modelCatalogScreen_subtitle" formatted="false">Models that run offline, without a server</string>
-    <string name="modelCatalogScreen_filters_all" formatted="false">All</string>
-    <string name="modelCatalogScreen_filters_llm" formatted="false">LLM</string>
-    <string name="modelCatalogScreen_filters_corpus" formatted="false">Corpus</string>
-    <string name="modelCatalogScreen_filters_community" formatted="false">Community</string>
-    <string name="modelCatalogScreen_removedToast" formatted="false">Removed \"{{label}}\"</string>
-    <string name="modelCatalogScreen_activeModelToast" formatted="false">Active {{kind}} model set to \"{{label}}\"</string>
-    <string name="modelCatalogScreen_browserSectionTitle" formatted="false">Hugging Face repository search</string>
-    <string name="modelBrowser_hint" formatted="false">Search Hugging Face for other GGUF models. Not vetted by BOAR — check RAM fit and licensing yourself on the model\'s page before downloading.</string>
-    <string name="modelBrowser_searchPlaceholder" formatted="false">e.g. llama 3.2 3b instruct</string>
-    <string name="modelBrowser_searchFailedTitle" formatted="false">Search failed</string>
-    <string name="modelBrowser_loadFilesFailedTitle" formatted="false">Couldn\'t load files</string>
-    <string name="modelBrowser_addedTitle" formatted="false">Added</string>
-    <string name="modelBrowser_addedMessage" formatted="false">\"{{label}}\" was added to the model list above — download it from there.</string>
-    <string name="modelBrowser_addFailedTitle" formatted="false">Couldn\'t add model</string>
-    <string name="modelBrowser_downloadsLikes" formatted="false">{{downloads}} downloads · {{likes}} likes</string>
-    <string name="modelBrowser_noChecksum" formatted="false">no checksum available</string>
-    <string name="modelBrowser_adding" formatted="false">Adding…</string>
-    <string name="modelBrowser_addButton" formatted="false">Add</string>
-    <string name="modelBrowser_noGgufFiles" formatted="false">No .gguf files found in this repo.</string>
-    <string name="modelBrowser_offlineNote" formatted="false">You\'re offline. Connect to the internet to search Hugging Face for more models; everything else works offline.</string>
-    <string name="catalogItemCard_calculating" formatted="false">Calculating…</string>
-    <string name="catalogItemCard_removeFromListTitle" formatted="false">Remove from list?</string>
-    <string name="catalogItemCard_removeFromListMessage" formatted="false">This model isn\'t downloaded. It will be removed from your list; you can add it again from the Hugging Face search.</string>
     <string name="catalogItemCard_removeCorpusTitle" formatted="false">Remove Knowledge Base Pack?</string>
-    <string name="catalogItemCard_removeModelTitle" formatted="false">Remove Model Weights?</string>
-    <string name="catalogItemCard_removeCorpusMessage" formatted="false">This deletes the local dataset and frees {{size}}. Its topics will not be searchable offline until re-downloaded.</string>
-    <string name="catalogItemCard_removeModelMessage" formatted="false">This deletes the local weights file and frees {{size}}.</string>
+    <string name="catalogItemCard_removeCorpusMessage" formatted="false">This deletes the local dataset and frees {{size}}. Its topics will not be searchable until it is installed again.</string>
     <string name="catalogItemCard_removeAssetButton" formatted="false">Remove</string>
-    <string name="catalogItemCard_kind_llm" formatted="false">LLM</string>
-    <string name="catalogItemCard_kind_embedding" formatted="false">EMBEDDING</string>
-    <string name="catalogItemCard_kind_corpus" formatted="false">CORPUS</string>
-    <string name="catalogItemCard_default" formatted="false">DEFAULT</string>
-    <string name="catalogItemCard_compat_green" formatted="false">Runs well on this phone</string>
-    <string name="catalogItemCard_compat_yellow" formatted="false">May be slow on this phone</string>
-    <string name="catalogItemCard_compat_red" formatted="false">Too large for this phone</string>
-    <string name="catalogItemCard_downloadingAsset" formatted="false">Downloading</string>
-    <string name="catalogItemCard_eta" formatted="false">ETA: {{eta}}</string>
-    <string name="catalogItemCard_retryDownload" formatted="false">Try again</string>
-    <string name="catalogItemCard_downloadAsset" formatted="false">Download</string>
-    <string name="catalogItemCard_loadingModel" formatted="false">Loading model…</string>
-    <string name="catalogItemCard_selectUse" formatted="false">Use this model</string>
-    <string name="catalogItemCard_indexedNote" formatted="false">Ready to search offline</string>
-    <string name="catalogItemCard_activeNote" formatted="false">In use for answers</string>
-    <string name="catalogItemCard_deleteAccessibility" formatted="false">Delete model asset</string>
-    <string name="catalogItemCard_badge_downloading" formatted="false">Downloading</string>
-    <string name="catalogItemCard_badge_notOnDisk" formatted="false">Not downloaded</string>
-    <string name="catalogItemCard_badge_active" formatted="false">In use</string>
-    <string name="catalogItemCard_badge_cached" formatted="false">Downloaded</string>
     <string name="modelLoadErrorCard_corrupt_title" formatted="false">Integrity Check Failed</string>
     <string name="modelLoadErrorCard_corrupt_detail" formatted="false">The downloaded model file is truncated or corrupted (likely due to background network interruption).</string>
     <string name="modelLoadErrorCard_corrupt_recommendation" formatted="false">Re-download the model file cleanly or switch to a cached model in Settings.</string>
@@ -113,76 +66,15 @@
     <string name="modelSetupScreen_recovery_wizardDesc" formatted="false">Re-run the initial 3-step onboarding flow to re-scan device hardware or switch your base model tier.</string>
     <string name="modelSetupScreen_recovery_wizardButton" formatted="false">Relaunch Setup Wizard ➔</string>
     <string name="modelSetupScreen_recovery_dangerBadge" formatted="false">CRITICAL DANGER ZONE</string>
-    <string name="modelSetupScreen_recovery_dangerDesc" formatted="false">Permanently wipes all downloaded GGUF weights, offline SQLite database indices, and conversation logs from this device.</string>
+    <string name="modelSetupScreen_recovery_dangerDesc" formatted="false">Permanently wipes the GGUF weights, offline SQLite database indices, and conversation logs from this device.</string>
     <string name="modelSetupScreen_recovery_dangerButton" formatted="false">🚨 Purge All Data &amp; Reset App</string>
     <string name="modelSetupScreen_dangerModal_title" formatted="false">Confirm destructive reset</string>
     <string name="modelSetupScreen_dangerModal_subtitle" formatted="false">This action is immediate, permanent, and cannot be undone.</string>
     <string name="modelSetupScreen_dangerModal_consequencesHeader" formatted="false">The following will be removed:</string>
-    <string name="modelSetupScreen_dangerModal_consequenceModels" formatted="false">All downloaded GGUF model files (~2.3 GB+)</string>
+    <string name="modelSetupScreen_dangerModal_consequenceModels" formatted="false">The GGUF model files (~1.1 GB+)</string>
     <string name="modelSetupScreen_dangerModal_consequenceEmbeddings" formatted="false">All offline SQLite document collections &amp; embeddings</string>
     <string name="modelSetupScreen_dangerModal_consequenceHistory" formatted="false">All chat session history and generated summaries</string>
     <string name="modelSetupScreen_dangerModal_confirmButton" formatted="false">Purge All Data</string>
-    <string name="setupWizard_calculating" formatted="false">Calculating…</string>
-    <string name="setupWizard_estimating" formatted="false">Estimating…</string>
-    <string name="setupWizard_steps_hardware" formatted="false">Hardware</string>
-    <string name="setupWizard_steps_modelTier" formatted="false">Model</string>
-    <string name="setupWizard_steps_install" formatted="false">Install</string>
-    <string name="setupWizard_steps_indexing" formatted="false">Indexing</string>
-    <string name="setupWizard_step1_terminalTitle" formatted="false">Air-gapped field terminal</string>
-    <string name="setupWizard_step1_terminalText" formatted="false">Designed for remote expeditions, crisis zones, and off-grid research. After this initial setup, BOAR operates 100% locally with zero network telemetry, no accounts, and no cloud dependencies.</string>
-    <string name="setupWizard_step1_hardwareTitle" formatted="false">Device hardware verification</string>
-    <string name="setupWizard_step1_deviceRam" formatted="false">Device RAM</string>
-    <string name="setupWizard_step1_verified" formatted="false">Verified</string>
-    <string name="setupWizard_step1_availableStorage" formatted="false">Available Disk Storage</string>
-    <string name="setupWizard_step1_sufficient" formatted="false">Sufficient</string>
-    <string name="setupWizard_step1_ramBudget" formatted="false">RAM Budget</string>
-    <string name="setupWizard_step1_under12gb" formatted="false">Under 12GB Limit</string>
-    <string name="setupWizard_step1_inferenceEngine" formatted="false">Inference Engine</string>
-    <string name="setupWizard_step1_inferenceEngineValue" formatted="false">ARM64 llama.rn (Offline)</string>
-    <string name="setupWizard_step1_verifiedBadge" formatted="false">HARDWARE VERIFIED FOR LOCAL INFERENCE</string>
-    <string name="setupWizard_step1_selectTierButton" formatted="false">Select Model Tier ➔</string>
-    <string name="setupWizard_step2_title" formatted="false">Choose your answer model</string>
-    <string name="setupWizard_step2_subtitle" formatted="false">It writes the answers on this phone and is downloaded once. You can change it later in Models.</string>
-    <string name="setupWizard_step2_recommended" formatted="false">RECOMMENDED</string>
-    <string name="setupWizard_step2_models_default" formatted="false">Qwen3 4B. Fuller explanations and comparisons, a little slower. Best on phones with 12 GB of RAM or more.</string>
-    <string name="setupWizard_step2_models_compact" formatted="false">Qwen3 1.7B. Fast and light, with thinking off: answers start in a few seconds on an 8 GB phone. The recommended pick for every phone.</string>
-    <string name="setupWizard_step2_onPhone" formatted="false">ON THIS PHONE</string>
-    <string name="setupWizard_step2_heavy" formatted="false">HEAVY FOR THIS PHONE</string>
-    <string name="setupWizard_step2_heavyNote" formatted="false">On this phone it may answer slowly, and Android may close BOAR in the background to free memory.</string>
-    <string name="setupWizard_step2_knowledgeTitle" formatted="false">Choose your knowledge</string>
-    <string name="setupWizard_step2_knowledgeSubtitle" formatted="false">Topics the answers can draw on, offline.</string>
-    <string name="setupWizard_step2_installButton" formatted="false">Download and index</string>
-    <string name="setupWizard_step2_backButton" formatted="false">Back</string>
-    <string name="setupWizard_step3_title" formatted="false">Offline core initialization</string>
-    <string name="setupWizard_step3_subtitle" formatted="false">Downloading the open-weights models and knowledge you chose. This is the only time BOAR uses the internet.</string>
-    <string name="setupWizard_step3_assetsCached" formatted="false">ASSETS CACHED TO DISK</string>
-    <string name="setupWizard_step3_downloadingWeights" formatted="false">Downloading weights</string>
-    <string name="setupWizard_step3_eta" formatted="false">ETA: {{eta}}</string>
-    <string name="setupWizard_step3_phaseModel" formatted="false">Reasoning Models</string>
-    <string name="setupWizard_step3_phaseEmbedding" formatted="false">Embedding Model &amp; Vectors</string>
-    <string name="setupWizard_step3_phaseKnowledgeBase" formatted="false">Offline Knowledge Base &amp; FTS</string>
-    <string name="setupWizard_step3_interfaceCustomization" formatted="false">Interface customization</string>
-    <string name="setupWizard_step3_customizeWhileWaiting" formatted="false">While you wait, make it yours — pick a theme and font below.</string>
-    <string name="setupWizard_step3_tipLabel" formatted="false">💡 Field terminal notice</string>
-    <string name="setupWizard_step3_tipText" formatted="false">Once initialized, BOAR is completely self-contained. You can toggle airplane mode and use the app in complete isolation without loss of functionality.</string>
-    <string name="setupWizard_step3_launchButton" formatted="false">Launch BOAR Terminal</string>
-    <string name="setupWizard_step3_indexingError" formatted="false">Indexing error: {{error}}</string>
-    <string name="setupWizard_step3_buildingIndex" formatted="false">Building local knowledge base &amp; vector index…</string>
-    <string name="setupWizard_step3_waitingForDownloads" formatted="false">Waiting for downloads…</string>
-    <string name="setupWizard_step3_downloadFailedLabel" formatted="false">Download failed</string>
-    <string name="setupWizard_step3_retryDownloads" formatted="false">Retry Download</string>
-    <string name="setupWizard_step3_keepOpenLabel" formatted="false">⚠ Keep BOAR open</string>
-    <string name="setupWizard_step3_keepOpenText" formatted="false">Downloads pause automatically if you switch to another app and resume where they left off when you come back — but they don\'t progress while backgrounded. Keep BOAR in the foreground for the fastest one-time setup.</string>
-    <string name="setupWizard_step3_assetCounter" formatted="false">Model {{current}} of {{total}} — {{label}}</string>
-    <string name="setupWizard_step3_restartDownloads" formatted="false">⟳ Downloads stuck? Tap to restart</string>
-    <string name="setupWizard_step4_title" formatted="false">Indexing offline knowledge</string>
-    <string name="setupWizard_step4_subtitle" formatted="false">Building the local knowledge base and search index on this phone. No internet needed.</string>
-    <string name="setupWizard_step4_counter" formatted="false">Indexed {{done}} of {{total}}</string>
-    <string name="setupWizard_phaseStatus_complete" formatted="false">COMPLETE</string>
-    <string name="setupWizard_phaseStatus_streaming" formatted="false">STREAMING</string>
-    <string name="setupWizard_phaseStatus_indexing" formatted="false">INDEXING</string>
-    <string name="setupWizard_phaseStatus_pending" formatted="false">PENDING</string>
-    <string name="setupWizard_phaseStatus_queued" formatted="false">QUEUED</string>
     <string name="personalitySettings_adaptiveRoutingTitle" formatted="false">Adaptive Routing</string>
     <string name="personalitySettings_adaptiveRoutingNote" formatted="false">Classifies each message and picks which downloaded model answers it (e.g. a lightweight model for small talk, a stronger one for research/comparison questions), switching between them as needed. On by default and independent from Deep Research — if it fails for any reason, chat falls back to your normal active model automatically, it never leaves you without a response.</string>
     <string name="corpusSettingsTab_downloadablePacks" formatted="false">Downloadable knowledge packs</string>
@@ -233,11 +125,8 @@
     <string name="chatHeader_offline" formatted="false">OFFLINE</string>
     <string name="chatHeader_localLlmCore" formatted="false">No model yet</string>
     <string name="chatHeader_newChatSession" formatted="false">New Chat Session</string>
-    <string name="chatHeader_online" formatted="false">ONLINE</string>
-    <string name="chatHeader_onlineTitle" formatted="false">You\'re online</string>
-    <string name="chatHeader_onlineBody" formatted="false">Your phone is connected to the internet. BOAR doesn\'t need it: answers, search and your library all work on this phone. Only downloading models or packs and searching Hugging Face for models use the connection. Turn on airplane mode to see it work fully offline.</string>
     <string name="chatHeader_offlineTitle" formatted="false">You\'re offline</string>
-    <string name="chatHeader_offlineBody" formatted="false">No internet connection. Everything works: answers, search and your library are all on this phone.</string>
+    <string name="chatHeader_offlineBody" formatted="false">BoarLite has no internet access at all. Everything works: answers, search and your library are all on this phone.</string>
     <string name="chatScreen_initializingCore" formatted="false">Initializing local offline core…</string>
     <string name="chatScreen_mountingWeights" formatted="false">Getting BOAR ready…</string>
     <string name="chatScreen_indexingKnowledgeBase" formatted="false">Indexing offline knowledge base…</string>
@@ -330,87 +219,7 @@
     <string name="evaluation_runFailedTitle" formatted="false">Evaluation failed</string>
     <string name="evaluation_deviceRequest" formatted="false">Started from a connected computer (request {{id}}).</string>
     <string name="evaluation_noRetrieval" formatted="false">no retrieval</string>
-    <string name="evaluation_share" formatted="false">Share</string>
     <string name="evaluation_sharing" formatted="false">Sharing…</string>
-    <string name="evaluation_shared" formatted="false">✓ Shared</string>
-    <string name="evaluation_shareTitle" formatted="false">Share results</string>
-    <string name="evaluation_shareConfirm" formatted="false">Share</string>
-    <string name="evaluation_shareResult_shared" formatted="false">Shared. Thank you!</string>
-    <string name="evaluation_shareResult_already__shared" formatted="false">This run was already shared.</string>
-    <string name="evaluation_shareResult_rate__limited" formatted="false">Too many runs shared from this phone today. Try again tomorrow.</string>
-    <string name="evaluation_shareResult_rejected" formatted="false">The server didn\'t accept this run. Update the app and try again.</string>
-    <string name="evaluation_shareResult_failed" formatted="false">Couldn\'t reach the server. Check the internet connection and try again.</string>
-    <string name="evaluation_preview_title" formatted="false">What will be shared</string>
-    <string name="evaluation_preview_subtitle" formatted="false">Read it all before sending. Nothing is sent until you press Share.</string>
-    <string name="evaluation_preview_phoneSection" formatted="false">This phone</string>
-    <string name="evaluation_preview_phone" formatted="false">Phone</string>
-    <string name="evaluation_preview_chipset" formatted="false">Chipset</string>
-    <string name="evaluation_preview_cpu" formatted="false">CPU</string>
-    <string name="evaluation_preview_cores" formatted="false">{{count}} cores</string>
-    <string name="evaluation_preview_ram" formatted="false">RAM</string>
-    <string name="evaluation_preview_os" formatted="false">System</string>
-    <string name="evaluation_preview_app" formatted="false">BOAR version</string>
-    <string name="evaluation_preview_yes" formatted="false">yes</string>
-    <string name="evaluation_preview_no" formatted="false">no</string>
-    <string name="evaluation_preview_modelsSection" formatted="false">Models tested</string>
-    <string name="evaluation_preview_parts" formatted="false">speed {{speed}} · completed {{reliability}} · sources {{retrieval}}</string>
-    <string name="evaluation_preview_tokPerSec" formatted="false">tokens/s</string>
-    <string name="evaluation_preview_ttft" formatted="false">first token</string>
-    <string name="evaluation_preview_total" formatted="false">total</string>
-    <string name="evaluation_preview_peakRam" formatted="false">peak RAM</string>
-    <string name="evaluation_preview_completed" formatted="false">completed</string>
-    <string name="evaluation_preview_sources" formatted="false">sources found</string>
-    <string name="evaluation_preview_formula" formatted="false">Score v{{version}}, 0 to 100: {{speed}}% speed (median tokens/s, full marks at {{reference}}), {{reliability}}% answers completed, {{retrieval}}% expected sources found; 0 if under half completed. It measures speed and reliability, not whether answers are correct. The server recomputes it from the answers.</string>
-    <string name="evaluation_preview_answers" formatted="false">{{count}} questions and answers (tap to read)</string>
-    <string name="evaluation_preview_notSentSection" formatted="false">Not sent</string>
-    <string name="evaluation_preview_notSent" formatted="false">Your chats, your documents, your name, your location, your contacts. This phone is identified only by a random number created in the app.</string>
-    <string name="evaluation_shareProgress_sendingTitle" formatted="false">Sending your results</string>
-    <string name="evaluation_shareProgress_step_prepare" formatted="false">Packing the answers</string>
-    <string name="evaluation_shareProgress_step_challenge" formatted="false">Getting a one-time code from the server</string>
-    <string name="evaluation_shareProgress_step_key" formatted="false">Getting this phone\'s security key</string>
-    <string name="evaluation_shareProgress_step_sign" formatted="false">Signing the results</string>
-    <string name="evaluation_shareProgress_step_send" formatted="false">Sending and checking</string>
-    <string name="evaluation_shareProgress_title_shared" formatted="false">Shared</string>
-    <string name="evaluation_shareProgress_title_shared__pending" formatted="false">Sent for review</string>
-    <string name="evaluation_shareProgress_title_already__shared" formatted="false">Already shared</string>
-    <string name="evaluation_shareProgress_title_rate__limited" formatted="false">Daily limit reached</string>
-    <string name="evaluation_shareProgress_title_cooldown" formatted="false">Too soon</string>
-    <string name="evaluation_shareProgress_title_network__limited" formatted="false">Network limit reached</string>
-    <string name="evaluation_shareProgress_title_rejected" formatted="false">Not accepted</string>
-    <string name="evaluation_shareProgress_title_offline" formatted="false">Couldn\'t reach the server</string>
-    <string name="evaluation_shareProgress_title_busy" formatted="false">The server is busy</string>
-    <string name="evaluation_shareProgress_title_server__error" formatted="false">The server had a problem</string>
-    <string name="evaluation_shareProgress_title_key__failed" formatted="false">Couldn\'t sign the results</string>
-    <string name="evaluation_shareProgress_title_failed" formatted="false">Couldn\'t share</string>
-    <string name="evaluation_shareProgress_why_shared" formatted="false">Your run is on the leaderboard. Thank you!</string>
-    <string name="evaluation_shareProgress_why_shared__pending" formatted="false">This phone\'s secure hardware couldn\'t prove the results come from a real phone, which happens on some genuine phones. The run is saved and the BOAR team will review it before it appears on the website.</string>
-    <string name="evaluation_shareProgress_why_already__shared" formatted="false">This run was already on the server; nothing new was sent.</string>
-    <string name="evaluation_shareProgress_why_rate__limited" formatted="false">Each phone can share 3 runs in 24 hours. Try again later.</string>
-    <string name="evaluation_shareProgress_why_rate__limitedAt" formatted="false">Each phone can share 3 runs in 24 hours. You can share again at {{time}}.</string>
-    <string name="evaluation_shareProgress_why_cooldown" formatted="false">Shares from one phone need an hour between them. Try again later.</string>
-    <string name="evaluation_shareProgress_why_cooldownAt" formatted="false">Shares from one phone need an hour between them. You can share again at {{time}}.</string>
-    <string name="evaluation_shareProgress_why_network__limited" formatted="false">Many runs were shared from this network today, maybe other phones on the same Wi-Fi. Try again later, or from another connection.</string>
-    <string name="evaluation_shareProgress_why_rejected" formatted="false">The server refused this run. Only the official BOAR app, up to date, on a real phone can share. The details below say why.</string>
-    <string name="evaluation_shareProgress_why_offline" formatted="false">No answer from the server. Check the internet connection and try again. Your results are still on the phone.</string>
-    <string name="evaluation_shareProgress_why_busy" formatted="false">Too many shares right now. Try again in a few minutes.</string>
-    <string name="evaluation_shareProgress_why_server__error" formatted="false">Something went wrong on the server. Try again in a few minutes; if it keeps happening, export the results and send them to the team.</string>
-    <string name="evaluation_shareProgress_why_key__failed" formatted="false">This phone couldn\'t create or use a security key to sign the results, so they can\'t be shared. Export them instead and send the file to the team.</string>
-    <string name="evaluation_shareProgress_why_failed" formatted="false">Something unexpected went wrong. Try again, or export the results.</string>
-    <string name="evaluation_shareProgress_logTitle" formatted="false">What happened</string>
-    <string name="evaluation_shareProgress_log_prepare" formatted="false">Packing {{count}} answers</string>
-    <string name="evaluation_shareProgress_log_challenge" formatted="false">Asking the server for a one-time code…</string>
-    <string name="evaluation_shareProgress_log_challengeGot" formatted="false">One-time code {{code}}…</string>
-    <string name="evaluation_shareProgress_log_key" formatted="false">Creating a key in the phone\'s secure hardware…</string>
-    <string name="evaluation_shareProgress_log_key__existing" formatted="false">Using this phone\'s key</string>
-    <string name="evaluation_shareProgress_log_key__new__attested" formatted="false">New key, certified by the phone\'s secure hardware</string>
-    <string name="evaluation_shareProgress_log_key__new__unattested" formatted="false">The secure hardware can\'t certify keys: using a plain key, for review</string>
-    <string name="evaluation_shareProgress_log_sign" formatted="false">Signing the results</string>
-    <string name="evaluation_shareProgress_log_send" formatted="false">Sending {{size}} ({{count}} answers)</string>
-    <string name="evaluation_shareProgress_log_status" formatted="false">Server answered {{status}}</string>
-    <string name="evaluation_shareProgress_detail" formatted="false">Details: {{detail}}</string>
-    <string name="evaluation_shareProgress_retry" formatted="false">Try again</string>
-    <string name="evaluation_shareProgress_exportTitle" formatted="false">Keep a copy</string>
-    <string name="evaluation_shareProgress_exportFooter" formatted="false">Save the whole run as a file, whatever happened: JSONL for tools, CSV for spreadsheets.</string>
     <string name="chat_suggestions_q1" formatted="false">Why do we have seasons on Earth?</string>
     <string name="chat_suggestions_q2" formatted="false">What makes an epidemic a pandemic?</string>
     <string name="chat_suggestions_q3" formatted="false">What is 30 °C in Fahrenheit?</string>
@@ -458,137 +267,7 @@
     <string name="chat_receipt_model" formatted="false">Model</string>
     <string name="chat_receipt_tokenCount" formatted="false">{{tokens}} tokens (~{{words}} words)</string>
     <string name="flows_onboarding_brandSub" formatted="false">Offline research assistant</string>
-    <string name="flows_onboarding_introLabel" formatted="false">How it works</string>
-    <string name="flows_onboarding_phoneLabel" formatted="false">This phone</string>
-    <string name="flows_onboarding_phoneMemory" formatted="false">Memory</string>
-    <string name="flows_onboarding_phoneFree" formatted="false">Free space</string>
-    <string name="flows_onboarding_phoneEngine" formatted="false">Runs on</string>
-    <string name="flows_onboarding_phoneEngineValue" formatted="false">Right on this phone</string>
-    <string name="flows_onboarding_introBody" formatted="false">AI research that runs entirely on your phone. Once it is set up it works without internet, your questions never leave the phone, and every answer shows the sources behind it.</string>
-    <string name="flows_onboarding_meta_onDisk" formatted="false">{{size}} on disk after install</string>
-    <string name="flows_onboarding_meta_time" formatted="false">~{{minutes}} min at {{speed}}/s</string>
-    <string name="flows_onboarding_start" formatted="false">Get started</string>
     <string name="flows_onboarding_backToApp" formatted="false">Back to the app</string>
-    <string name="flows_onboarding_step2Title" formatted="false">Choose what to install</string>
-    <string name="flows_onboarding_step2Sub" formatted="false">Everything is downloaded once and then works offline.</string>
-    <string name="flows_onboarding_step2SubOffline" formatted="false">This version has no internet access: you import the files once, and then everything works offline.</string>
-    <string name="flows_onboarding_step3Title" formatted="false">Installing</string>
-    <string name="flows_onboarding_step3Sub" formatted="false">This is the only time BOAR uses the internet.</string>
-    <string name="flows_onboarding_indexTitle" formatted="false">Organizing BOAR’s library</string>
-    <string name="flows_onboarding_indexSub" formatted="false">BOAR is sorting the articles in its knowledge packs so it can find them fast. It only reads what it just downloaded, never your photos or files. No internet needed.</string>
-    <string name="flows_onboarding_package_essential_name" formatted="false">Essential</string>
-    <string name="flows_onboarding_package_essential_body" formatted="false">Answer and search models, plus core Wikipedia collections.</string>
-    <string name="flows_onboarding_package_encyclopedia_name" formatted="false">Encyclopedia</string>
-    <string name="flows_onboarding_package_encyclopedia_body" formatted="false">Essential plus 50,000 Wikipedia articles, for broader questions.</string>
-    <string name="flows_onboarding_recommended" formatted="false">Recommended</string>
-    <string name="flows_onboarding_alreadyDownloaded" formatted="false">Already on the phone</string>
-    <string name="flows_onboarding_noSpace" formatted="false">Not enough space: {{size}} more is needed.</string>
-    <string name="flows_onboarding_install" formatted="false">Download {{size}}</string>
-    <string name="flows_onboarding_continue" formatted="false">Continue</string>
-    <string name="flows_onboarding_back" formatted="false">Back</string>
-    <string name="flows_onboarding_backTitle" formatted="false">Go back to the packages?</string>
-    <string name="flows_onboarding_backBody" formatted="false">Downloads already running keep going while BOAR is open.</string>
-    <string name="flows_onboarding_stay" formatted="false">Stay here</string>
-    <string name="flows_onboarding_goBack" formatted="false">Go back</string>
-    <string name="flows_onboarding_totalLabel" formatted="false">Total download</string>
-    <string name="flows_onboarding_importedLabel" formatted="false">Imported</string>
-    <string name="flows_onboarding_ofFiles_one" formatted="false">of {{total}} file</string>
-    <string name="flows_onboarding_ofFiles_other" formatted="false">of {{total}} files</string>
-    <string name="flows_onboarding_keepOpenImport" formatted="false">Keep BOAR open while it checks the files. If you leave, the check may stop.</string>
-    <string name="flows_onboarding_totalValue" formatted="false">{{done}} / {{total}}</string>
-    <string name="flows_onboarding_percentAnnounce" formatted="false">{{pct}}% downloaded</string>
-    <string name="flows_onboarding_percentImportedAnnounce" formatted="false">{{pct}}% imported</string>
-    <string name="flows_onboarding_queued" formatted="false">Waiting</string>
-    <string name="flows_onboarding_importingLabel" formatted="false">Importing</string>
-    <string name="flows_onboarding_fileOf" formatted="false">File {{n}} of {{total}} — {{name}}</string>
-    <string name="flows_onboarding_bootChecking" formatted="false">Checking the files on this phone…</string>
-    <string name="flows_onboarding_category_answer" formatted="false">Answer model</string>
-    <string name="flows_onboarding_category_search" formatted="false">Search model</string>
-    <string name="flows_onboarding_category_knowledge" formatted="false">Knowledge</string>
-    <string name="flows_onboarding_category_places" formatted="false">Places</string>
-    <string name="flows_onboarding_category_extras" formatted="false">Also imported</string>
-    <string name="flows_onboarding_categoryStatus_failed" formatted="false">Failed</string>
-    <string name="flows_onboarding_categoryStatus_moving" formatted="false">Downloading</string>
-    <string name="flows_onboarding_categoryStatus_importing" formatted="false">Importing</string>
-    <string name="flows_onboarding_categoryStatus_ready" formatted="false">Ready</string>
-    <string name="flows_onboarding_categoryStatus_queued" formatted="false">Waiting</string>
-    <string name="flows_onboarding_categoryStatus_import" formatted="false">To import</string>
-    <string name="flows_onboarding_categoryHint" formatted="false">Shows the files</string>
-    <string name="flows_onboarding_categoryA11y" formatted="false">{{name}}, {{done}} of {{total}} files, {{pct}}%</string>
-    <string name="flows_onboarding_openWhenReady" formatted="false">Available when every file is on the phone</string>
-    <string name="flows_onboarding_llmLabel" formatted="false">Model</string>
-    <string name="flows_onboarding_chooseAnswerTitle" formatted="false">Assistant</string>
-    <string name="flows_onboarding_chooseAnswerHint" formatted="false">Choose Fast or More accurate</string>
-    <string name="flows_onboarding_workingMemory" formatted="false">needs ~{{size}} of memory</string>
-    <string name="flows_onboarding_currentItem" formatted="false">Item {{n}} of {{total}} — {{name}}</string>
-    <string name="flows_onboarding_keepOpenTitle" formatted="false">Best with BOAR open</string>
-    <string name="flows_onboarding_keepOpenIndex" formatted="false">BOAR is organizing its own articles. If you leave, it pauses and picks up where it stopped when you come back.</string>
-    <string name="flows_onboarding_stage_start" formatted="false">Start</string>
-    <string name="flows_onboarding_stage_choose" formatted="false">Choose</string>
-    <string name="flows_onboarding_stage_install" formatted="false">Install</string>
-    <string name="flows_onboarding_stage_index" formatted="false">Library</string>
-    <string name="flows_onboarding_stage_model" formatted="false">Model</string>
-    <string name="flows_onboarding_stage_knowledge" formatted="false">Knowledge</string>
-    <string name="flows_onboarding_stage_download" formatted="false">Download</string>
-    <string name="flows_onboarding_stageOf" formatted="false">Step {{n}} of {{total}}: {{name}}</string>
-    <string name="flows_onboarding_checking" formatted="false">Checking</string>
-    <string name="flows_onboarding_failedShort" formatted="false">Failed</string>
-    <string name="flows_onboarding_downloadingLine" formatted="false">{{pct}}% · {{done}} of {{total}}</string>
-    <string name="flows_onboarding_ready" formatted="false">Ready</string>
-    <string name="flows_onboarding_indexRow" formatted="false">Organizing the knowledge packs</string>
-    <string name="flows_onboarding_waitingDownloads" formatted="false">Starts when every file is on the phone</string>
-    <string name="flows_onboarding_indexStarting" formatted="false">Starting</string>
-    <string name="flows_onboarding_indexCounter" formatted="false">{{done}} of {{total}} BOAR articles</string>
-    <string name="flows_onboarding_minutesLeft_one" formatted="false">about {{count}} min left</string>
-    <string name="flows_onboarding_minutesLeft_other" formatted="false">about {{count}} min left</string>
-    <string name="flows_onboarding_indexFailed" formatted="false">Organizing the library failed</string>
-    <string name="flows_onboarding_downloadFailed" formatted="false">A download failed</string>
-    <string name="flows_onboarding_restart" formatted="false">Restart downloads</string>
-    <string name="flows_onboarding_restartHint" formatted="false">Downloads not moving?</string>
-    <string name="flows_onboarding_keepOpen" formatted="false">Downloads go fastest with BOAR open. If you leave, they pause, and they continue where they stopped when you come back.</string>
-    <string name="flows_onboarding_doneTitle" formatted="false">Ready</string>
-    <string name="flows_onboarding_doneBody" formatted="false">Everything runs offline from now on.</string>
-    <string name="flows_onboarding_doneSummary" formatted="false">On this phone</string>
-    <string name="flows_onboarding_doneAnswer" formatted="false">Answer model</string>
-    <string name="flows_onboarding_doneKnowledge" formatted="false">Knowledge</string>
-    <string name="flows_onboarding_doneCollections_one" formatted="false">{{value}} collection</string>
-    <string name="flows_onboarding_doneCollections_other" formatted="false">{{value}} collections</string>
-    <string name="flows_onboarding_donePlaces" formatted="false">Places</string>
-    <string name="flows_onboarding_doneIndex" formatted="false">Library</string>
-    <string name="flows_onboarding_doneArticles_one" formatted="false">{{value}} article ready to search</string>
-    <string name="flows_onboarding_doneArticles_other" formatted="false">{{value}} articles ready to search</string>
-    <string name="flows_onboarding_doneAnnounce" formatted="false">Setup finished. BOAR is ready.</string>
-    <string name="flows_onboarding_open" formatted="false">Open BOAR</string>
-    <string name="flows_onboarding_languageAnnounce" formatted="false">Language: English</string>
-    <string name="flows_onboarding_smallerPackage" formatted="false">Smaller package</string>
-    <string name="flows_onboarding_importTitle" formatted="false">Import the files</string>
-    <string name="flows_onboarding_importSub" formatted="false">This version has no internet access. Copy the files to the phone, then choose them here.</string>
-    <string name="flows_onboarding_importHow" formatted="false">The file list and where to get each file are in the offline install guide:</string>
-    <string name="flows_onboarding_copyLink" formatted="false">Copy link</string>
-    <string name="flows_onboarding_linkCopied" formatted="false">Link copied</string>
-    <string name="flows_onboarding_toImport" formatted="false">Not imported yet</string>
-    <string name="flows_onboarding_importPlacesNote" formatted="false">Place packs aren\'t published for download yet: choose their files here (the region and the world places file).</string>
-    <string name="flows_onboarding_compactWhy" formatted="false">More accurate may not run well on this phone, so Fast is selected. You can still choose More accurate.</string>
-    <string name="flows_onboarding_answerTier_default" formatted="false">More accurate</string>
-    <string name="flows_onboarding_answerTier_compact" formatted="false">Fast</string>
-    <string name="flows_onboarding_compactLowRam" formatted="false">This phone has {{ram}} of memory or less, so Fast is selected. You can still choose More accurate.</string>
-    <string name="flows_onboarding_canLeaveTitle" formatted="false">You can leave BOAR</string>
-    <string name="flows_onboarding_indexReading" formatted="false">Filing: {{title}}</string>
-    <string name="flows_onboarding_loadingLines_l1" formatted="false">Feeding the boar…</string>
-    <string name="flows_onboarding_loadingLines_l2" formatted="false">The boar stopped to sniff a truffle…</string>
-    <string name="flows_onboarding_loadingLines_l3" formatted="false">Sharpening the tusks…</string>
-    <string name="flows_onboarding_loadingLines_l4" formatted="false">Sorting acorns by subject…</string>
-    <string name="flows_onboarding_loadingLines_l5" formatted="false">Teaching the boar to read footnotes…</string>
-    <string name="flows_onboarding_loadingLines_l6" formatted="false">Digging for facts under the oak tree…</string>
-    <string name="flows_onboarding_loadingLines_l7" formatted="false">The boar is reading the whole encyclopedia. Slowly.</string>
-    <string name="flows_onboarding_loadingLines_l8" formatted="false">Packing snacks for the trip offline…</string>
-    <string name="flows_onboarding_loadingLines_l9" formatted="false">Checking every source twice…</string>
-    <string name="flows_onboarding_loadingLines_l10" formatted="false">Rolling in the mud of knowledge…</string>
-    <string name="flows_onboarding_loadingLines_l11" formatted="false">The boar found a shortcut. It was a tree.</string>
-    <string name="flows_onboarding_loadingLines_l12" formatted="false">Counting pages with hooves…</string>
-    <string name="flows_onboarding_modelTitle" formatted="false">Choose the answer model</string>
-    <string name="flows_onboarding_modelSub" formatted="false">It writes the answers on this phone. You can change it later in Models.</string>
-    <string name="flows_onboarding_knowledgeTitle" formatted="false">Choose your knowledge</string>
     <string name="flows_row_copying" formatted="false">Copying</string>
     <string name="flows_row_downloading" formatted="false">Downloading</string>
     <string name="flows_row_verifying" formatted="false">Checking</string>

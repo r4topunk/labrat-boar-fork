@@ -31,10 +31,9 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import team.sopa.boar.documents.DocumentsState
 import team.sopa.boar.documents.DocumentsViewModel
-import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.engine.rag.KnowledgeBase
-import team.sopa.boar.models.ModelsState
-import team.sopa.boar.models.ModelsViewModel
+import team.sopa.boar.models.PacksState
+import team.sopa.boar.models.PacksViewModel
 import team.sopa.boar.setup.KnowledgeCatalog
 import team.sopa.boar.setup.KnowledgeItem
 import team.sopa.boar.setup.KnowledgeTheme
@@ -165,21 +164,21 @@ private fun ImportedInvite(collection: String, onAsk: () -> Unit) {
 }
 
 /**
- * The built-in libraries by theme, named and counted as in setup. A ready library is a plain row (name, then articles ·
- * size); a missing one offers Download at its end; a running download shows its progress in the row.
+ * The built-in libraries by theme, named and counted as in setup. A library on the phone is a plain row (name, then
+ * articles · size) with a menu to remove it; one that isn't there shows only what it would hold.
  */
 @Composable
-fun KnowledgeLibrary(state: ModelsState, vm: ModelsViewModel) {
+fun KnowledgeLibrary(state: PacksState, vm: PacksViewModel) {
     val scheme = MaterialTheme.colorScheme
     val ctx = LocalContext.current
-    val corpora = state.items.filter { it.kind == AssetKind.CORPUS }
+    val corpora = state.items
     if (corpora.isEmpty()) return
     val previews = remember {
         runCatching { ctx.assets.open("boar-data/pack-previews.json").bufferedReader().use { it.readText() } }
             .map(KnowledgeCatalog::parsePreviews).getOrDefault(emptyMap())
     }
     val sections = remember(corpora, state.rows) {
-        KnowledgeCatalog.sections(corpora, previews, emptySet()) { state.rows[it.id]?.present == true }
+        KnowledgeCatalog.sections(corpora, previews) { state.rows[it.id]?.present == true }
     }
     var removing by remember { mutableStateOf<KnowledgeItem?>(null) }
     Text(t("design.knowledge.summary"), style = MaterialTheme.typography.bodyLarge, color = scheme.onSurfaceVariant,
@@ -190,42 +189,16 @@ fun KnowledgeLibrary(state: ModelsState, vm: ModelsViewModel) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             section.items.forEachIndexed { i, item ->
                 val assets = item.assetIds.mapNotNull { id -> corpora.firstOrNull { it.id == id } }
-                val rows = item.assetIds.mapNotNull { state.rows[it] }
-                val downloading = rows.any { it.downloading }
-                val indexing = rows.any { it.indexing }
-                val error = rows.firstNotNullOfOrNull { it.error }
-                val progress = if (rows.isEmpty()) 0.0 else rows.sumOf { if (it.present) 1.0 else it.progress } / item.assetIds.size
                 val articles = item.preview?.articles?.takeIf { it > 0 }
                 val facts = listOfNotNull(
                     articles?.let { t("clean.onboarding.articles", "count" to it, "value" to countText(it)) },
                     sizeText(item.sizeBytes),
-                    // The status only when it isn't ready.
-                    when {
-                        downloading -> null
-                        indexing -> t("setupWizard.step3.buildingIndex")
-                        else -> null
-                    },
                 ).joinToString(" · ")
                 ListItem(
                     headlineContent = { Text(item.nameKey?.let { t(it) } ?: item.fallbackName) },
-                    supportingContent = {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(if (error != null && !downloading) t("design.knowledge.failed") else facts,
-                                color = if (error != null && !downloading) scheme.error else scheme.onSurfaceVariant)
-                            if (downloading) LinearProgressIndicator(progress = { progress.toFloat().coerceIn(0.02f, 1f) }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
-                        }
-                    },
+                    supportingContent = { Text(facts, color = scheme.onSurfaceVariant) },
                     trailingContent = {
-                        when {
-                            downloading -> IconButton({ assets.forEach(vm::cancelDownload) }) {
-                                Icon(Icons.Filled.Close, contentDescription = t("native.models.cancelDownload"), tint = scheme.onSurfaceVariant)
-                            }
-                            !item.installed -> FilledTonalIconButton({ assets.filter { state.rows[it.id]?.present != true }.forEach(vm::download) }) {
-                                Icon(BoarIcons.Download, contentDescription = t("catalogItemCard.downloadAsset"))
-                            }
-                            assets.any { !it.required } -> RowMenu(listOf(t("design.knowledge.remove") to { removing = item }))
-                            else -> {}
-                        }
+                        if (item.installed && assets.any { !it.required }) RowMenu(listOf(t("design.knowledge.remove") to { removing = item }))
                     },
                     colors = ListItemDefaults.colors(containerColor = scheme.surfaceContainer),
                     modifier = Modifier.clip(groupedShape(i, section.items.size, outer = 20.dp)),

@@ -65,7 +65,7 @@
     <string name="native_about_tagline" formatted="false">Your questions.\nYour phone. Your AI.</string>
     <string name="native_about_bio" formatted="false">Offline AI research on your phone. Answers with sources, no signal needed. Open source (MIT).</string>
     <string name="native_about_post_why" formatted="false">When AI lives only on someone else\'s server, whoever runs it holds a switch.\n\nWe\'d rather no one did. So the model lives on your phone, and no server receives your questions.</string>
-    <string name="native_about_post_offline" formatted="false">One download at setup. Then airplane mode is fine: BOAR answers from the library on your phone and shows the articles it used.</string>
+    <string name="native_about_post_offline" formatted="false">BOAR has no internet access at all, so airplane mode is fine: it answers from the library on your phone and shows the articles it used.</string>
     <string name="native_about_post_receipt" formatted="false">Every answer shows how long it took and which articles it used.</string>
     <string name="native_about_post_budget" formatted="false">Before a model loads, BOAR checks that it fits your phone\'s memory.</string>
     <string name="native_about_post_open" formatted="false">Open source, MIT. The code, the model list and the scripts that build the knowledge packs:</string>
@@ -95,7 +95,6 @@
     <string name="native_eval_keepScreenOn" formatted="false">Keep the screen on and the app open while it runs. The chat\'s model is unloaded first so the two don\'t share memory.</string>
     <string name="native_chat_loadCrashed" formatted="false">{{crashed}} ran out of memory and BOAR had to close. For now, BOAR is answering with {{fallback}}.</string>
     <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} ran out of memory and BOAR had to close. You can try again using less memory, or pick a smaller model.</string>
-    <string name="native_chat_loadCrashedOnly" formatted="false">{{model}} was too big for this phone last time and BOAR had to close. Download a smaller model, such as Qwen3 1.7B (about 1.1 GB).</string>
     <string name="native_chat_retryLessMemory" formatted="false">Try again with less memory</string>
     <string name="native_chat_mayNotFit" formatted="false">{{model}} may be too big for this phone.</string>
     <string name="native_chat_mayNotFitOnly" formatted="false">{{model}} may be too big for this phone. A smaller model, such as Qwen3 1.7B (about 1.1 GB), will run better.</string>
@@ -158,24 +157,7 @@
     <string name="native_telemetry_lastEvalValue" formatted="false">{{ok}}/{{n}} answered · median {{tps}} tok/s · {{date}}</string>
     <string name="native_telemetry_none" formatted="false">none yet</string>
     <string name="native_telemetry_note" formatted="false">Nothing here leaves the phone.</string>
-    <string name="native_telemetry_noteSharing" formatted="false">Nothing here leaves the phone. Results are shared only from the Evaluation screen, after you see what\'s sent.</string>
     <string name="native_voice_onDevice" formatted="false">On-device speech recognizer (audio stays on the phone)</string>
-    <string name="native_browse_title" formatted="false">Browse models</string>
-    <string name="native_browse_cta" formatted="false">Browse Hugging Face models</string>
-    <string name="native_browse_ctaNote" formatted="false">Text models in GGUF, one file under 12 GB, that this app can run. Not vetted by BOAR.</string>
-    <string name="native_browse_size" formatted="false">Size</string>
-    <string name="native_browse_sizeAny" formatted="false">Any</string>
-    <string name="native_browse_sort" formatted="false">Sort</string>
-    <string name="native_browse_sortTrending" formatted="false">Trending</string>
-    <string name="native_browse_sortDownloads" formatted="false">Most downloaded</string>
-    <string name="native_browse_sortLikes" formatted="false">Most liked</string>
-    <string name="native_browse_sortNewest" formatted="false">Newest</string>
-    <string name="native_browse_empty" formatted="false">No GGUF text models match.</string>
-    <string name="native_browse_errorOffline" formatted="false">No connection. Searching Hugging Face needs the internet; the models on this phone still work.</string>
-    <string name="native_browse_errorGeneric" formatted="false">Hugging Face didn\'t answer. Try again in a moment.</string>
-    <string name="native_browse_unvetted" formatted="false">Not vetted by BOAR</string>
-    <string name="native_browse_more" formatted="false">Loading more…</string>
-    <string name="native_browse_files" formatted="false">Files</string>
     <string name="native_tweaks_technicalDetails" formatted="false">Show technical details</string>
     <string name="native_tweaks_technicalDetailsNote" formatted="false">Under each answer, tap the time and speed for the details (time to the first word, context, model); live speed in the header while BOAR answers; memory and storage at the bottom of the menu; This phone in Settings.</string>
     <string name="native_tweaks_presets" formatted="false">Presets</string>
@@ -188,25 +170,8 @@
     <string name="native_tweaks_preset_cool" formatted="false">Cool Down</string>
     <string name="native_tweaks_preset_coolNote" formatted="false">For a hot phone: 1 thread, small prompt batches, a smaller context, no reasoning, 5 minutes at most per step. The slowest.</string>
     <string name="native_tweaks_presetCustom" formatted="false">Custom: your own settings below. Pick a preset to start over from it.</string>
-    <string name="native_browse_discoverTitle" formatted="false">Discover GGUF models</string>
-    <string name="native_models_cancelDownload" formatted="false">Cancel</string>
-    <string name="native_models_sort" formatted="false">Sort</string>
-    <string name="native_models_sortSmart" formatted="false">Smart</string>
-    <string name="native_models_sortLastUsed" formatted="false">Last used</string>
-    <string name="native_models_sortAdded" formatted="false">Recently added</string>
-    <string name="native_models_show" formatted="false">Show</string>
-    <string name="native_models_filterAll" formatted="false">All</string>
-    <string name="native_models_filterOnPhone" formatted="false">On this phone</string>
-    <string name="native_models_filterDownloading" formatted="false">Downloading</string>
-    <string name="native_models_filterMine" formatted="false">Added by you</string>
-    <string name="native_models_emptyFilter" formatted="false">No models here. Pick All to see every model.</string>
-    <string name="native_models_nowUsing" formatted="false">Now answering with {{model}}</string>
-    <string name="native_models_addedToast" formatted="false">Added to your models. Download it here or in Model Catalog.</string>
-    <string name="native_models_inYourModels" formatted="false">In your models</string>
-    <string name="native_models_useNow" formatted="false">Use now</string>
     <string name="native_settings_embeddingOk" formatted="false">Search model (for packs and documents): {{model}} ✓</string>
     <string name="native_settings_embeddingMissing" formatted="false">Search model (for packs and documents): {{model}}, not on the phone. Run setup again from Recovery.</string>
-    <string name="native_browse_discoverSubtitle" formatted="false">Browse Hugging Face models</string>
     <string name="native_chat_errorNoModel" formatted="false">No answer model is loaded. Open the Model Catalog to pick one.</string>
     <string name="native_common_somethingWrong" formatted="false">Something went wrong. Try again.</string>
     <string name="native_chat_dbFailed" formatted="false">Couldn\'t do that. Try again.</string>
@@ -226,7 +191,7 @@
     <string name="native_settings_resetTitle" formatted="false">Reset settings</string>
     <string name="native_settings_resetButton" formatted="false">Reset settings</string>
     <string name="native_settings_resetConfirmTitle" formatted="false">Reset all settings?</string>
-    <string name="native_settings_resetConfirmBody" formatted="false">Settings go back to their defaults and setup opens again. Downloaded models and packs, your chats and your PIN are kept.</string>
+    <string name="native_settings_resetConfirmBody" formatted="false">Settings go back to their defaults and setup opens again. Models and packs, your chats and your PIN are kept.</string>
     <string name="native_settings_resetConfirmButton" formatted="false">Reset</string>
     <string name="native_chat_foundBeforeStop" formatted="false">Found before stopping</string>
     <string name="native_chat_cutAtLimit" formatted="false">Stopped at the length limit</string>
@@ -283,7 +248,6 @@
     <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">This deletes \"{{name}}\" ({{count}} chunks) from your local knowledge base. This can\'t be undone. Export it first if you want to keep a copy.</string>
     <string name="native_voiceSettings_unavailableNote" formatted="false">No speech recognition service was found on this phone. This is common on GrapheneOS and other builds without Google. Typing works as usual.</string>
     <string name="native_interfaceSettings_hapticFeedbackValue" formatted="false">Vibrate when you send a question and when its answer finishes.</string>
-    <string name="native_modelBrowser_addedMessage" formatted="false">\"{{label}}\" was added to the model list above. Download it from there.</string>
     <string name="native_evaluation_stoppedEarly" formatted="false">Stopped early. Partial results saved.</string>
     <string name="native_flows_onboarding_currentItem" formatted="false">Item {{n}} of {{total}}: {{name}}</string>
     <string name="native_sourceFootnotes_localIndex" formatted="false">FROM</string>
@@ -295,23 +259,8 @@
     <string name="native_documents_noText" formatted="false">{{name}} has no selectable text. Scanned pages need OCR, which BOAR doesn\'t do.</string>
     <string name="native_documents_failed" formatted="false">Couldn\'t import these files. Try again.</string>
     <string name="native_documents_shareTitle" formatted="false">Share the {{name}} knowledge base</string>
-    <string name="native_setup_indexNoEmbedder" formatted="false">The search model is missing. Retry the download.</string>
-    <string name="native_setup_indexEmbedderFailed" formatted="false">The search model didn\'t load. Try again.</string>
-    <string name="native_setup_indexFailed" formatted="false">Building the search index stopped. Try again.</string>
-    <string name="native_download_errorNoSource" formatted="false">Not available for download yet. Import the file instead.</string>
-    <string name="native_download_errorOffline" formatted="false">This build of BOAR has no network access. Import the file instead.</string>
-    <string name="native_download_errorStorage" formatted="false">This phone has only {{free}} free and the download needs {{needed}}. Free some space and retry.</string>
-    <string name="native_download_errorBudget" formatted="false">BOAR\'s {{budget}} storage limit is reached: BOAR already stores {{used}}. Remove a model first. The phone itself may still have room.</string>
-    <string name="native_download_errorBudgetDownloading" formatted="false">BOAR\'s {{budget}} storage limit is reached: BOAR stores {{used}}, with {{downloading}} downloading. Remove a model or cancel a download. The phone itself may still have room.</string>
     <string name="native_drawerStats_ramBoar" formatted="false">BOAR uses {{app}} of the phone\'s memory</string>
     <string name="native_drawerStats_diskLimit" formatted="false">BOAR\'s storage limit, not the phone\'s</string>
-    <string name="native_drawerStats_diskDownloading" formatted="false">BOAR\'s storage limit · {{size}} downloading</string>
-    <string name="native_download_errorSizeChanged" formatted="false">The server now has a different file than this version of BOAR expects. Import the file or update the app.</string>
-    <string name="native_download_errorPaused" formatted="false">The download paused (no data). Check your connection and try again.</string>
-    <string name="native_download_errorChecksum" formatted="false">The file didn\'t match its checksum and was removed. Retry the download.</string>
-    <string name="native_download_errorServer" formatted="false">The download server didn\'t answer. Retry later.</string>
-    <string name="native_download_errorNetwork" formatted="false">No connection to the download server. Check your connection and retry.</string>
-    <string name="native_download_errorGeneric" formatted="false">The download stopped. Retry.</string>
     <string name="native_common_ok" formatted="false">OK</string>
     <string name="native_settings_freeMemory" formatted="false">Free memory when I leave BOAR</string>
     <string name="native_settings_freeMemoryNote" formatted="false">Frees memory a few seconds after you leave. The next answer starts a little slower.</string>
@@ -332,7 +281,7 @@
     <string name="native_modelSetupScreen_recovery_wizardDesc" formatted="false">Run the first-time setup again to pick another model.</string>
     <string name="native_modelSetupScreen_recovery_wizardButton" formatted="false">Run setup again</string>
     <string name="native_modelSetupScreen_recovery_dangerBadge" formatted="false">Erase everything</string>
-    <string name="native_modelSetupScreen_recovery_dangerDesc" formatted="false">Deletes every downloaded model and pack, your documents and all chats from this phone. It can\'t be undone.</string>
+    <string name="native_modelSetupScreen_recovery_dangerDesc" formatted="false">Deletes every model and pack, your documents and all chats from this phone. It can\'t be undone.</string>
     <string name="native_modelSetupScreen_recovery_dangerButton" formatted="false">Erase everything</string>
     <string name="native_modelSetupScreen_dangerModal_title" formatted="false">Erase everything?</string>
     <string name="native_modelSetupScreen_dangerModal_subtitle" formatted="false">This happens at once and can\'t be undone.</string>
@@ -343,6 +292,4 @@
     <string name="native_modelSetupScreen_sections_displayTheme" formatted="false">Display &amp; theme</string>
     <string name="native_voiceSettings_unavailable" formatted="false">Not available on this phone</string>
     <string name="native_documents_unsupported" formatted="false">BOAR can\'t read {{name}}: it imports .txt, .md, .csv, .json and .pdf. Save the page as one of those (a browser can save it as PDF) and import it again.</string>
-    <string name="native_download_errorGated" formatted="false">This model needs a Hugging Face account and its license accepted. BOAR downloads without an account, so it can\'t get this one.</string>
-    <string name="native_browse_gated" formatted="false">Needs a Hugging Face account: BOAR can\'t download it.</string>
 </resources>

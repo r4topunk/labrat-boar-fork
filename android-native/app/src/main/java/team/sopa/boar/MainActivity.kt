@@ -43,7 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import team.sopa.boar.ui.settings.DisplayPrefs
 import team.sopa.boar.ui.settings.SettingsScreen
 import team.sopa.boar.setup.SetupViewModel
-import team.sopa.boar.models.ModelsViewModel
+import team.sopa.boar.models.PacksViewModel
 import team.sopa.boar.documents.DocumentsViewModel
 import team.sopa.boar.ui.documents.DocumentsScreen
 import team.sopa.boar.ui.about.AboutScreen
@@ -51,9 +51,6 @@ import team.sopa.boar.ui.drawer.BoarDrawer
 import team.sopa.boar.ui.drawer.DrawerItem
 import team.sopa.boar.ui.eval.EvaluationScreen
 import team.sopa.boar.eval.EvaluationViewModel
-import team.sopa.boar.ui.models.BrowseScreen
-import team.sopa.boar.ui.models.KnowledgePacks
-import team.sopa.boar.ui.models.ModelsScreen
 import team.sopa.boar.ui.setup.SetupScreen
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalView
@@ -161,7 +158,7 @@ private fun screenDepth(screen: String) = when (screen.substringBefore(':')) {
     "setup" -> 0
     "chat" -> 1
     "settings" -> 2
-    else -> 3 // models, documents, evaluation, about, pin:*
+    else -> 3 // documents, evaluation, about, pin:*
 }
 
 /** M3 emphasized: the easing of the shared-axis and fade-through transitions. */
@@ -228,7 +225,7 @@ private fun PredictiveBackScreen(blocked: Boolean = false, onBack: () -> Unit, c
 @Composable
 private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel = viewModel(), setup: SetupViewModel = viewModel()) {
     var screen by rememberSaveable { mutableStateOf(if (setup.ready() && !setup.unfinished) "chat" else "setup") }
-    // Where Back leads from Models, Knowledge, About and Evaluation: Settings when it opened them, else the chat.
+    // Where Back leads from Knowledge, About and Evaluation: Settings when it opened them, else the chat.
     var backTo by rememberSaveable { mutableStateOf("chat") }
     AnimatedContent(
         targetState = screen,
@@ -238,7 +235,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         label = "screen",
     ) { current ->
         when {
-            current == "setup" -> SetupHost(setup, vm, prefs) { screen = it }
+            current == "setup" -> SetupHost(setup, vm) { screen = it }
             current.startsWith("pin:") -> {
                 // pin:<flow>:<screen to return to>
                 val (_, flow, back) = current.split(":")
@@ -247,23 +244,14 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                         onDone = { vm.refreshSettings(); screen = back }, onCancel = { screen = back })
                 }
             }
-            current == "models" -> {
-                val models: ModelsViewModel = viewModel()
-                val modelsState by models.state.collectAsState()
-                // The same view model setup used (Discover models): what setup downloaded must show as on the phone.
-                LaunchedEffect(Unit) { models.refresh() }
-                PredictiveBackScreen(onBack = { vm.refreshModel(); screen = backTo }) {
-                    ModelsScreen(modelsState, models) { vm.refreshModel(); screen = backTo }
-                }
-            }
             current == "documents" -> {
                 val docs: DocumentsViewModel = viewModel()
                 val docsState by docs.state.collectAsState()
-                val models: ModelsViewModel = viewModel()
-                val modelsState by models.state.collectAsState()
-                LaunchedEffect(Unit) { models.refresh() }
+                val packs: PacksViewModel = viewModel()
+                val packsState by packs.state.collectAsState()
+                LaunchedEffect(Unit) { packs.refresh() }
                 PredictiveBackScreen(onBack = { screen = backTo }) {
-                    DocumentsScreen(docsState, docs, packs = { team.sopa.boar.ui.documents.KnowledgeLibrary(modelsState, models) },
+                    DocumentsScreen(docsState, docs, packs = { team.sopa.boar.ui.documents.KnowledgeLibrary(packsState, packs) },
                         // "Ask about your files": Sources = My files, then a new chat.
                         onAskFiles = { vm.setSourcesOwn(true); vm.newChat(); backTo = "chat"; screen = "chat" }) { screen = backTo }
                 }
@@ -283,23 +271,16 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             current == "settings" -> PredictiveBackScreen(onBack = { vm.refreshSettings(); screen = "chat" }) {
                 SettingsScreen(services, prefs, onPin = { flow -> screen = "pin:$flow:settings" }, onSetup = { setup.restart(); screen = "setup" }, onOpen = { backTo = "settings"; screen = it }) { vm.refreshSettings(); screen = "chat" }
             }
-            else -> ChatHost(
-                services, vm,
-                onNavigate = { backTo = "chat"; screen = it },
-                onOpenModels = { vm.openedCatalog(); backTo = "chat"; screen = "models" },
-            )
+            else -> ChatHost(services, vm, onNavigate = { backTo = "chat"; screen = it })
         }
     }
 }
 
 /** First-run setup, and setup reopened from Settings. */
 @Composable
-private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, prefs: DisplayPrefs, goTo: (String) -> Unit) {
+private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, goTo: (String) -> Unit) {
     val setupState by setup.state.collectAsState()
-    // Downloads pause in the background on MIUI: the screen stays on while setup runs.
-    val view = LocalView.current
-    DisposableEffect(Unit) { view.keepScreenOn = true; onDispose { view.keepScreenOn = false } }
-    // Reopened from Settings (the app already works): step 1 offers the way back to the chat.
+    // Reopened from Settings (the app already works): the screen offers the way back to the chat.
     val wasReady = remember { setup.ready() }
     val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle) {
@@ -307,28 +288,15 @@ private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, prefs: DisplayPr
         lifecycle.addObserver(observer)
         onDispose { lifecycle.removeObserver(observer) }
     }
-    // "Discover GGUF models" from the model step: the Hugging Face page on top of setup; a model added there is
-    // listed in setup and chosen, and setup comes back.
-    var browsing by rememberSaveable { mutableStateOf(false) }
-    val setupModels: ModelsViewModel = viewModel()
-    if (browsing) {
-        val modelsState by setupModels.state.collectAsState()
-        LaunchedEffect(modelsState.hfAddedId) { modelsState.hfAddedId?.let { id -> setupModels.toastShown(); setup.pickDiscovered(id); browsing = false } }
-        BackHandler { browsing = false }
-        BrowseScreen(modelsState, setupModels, rowActions = false) { browsing = false }
-        return
-    }
-    SetupScreen(setupState, setup, prefs,
+    SetupScreen(setupState, setup,
         // Settings too: after "Reset settings" the chat must show the default options.
         onSkip = if (wasReady) ({ setup.forget(); vm.refreshSettings(); goTo("chat") }) else null,
-        // Cleared first: a model added earlier from Models must not be picked the moment the page opens.
-        onBrowse = { setupModels.clearAdded(); browsing = true },
     ) { setup.forget(); vm.refreshSettings(); vm.refreshModel(); goTo(afterSetup()) }
 }
 
 /** The chat with the drawer: past chats (delete with undo), Knowledge, Settings. [onNavigate] opens a screen; Back returns here. */
 @Composable
-private fun ChatHost(services: BoarServices, vm: ChatViewModel, onNavigate: (String) -> Unit, onOpenModels: () -> Unit) {
+private fun ChatHost(services: BoarServices, vm: ChatViewModel, onNavigate: (String) -> Unit) {
     val state by vm.state.collectAsState()
     val devOptions = team.sopa.boar.app.DevOptions.enabled(androidx.compose.ui.platform.LocalContext.current)
     val drawer = rememberDrawerState(DrawerValue.Closed)
@@ -366,7 +334,6 @@ private fun ChatHost(services: BoarServices, vm: ChatViewModel, onNavigate: (Str
             onStop = vm::stop,
             onNewChat = vm::newChat,
             onMenu = { scope.launch { drawer.open() } },
-            onSetModel = vm::setModel,
             onSetSourcesOwn = vm::setSourcesOwn,
             onToggleSource = vm::toggleSource,
             onRefreshSources = vm::refreshSources,
@@ -376,7 +343,6 @@ private fun ChatHost(services: BoarServices, vm: ChatViewModel, onNavigate: (Str
             onDismissLoadNote = vm::dismissLoadNote,
             onRetryLessMemory = vm::retryWithLessMemory,
             onLoadAnyway = vm::loadAnyway,
-            onOpenModels = onOpenModels,
             onReused = { vm.showToast("chatScreen.messageReused") },
             onToastHidden = vm::hideToast,
         )
@@ -445,7 +411,6 @@ private fun ChatDrawer(
                 },
                 lastTokPerSec = lastTokPerSec,
                 storageUsed = { services.storageUsedBytes() },
-                downloading = { team.sopa.boar.engine.models.AssetStore.downloadingBytes(services.filesDir) },
                 storageBudgetBytes = services.catalog.storageBudgetBytes,
                 showStats = showStats,
                 answering = answering,

@@ -88,13 +88,13 @@ class ChatFlowDeviceTest {
             // The send button waits for text.
             assertTrue(compose.onNode(send).fetchSemanticsNode().config.contains(SemanticsProperties.Disabled))
 
-            // The composer's options button opens Answer options: Model and Sources, no style and no Deep Research (the app
-            // answers in Succinct only), and Reset is off while everything is at its default.
+            // The composer's options button opens Answer options: Sources only, no model, no style and no Deep Research (the app
+            // answers in Succinct with its one model), and Reset is off while everything is at its default.
             val title = tr("design.options.title")
             assertTrue("defaults: the plain options button", compose.exists(hasContentDescription(tr("design.options.button"))))
             compose.pressIcon(tr("design.options.button"))
             compose.waitForText(title)
-            assertTrue(compose.shows(tr("design.options.model")))
+            assertFalse("no Model row: BoarLite has one model", compose.shows(tr("design.options.model")))
             assertTrue(compose.shows(tr("design.options.sources")))
             // Only English resources ship, so these literals hold on every phone.
             assertFalse("no Style row", compose.shows("Style"))
