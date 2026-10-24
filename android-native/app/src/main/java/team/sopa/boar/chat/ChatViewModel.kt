@@ -636,6 +636,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             var notFound = false
             // The health gate's fixed text (HealthGate) was written without the model: no receipt, no note, no sources.
             var healthFixed = false
+            // A computed conversion or sum ([QuickMath]): the same, no model wrote it.
+            var calculated = false
             var firstAt = 0L
             var tokens = 0
             // The limit the answer could hit, set once the model is loaded; the adaptive router picks its own.
@@ -735,8 +737,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                             is AnswerEvent.Sources -> sources = e.chunks
                             is AnswerEvent.Piece -> onPiece(e.text)
                             is AnswerEvent.Done -> {
-                                metrics = e.metrics; retrievalMs = e.retrievalMs; notFound = e.notFound; healthFixed = e.healthFixed
-                                if (e.healthFixed) sources = emptyList()
+                                metrics = e.metrics; retrievalMs = e.retrievalMs; notFound = e.notFound; healthFixed = e.healthFixed; calculated = e.calculated
+                                if (e.healthFixed || e.calculated) sources = emptyList()
                             }
                         }
                     }
@@ -760,7 +762,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val stopped = stopRequested
             // The failure line goes with this answer, so it's still there after the next question and when the chat opens again.
             val errorKey = _state.value.error?.takeIf { !stopped }?.let(team.sopa.boar.engine.UserErrors::chatKey)
-            val receipt = receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)?.takeIf { !notFound && !healthFixed }?.let { r ->
+            val receipt = receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)?.takeIf { !notFound && !healthFixed && !calculated }?.let { r ->
                 val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
                 r.copy(style = style, path = path, task = task, checked = checked, styleNote = shortReason?.takeIf { it != team.sopa.boar.engine.routing.ShortAnswer.SMALL_TALK },
                     // AnswerNote's line under every answer the model wrote, never under small talk.

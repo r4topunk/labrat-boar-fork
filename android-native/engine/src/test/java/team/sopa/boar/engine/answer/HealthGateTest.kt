@@ -93,10 +93,10 @@ class HealthGateTest {
         assertTrue(done.healthFixed)
     }
 
-    @Test fun `conversions and small talk that skip retrieval go to the model`() {
-        assertNull(noSearch("40 C in F?"))
-        assertNull(noSearch("what is 104 F in Celsius"))
+    @Test fun `conversions are computed (QuickMath) and small talk that skips retrieval goes to the model`() {
+        assertTrue(noSearch("40 C in F?")!!.calculated)
+        assertTrue(noSearch("what is 104 F in Celsius")!!.calculated)
         assertNull(noSearch("hi"))
-        assertNull(noSearch("What is 15% of 80?"))
+        assertTrue(noSearch("What is 15% of 80?")!!.calculated)
     }
 }

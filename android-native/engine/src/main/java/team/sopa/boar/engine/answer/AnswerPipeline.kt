@@ -64,6 +64,8 @@ sealed interface AnswerEvent {
         val notFound: Boolean = false,
         /** A health question with no health passage kept: the answer is [HealthGate]'s fixed text, and no model ran. */
         val healthFixed: Boolean = false,
+        /** A plain conversion or arithmetic question: the answer was computed ([QuickMath]), no model, no search, no sources. */
+        val calculated: Boolean = false,
     ) : AnswerEvent
 }
 
@@ -98,7 +100,15 @@ class AnswerPipeline(
         var retrievalMs: Double? = null
         var before: Int? = null
         var after: Int? = null
-        val retrieved = !retrievalIrrelevant(task)
+        // A plain conversion or sum is computed (no model, no search, no sources) or, when it can't be, answered by the model
+        // without passages: unrelated sources under "40 C in F?" (device smoke, Oct 24). Health questions are not either.
+        val calc = if (req.filesOnly) null else QuickMath.answer(req.query, req.history)
+        if (calc != null) {
+            emit(AnswerEvent.Piece(calc))
+            emit(AnswerEvent.Done(calc, emptyList(), "calculate", false, null, null, null, "none", null, calculated = true))
+            return@flow
+        }
+        val retrieved = !retrievalIrrelevant(task) && (req.filesOnly || !QuickMath.isCalculation(req.query, req.history))
         if (retrieved) {
             emit(AnswerEvent.Stage(AnswerStage.RETRIEVING))
             val t0 = clock()
