@@ -108,6 +108,15 @@ class DrawerDeviceTest {
         compose.onNode(hasText(doomed) and hasClickAction()).performSemanticsAction(SemanticsActions.OnLongClick)
         compose.waitForText(tr("clean.nav.deleteChat"))
         compose.press(tr("clean.nav.deleteChat"))
+        // The dialog asks first and names the chat; Cancel keeps it, Delete confirms.
+        compose.waitForText(tr("clean.nav.deleteConfirmTitle"))
+        compose.pressInDialog(tr("common.cancel"))
+        compose.waitForTextGone(tr("clean.nav.deleteConfirmTitle"))
+        assertTrue("cancel kept the chat", compose.shows(doomed))
+        compose.onNode(hasText(doomed) and hasClickAction()).performSemanticsAction(SemanticsActions.OnLongClick)
+        compose.waitForText(tr("clean.nav.deleteChat"))
+        compose.press(tr("clean.nav.deleteChat"))
+        compose.pressInDialog(tr("clean.nav.deleteButton"))
         compose.waitForTextGone(doomed)
         compose.waitForText(tr("clean.nav.chatDeleted"))
         assertTrue("deleted before the Undo bar lapsed", services.chats.listSessions().any { it.id == doomedId })
@@ -119,6 +128,7 @@ class DrawerDeviceTest {
         compose.onNode(hasText(doomed) and hasClickAction()).performSemanticsAction(SemanticsActions.OnLongClick)
         compose.waitForText(tr("clean.nav.deleteChat"))
         compose.press(tr("clean.nav.deleteChat"))
+        compose.pressInDialog(tr("clean.nav.deleteButton"))
         compose.waitForTextGone(doomed)
         // compose.waitUntil, not a sleep: it advances the Compose clock the Undo bar's timeout runs on.
         compose.waitUntil(20_000) { services.chats.listSessions().none { it.id == doomedId } }

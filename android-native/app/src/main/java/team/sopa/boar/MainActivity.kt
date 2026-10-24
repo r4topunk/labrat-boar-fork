@@ -26,10 +26,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -399,6 +401,39 @@ private fun ChatDrawer(
     var sessions by sessionsState
     val deletedText = t("clean.nav.chatDeleted")
     val undoText = t("clean.nav.undo")
+    // The chat the drawer's Delete is about to remove, while the dialog asks to confirm it (the dialog names the chat).
+    var confirmDelete by remember { mutableStateOf<String?>(null) }
+    fun deleteNow(id: String) {
+        // Optimistic: the row goes now, the database delete waits for the Undo bar to lapse. A second
+        // delete closes the first bar, which commits it.
+        val removed = sessions.firstOrNull { it.id == id }
+        snackbar.currentSnackbarData?.dismiss()
+        sessions = sessions.filter { it.id != id }
+        pendingDelete += id
+        scope.launch {
+            var undone = false
+            try {
+                undone = snackbar.showSnackbar(deletedText, undoText, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed
+            } finally {
+                // Also when the scope is cancelled (the user left the chat): that counts as "let it go".
+                pendingDelete -= id
+                if (undone) { if (removed != null) sessions = (sessions + removed).sortedByDescending { it.updatedAt } }
+                else vm.deleteSession(id)
+            }
+        }
+    }
+    confirmDelete?.let { id ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { confirmDelete = null },
+            title = { Text(t("clean.nav.deleteConfirmTitle")) },
+            text = { Text(t("clean.nav.deleteConfirmMessage", "title" to (sessions.firstOrNull { it.id == id }?.title ?: ""))) },
+            confirmButton = {
+                androidx.compose.material3.TextButton({ confirmDelete = null; deleteNow(id) },
+                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text(t("clean.nav.deleteButton")) }
+            },
+            dismissButton = { androidx.compose.material3.TextButton({ confirmDelete = null }) { Text(t("common.cancel")) } },
+        )
+    }
     ModalDrawerSheet {
         fun go(target: () -> Unit) { target(); scope.launch { drawer.close() } }
         // The undo bar lives in the sheet: the drawer stays open while a chat is deleted.
@@ -421,25 +456,8 @@ private fun ChatDrawer(
                 answering = answering,
                 onNewChat = { go { vm.newChat() } },
                 onSelect = { id -> go { vm.openSession(id) } },
-                onDelete = { id ->
-                    // Optimistic: the row goes now, the database delete waits for the Undo bar to lapse. A second
-                    // delete closes the first bar, which commits it.
-                    val removed = sessions.firstOrNull { it.id == id }
-                    snackbar.currentSnackbarData?.dismiss()
-                    sessions = sessions.filter { it.id != id }
-                    pendingDelete += id
-                    scope.launch {
-                        var undone = false
-                        try {
-                            undone = snackbar.showSnackbar(deletedText, undoText, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed
-                        } finally {
-                            // Also when the scope is cancelled (the user left the chat): that counts as "let it go".
-                            pendingDelete -= id
-                            if (undone) { if (removed != null) sessions = (sessions + removed).sortedByDescending { it.updatedAt } }
-                            else vm.deleteSession(id)
-                        }
-                    }
-                },
+                // Always asks first: one tap on the menu's Delete must not lose a chat.
+                onDelete = { id -> confirmDelete = id },
             )
             SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
         }

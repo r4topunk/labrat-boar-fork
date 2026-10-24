@@ -22,6 +22,9 @@
     <string name="clean_chat_showPassage" formatted="false">Show passage</string>
     <string name="clean_nav_deleteChat" formatted="false">Delete chat</string>
     <string name="clean_nav_chatDeleted" formatted="false">Chat deleted</string>
+    <string name="clean_nav_deleteConfirmTitle" formatted="false">Delete this chat?</string>
+    <string name="clean_nav_deleteConfirmMessage" formatted="false">\"{{title}}\" and its answers go. This can\'t be undone once the Undo bar is gone.</string>
+    <string name="clean_nav_deleteButton" formatted="false">Delete</string>
     <string name="clean_nav_undo" formatted="false">Undo</string>
     <string name="clean_settings_model_title" formatted="false">Model</string>
     <string name="clean_settings_model_summary_one" formatted="false">{{model}} · {{count}} installed</string>
