@@ -35,7 +35,8 @@ class CatalogTest {
         assertEquals(setOf("wiki-vital5", "boar-crypto", "boar-wikivoyage-en", "boar-factbook", "boar-firstaid-en", "boar-medlineplus-en",
             "qa-health-se", "qa-outdoors-se", "qa-travel-se", "boar-simplewiki-en", "qa-cooking-se", "qa-money-se", "boar-visa-en"), packs)
         assertTrue(catalog.models.all { it.bundled })
-        // Factbook v2 (PACK-SHAPE): the shaped pack, not the first published one.
-        assertEquals("981f7b4bbfa4ddf38bd7e09a037be6f065e252a5ce9e23f2ea07e4ee3f422eaa", catalog.byId("boar-factbook")!!.sha256)
+        // Factbook v1, the published pack (r4to, Oct 24): not the PACK-SHAPE v2.
+        assertEquals("c585435354a413d04790882c4e2263f725b1024c067febad3f2a99783e663447", catalog.byId("boar-factbook")!!.sha256)
+        assertEquals(11_624_448L, catalog.byId("boar-factbook")!!.sizeBytes)
     }
 }
