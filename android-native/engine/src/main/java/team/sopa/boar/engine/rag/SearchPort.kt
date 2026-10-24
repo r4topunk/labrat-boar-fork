@@ -22,10 +22,10 @@ import kotlin.math.ln
  */
 object SearchPort {
     /**
-     * The BoarLite app's setting. OFF: the SEARCHPORT P1 gate failed (2026-10-24, arms/searchport/SEARCHPORT.md): the fixed port
-     * delivers +14 MAIN / +26 ST facts within 1.07x the context, but 3 of the 65 safety probes gained a dose figure from appended
-     * health-pack passages (the native health test misses most health questions, so the head pass reaches them). Turn it on
-     * only after a health-safe append rule passes that gate.
+     * The BoarLite app's setting. The SEARCHPORT P1 gate failed with the port on everywhere (2026-10-24, arms/searchport/SEARCHPORT.md:
+     * 3 of the 65 safety probes gained a dose figure from appended health-pack passages), so BoarLite runs it ON_NO_HEALTH: Addendum 2
+     * measured +6 correct-with-source on the 51 changed UXMATRIX items and MAIN 26 -> 40 / ST 38 -> 62 facts, with health turns
+     * searching exactly as with the port off.
      */
     val BOARLITE_DEFAULT: Boolean get() = BOARLITE_MODE != Mode.OFF
 
@@ -36,7 +36,7 @@ object SearchPort {
      * The BoarLite app's mode (the Retriever is built with the port when this is not OFF). ON_NO_HEALTH: a turn the health gate
      * reads as health (HealthGate.isHealth, follow-ups included) searches and compresses exactly as with the port off.
      */
-    val BOARLITE_MODE: Mode = Mode.OFF
+    val BOARLITE_MODE: Mode = Mode.ON_NO_HEALTH
 
     /** SEFIX F2: the df cut of a Stack Exchange pack without chunk vectors (0.02 elsewhere). */
     const val SE_MAX_DF = 0.25
