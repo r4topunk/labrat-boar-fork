@@ -20,7 +20,7 @@
     <string name="clean_settings_knowledge_docs_other" formatted="false">{{count}} documents</string>
     <string name="clean_settings_knowledge_noDocs" formatted="false">No documents yet</string>
     <string name="clean_settings_chats_remember" formatted="false">Remember long chats</string>
-    <string name="clean_settings_chats_rememberNote" formatted="false">Keeps a short summary of earlier messages so BOAR doesn\'t forget them.</string>
+    <string name="clean_settings_chats_rememberNote" formatted="false">Keeps a short summary of earlier messages so BoarLite doesn\'t forget them.</string>
     <string name="clean_settings_about_copyAddress" formatted="false">Copy address</string>
     <string name="clean_library_yourDocs" formatted="false">Your documents</string>
     <string name="clean_library_docsHint" formatted="false">Text, Markdown, CSV, JSON or PDF. Stays on this phone.</string>
@@ -75,12 +75,12 @@
     <string name="clean_onboarding_pack_bitcoinQa_desc" formatted="false">Bitcoin questions with community answers.</string>
     <string name="clean_onboarding_back" formatted="false">Back</string>
     <string name="clean_onboarding_progressA11y" formatted="false">Setup {{pct}}% done</string>
-    <string name="clean_onboarding_welcome_mascotA11y" formatted="false">BOAR mascot</string>
+    <string name="clean_onboarding_welcome_mascotA11y" formatted="false">BoarLite mascot</string>
     <string name="clean_onboarding_articles_one" formatted="false">{{value}} article</string>
     <string name="clean_onboarding_articles_other" formatted="false">{{value}} articles</string>
     <string name="clean_chat_loadNote_crashedTitle" formatted="false">{{model}} closed while loading</string>
     <string name="clean_chat_loadNote_crashedBody" formatted="false">The phone ran out of memory. Try again with less memory.</string>
-    <string name="clean_chat_loadNote_crashedFallback" formatted="false">The phone ran out of memory. BOAR is answering with {{fallback}} for now.</string>
+    <string name="clean_chat_loadNote_crashedFallback" formatted="false">The phone ran out of memory. BoarLite is answering with {{fallback}} for now.</string>
     <string name="clean_chat_loadNote_riskyTitle" formatted="false">{{model}} may not fit</string>
     <string name="clean_chat_loadNote_riskyBody" formatted="false">It needs most of this phone\'s memory, so it may answer slowly or close the app.</string>
     <string name="clean_chat_loadNote_lessMemory" formatted="false">Use less memory</string>

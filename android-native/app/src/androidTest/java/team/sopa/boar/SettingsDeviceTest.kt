@@ -82,7 +82,7 @@ class SettingsDeviceTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync { DevOptions.setEnabled(ctx, true) }
         show()
         visible(tr("clean.settings.section.developer"))
-        for (text in listOf("How BOAR answers", "Thorough", "Executive Summary", "Deep Research", "Max output tokens", "Custom style"))
+        for (text in listOf("How BoarLite answers", "Thorough", "Executive Summary", "Deep Research", "Max output tokens", "Custom style"))
             assertFalse("'$text' is offered in Settings", compose.shows(text, substring = true))
         assertEquals("succinct", services.settings.personalityId)
         assertFalse(services.settings.deepResearchMode)

@@ -111,7 +111,7 @@ fun BoarDrawer(
                 // The mark in the destinations' 24 dp icon column, so "BOAR" starts on their label column.
                 Image(painterResource(R.drawable.mascot), null, Modifier.size(IconSize.Standard))
                 Column {
-                    Text("BOAR", style = type.titleMedium, color = scheme.onSurface)
+                    Text("BoarLite", style = type.titleMedium, color = scheme.onSurface)
                     // The same line the setup welcome carries: one product, one tagline.
                     Text(t("flows.onboarding.brandSub"), style = type.bodySmall, color = scheme.onSurfaceVariant)
                 }

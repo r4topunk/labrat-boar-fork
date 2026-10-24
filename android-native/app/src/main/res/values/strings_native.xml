@@ -47,9 +47,9 @@
     <string name="native_settings_adaptiveTitle" formatted="false">Adaptive routing</string>
     <string name="native_settings_adaptiveNote" formatted="false">Picks a model per question from the ones installed, and can check the answer against its sources.</string>
     <string name="native_drawer_settings" formatted="false">Settings</string>
-    <string name="native_about_airGappedBody" formatted="false">BOAR is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It runs local LLM inference with llama.cpp, built into the app, and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
+    <string name="native_about_airGappedBody" formatted="false">BoarLite is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It runs local LLM inference with llama.cpp, built into the app, and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
     <string name="native_about_siteTitle" formatted="false">Official website</string>
-    <string name="native_about_siteBody" formatted="false">News and updates are posted on our official website. Don\'t fall for scams: check the address before you download anything that says it is BOAR.</string>
+    <string name="native_about_siteBody" formatted="false">News and updates are posted on our official website. Don\'t fall for scams: check the address before you download anything that says it is BoarLite.</string>
     <string name="native_about_verify" formatted="false">Don\'t trust, verify.</string>
     <string name="native_about_copied" formatted="false">Copied</string>
     <string name="native_about_holdToCopy" formatted="false">Press and hold an address to copy it.</string>
@@ -66,11 +66,11 @@
     <string name="native_about_tagline" formatted="false">Your questions.\nYour phone. Your AI.</string>
     <string name="native_about_bio" formatted="false">Offline AI research on your phone. Answers with sources, no signal needed. Open source (MIT).</string>
     <string name="native_about_post_why" formatted="false">When AI lives only on someone else\'s server, whoever runs it holds a switch.\n\nWe\'d rather no one did. So the model lives on your phone, and no server receives your questions.</string>
-    <string name="native_about_post_offline" formatted="false">BOAR has no internet access at all, so airplane mode is fine: it answers from the library on your phone and shows the articles it used.</string>
+    <string name="native_about_post_offline" formatted="false">BoarLite has no internet access at all, so airplane mode is fine: it answers from the library on your phone and shows the articles it used.</string>
     <string name="native_about_post_receipt" formatted="false">Every answer shows how long it took and which articles it used.</string>
-    <string name="native_about_post_budget" formatted="false">Before a model loads, BOAR checks that it fits your phone\'s memory.</string>
+    <string name="native_about_post_budget" formatted="false">Before a model loads, BoarLite checks that it fits your phone\'s memory.</string>
     <string name="native_about_post_open" formatted="false">Open source, MIT. The code, the model list and the scripts that build the knowledge packs:</string>
-    <string name="native_about_post_verify" formatted="false">News comes only from these addresses. Check the address before you download anything that says it is BOAR.</string>
+    <string name="native_about_post_verify" formatted="false">News comes only from these addresses. Check the address before you download anything that says it is BoarLite.</string>
     <string name="native_about_post_packs" formatted="false">Knowledge packs from R4to\'s R&amp;D Lab:</string>
     <string name="native_about_post_team" formatted="false">Core team, on X:</string>
     <string name="native_about_post_credits" formatted="false">Standing on open work, each under its own license:</string>
@@ -94,8 +94,8 @@
     <string name="native_eval_score_noneExpected" formatted="false">none expected</string>
     <string name="native_eval_score_note" formatted="false">Speed 60 %, reliability 25 %, sources found 15 %, measured on this phone. It doesn\'t say whether the answers are right.</string>
     <string name="native_eval_keepScreenOn" formatted="false">Keep the screen on and the app open while it runs. The chat\'s model is unloaded first so the two don\'t share memory.</string>
-    <string name="native_chat_loadCrashed" formatted="false">{{crashed}} ran out of memory and BOAR had to close. For now, BOAR is answering with {{fallback}}.</string>
-    <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} ran out of memory and BOAR had to close. You can try again using less memory, or pick a smaller model.</string>
+    <string name="native_chat_loadCrashed" formatted="false">{{crashed}} ran out of memory and BoarLite had to close. For now, BoarLite is answering with {{fallback}}.</string>
+    <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} ran out of memory and BoarLite had to close. You can try again using less memory, or pick a smaller model.</string>
     <string name="native_chat_retryLessMemory" formatted="false">Try again with less memory</string>
     <string name="native_chat_mayNotFit" formatted="false">{{model}} may be too big for this phone.</string>
     <string name="native_chat_mayNotFitOnly" formatted="false">{{model}} may be too big for this phone. A smaller model, such as Qwen3 1.7B (about 1.1 GB), will run better.</string>
@@ -116,11 +116,11 @@
     <string name="native_pin_forgotCountdown" formatted="false">Closes in {{seconds}} s</string>
     <string name="native_pin_currentTitle" formatted="false">Current PIN</string>
     <string name="native_pin_newTitle" formatted="false">Choose a PIN</string>
-    <string name="native_pin_newSubtitle" formatted="false">4 to 8 digits. You\'ll enter it each time you open BOAR.</string>
+    <string name="native_pin_newSubtitle" formatted="false">4 to 8 digits. You\'ll enter it each time you open BoarLite.</string>
     <string name="native_pin_confirmTitle" formatted="false">Enter it again</string>
     <string name="native_pin_saveFailed" formatted="false">Couldn\'t change the PIN. Try again.</string>
     <string name="native_pin_mismatch" formatted="false">The PINs didn\'t match. Choose it again.</string>
-    <string name="native_pin_offerTitle" formatted="false">Lock BOAR with a PIN?</string>
+    <string name="native_pin_offerTitle" formatted="false">Lock BoarLite with a PIN?</string>
     <string name="native_pin_offerBody" formatted="false">With a PIN, your chats are stored sealed: someone with your phone or its files over USB can\'t read them. You can set it or remove it later in Settings.</string>
     <string name="native_pin_offerSet" formatted="false">Set a PIN</string>
     <string name="native_pin_offerSkip" formatted="false">Not now</string>
@@ -145,12 +145,12 @@
     <string name="native_telemetry_features" formatted="false">CPU features for llama.cpp</string>
     <string name="native_telemetry_build" formatted="false">Engine CPU build</string>
     <string name="native_telemetry_appMemory" formatted="false">App memory now</string>
-    <string name="native_telemetry_storage" formatted="false">BOAR\'s storage</string>
+    <string name="native_telemetry_storage" formatted="false">BoarLite\'s storage</string>
     <string name="native_telemetry_memory" formatted="false">Memory</string>
-    <string name="native_telemetry_memoryCaption" formatted="false">BOAR {{app}} · other apps {{others}}</string>
+    <string name="native_telemetry_memoryCaption" formatted="false">BoarLite {{app}} · other apps {{others}}</string>
     <string name="native_telemetry_disk" formatted="false">Storage</string>
     <string name="native_telemetry_technical" formatted="false">TECHNICAL</string>
-    <string name="native_telemetry_storageValue" formatted="false">{{used}} of BOAR\'s {{limit}} limit</string>
+    <string name="native_telemetry_storageValue" formatted="false">{{used}} of BoarLite\'s {{limit}} limit</string>
     <string name="native_telemetry_ramValue" formatted="false">{{total}} · {{used}} in use now</string>
     <string name="native_telemetry_chats" formatted="false">Chats saved</string>
     <string name="native_telemetry_evals" formatted="false">Evaluation runs on this phone</string>
@@ -160,11 +160,11 @@
     <string name="native_telemetry_note" formatted="false">Nothing here leaves the phone.</string>
     <string name="native_voice_onDevice" formatted="false">On-device speech recognizer (audio stays on the phone)</string>
     <string name="native_tweaks_technicalDetails" formatted="false">Show technical details</string>
-    <string name="native_tweaks_technicalDetailsNote" formatted="false">Under each answer, tap the time and speed for the details (time to the first word, context, model); live speed in the header while BOAR answers; memory and storage at the bottom of the menu; This phone in Settings.</string>
+    <string name="native_tweaks_technicalDetailsNote" formatted="false">Under each answer, tap the time and speed for the details (time to the first word, context, model); live speed in the header while BoarLite answers; memory and storage at the bottom of the menu; This phone in Settings.</string>
     <string name="native_tweaks_presets" formatted="false">Presets</string>
-    <string name="native_tweaks_preset_run" formatted="false">Run Boar Run</string>
+    <string name="native_tweaks_preset_run" formatted="false">Run BoarLite Run</string>
     <string name="native_tweaks_preset_runNote" formatted="false">Fastest answers: the fast cores only, prompts read in bigger batches (the first word about twice as soon in our tests), no time limit. More heat and battery.</string>
-    <string name="native_tweaks_preset_path" formatted="false">Boar\'s Path</string>
+    <string name="native_tweaks_preset_path" formatted="false">BoarLite\'s Path</string>
     <string name="native_tweaks_preset_pathNote" formatted="false">Auto: what we measured best on real phones. Balanced.</string>
     <string name="native_tweaks_preset_forage" formatted="false">Chill Forage</string>
     <string name="native_tweaks_preset_forageNote" formatted="false">Cooler and longer battery: 2 threads, a smaller context, no reasoning, 5 minutes at most per step. Slower answers.</string>
@@ -176,15 +176,15 @@
     <string name="native_chat_errorNoModel" formatted="false">No answer model is loaded. Open the Model Catalog to pick one.</string>
     <string name="native_common_somethingWrong" formatted="false">Something went wrong. Try again.</string>
     <string name="native_chat_dbFailed" formatted="false">Couldn\'t do that. Try again.</string>
-    <string name="native_chat_ratingNote" formatted="false">Saved on this phone only. Nothing is sent. BOAR doesn\'t learn from it yet.</string>
+    <string name="native_chat_ratingNote" formatted="false">Saved on this phone only. Nothing is sent. BoarLite doesn\'t learn from it yet.</string>
     <string name="native_chat_styleNote_health" formatted="false">Short answer: health questions are kept brief.</string>
     <string name="native_chat_styleNote_seed" formatted="false">Short answer: seed-phrase questions are kept brief, for your safety.</string>
     <string name="native_chat_errorGeneric" formatted="false">Something went wrong while answering. Try again.</string>
     <string name="native_chat_errorEmpty" formatted="false">The model stopped without writing an answer.</string>
-    <string name="native_chat_errorInterrupted" formatted="false">Interrupted: BOAR was closed while answering.</string>
-    <string name="native_chat_roleDeepResearch" formatted="false">BOAR · Deep Research</string>
+    <string name="native_chat_errorInterrupted" formatted="false">Interrupted: BoarLite was closed while answering.</string>
+    <string name="native_chat_roleDeepResearch" formatted="false">BoarLite · Deep Research</string>
     <string name="native_answering_channel" formatted="false">Answering</string>
-    <string name="native_answering_title" formatted="false">BOAR is answering…</string>
+    <string name="native_answering_title" formatted="false">BoarLite is answering…</string>
     <string name="native_answering_text" formatted="false">The answer keeps going while you use other apps.</string>
     <string name="native_chat_tryAgain" formatted="false">Try again</string>
     <string name="native_chat_holdToReuse" formatted="false">Press and hold any of your messages to copy it back into the input.</string>
@@ -240,11 +240,11 @@
     <string name="native_chat_suggestions_b21" formatted="false">Is dengue worse the second time?</string>
     <string name="native_chat_suggestionTopics_b21" formatted="false">Health</string>
     <string name="native_tweaks_moeWhenNeeded" formatted="false">When it doesn\'t fit</string>
-    <string name="native_aboutScreen_benchmarkBody" formatted="false">BOAR measures every answer on your own phone: model load time, time to the first word, tokens per second, peak memory and which sources were used. Run the built-in evaluation from the menu, Evaluation, to compare installed models on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>
+    <string name="native_aboutScreen_benchmarkBody" formatted="false">BoarLite measures every answer on your own phone: model load time, time to the first word, tokens per second, peak memory and which sources were used. Run the built-in evaluation from the menu, Evaluation, to compare installed models on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>
     <string name="native_tweaks_runWarning" formatted="false">Fastest answers. The phone gets warmer and uses more battery, and answers have no time limit (use Stop). Best while charging.</string>
     <string name="native_tweaks_runWarningLowRam" formatted="false">This phone has less than 8 GB of RAM: large models may run out of memory.</string>
     <string name="native_tweaks_runWarningGo" formatted="false">Run</string>
-    <string name="native_tweaks_runWarningKeepPath" formatted="false">Keep Boar\'s Path</string>
+    <string name="native_tweaks_runWarningKeepPath" formatted="false">Keep BoarLite\'s Path</string>
     <string name="native_personalDocumentsManager_hint" formatted="false">Import your own .txt, .md, .csv, .json or .pdf notes. They are indexed on this device only and never uploaded. PDFs need selectable text: scanned or image-only pages can\'t be read (there\'s no OCR), and password-protected PDFs aren\'t supported.</string>
     <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">This deletes \"{{name}}\" ({{count}} chunks) from your local knowledge base. This can\'t be undone. Export it first if you want to keep a copy.</string>
     <string name="native_voiceSettings_unavailableNote" formatted="false">No speech recognition service was found on this phone. This is common on GrapheneOS and other builds without Google. Typing works as usual.</string>
@@ -256,20 +256,20 @@
     <string name="native_drawer_answeringHint" formatted="false">Answering… stop it to switch chats.</string>
     <string name="native_documents_tooLarge" formatted="false">Too large: {{name}} (over {{mb}} MB).</string>
     <string name="native_documents_unreadable" formatted="false">Couldn\'t read {{name}}.</string>
-    <string name="native_documents_passwordProtected" formatted="false">{{name}} is password-protected. BOAR can\'t open protected PDFs.</string>
-    <string name="native_documents_noText" formatted="false">{{name}} has no selectable text. Scanned pages need OCR, which BOAR doesn\'t do.</string>
+    <string name="native_documents_passwordProtected" formatted="false">{{name}} is password-protected. BoarLite can\'t open protected PDFs.</string>
+    <string name="native_documents_noText" formatted="false">{{name}} has no selectable text. Scanned pages need OCR, which BoarLite doesn\'t do.</string>
     <string name="native_documents_failed" formatted="false">Couldn\'t import these files. Try again.</string>
     <string name="native_documents_shareTitle" formatted="false">Share the {{name}} knowledge base</string>
-    <string name="native_drawerStats_ramBoar" formatted="false">BOAR uses {{app}} of the phone\'s memory</string>
-    <string name="native_drawerStats_diskLimit" formatted="false">BOAR\'s storage limit, not the phone\'s</string>
+    <string name="native_drawerStats_ramBoar" formatted="false">BoarLite uses {{app}} of the phone\'s memory</string>
+    <string name="native_drawerStats_diskLimit" formatted="false">BoarLite\'s storage limit, not the phone\'s</string>
     <string name="native_common_ok" formatted="false">OK</string>
-    <string name="native_settings_freeMemory" formatted="false">Free memory when I leave BOAR</string>
+    <string name="native_settings_freeMemory" formatted="false">Free memory when I leave BoarLite</string>
     <string name="native_settings_freeMemoryNote" formatted="false">Frees memory a few seconds after you leave. The next answer starts a little slower.</string>
     <string name="native_tweaks_freeMemoryAfter" formatted="false">Free memory after</string>
-    <string name="native_tweaks_freeMemoryAfterNote" formatted="false">How long BOAR waits in the background before it unloads the model, when Free memory when I leave BOAR is on. Auto unloads it as soon as you leave, after an answer still being written; the next question loads it again.</string>
+    <string name="native_tweaks_freeMemoryAfterNote" formatted="false">How long BoarLite waits in the background before it unloads the model, when Free memory when I leave BoarLite is on. Auto unloads it as soon as you leave, after an answer still being written; the next question loads it again.</string>
     <string name="native_tweaks_immediately" formatted="false">Immediately</string>
     <string name="native_drawer_closeStillSaving" formatted="false">Still saving the answer. Try again in a moment.</string>
-    <string name="native_drawer_close" formatted="false">Close BOAR (frees memory)</string>
+    <string name="native_drawer_close" formatted="false">Close BoarLite (frees memory)</string>
     <string name="native_drawer_closeConfirm" formatted="false">An answer is still being written. Close anyway?</string>
     <string name="native_drawer_closeButton" formatted="false">Close</string>
     <string name="native_modelSetupScreen_sections_telemetry" formatted="false">This phone</string>
@@ -292,5 +292,5 @@
     <string name="native_memorySettings_clearAllButton" formatted="false">Clear</string>
     <string name="native_modelSetupScreen_sections_displayTheme" formatted="false">Display &amp; theme</string>
     <string name="native_voiceSettings_unavailable" formatted="false">Not available on this phone</string>
-    <string name="native_documents_unsupported" formatted="false">BOAR can\'t read {{name}}: it imports .txt, .md, .csv, .json and .pdf. Save the page as one of those (a browser can save it as PDF) and import it again.</string>
+    <string name="native_documents_unsupported" formatted="false">BoarLite can\'t read {{name}}: it imports .txt, .md, .csv, .json and .pdf. Save the page as one of those (a browser can save it as PDF) and import it again.</string>
 </resources>

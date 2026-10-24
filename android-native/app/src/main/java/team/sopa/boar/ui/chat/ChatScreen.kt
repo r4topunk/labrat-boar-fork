@@ -298,7 +298,7 @@ private fun Header(
                         Image(painterResource(R.drawable.mascot), null, Modifier.size(IconSize.Standard), contentScale = ContentScale.Fit)
                     }
                     Column {
-                        Text("BOAR", style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                        Text("BoarLite", style = MaterialTheme.typography.titleMedium, maxLines = 1)
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = scheme.primary,
                                 modifier = Modifier.size(IconSize.Status).onTextLine(MaterialTheme.typography.labelMedium))

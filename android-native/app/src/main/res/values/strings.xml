@@ -47,7 +47,7 @@
     <string name="drawerFooterStats_disk" formatted="false">DISK</string>
     <string name="drawerFooterStats_lastQuery" formatted="false">{{rate}} tok/s last query</string>
     <string name="modelSetupScreen_header_title" formatted="false">Settings</string>
-    <string name="modelSetupScreen_header_subtitle" formatted="false">BOAR — Adaptive Local Intelligence</string>
+    <string name="modelSetupScreen_header_subtitle" formatted="false">BoarLite — Adaptive Local Intelligence</string>
     <string name="modelSetupScreen_sections_models" formatted="false">Reasoning Models</string>
     <string name="modelSetupScreen_sections_knowledgeBase" formatted="false">Offline Knowledge Base (RAG)</string>
     <string name="modelSetupScreen_sections_memory" formatted="false">Memory &amp; Context Settings</string>
@@ -128,7 +128,7 @@
     <string name="chatHeader_offlineTitle" formatted="false">You\'re offline</string>
     <string name="chatHeader_offlineBody" formatted="false">BoarLite has no internet access at all. Everything works: answers, search and your library are all on this phone.</string>
     <string name="chatScreen_initializingCore" formatted="false">Initializing local offline core…</string>
-    <string name="chatScreen_mountingWeights" formatted="false">Getting BOAR ready…</string>
+    <string name="chatScreen_mountingWeights" formatted="false">Getting BoarLite ready…</string>
     <string name="chatScreen_indexingKnowledgeBase" formatted="false">Indexing offline knowledge base…</string>
     <string name="chatScreen_reasoningElapsed" formatted="false">💭 Reasoning… {{seconds}}s</string>
     <string name="chatScreen_reasoningUnfinished" formatted="false">Reasoning didn\'t finish before the reply ended (stopped or out of tokens). Tap the reasoning button to read it.</string>
@@ -149,7 +149,7 @@
     <string name="chatScreen_research_researching" formatted="false">Researching part {{index}} of {{count}}…</string>
     <string name="chatScreen_research_synthesizing" formatted="false">Putting the findings together…</string>
     <string name="chatScreen_roleYou" formatted="false">You</string>
-    <string name="chatScreen_roleAssistant" formatted="false">BOAR</string>
+    <string name="chatScreen_roleAssistant" formatted="false">BoarLite</string>
     <string name="chatScreen_stoppedByUser" formatted="false">Stopped by user</string>
     <string name="chatScreen_copyResponse" formatted="false">Copy response</string>
     <string name="chatScreen_copied" formatted="false">Copied</string>
@@ -159,17 +159,17 @@
     <string name="chatScreen_rateUnhelpful" formatted="false">Unhelpful</string>
     <string name="chatScreen_stageTimedOut" formatted="false">A research step took too long and was cut short</string>
     <string name="chatScreen_interruptedByBackground" formatted="false">Paused — app was backgrounded. Ask again to continue.</string>
-    <string name="aboutScreen_title" formatted="false">About BOAR</string>
+    <string name="aboutScreen_title" formatted="false">About BoarLite</string>
     <string name="aboutScreen_heroSubtitle" formatted="false">Adaptive local intelligence</string>
     <string name="aboutScreen_versionBadge" formatted="false">v{{version}} • {{build}}</string>
     <string name="aboutScreen_buildDevelopment" formatted="false">Development build</string>
     <string name="aboutScreen_buildRelease" formatted="false">Release build</string>
     <string name="aboutScreen_airGappedTitle" formatted="false">Air-gapped sovereign AI</string>
-    <string name="aboutScreen_airGappedBody" formatted="false">BOAR is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It performs local LLM inference via llama.rn / llama.cpp and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
+    <string name="aboutScreen_airGappedBody" formatted="false">BoarLite is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It performs local LLM inference via llama.rn / llama.cpp and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
     <string name="aboutScreen_hardwareTitle" formatted="false">Hardware architecture &amp; budget</string>
     <string name="aboutScreen_hardwareBody" formatted="false">Complies with strict mobile field constraints: resident memory remains capped under 12GB RAM using memory-mapped weights (mmap), and total storage is audited against a 50GB storage envelope.</string>
     <string name="aboutScreen_benchmarkTitle" formatted="false">Benchmark it yourself</string>
-    <string name="aboutScreen_benchmarkBody" formatted="false">BOAR measures every answer on your own phone: model load time, time to first token, tokens/sec, peak memory and which sources were used. Run the built-in evaluation from Execution Telemetry → 🧪 Evaluate to compare any installed model on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>
+    <string name="aboutScreen_benchmarkBody" formatted="false">BoarLite measures every answer on your own phone: model load time, time to first token, tokens/sec, peak memory and which sources were used. Run the built-in evaluation from Execution Telemetry → 🧪 Evaluate to compare any installed model on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>
     <string name="aboutScreen_repoTitle" formatted="false">Open source repository</string>
     <string name="aboutScreen_repoBody" formatted="false">Source code, quantized model manifests, and offline indexing scripts are available at:</string>
     <string name="sourceFootnotes_title" formatted="false">Sources</string>
@@ -295,14 +295,14 @@
     <string name="flows_row_error_storage" formatted="false">Not enough free space on the phone.</string>
     <string name="flows_row_error_hash__mismatch" formatted="false">The file doesn\'t match the expected one. Get a fresh copy of the file and try again.</string>
     <string name="flows_row_error_empty__file" formatted="false">The file is empty (0 bytes). Copy it to the phone again.</string>
-    <string name="flows_row_error_unreadable__file" formatted="false">BOAR couldn\'t read this file.</string>
+    <string name="flows_row_error_unreadable__file" formatted="false">BoarLite couldn\'t read this file.</string>
     <string name="flows_row_error_corrupt" formatted="false">The file looks damaged. Copy it again or choose another.</string>
     <string name="flows_row_error_size__mismatch" formatted="false">The file is incomplete. Get a fresh copy of the file and try again.</string>
     <string name="flows_row_error_offline__variant" formatted="false">This version has no internet access. Import the file instead.</string>
     <string name="flows_row_error_load" formatted="false">Couldn\'t load this model.</string>
     <string name="flows_row_error_unknown" formatted="false">Something went wrong.</string>
-    <string name="flows_row_error_unknown__file" formatted="false">This file isn\'t one BOAR knows. Choose the file listed for this item.</string>
-    <string name="flows_row_error_too__large" formatted="false">This file is larger than BOAR accepts for this kind of item.</string>
+    <string name="flows_row_error_unknown__file" formatted="false">This file isn\'t one BoarLite knows. Choose the file listed for this item.</string>
+    <string name="flows_row_error_too__large" formatted="false">This file is larger than BoarLite accepts for this kind of item.</string>
     <string name="flows_row_error_no__source" formatted="false">This item isn\'t published for download yet. Import its file instead.</string>
     <string name="flows_row_errorDetail_interrupted" formatted="false">Stopped at {{done}} of {{total}}. Try again to continue from there.</string>
     <string name="flows_row_errorDetail_paused" formatted="false">No progress for {{seconds}} s. Tap Try again to continue.</string>
@@ -331,9 +331,9 @@
     <string name="flows_row_wontFitHere" formatted="false">Too big</string>
     <string name="flows_row_wontFitWhy" formatted="false">Needs more memory than this phone has</string>
     <string name="flows_row_wontFitNumbers" formatted="false">Needs ~{{need}} of memory · this phone has {{total}}</string>
-    <string name="flows_row_didNotOpenBefore" formatted="false">BOAR closed the last time it loaded </string>
+    <string name="flows_row_didNotOpenBefore" formatted="false">BoarLite closed the last time it loaded </string>
     <string name="flows_row_mayCloseTitle" formatted="false">Use this model?</string>
-    <string name="flows_row_mayCloseBefore" formatted="false">BOAR may close when it loads </string>
+    <string name="flows_row_mayCloseBefore" formatted="false">BoarLite may close when it loads </string>
     <string name="flows_row_mayCloseAfter" formatted="false">. Fast is the recommended one here.</string>
     <string name="flows_row_showAll" formatted="false">Show all</string>
     <string name="flows_row_showLess" formatted="false">Show less</string>

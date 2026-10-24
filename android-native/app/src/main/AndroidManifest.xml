@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
     <!-- Settings → Haptic feedback (a normal permission: granted at install, no prompt). -->
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!-- AnswerService: "BOAR is answering…" while an answer is written, so the phone doesn't close BOAR mid-answer
+    <!-- AnswerService: "BoarLite is answering…" while an answer is written, so the phone doesn't close BOAR mid-answer
          when the user switches apps (Xiaomi did, Oct 19). Normal permissions: granted at install. Without the
          notification permission (Android 13+) the service still runs; only its notification is hidden. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

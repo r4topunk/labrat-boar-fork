@@ -167,7 +167,7 @@ private fun Profile() {
                     .border(3.dp, MaterialTheme.colorScheme.surface, CircleShape), contentScale = ContentScale.Crop)
         }
         Column(Modifier.padding(top = 48.dp, start = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text("Boar", style = Boar.type.title, color = c.textHeading, fontWeight = FontWeight.Bold)
+            Text("BoarLite", style = Boar.type.title, color = c.textHeading, fontWeight = FontWeight.Bold)
             Text("@boar_app", style = Boar.type["mono.xs"], color = c.textSecondary)
             Text(t("native.about.bio"), style = Boar.type.body, color = c.textSecondary, modifier = Modifier.padding(top = 6.dp))
         }
@@ -186,7 +186,7 @@ private fun Post(last: Boolean, content: @Composable () -> Unit) {
         }
         Column(Modifier.weight(1f).padding(bottom = 18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Boar", style = Boar.type.titleSm, color = c.textHeading, fontWeight = FontWeight.Bold)
+                Text("BoarLite", style = Boar.type.titleSm, color = c.textHeading, fontWeight = FontWeight.Bold)
                 Text("@boar_app", style = Boar.type.caption, color = c.textSecondary)
             }
             content()
@@ -252,7 +252,7 @@ private fun Link(text: String, copy: String = text) {
             Text(text, style = Boar.type["mono.sm"], color = c.textAccentCyan, modifier = Modifier.weight(1f).padding(start = 12.dp, top = 8.dp, bottom = 8.dp))
             IconButton({
                 (ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager)
-                    .setPrimaryClip(android.content.ClipData.newPlainText("BOAR", copy))
+                    .setPrimaryClip(android.content.ClipData.newPlainText("BoarLite", copy))
                 android.widget.Toast.makeText(ctx, copied, android.widget.Toast.LENGTH_SHORT).show()
             }) { Icon(BoarIcons.ContentCopy, contentDescription = copyLabel, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
         }

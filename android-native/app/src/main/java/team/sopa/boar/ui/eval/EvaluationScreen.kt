@@ -79,7 +79,7 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
         Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(t("evaluation.title"), style = Boar.type.titleSm.copy(letterSpacing = 0.5.sp), color = c.textHeading)
-                Text(t("evaluation.subtitle", "version" to state.setVersion, "count" to state.queries.size) + " · BOAR " + team.sopa.boar.app.DeviceReader.appVersion(ctx), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim)
+                Text(t("evaluation.subtitle", "version" to state.setVersion, "count" to state.queries.size) + " · BoarLite " + team.sopa.boar.app.DeviceReader.appVersion(ctx), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim)
             }
             if (!state.running) {
                 Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.SemiBold,
