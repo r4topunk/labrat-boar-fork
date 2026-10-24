@@ -97,10 +97,10 @@
     <string name="native_eval_keepScreenOn" formatted="false">Keep the screen on and the app open while it runs. The chat\'s model is unloaded first so the two don\'t share memory.</string>
     <string name="native_chat_loadCrashed" formatted="false">{{crashed}} ran out of memory and BOAR had to close. For now, BOAR is answering with {{fallback}}.</string>
     <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} ran out of memory and BOAR had to close. You can try again using less memory, or pick a smaller model.</string>
-    <string name="native_chat_loadCrashedOnly" formatted="false">{{model}} was too big for this phone last time and BOAR had to close. Download a smaller model, such as Qwen2.5 1.5B (about 1 GB).</string>
+    <string name="native_chat_loadCrashedOnly" formatted="false">{{model}} was too big for this phone last time and BOAR had to close. Download a smaller model, such as Qwen3 1.7B (about 1.1 GB).</string>
     <string name="native_chat_retryLessMemory" formatted="false">Try again with less memory</string>
     <string name="native_chat_mayNotFit" formatted="false">{{model}} may be too big for this phone.</string>
-    <string name="native_chat_mayNotFitOnly" formatted="false">{{model}} may be too big for this phone. A smaller model, such as Qwen2.5 1.5B (about 1 GB), will run better.</string>
+    <string name="native_chat_mayNotFitOnly" formatted="false">{{model}} may be too big for this phone. A smaller model, such as Qwen3 1.7B (about 1.1 GB), will run better.</string>
     <string name="native_chat_loadAnyway" formatted="false">Load anyway</string>
     <string name="native_chat_pickAnother" formatted="false">Pick another model</string>
     <string name="native_tweaks_thinking" formatted="false">Thinking before answering</string>

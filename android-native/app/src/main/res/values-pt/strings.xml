@@ -146,7 +146,7 @@
     <string name="setupWizard_step2_subtitle" formatted="false">Ele escreve as respostas neste celular e é baixado uma vez. Você pode trocá-lo depois em Modelos.</string>
     <string name="setupWizard_step2_recommended" formatted="false">RECOMENDADO</string>
     <string name="setupWizard_step2_models_default" formatted="false">Qwen3 4B. Explicações e comparações mais completas, um pouco mais lento. Melhor em celulares com 12 GB de RAM ou mais.</string>
-    <string name="setupWizard_step2_models_compact" formatted="false">Qwen2.5 1.5B. Rápido e leve: as respostas começam em poucos segundos num celular de 8 GB. Melhor em celulares com 8 GB de RAM ou menos.</string>
+    <string name="setupWizard_step2_models_compact" formatted="false">Qwen3 1.7B. Rápido e leve, sem pensar antes de responder: as respostas começam em poucos segundos num celular de 8 GB. A escolha recomendada para todos os celulares.</string>
     <string name="setupWizard_step2_onPhone" formatted="false">NESTE CELULAR</string>
     <string name="setupWizard_step2_heavy" formatted="false">PESADO PARA ESTE CELULAR</string>
     <string name="setupWizard_step2_heavyNote" formatted="false">Neste celular ele pode responder devagar, e o Android pode fechar o BOAR em segundo plano para liberar memória.</string>

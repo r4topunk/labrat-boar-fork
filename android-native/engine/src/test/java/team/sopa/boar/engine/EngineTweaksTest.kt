@@ -14,6 +14,12 @@ class EngineTweaksTest {
     /** Snapdragon 870 (POCO F3): dotprod and fp16, no i8mm. */
     private val f3Features = setOf("fp", "asimd", "asimdhp", "asimddp", "fphp")
 
+    /** Qwen3 1.7B, the default answer model, is a hybrid model: the template's own default is thinking on. */
+    @Test fun `thinking is off on Auto and in a plain answer request`() {
+        assertEquals(false, EngineTweaks().thinkingEnabled)
+        assertEquals(false, team.sopa.boar.engine.answer.AnswerRequest("q", null).enableThinking)
+    }
+
     @Test fun `all Auto gives the measured defaults`() {
         val r = EngineTweaks().resolve(x6)
         assertEquals(4, r.params.threads)

@@ -62,6 +62,26 @@
       }
     },
     {
+      "id": "qwen3-1.7b-q4km",
+      "kind": "llm",
+      "label": "Qwen3-1.7B (Q4_K_M)",
+      "displayName": "Qwen3 1.7B",
+      "filename": "models/qwen3-1.7b-q4km.gguf",
+      "sizeBytes": 1107409472,
+      "sha256": "b139949c5bd74937ad8ed8c8cf3d9ffb1e99c866c823204dc42c0d91fa181897",
+      "sourceUrl": "https://huggingface.co/unsloth/Qwen3-1.7B-GGUF/resolve/d7f544eead698dbd1f15126ef60b45a1e1933222/Qwen3-1.7B-Q4_K_M.gguf",
+      "license": "Apache-2.0",
+      "description": "1.7B dense, light, thinking off. The answer model BOAR recommends for every phone.",
+      "required": false,
+      "answerTier": "compact",
+      "capabilities": {
+        "roles": [
+          "fast"
+        ],
+        "usesChatTemplate": true
+      }
+    },
+    {
       "id": "qwen2.5-1.5b-instruct-q4km",
       "kind": "llm",
       "label": "Qwen2.5-1.5B-Instruct (Q4_K_M)",
@@ -71,9 +91,8 @@
       "sha256": "1adf0b11065d8ad2e8123ea110d1ec956dab4ab038eab665614adba04b6c3370",
       "sourceUrl": "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/9eadc66189c7641e1ddd226b8267a9119b2ce2d4/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf",
       "license": "Apache-2.0",
-      "description": "Fast and light, easy on memory.",
+      "description": "1.5B dense, fast and light. The earlier compact model, still a good pick for phones with little RAM.",
       "required": false,
-      "answerTier": "compact",
       "capabilities": {
         "roles": [
           "fast"

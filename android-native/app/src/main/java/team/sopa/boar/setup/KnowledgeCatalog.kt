@@ -84,7 +84,7 @@ enum class RamFit { FITS, HEAVY, UNKNOWN }
 /** One answer-model card of the models step. */
 data class ModelOption(
     val asset: CatalogAsset,
-    /** Friendly name ("Qwen2.5 1.5B"). */
+    /** Friendly name ("Qwen3 1.7B"). */
     val name: String,
     val sizeBytes: Long,
     /** The RAM-based pick (SetupModel.recommended). */

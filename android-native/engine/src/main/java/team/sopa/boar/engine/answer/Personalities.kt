@@ -47,7 +47,7 @@ data class Personalities(
     }
 
     companion object {
-        /** Models smaller than this file size are "small" for [promptFor] (Qwen2.5 1.5B is 1.0 GB, Qwen3 4B 2.5 GB). */
+        /** Models smaller than this file size are "small" for [promptFor] (Qwen3 1.7B is 1.1 GB, Qwen3 4B 2.5 GB). */
         const val SMALL_MODEL_BYTES = 2_000_000_000L
         private val json = Json { ignoreUnknownKeys = true }
         fun parse(text: String): Personalities = json.decodeFromString(serializer(), text)

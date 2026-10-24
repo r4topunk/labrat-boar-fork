@@ -264,12 +264,12 @@ class SetupFlowDeviceTest {
     }
 
     /**
-     * The real first run, opt-in (-e qaFirstRun true): this install's files are emptied, then Get started, the 1.5B
+     * The real first run, opt-in (-e qaFirstRun true): this install's files are emptied, then Get started, the 1.7B
      * model alone, Minimal knowledge, the download (about 1 GB, verified) and the library, and the chat opens by itself
      * (no Done screen, no PIN offer).
      */
     @Test fun firstRunDownloadsAndEndsInTheChat() {
-        assumeTrue("opt-in: -e qaFirstRun true (wipes this install and downloads ~1 GB)", qaArg("qaFirstRun") == "true")
+        assumeTrue("opt-in: -e qaFirstRun true (wipes this install and downloads ~1.1 GB)", qaArg("qaFirstRun") == "true")
         assumeTrue("only on the throwaway devtest install", ctx.packageName.endsWith(".devtest"))
         ctx.filesDir.listFiles().orEmpty().forEach { it.deleteRecursively() }
         launchApp(opened)
@@ -278,7 +278,7 @@ class SetupFlowDeviceTest {
         compose.waitForText(tr("clean.onboarding.models.title"))
         compose.waitUntil(10_000) { compose.onAllNodes(modelCards).fetchSemanticsNodes().size >= 2 }
         selectedCards().forEach(::tapCard)
-        val compact = services.catalog.answerModels.first { it.id == "qwen2.5-1.5b-instruct-q4km" }
+        val compact = services.catalog.answerModels.first { it.id == "qwen3-1.7b-q4km" }
         val i = compose.onAllNodes(modelCards).fetchSemanticsNodes().indexOfFirst { n -> n.config.getOrNull(SemanticsProperties.Text).orEmpty().any { it.text == compact.shortName } }
         tapCard(i)
         compose.pressNode(continueButton)

@@ -11,7 +11,7 @@ class CatalogTest {
 
     @Test fun `answer models are the default then the compact tier`() {
         assertEquals("qwen3-4b-instruct-2507-q4km", catalog.defaultAnswerModel.id)
-        assertEquals("qwen2.5-1.5b-instruct-q4km", catalog.compactAnswerModel.id)
+        assertEquals("qwen3-1.7b-q4km", catalog.compactAnswerModel.id)
         assertEquals(listOf(AnswerTier.DEFAULT, AnswerTier.COMPACT), catalog.answerModels.map { it.answerTier })
     }
 

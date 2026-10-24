@@ -147,7 +147,7 @@
     <string name="setupWizard_step2_subtitle" formatted="false">It writes the answers on this phone and is downloaded once. You can change it later in Models.</string>
     <string name="setupWizard_step2_recommended" formatted="false">RECOMMENDED</string>
     <string name="setupWizard_step2_models_default" formatted="false">Qwen3 4B. Fuller explanations and comparisons, a little slower. Best on phones with 12 GB of RAM or more.</string>
-    <string name="setupWizard_step2_models_compact" formatted="false">Qwen2.5 1.5B. Fast and light: answers start in a few seconds on an 8 GB phone. Best on phones with 8 GB of RAM or less.</string>
+    <string name="setupWizard_step2_models_compact" formatted="false">Qwen3 1.7B. Fast and light, with thinking off: answers start in a few seconds on an 8 GB phone. The recommended pick for every phone.</string>
     <string name="setupWizard_step2_onPhone" formatted="false">ON THIS PHONE</string>
     <string name="setupWizard_step2_heavy" formatted="false">HEAVY FOR THIS PHONE</string>
     <string name="setupWizard_step2_heavyNote" formatted="false">On this phone it may answer slowly, and Android may close BOAR in the background to free memory.</string>
