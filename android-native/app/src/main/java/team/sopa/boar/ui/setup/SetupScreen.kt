@@ -38,16 +38,15 @@ import team.sopa.boar.setup.SetupViewModel
 import team.sopa.boar.ui.t
 
 /**
- * First run: "Unpacking BoarLite". The app's data comes out of its own bundle in about 10 to 60 seconds, with the file
- * and bytes shown; the chat opens on its own when it is done ([onDone]). When there is no bundle to unpack, the screen
- * says so plainly (with the adb command for testers); a full phone or a failed copy gets a retry. [onSkip] is set when
- * it was reopened from Settings and the app already works.
+ * First run: "Unpacking BoarLite". The app's data comes out of its own bundle (about 14 s for 3 GB on a Pixel 8a), with
+ * the file and bytes shown; when it is done the caller moves on to the tour ([SetupTour]) by itself. When there is no
+ * bundle to unpack, the screen says so plainly (with the adb command for testers); a full phone or a failed copy gets a
+ * retry. [onSkip] is set when it was reopened from Settings and the app already works.
  */
 @Composable
-fun SetupScreen(state: SetupState, vm: SetupViewModel, onSkip: (() -> Unit)?, onDone: () -> Unit) {
+fun SetupScreen(state: SetupState, vm: SetupViewModel, onSkip: (() -> Unit)?) {
     val cs = MaterialTheme.colorScheme
     LaunchedEffect(Unit) { vm.start() }
-    LaunchedEffect(state.phase) { if (state.phase == SetupPhase.DONE) onDone() }
     // A multi-GB copy must not stop because the screen went dark.
     val view = LocalView.current
     val working = state.phase in setOf(SetupPhase.CHECKING, SetupPhase.COPYING, SetupPhase.INDEXING)

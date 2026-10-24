@@ -166,4 +166,34 @@ object KnowledgeCatalog {
     fun packNameKey(id: String): String? = DEFS.firstOrNull { id in it.assetIds && it.id != WIKI_ESSENTIALS }?.let { "clean.onboarding.pack.${it.slug}.name" }
 
     private const val MAX_SAMPLES = 10
+
+    /**
+     * The first-run tour's "What BoarLite knows offline" card: the bundled packs (catalog sqlite packs) in six themes,
+     * [TourGroup.titleKey] → pack names (catalog labels without their "(50,000)" counts). A pack this list doesn't name
+     * goes under "More"; empty groups are left out.
+     */
+    fun tourGroups(packs: List<CatalogAsset>): List<TourGroup> {
+        val byId = packs.associateBy { it.id }
+        val used = mutableSetOf<String>()
+        val groups = TOUR_GROUPS.mapNotNull { (key, ids) ->
+            val names = ids.mapNotNull(byId::get).onEach { used += it.id }.map(::tourName)
+            names.takeIf { it.isNotEmpty() }?.let { TourGroup(key, it) }
+        }
+        val rest = packs.filter { it.id !in used }.map(::tourName)
+        return if (rest.isEmpty()) groups else groups + TourGroup("clean.tour.group.more", rest)
+    }
+
+    private fun tourName(a: CatalogAsset) = a.label.substringBefore(" (").trim()
+
+    private val TOUR_GROUPS = listOf(
+        "clean.tour.group.encyclopedia" to listOf("boar-simplewiki-en", "wiki-vital5"),
+        "clean.tour.group.countries" to listOf("boar-factbook", "boar-visa-en"),
+        "clean.tour.group.travel" to listOf("boar-wikivoyage-en", "qa-travel-se", "qa-outdoors-se"),
+        "clean.tour.group.health" to listOf("boar-firstaid-en", "boar-medlineplus-en", "qa-health-se"),
+        "clean.tour.group.money" to listOf("boar-crypto", "qa-money-se"),
+        "clean.tour.group.cooking" to listOf("qa-cooking-se"),
+    )
 }
+
+/** One theme on the tour's knowledge card: its t() title key and the pack names under it. */
+data class TourGroup(val titleKey: String, val names: List<String>)

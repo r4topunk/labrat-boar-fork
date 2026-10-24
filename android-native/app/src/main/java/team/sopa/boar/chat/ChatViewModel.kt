@@ -108,6 +108,11 @@ data class ChatState(
     val loadNote: LoadNote? = null,
     /** While the model loads or the corpus indexes: the line the Expo app shows under the header (chatScreen.*). */
     val loadingKey: String? = null,
+    /**
+     * The answer model is loading (BoarServices.modelState): after the first-run tour's Skip the chat opens while the
+     * install's background load runs, and says so until it ends; a question sent meanwhile waits for it.
+     */
+    val modelLoading: Boolean = false,
     /** A short message over the chat for about 2 s (Toast.tsx): a reused question. */
     val toast: String? = null,
     /** Stop was tapped and the answer hasn't ended yet (a step in progress finishes first). */
@@ -213,6 +218,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         refreshModel()
+        viewModelScope.launch {
+            services.modelState.collect { m -> _state.update { it.copy(modelLoading = m == BoarServices.ModelLoadState.LOADING) } }
+        }
         preload()
         services.addBusyCheck(busy)
         services.addForegroundHook(onForeground)

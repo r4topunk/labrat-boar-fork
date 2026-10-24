@@ -2,7 +2,7 @@
 <!-- First-run texts ("Unpacking BoarLite") and the drawer's. Keys: clean.setup.*, clean.drawer.* -->
 <resources>
     <string name="clean_setup_unpackTitle" formatted="false">Unpacking BoarLite</string>
-    <string name="clean_setup_unpackBody" formatted="false">BoarLite works without a network. Its language model, search model and knowledge packs come with the app and are being unpacked on this phone. This takes about a minute and happens only once.</string>
+    <string name="clean_setup_unpackBody" formatted="false">Everything BoarLite knows is inside this app. Nothing is downloaded.</string>
     <string name="clean_setup_unpackChecking" formatted="false">Checking what is already on this phone…</string>
     <string name="clean_setup_unpackFile" formatted="false">{{name}} (file {{index}} of {{count}})</string>
     <string name="clean_setup_unpackBytes" formatted="false">{{done}} of {{total}}</string>

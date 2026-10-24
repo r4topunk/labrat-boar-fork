@@ -243,7 +243,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         label = "screen",
     ) { current ->
         when {
-            current == "setup" -> SetupHost(setup, vm) { screen = it }
+            current == "setup" -> SetupHost(setup, vm, prefs) { screen = it }
             current.startsWith("pin:") -> {
                 // pin:<flow>:<screen to return to>
                 val (_, flow, back) = current.split(":")
@@ -284,9 +284,13 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     }
 }
 
-/** First-run setup, and setup reopened from Settings. */
+/**
+ * First-run setup, and setup reopened from Settings: "Unpacking BoarLite", which moves on by itself to the tour
+ * (SetupTour) once the files are in; the tour's Open BoarLite or Skip opens the chat. Settings → Run setup again runs
+ * the same: the install again (files already verified are kept), then the tour, which Skip leaves at once.
+ */
 @Composable
-private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, goTo: (String) -> Unit) {
+private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, prefs: DisplayPrefs, goTo: (String) -> Unit) {
     val setupState by setup.state.collectAsState()
     // Reopened from Settings (the app already works): the screen offers the way back to the chat.
     val wasReady = remember { setup.ready.value == true }
@@ -296,10 +300,12 @@ private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, goTo: (String) -
         lifecycle.addObserver(observer)
         onDispose { lifecycle.removeObserver(observer) }
     }
-    SetupScreen(setupState, setup,
+    val unpacked = setupState.phase == team.sopa.boar.setup.SetupPhase.DONE
+    androidx.compose.animation.Crossfade(unpacked, label = "setupTour") { done ->
         // Settings too: after "Reset settings" the chat must show the default options.
-        onSkip = if (wasReady) ({ vm.refreshSettings(); goTo("chat") }) else null,
-    ) { vm.refreshSettings(); vm.refreshModel(); goTo(afterSetup()) }
+        if (done) team.sopa.boar.ui.setup.SetupTour(setupState, prefs) { vm.refreshSettings(); vm.refreshModel(); goTo(afterSetup()) }
+        else SetupScreen(setupState, setup, onSkip = if (wasReady) ({ vm.refreshSettings(); goTo("chat") }) else null)
+    }
 }
 
 /** The chat with the drawer: past chats (delete with undo), Knowledge, Settings. [onNavigate] opens a screen; Back returns here. */

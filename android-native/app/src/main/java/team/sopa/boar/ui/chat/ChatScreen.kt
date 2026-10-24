@@ -210,7 +210,7 @@ fun ChatScreen(
                 Header(state.messages.isNotEmpty(), state.answeringModel?.takeIf { state.answeringId != null }, state.modelLabel,
                     state.technicalDetails, state.liveTokPerSec.takeIf { state.activity == Activity.Generating && state.technicalDetails }, onMenu, onNewChat, barScroll)
             }
-            state.loadingKey?.let { LoadingBanner(t(it)) }
+            state.loadingKey?.let { LoadingBanner(t(it)) } ?: run { if (state.modelLoading) LoadingBanner(t("clean.chat.loadingModel")) }
             state.loadNote?.let { LoadNoteBanner(it, onDismissLoadNote, onRetryLessMemory, onLoadAnyway) }
             // Deep Research shows in the composer (outline, placeholder, chip), not as a tint over the whole chat: the tint
             // washed out the tonal rows on it.
