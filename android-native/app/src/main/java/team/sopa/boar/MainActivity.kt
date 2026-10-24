@@ -285,9 +285,9 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
 }
 
 /**
- * First-run setup, and setup reopened from Settings: "Unpacking BoarLite", which moves on by itself to the tour
- * (SetupTour) once the files are in; the tour's Open BoarLite or Skip opens the chat. Settings → Run setup again runs
- * the same: the install again (files already verified are kept), then the tour, which Skip leaves at once.
+ * First-run setup, and setup reopened from Settings: the tour (SetupTour) while the bundle unpacks behind it; its Open
+ * BoarLite opens the chat once the model is ready. Settings → Run setup again runs the same (files already verified
+ * are kept), and Back on the first card returns to the chat.
  */
 @Composable
 private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, prefs: DisplayPrefs, goTo: (String) -> Unit) {
@@ -300,11 +300,21 @@ private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, prefs: DisplayPr
         lifecycle.addObserver(observer)
         onDispose { lifecycle.removeObserver(observer) }
     }
-    val unpacked = setupState.phase == team.sopa.boar.setup.SetupPhase.DONE
-    androidx.compose.animation.Crossfade(unpacked, label = "setupTour") { done ->
+    // The tour starts at once and the unpack runs behind it; "Unpacking BoarLite" shows only when it can't go on (no
+    // bundle, no space, a failed copy), with its retry.
+    LaunchedEffect(Unit) { setup.start() }
+    val phase = setupState.phase
+    val working = phase == team.sopa.boar.setup.SetupPhase.CHECKING || phase == team.sopa.boar.setup.SetupPhase.COPYING ||
+        phase == team.sopa.boar.setup.SetupPhase.INDEXING
+    // A multi-GB copy must not stop because the screen went dark.
+    val view = androidx.compose.ui.platform.LocalView.current
+    DisposableEffect(working) { view.keepScreenOn = working; onDispose { view.keepScreenOn = false } }
+    val touring = working || phase == team.sopa.boar.setup.SetupPhase.DONE
+    val back: (() -> Unit)? = if (wasReady) ({ vm.refreshSettings(); goTo("chat") }) else null
+    androidx.compose.animation.Crossfade(touring, label = "setupTour") { tour ->
         // Settings too: after "Reset settings" the chat must show the default options.
-        if (done) team.sopa.boar.ui.setup.SetupTour(setupState, prefs) { vm.refreshSettings(); vm.refreshModel(); goTo(afterSetup()) }
-        else SetupScreen(setupState, setup, onSkip = if (wasReady) ({ vm.refreshSettings(); goTo("chat") }) else null)
+        if (tour) team.sopa.boar.ui.setup.SetupTour(setupState, onExit = back) { vm.refreshSettings(); vm.refreshModel(); goTo(afterSetup()) }
+        else SetupScreen(setupState, setup, onSkip = back)
     }
 }
 

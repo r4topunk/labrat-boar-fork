@@ -21,9 +21,10 @@ import team.sopa.boar.engine.models.BundleInstaller
 
 /**
  * The first-run flow (ui/setup), reopened from Settings → Run setup again on an install that already works, so nothing
- * is wiped: "Unpacking BoarLite" (every file already verified, the index merged again) moves on by itself to the tour,
- * whose Open BoarLite waits for the answer model (BoarServices.modelState READY) and whose Skip opens the chat at once.
- * The devtest install carries no bundle, so a file missing from the phone would show the "needs its data" screen instead.
+ * is wiped: the tour starts at once while the install checks its files behind it (every file already verified, the
+ * index merged again); its Open BoarLite waits for the answer model (BoarServices.modelState READY), and Back on the
+ * first card returns to the chat. The devtest install carries no bundle, so a file missing from the phone would show
+ * the "needs its data" screen instead.
  */
 @RunWith(AndroidJUnit4::class)
 class SetupFlowDeviceTest {
@@ -40,14 +41,14 @@ class SetupFlowDeviceTest {
         assumeTrue("needs a finished bundle install", java.io.File(ctx.filesDir, BundleInstaller.MARKER).isFile)
     }
 
-    /** Settings → Run setup again, then the tour after the unpack screen (nothing to copy: it passes in seconds). */
+    /** Settings → Run setup again, then the tour at once (no unpack screen: the check runs behind it). */
     private fun runSetupAgainToTheTour() {
         launchApp(opened)
         compose.openFromDrawer(tr("chatScreen.drawerItems.settings"))
         compose.waitFor(hasScrollAction(), "the Settings list")
         compose.scrollAndPress(tr("modelSetupScreen.recovery.wizardButton"))
-        compose.waitFor(hasText(tr("clean.tour.knows.title")), "the tour's first card", 120_000)
-        assertFalse("the unpack screen is gone", compose.exists(hasText(tr("clean.setup.unpackTitle"))))
+        compose.waitFor(hasText(tr("clean.tour.welcome.title")), "the tour's first card", 120_000)
+        assertFalse("no unpack screen", compose.exists(hasText(tr("clean.setup.unpackTitle"))))
     }
 
     @Test fun runSetupAgainShowsTheTourAndOpensBoarLiteOnceTheModelIsReady() {
@@ -55,7 +56,7 @@ class SetupFlowDeviceTest {
         val before = services.activeModel()!!.id
         runSetupAgainToTheTour()
         // Next through the cards to the last one, where Open BoarLite is.
-        repeat(4) { compose.press(tr("clean.tour.next")) }
+        repeat(5) { compose.press(tr("clean.tour.next")) }
         compose.waitFor(hasText(tr("clean.tour.private.title")), "the last card", 10_000)
         // Enabled only once the model is loaded (about 2 min the first time on a Pixel 8a): waited for on the Compose clock.
         val open = hasText(tr("clean.tour.open")) and hasClickAction()
@@ -68,11 +69,12 @@ class SetupFlowDeviceTest {
         assertTrue(java.io.File(ctx.filesDir, BundleInstaller.MARKER).isFile)
     }
 
-    @Test fun skipLeavesTheTourForTheChatAtOnce() {
+    @Test fun backOnTheFirstCardReturnsToTheChat() {
         needsAWorkingInstall()
         runSetupAgainToTheTour()
-        compose.press(tr("clean.tour.skip"))
+        assertFalse("the tour has no Skip", compose.exists(hasText(tr("clean.tour.skip"))))
+        InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
         compose.waitForChat()
-        assertFalse("the tour is gone", compose.exists(hasText(tr("clean.tour.knows.title"))))
+        assertFalse("the tour is gone", compose.exists(hasText(tr("clean.tour.welcome.title"))))
     }
 }

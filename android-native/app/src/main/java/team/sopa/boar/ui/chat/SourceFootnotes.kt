@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -81,13 +82,15 @@ internal fun groupedShape(index: Int, count: Int, outer: Dp = 16.dp, inner: Dp =
  * components/SourceFootnotes.tsx: the numbered sources under an answer; tapping one shows the passage the model read.
  * A grouped tonal list (surfaceContainer rows 2 dp apart, one rounded block), no dividers or borders: a 48 dp row with
  * the number, the title and a chevron; the passage opens inside the same row. The retrieval similarity is jargon that
- * reads as "BOAR is 79 % sure", so it shows only with technical details.
+ * reads as "BOAR is 79 % sure", so it shows only with technical details. [openAt] opens that row from outside (the
+ * first-run tour shows a passage opening by itself); the chat leaves it null.
  */
 @Composable
-fun SourceFootnotes(sources: List<Source>, title: String? = null, technicalDetails: Boolean = false) {
+fun SourceFootnotes(sources: List<Source>, title: String? = null, technicalDetails: Boolean = false, openAt: Int? = null) {
     val scheme = MaterialTheme.colorScheme
     val type = MaterialTheme.typography
     var expanded by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(openAt) { if (openAt != null) expanded = openAt }
     val yourDocuments = t("native.sourceFootnotes.yourDocuments")
     val expandedState = t("clean.chat.expanded")
     val collapsedState = t("clean.chat.collapsed")
