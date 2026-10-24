@@ -29,4 +29,13 @@ class CatalogTest {
             assertTrue(it.id, it.filename.isNotBlank() && !it.filename.startsWith("/"))
         }
     }
+
+    @Test fun `the knowledge packs are the 13 of the K13 kit, every asset marked bundled`() {
+        val packs = catalog.models.filter { it.format == "sqlite-pack" }.map { it.id }.toSet()
+        assertEquals(setOf("wiki-vital5", "boar-crypto", "boar-wikivoyage-en", "boar-factbook", "boar-firstaid-en", "boar-medlineplus-en",
+            "qa-health-se", "qa-outdoors-se", "qa-travel-se", "boar-simplewiki-en", "qa-cooking-se", "qa-money-se", "boar-visa-en"), packs)
+        assertTrue(catalog.models.all { it.bundled })
+        // Factbook v2 (PACK-SHAPE): the shaped pack, not the first published one.
+        assertEquals("981f7b4bbfa4ddf38bd7e09a037be6f065e252a5ce9e23f2ea07e4ee3f422eaa", catalog.byId("boar-factbook")!!.sha256)
+    }
 }

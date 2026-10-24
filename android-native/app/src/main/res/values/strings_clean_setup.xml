@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Setup and drawer texts of the cleaner flow (recommended path, "More options"). Keys: clean.setup.*, clean.drawer.* -->
+<!-- First-run texts ("Unpacking BoarLite") and the drawer's. Keys: clean.setup.*, clean.drawer.* -->
 <resources>
-    <string name="clean_setup_stubTitle" formatted="false">BoarLite is not installed yet</string>
-    <string name="clean_setup_stubBody" formatted="false">BoarLite works without a network, so its language model and its search model must be on this phone before it can answer. Still missing:</string>
+    <string name="clean_setup_unpackTitle" formatted="false">Unpacking BoarLite</string>
+    <string name="clean_setup_unpackBody" formatted="false">BoarLite works without a network. Its language model, search model and knowledge packs come with the app and are being unpacked on this phone. This takes about a minute and happens only once.</string>
+    <string name="clean_setup_unpackChecking" formatted="false">Checking what is already on this phone…</string>
+    <string name="clean_setup_unpackFile" formatted="false">{{name}} (file {{index}} of {{count}})</string>
+    <string name="clean_setup_unpackBytes" formatted="false">{{done}} of {{total}}</string>
+    <string name="clean_setup_unpackIndex" formatted="false">Preparing search…</string>
+    <string name="clean_setup_noDataTitle" formatted="false">BoarLite needs its data</string>
+    <string name="clean_setup_noDataBody" formatted="false">This copy of BoarLite was built without its data (the language model and the knowledge packs), and BoarLite never downloads anything. Install the full BoarLite APK, which carries everything.</string>
+    <string name="clean_setup_noDataTesters" formatted="false">Testers: copy a staged bundle (scripts/stage-bundle.sh) to the phone from a computer, then tap Check again:</string>
+    <string name="clean_setup_noSpaceTitle" formatted="false">Not enough space</string>
+    <string name="clean_setup_noSpaceBody" formatted="false">BoarLite needs {{needed}} free to unpack its data, and this phone has {{free}} free. Free some space, then try again.</string>
+    <string name="clean_setup_failedTitle" formatted="false">Unpacking stopped</string>
+    <string name="clean_setup_failedBody" formatted="false">A file did not unpack correctly. Try again; files already unpacked are kept.</string>
+    <string name="clean_setup_retry" formatted="false">Try again</string>
     <string name="clean_setup_stubCheck" formatted="false">Check again</string>
     <string name="clean_drawer_newChat" formatted="false">New chat</string>
 </resources>

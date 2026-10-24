@@ -6,6 +6,13 @@ plugins {
     jacoco
 }
 
+// BoarLite's data bundle (scripts/stage-bundle.sh <outDir>): with -Pboar.bundleDir=<outDir> the APK carries the model,
+// the packs and the index under assets/bundle/, installed on first launch. Without it the APK has no bundle, so
+// development builds stay small and get their data from an adb-pushed folder instead (docs/BUILDING-RELEASE.md).
+val bundleDir: File? = providers.gradleProperty("boar.bundleDir").orNull?.trim()?.takeIf { it.isNotEmpty() }?.let { dir ->
+    file(dir).also { require(it.resolve("bundle/manifest.json").isFile) { "-Pboar.bundleDir=$dir has no bundle/manifest.json: run scripts/stage-bundle.sh first" } }
+}
+
 android {
     namespace = "team.sopa.boar"
     compileSdk = 36
@@ -27,6 +34,8 @@ android {
         val gitShaOverride = providers.gradleProperty("boar.gitSha").orNull?.trim()?.takeIf { it.isNotEmpty() }
         buildConfigField("String", "GIT_SHA", "\"${gitShaOverride ?: (gitSha + if (gitDirty && gitSha.isNotEmpty()) "+" else "")}\"")
         buildConfigField("String", "BUILD_DATE", "\"${LocalDate.now()}\"")
+        // Whether this APK carries the data bundle (assets/bundle); the app reads the bundle itself, this is for About and logs.
+        buildConfigField("boolean", "BUNDLED", "${bundleDir != null}")
         ndk { abiFilters += listOf("arm64-v8a") }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -55,6 +64,8 @@ android {
             // JaCoCo line coverage of the on-device test runs (adb am instrument -e coverage true; qaCoverageReport).
             enableAndroidTestCoverage = true
             versionNameSuffix = "-devtest"
+            // The device tests never carry the multi-GB bundle.
+            buildConfigField("boolean", "BUNDLED", "false")
             matchingFallbacks += listOf("debug")
         }
         // Local QA only: the release code, debug-signed, profileable from the shell (perfetto, gfxinfo), installed beside
@@ -77,7 +88,12 @@ android {
     }
     buildFeatures { compose = true; buildConfig = true }
     // BOAR is English only (r4to, Oct 24): no library's translations ship in the APK, so nothing shows in another language.
-    androidResources { localeFilters += "en" }
+    androidResources {
+        localeFilters += "en"
+        // The bundle's files are stored, not deflated: the installer streams them out of the APK, and a 1 GB model
+        // gains nothing from compression.
+        noCompress += listOf("gguf", "sqlite", "db")
+    }
     // Instrumented tests run against the throwaway devtest install (./gradlew :app:assembleDevtestAndroidTest).
     testBuildType = "devtest"
     packaging { jniLibs { useLegacyPackaging = true } }
@@ -95,6 +111,8 @@ val copySharedAssets by tasks.registering(Copy::class) {
     into(sharedAssets)
 }
 android.sourceSets["main"].assets.srcDir(sharedAssets)
+// Release, debug and perf get the bundle; devtest (the device tests' install) never does.
+bundleDir?.let { dir -> listOf("release", "debug", "perf").forEach { android.sourceSets[it].assets.srcDir(dir) } }
 tasks.named("preBuild") { dependsOn(copySharedAssets) }
 
 dependencies {

@@ -79,7 +79,7 @@ import team.sopa.boar.ui.chat.ChatScreen
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.BoarTheme
 
-/** The app: first-run setup until the required models are on disk, then the chat with past chats and settings in the drawer. */
+/** The app: first-run setup unpacks the bundle (model, packs, index), then the chat with past chats and settings in the drawer. */
 class MainActivity : ComponentActivity() {
     /** BOAR is English only: the texts, sizes and numbers are English whatever language the phone is set to. */
     override fun attachBaseContext(base: Context) {
@@ -224,7 +224,7 @@ private fun PredictiveBackScreen(blocked: Boolean = false, onBack: () -> Unit, c
 
 @Composable
 private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel = viewModel(), setup: SetupViewModel = viewModel()) {
-    var screen by rememberSaveable { mutableStateOf(if (setup.ready() && !setup.unfinished) "chat" else "setup") }
+    var screen by rememberSaveable { mutableStateOf(if (setup.ready()) "chat" else "setup") }
     // Where Back leads from Knowledge, About and Evaluation: Settings when it opened them, else the chat.
     var backTo by rememberSaveable { mutableStateOf("chat") }
     AnimatedContent(
@@ -290,8 +290,8 @@ private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, goTo: (String) -
     }
     SetupScreen(setupState, setup,
         // Settings too: after "Reset settings" the chat must show the default options.
-        onSkip = if (wasReady) ({ setup.forget(); vm.refreshSettings(); goTo("chat") }) else null,
-    ) { setup.forget(); vm.refreshSettings(); vm.refreshModel(); goTo(afterSetup()) }
+        onSkip = if (wasReady) ({ vm.refreshSettings(); goTo("chat") }) else null,
+    ) { vm.refreshSettings(); vm.refreshModel(); goTo(afterSetup()) }
 }
 
 /** The chat with the drawer: past chats (delete with undo), Knowledge, Settings. [onNavigate] opens a screen; Back returns here. */

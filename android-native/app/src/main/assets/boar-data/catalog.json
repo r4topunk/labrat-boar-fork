@@ -18,7 +18,8 @@
         "roles": [
           "embedding"
         ]
-      }
+      },
+      "bundled": true
     },
     {
       "id": "qwen3-1.7b-q4km",
@@ -37,7 +38,8 @@
           "fast"
         ],
         "usesChatTemplate": true
-      }
+      },
+      "bundled": true
     },
     {
       "id": "corpus-standard",
@@ -49,7 +51,8 @@
       "sourceUrl": "https://raw.githubusercontent.com/rferrari/boar-app/9e46dc4d8f9a95bc7716194b94117f769504c0e0/assets/corpus/corpus-standard.json",
       "license": "CC BY-SA 4.0 (Wikipedia)",
       "description": "Searchable offline when you ask a question.",
-      "required": false
+      "required": false,
+      "bundled": true
     },
     {
       "id": "corpus-full",
@@ -61,7 +64,8 @@
       "sourceUrl": "https://raw.githubusercontent.com/rferrari/boar-app/9e46dc4d8f9a95bc7716194b94117f769504c0e0/assets/corpus/corpus-full.json",
       "license": "CC BY-SA 4.0 (Wikipedia)",
       "description": "Searchable offline when you ask a question.",
-      "required": false
+      "required": false,
+      "bundled": true
     },
     {
       "id": "kb-index-research",
@@ -80,7 +84,8 @@
         "corpus-standard",
         "corpus-full"
       ],
-      "embeddingModelSha256": "ec38e8da142596baa913124ae50550de284b6916bf59577ef2f0cb9660c2f514"
+      "embeddingModelSha256": "ec38e8da142596baa913124ae50550de284b6916bf59577ef2f0cb9660c2f514",
+      "bundled": true
     },
     {
       "id": "wiki-vital5",
@@ -93,7 +98,8 @@
       "sourceUrl": "https://github.com/rferrari/boar-app/releases/download/knowledge-pack-v1/wiki-vital5.sqlite",
       "license": "CC BY-SA 4.0 (Wikipedia)",
       "description": "Introductions to about 50,000 key Wikipedia articles, searchable offline.",
-      "required": false
+      "required": false,
+      "bundled": true
     },
     {
       "id": "boar-crypto",
@@ -106,7 +112,8 @@
       "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/topics/boar-crypto.sqlite",
       "license": "Mixed: CC0, public domain, BSD, MIT, FSFAP, CC BY 4.0, CC BY-SA 4.0 (per-source map in pack meta)",
       "description": "EIPs, BIPs, Ethereum specs and ethereum.org docs, searchable offline.",
-      "required": false
+      "required": false,
+      "bundled": true
     },
     {
       "id": "boar-wikivoyage-en",
@@ -119,7 +126,8 @@
       "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/wiki/en/boar-wikivoyage-en.sqlite",
       "license": "CC BY-SA 4.0 (Wikivoyage)",
       "description": "34,000 English Wikivoyage travel guides, full text.",
-      "required": false
+      "required": false,
+      "bundled": true
     },
     {
       "id": "boar-factbook",
@@ -127,12 +135,13 @@
       "format": "sqlite-pack",
       "label": "CIA World Factbook",
       "filename": "corpus/boar-factbook.sqlite",
-      "sizeBytes": 11624448,
-      "sha256": "c585435354a413d04790882c4e2263f725b1024c067febad3f2a99783e663447",
-      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/topics/boar-factbook/boar-factbook.sqlite",
+      "sizeBytes": 23461888,
+      "sha256": "981f7b4bbfa4ddf38bd7e09a037be6f065e252a5ce9e23f2ea07e4ee3f422eaa",
+      "sourceUrl": "bundled:",
       "license": "CC0 (CIA World Factbook archive)",
-      "description": "Country facts: population, area, capitals, economy, government.",
-      "required": false
+      "description": "Country facts: population, area, capitals, economy, government (v2).",
+      "required": false,
+      "bundled": true
     },
     {
       "id": "boar-firstaid-en",
@@ -140,12 +149,13 @@
       "format": "sqlite-pack",
       "label": "First aid and emergency",
       "filename": "corpus/boar-firstaid-en.sqlite",
-      "sizeBytes": 20987904,
-      "sha256": "8cfab0b47ec8c5cb32840b24df1054c4df1a08d600d063c95c022c58eb5bf558",
-      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/topics/boar-firstaid-en/boar-firstaid-en.sqlite",
+      "sizeBytes": 26329088,
+      "sha256": "0a7dffa614490199477cc469a06aa92561f89713d16d1ab43d1a0d53f813e9c6",
+      "sourceUrl": "bundled:",
       "license": "CC BY-SA 4.0; US public domain (ATP 4-02.11, FM 21-76, federal works)",
       "description": "First aid and emergency guidance from US public-domain manuals, Wikibooks and agencies. AI-reviewed, not clinically reviewed.",
-      "required": false
+      "required": false,
+      "bundled": true
     },
     {
       "id": "boar-medlineplus-en",
@@ -153,12 +163,13 @@
       "format": "sqlite-pack",
       "label": "MedlinePlus health topics",
       "filename": "corpus/boar-medlineplus-en.sqlite",
-      "sizeBytes": 4268032,
-      "sha256": "c9ac4dcfdae367d4502c3360bf0ffc9596d55290c0a49e0835aeedf990ba227a",
-      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/topics/boar-medlineplus-en/boar-medlineplus-en.sqlite",
+      "sizeBytes": 4530176,
+      "sha256": "e805ccea3aa7d75224a81fa44e60d881161c6a6029255b461f8ff6ee5399ebd0",
+      "sourceUrl": "bundled:",
       "license": "Public domain (NLM). Courtesy of MedlinePlus from the National Library of Medicine",
       "description": "Consumer health topic summaries. AI-reviewed, not clinically reviewed.",
-      "required": false
+      "required": false,
+      "bundled": true
     },
     {
       "id": "qa-health-se",
@@ -166,12 +177,13 @@
       "format": "sqlite-pack",
       "label": "Medical Sciences Q&A",
       "filename": "corpus/qa-health-se.sqlite",
-      "sizeBytes": 23797760,
-      "sha256": "687e4994de254704d49c1433821febf043b05e17d111c618f3134497dcbde930",
-      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/qa/qa-health-se/qa-health-se.sqlite",
+      "sizeBytes": 28958720,
+      "sha256": "f1ba1a4b2253f0f7ff2c643ff3eb2f4f3768036efaf646a776c61978ec390eaf",
+      "sourceUrl": "bundled:",
       "license": "CC BY-SA 3.0/4.0 per post (Stack Exchange), attribution per row",
       "description": "Medical Sciences Stack Exchange questions with answers. AI-reviewed, not clinically reviewed.",
-      "required": false
+      "required": false,
+      "bundled": true
     },
     {
       "id": "qa-outdoors-se",
@@ -179,12 +191,13 @@
       "format": "sqlite-pack",
       "label": "Outdoors Q&A",
       "filename": "corpus/qa-outdoors-se.sqlite",
-      "sizeBytes": 31555584,
-      "sha256": "ff733e4f587c2e16f802b8213de21b986924dd76c22e29d61e494b2587e6272a",
-      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/qa/qa-outdoors-se/qa-outdoors-se.sqlite",
+      "sizeBytes": 42508288,
+      "sha256": "11bcb96f6bf42ff043665c9b9bd7fe49a5ab206205ba326edde5b9d06918291d",
+      "sourceUrl": "bundled:",
       "license": "CC BY-SA 3.0/4.0 per post (Stack Exchange), attribution per row",
       "description": "The Great Outdoors Stack Exchange: hiking, camping, wild-weather questions with answers. AI-reviewed, not clinically reviewed.",
-      "required": false
+      "required": false,
+      "bundled": true
     },
     {
       "id": "qa-travel-se",
@@ -192,38 +205,13 @@
       "format": "sqlite-pack",
       "label": "Travel Q&A",
       "filename": "corpus/qa-travel-se.sqlite",
-      "sizeBytes": 148324352,
-      "sha256": "a85521ceaa30b176116f2a827d8652fddc6c0cf704da9874c138eff7d5217427",
-      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/qa/qa-travel-se/qa-travel-se.sqlite",
+      "sizeBytes": 212033536,
+      "sha256": "ffdebe54dca0a7df3c2d0c6b2db3bcec29322f9b2d25ff94d851b90a7dbc69d3",
+      "sourceUrl": "bundled:",
       "license": "CC BY-SA 3.0/4.0 per post (Stack Exchange), attribution per row",
       "description": "Travel Stack Exchange: practical travel questions with answers.",
-      "required": false
-    },
-    {
-      "id": "qa-ethereum-se",
-      "kind": "corpus",
-      "format": "sqlite-pack",
-      "label": "Ethereum Q&A",
-      "filename": "corpus/qa-ethereum-se.sqlite",
-      "sizeBytes": 102473728,
-      "sha256": "f16b258f87c0f4253360b45d86de2a94c7f9fba45f91571aec2c97588f858d56",
-      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/qa/qa-ethereum-se/qa-ethereum-se.sqlite",
-      "license": "CC BY-SA 3.0/4.0 per post (Stack Exchange), attribution per row",
-      "description": "Ethereum Stack Exchange questions with answers.",
-      "required": false
-    },
-    {
-      "id": "qa-bitcoin-se",
-      "kind": "corpus",
-      "format": "sqlite-pack",
-      "label": "Bitcoin Q&A",
-      "filename": "corpus/qa-bitcoin-se.sqlite",
-      "sizeBytes": 77889536,
-      "sha256": "35b7a3ce3cdd7d31a20e968337a530e8679c1702ca0dbc0538e7a30bad2342c8",
-      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/qa/qa-bitcoin-se/qa-bitcoin-se.sqlite",
-      "license": "CC BY-SA 3.0/4.0 per post (Stack Exchange), attribution per row",
-      "description": "Bitcoin Stack Exchange questions with answers.",
-      "required": false
+      "required": false,
+      "bundled": true
     },
     {
       "id": "boar-simplewiki-en",
@@ -231,12 +219,55 @@
       "format": "sqlite-pack",
       "label": "Simple English Wikipedia",
       "filename": "corpus/boar-simplewiki-en.sqlite",
-      "sizeBytes": 481017856,
-      "sha256": "e14bdff1a56dabb2df8ef0ce0c817467f856473febbc0bf9c1d2021b2b68b14b",
-      "sourceUrl": "https://huggingface.co/datasets/r4topunk/boar-packs/resolve/d4ff5720f5a7146d5c514763b2f333d472e9b226/topics/boar-simplewiki-en/r2/boar-simplewiki-en.sqlite",
+      "sizeBytes": 735510528,
+      "sha256": "99bcec306de73d2d8ca5d081531c99f8197d099a85105a5608fce49fb0777472",
+      "sourceUrl": "bundled:",
       "license": "CC BY-SA 4.0 (Simple English Wikipedia)",
-      "description": "All 208,711 Simple English Wikipedia articles, full text (2026-10-01 dump, r2).",
-      "required": false
+      "description": "All Simple English Wikipedia articles, full text.",
+      "required": false,
+      "bundled": true
+    },
+    {
+      "id": "qa-cooking-se",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "Cooking Q&A",
+      "filename": "corpus/qa-cooking-se.sqlite",
+      "sizeBytes": 88973312,
+      "sha256": "81990fa938ecf7d467a31efacdd58cd6f98392261e5e06ba92fcd0174b3dba35",
+      "sourceUrl": "bundled:",
+      "license": "CC BY-SA 2.5/3.0/4.0 per post (Stack Exchange), attribution per row",
+      "description": "Seasoned Advice Stack Exchange: cooking questions with answers.",
+      "required": false,
+      "bundled": true
+    },
+    {
+      "id": "qa-money-se",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "Personal finance Q&A",
+      "filename": "corpus/qa-money-se.sqlite",
+      "sizeBytes": 137240576,
+      "sha256": "374112341f2aa92f136b37fd3855d90710936cd158fb46f0f639de7b33ed5a88",
+      "sourceUrl": "bundled:",
+      "license": "CC BY-SA 2.5/3.0/4.0 per post (Stack Exchange), attribution per row",
+      "description": "Personal Finance & Money Stack Exchange: money questions with answers.",
+      "required": false,
+      "bundled": true
+    },
+    {
+      "id": "boar-visa-en",
+      "kind": "corpus",
+      "format": "sqlite-pack",
+      "label": "Visa requirements",
+      "filename": "corpus/boar-visa-en.sqlite",
+      "sizeBytes": 11231232,
+      "sha256": "d1dd0ffb58a8e4f9b50a6a21cb164bdb314a7181eb2803c952db21e21359ad20",
+      "sourceUrl": "bundled:",
+      "license": "CC BY-SA 4.0 (Wikipedia)",
+      "description": "Wikipedia articles on visa requirements and visa policies by country (2026-10-01).",
+      "required": false,
+      "bundled": true
     }
   ]
 }

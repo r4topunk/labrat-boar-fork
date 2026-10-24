@@ -59,6 +59,12 @@
     <string name="clean_onboarding_pack_travelQa_desc" formatted="false">Practical travel questions with answers.</string>
     <string name="clean_onboarding_pack_outdoorsQa_name" formatted="false">Outdoors Q&amp;A</string>
     <string name="clean_onboarding_pack_outdoorsQa_desc" formatted="false">Hiking, camping and wild-weather questions with answers.</string>
+    <string name="clean_onboarding_pack_visa_name" formatted="false">Visa requirements</string>
+    <string name="clean_onboarding_pack_visa_desc" formatted="false">Visa requirements and visa policies by country, from Wikipedia.</string>
+    <string name="clean_onboarding_pack_moneyQa_name" formatted="false">Personal finance Q&amp;A</string>
+    <string name="clean_onboarding_pack_moneyQa_desc" formatted="false">Money, tax and budgeting questions with answers.</string>
+    <string name="clean_onboarding_pack_cookingQa_name" formatted="false">Cooking Q&amp;A</string>
+    <string name="clean_onboarding_pack_cookingQa_desc" formatted="false">Cooking and food questions with answers.</string>
     <string name="clean_onboarding_pack_factbook_name" formatted="false">CIA World Factbook</string>
     <string name="clean_onboarding_pack_factbook_desc" formatted="false">Country facts: population, capitals, economy, government.</string>
     <string name="clean_onboarding_pack_crypto_name" formatted="false">Crypto &amp; Ethereum reference</string>

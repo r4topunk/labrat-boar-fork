@@ -70,6 +70,12 @@ class AssetStore(
         ok
     }
 
+    /**
+     * Records [asset] as verified without reading it again: for a file whose sha256 the caller has just computed while
+     * writing it (the bundle installer hashes each file as it copies it).
+     */
+    fun markVerified(asset: CatalogAsset) = recordVerified(asset)
+
     fun delete(asset: CatalogAsset) {
         fileOf(asset).delete()
         forgetVerified(asset)
