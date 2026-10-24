@@ -78,4 +78,25 @@ class HealthGateTest {
         assertNull(HealthGate.packOf(Chunk("kb-17", "d", "t", "b")))
         if (HealthGate.hasHealthSource(listOf(canberra))) fail()
     }
+
+    /** A pipeline whose task skips retrieval (calculate, greeting): the model path is marked by [ModelOpened] as above. */
+    private fun noSearch(q: String): AnswerEvent.Done? = runBlocking {
+        try {
+            AnswerPipeline({ throw ModelOpened() }, { _, _ -> error("no search expected") }, { "calculate" }, { true })
+                .answer(AnswerRequest(q, null)).toList().filterIsInstance<AnswerEvent.Done>().single()
+        } catch (_: ModelOpened) { null }
+    }
+
+    @Test fun `a health question that skips retrieval still gets the fixed text`() {
+        val done = noSearch("BP 190/110, is that high?")!!
+        assertEquals(HealthGate.NO_SOURCE, done.text)
+        assertTrue(done.healthFixed)
+    }
+
+    @Test fun `conversions and small talk that skip retrieval go to the model`() {
+        assertNull(noSearch("40 C in F?"))
+        assertNull(noSearch("what is 104 F in Celsius"))
+        assertNull(noSearch("hi"))
+        assertNull(noSearch("What is 15% of 80?"))
+    }
 }

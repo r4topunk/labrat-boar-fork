@@ -129,13 +129,14 @@ class AnswerPipeline(
                 emit(AnswerEvent.Done(req.notFoundText, sources, task, true, retrievalMs, before, after, "none", null, notFound = true))
                 return@flow
             }
-            // A health question with no passage from a health pack: the fixed safe text, never an answer from memory.
-            val fixed = if (req.filesOnly) null else HealthGate.fixedText(req.query, sources, req.history)
-            if (fixed != null) {
-                emit(AnswerEvent.Piece(fixed))
-                emit(AnswerEvent.Done(fixed, emptyList(), task, true, retrievalMs, before, after, "none", null, healthFixed = true))
-                return@flow
-            }
+        }
+        // A health question with no passage from a health pack (or no search at all, as a calculation): the fixed safe text,
+        // never an answer from memory.
+        val fixed = if (req.filesOnly) null else HealthGate.fixedText(req.query, sources, req.history)
+        if (fixed != null) {
+            emit(AnswerEvent.Piece(fixed))
+            emit(AnswerEvent.Done(fixed, emptyList(), task, true, retrievalMs, before, after, "none", null, healthFixed = true))
+            return@flow
         }
         val session = sessionOf()
         emit(AnswerEvent.Stage(AnswerStage.THINKING))
