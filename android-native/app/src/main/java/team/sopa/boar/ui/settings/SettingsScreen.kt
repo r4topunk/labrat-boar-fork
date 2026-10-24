@@ -76,15 +76,14 @@ import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import team.sopa.boar.ui.theme.ThemeMode
 
-/** Display settings the app applies live (theme, text size) or by recreating (language). */
+/** Display settings the app applies live (theme, text size). */
 interface DisplayPrefs {
     fun setTheme(id: String)
     fun setFontScale(scale: String)
-    fun setLanguage(id: String?)
 }
 
 /**
- * Settings as a Material grouped list: the model, knowledge, chats (with the PIN lock), display, language, About, then
+ * Settings as a Material grouped list: the model, knowledge, chats (with the PIN lock), display, About, then
  * Start over. No answer style, answer length or Deep Research: the app answers in Succinct at its Auto length (r4to,
  * Oct 24). The measurement knobs (technical details, adaptive routing, memory numbers) live in Developer options, shown only after seven taps on the version in About. The engine's
  * own knobs keep their saved values (Auto by default) and the engine reads them as before.
@@ -123,12 +122,6 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                     Choices(t("native.settings.textSize"), listOf("compact", "standard", "large").map { it to t("native.settings.$it") }, scale) { scale = it; s.fontScale = it; prefs.setFontScale(it) }
                     var haptics by remember { mutableStateOf(s.hapticsEnabled) }
                     SwitchRow(t("interfaceSettings.hapticFeedbackLabel"), t("native.interfaceSettings.hapticFeedbackValue"), haptics) { haptics = it; s.hapticsEnabled = it }
-                }
-                Section(t("modelSetupScreen.sections.language")) {
-                    var lang by remember { mutableStateOf(s.languageId ?: "system") }
-                    Choices(null, listOf("system" to t("clean.settings.language.system"), "en" to "English", "pt" to "Português"), lang) {
-                        lang = it; val id = it.takeIf { v -> v != "system" }; s.languageId = id; prefs.setLanguage(id)
-                    }
                 }
                 AnimatedVisibility(tech, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) { TelemetrySection(services) }
                 AnimatedVisibility(dev, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {

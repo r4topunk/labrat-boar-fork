@@ -25,7 +25,7 @@ import team.sopa.boar.ui.settings.SettingsScreen
 import team.sopa.boar.ui.theme.BoarTheme
 
 /**
- * The Settings screen on the phone, regrouped (Models, Knowledge, Chats & history, Display, Language, About, Recovery;
+ * The Settings screen on the phone, regrouped (Models, Knowledge, Chats & history, Display, About, Recovery;
  * Developer options only after seven taps on the version): each row does what it says, the choices reach settings.json,
  * and no answer style, Deep Research or answer length is offered. The app's own settings are put back after each test.
  */
@@ -45,7 +45,6 @@ class SettingsDeviceTest {
     private val prefs = object : DisplayPrefs {
         override fun setTheme(id: String) { themes += id }
         override fun setFontScale(scale: String) { scales += scale }
-        override fun setLanguage(id: String?) {}
     }
     private var pinFlow by mutableStateOf<String?>(null)
     private var opened by mutableStateOf<String?>(null)
@@ -125,7 +124,7 @@ class SettingsDeviceTest {
         compose.scrollAndPress(tr("modelSetupScreen.recovery.wizardButton"))
         assertTrue(setupAgain)
         for (section in listOf("modelSetupScreen.sections.models", "modelSetupScreen.sections.knowledgeBase", "modelSetupScreen.sections.memory",
-            "modelSetupScreen.sections.displayTheme", "modelSetupScreen.sections.language", "design.settings.about", "modelSetupScreen.sections.recovery")) visible(tr(section))
+            "modelSetupScreen.sections.displayTheme", "design.settings.about", "modelSetupScreen.sections.recovery")) visible(tr(section))
     }
 
     @Test fun clearChatHistoryAsksFirstThenEmptiesTheChats() {

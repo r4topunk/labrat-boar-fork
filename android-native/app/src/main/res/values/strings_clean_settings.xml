@@ -5,10 +5,9 @@
     <string name="clean_settings_theme_system" formatted="false">System</string>
     <string name="clean_settings_theme_light" formatted="false">Light</string>
     <string name="clean_settings_theme_dark" formatted="false">Dark</string>
-    <string name="clean_settings_language_system" formatted="false">Automatic</string>
     <string name="clean_settings_section_about" formatted="false">About</string>
     <string name="clean_settings_aboutNote" formatted="false">What BOAR is, its version, and the open work it stands on.</string>
-    <string name="clean_settings_resetDesc" formatted="false">Theme and display options go back to their defaults. Your models, chats, PIN and language stay. Setup opens again.</string>
+    <string name="clean_settings_resetDesc" formatted="false">Theme and display options go back to their defaults. Your models, chats and PIN stay. Setup opens again.</string>
     <string name="clean_settings_section_developer" formatted="false">Developer options</string>
     <string name="clean_settings_dev_intro" formatted="false">Tools for measuring BOAR. Most people never need them.</string>
     <string name="clean_settings_dev_enabled" formatted="false">Show developer options</string>

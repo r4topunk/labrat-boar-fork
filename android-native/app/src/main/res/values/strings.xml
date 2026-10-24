@@ -100,7 +100,6 @@
     <string name="modelSetupScreen_sections_memory" formatted="false">Memory &amp; Context Settings</string>
     <string name="modelSetupScreen_sections_telemetry" formatted="false">Hardware Telemetry &amp; Compliance</string>
     <string name="modelSetupScreen_sections_displayTheme" formatted="false">Display &amp; Theme</string>
-    <string name="modelSetupScreen_sections_language" formatted="false">Language</string>
     <string name="modelSetupScreen_sections_voice" formatted="false">Voice Input Configuration</string>
     <string name="modelSetupScreen_sections_recovery" formatted="false">System Recovery &amp; Danger Zone</string>
     <string name="modelSetupScreen_installedModels" formatted="false">Installed models</string>

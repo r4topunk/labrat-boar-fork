@@ -61,12 +61,12 @@ class AppSettingsTest {
         assertFalse("engineTweaks" in AppSettings(f).raw())
     }
 
-    @Test fun `reset settings clears preferences, keeps Succinct, models, the PIN, the language and the custom prompt`() {
+    @Test fun `reset settings clears preferences, keeps Succinct, models, the PIN and the custom prompt`() {
         val f = file(expo)
         val s = AppSettings(f)
         s.setActiveModelId("llm", "qwen3-4b")
         s.pinSalt = "salt"; s.pinWrapped = "wrapped"
-        s.languageId = "pt"; s.customSystemPrompt = "Be brief."
+        s.customSystemPrompt = "Be brief."
         s.themeId = "campfire"
         s.fontScale = "large"; s.showLiveStats = false; s.researchBannerHidden = true
         s.engineTweaks = EngineTweaks(threads = 2)
@@ -74,7 +74,7 @@ class AppSettingsTest {
         val again = AppSettings(f)
         assertEquals("qwen3-4b", again.activeModelId("llm"))
         assertEquals("salt", again.pinSalt); assertEquals("wrapped", again.pinWrapped)
-        assertEquals("pt", again.languageId); assertEquals("Be brief.", again.customSystemPrompt)
+        assertEquals("Be brief.", again.customSystemPrompt)
         assertNull(again.themeId)
         assertEquals("succinct", again.personalityId)
         assertEquals(AppSettings.AUTO_MAX_TOKENS, again.maxTokens)

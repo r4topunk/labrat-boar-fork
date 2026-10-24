@@ -3,13 +3,13 @@ package team.sopa.boar.ui
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * The Expo app's i18next texts (res/values/strings.xml and values-pt, from scripts/export-native-strings.mjs), by their TS keys:
+ * The Expo app's i18next texts (res/values/strings.xml, from scripts/export-native-strings.mjs), by their TS keys:
  * t("chatScreen.roleYou"), t("chatScreen.reasoningElapsed", "seconds" to 4). "{{var}}" placeholders are filled here,
- * and count-based keys pick key_one / key_other by the language's rule, as i18next does.
+ * and count-based keys pick key_one / key_other by the English rule, as i18next does. BOAR is English only: there is
+ * no translation, whatever language the phone is set to.
  */
 object I18n {
     private val ids = ConcurrentHashMap<String, Int>()
@@ -20,22 +20,17 @@ object I18n {
         context.resources.getIdentifier(resName(key), "string", context.packageName)
     }
 
-    /** i18next's plural category (Intl.PluralRules): English "one" is 1, Portuguese "one" is 0 and 1. */
-    fun pluralCategory(count: Number, language: String): String {
+    /** i18next's plural category (Intl.PluralRules) for English: "one" is exactly 1. */
+    fun pluralCategory(count: Number): String {
         val d = count.toDouble()
-        val integer = d == kotlin.math.floor(d)
-        return when (language) {
-            "pt" -> if (integer && (d == 0.0 || d == 1.0)) "one" else "other"
-            else -> if (integer && d == 1.0) "one" else "other"
-        }
+        return if (d == kotlin.math.floor(d) && d == 1.0) "one" else "other"
     }
 
     fun t(context: Context, key: String, vararg args: Pair<String, Any?>): String {
         val count = args.firstOrNull { it.first == "count" }?.second as? Number
-        val language = context.resources.configuration.locales[0]?.language ?: Locale.getDefault().language
         var resolved = key
         if (count != null) {
-            val plural = "${key}_${pluralCategory(count, language)}"
+            val plural = "${key}_${pluralCategory(count)}"
             if (id(context, plural) != 0) resolved = plural else if (id(context, "${key}_other") != 0) resolved = "${key}_other"
         }
         // Native wording wins where it differs from the Expo app's (strings.xml is generated from the shared locales):

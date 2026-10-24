@@ -27,7 +27,7 @@ class PurgeDeviceTest {
         assumeTrue("opt-in: -e qaPurge true (wipes this install and kills its process)", qaArg("qaPurge") == "true")
         assumeTrue("only on the throwaway devtest install", ctx.packageName.endsWith(".devtest"))
         val services = BoarServices.get(ctx)
-        val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setLanguage(id: String?) {} }
+        val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {} }
         compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = {}, onSetup = {}) {} } }
         compose.waitFor(hasScrollAction(), "the Settings list")
         compose.scrollAndPress(tr("modelSetupScreen.recovery.dangerButton"))

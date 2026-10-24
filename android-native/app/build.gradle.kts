@@ -90,6 +90,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures { compose = true; buildConfig = true }
+    // BOAR is English only (r4to, Oct 24): no library's translations ship in the APK, so nothing shows in another language.
+    androidResources { localeFilters += "en" }
     // Instrumented tests run against the throwaway devtest install (./gradlew :app:assembleDevtestAndroidTest).
     testBuildType = "devtest"
     packaging { jniLibs { useLegacyPackaging = true } }

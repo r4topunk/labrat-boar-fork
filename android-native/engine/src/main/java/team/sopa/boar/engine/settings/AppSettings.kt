@@ -90,7 +90,7 @@ class AppSettings(private val file: File) {
     /**
      * Settings → Reset settings: every preference back to its default (theme, Advanced tweaks, display and voice switches,
      * chat history options; an old build's style, length and Deep Research keys too). The style stays Succinct, which
-     * [personalityId] always is. Kept: models and their roles, the PIN, the language, the custom prompt and the app's own
+     * [personalityId] always is. Kept: models and their roles, the PIN, the custom prompt and the app's own
      * bookkeeping. Chats live elsewhere and stay too.
      */
     fun resetPreferences() = update { PREFERENCE_KEYS.forEach { remove(it) } }
@@ -159,7 +159,6 @@ class AppSettings(private val file: File) {
     var fontScale: String get() = str("fontScale") ?: "standard"; set(v) = set("fontScale", JsonPrimitive(v))
     /** "auto" (follows the phone's rotation setting), "portrait" or "landscape". */
     var screenOrientation: String get() = str("screenOrientation") ?: DEFAULT_ORIENTATION; set(v) = set("screenOrientation", JsonPrimitive(v))
-    var languageId: String? get() = str("languageId"); set(v) = set("languageId", v?.let(::JsonPrimitive))
     var voiceInputEnabled: Boolean get() = bool("voiceInputEnabled") ?: true; set(v) = set("voiceInputEnabled", JsonPrimitive(v))
     var hapticsEnabled: Boolean get() = bool("hapticsEnabled") ?: false; set(v) = set("hapticsEnabled", JsonPrimitive(v))
     var hidePromptIdeas: Boolean get() = bool("hidePromptIdeas") ?: false; set(v) = set("hidePromptIdeas", JsonPrimitive(v))

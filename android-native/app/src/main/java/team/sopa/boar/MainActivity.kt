@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CancellationException
 import team.sopa.boar.ui.icons.BoarIcons
 import androidx.compose.runtime.saveable.rememberSaveable
-import team.sopa.boar.engine.settings.AppSettings
 import team.sopa.boar.ui.settings.DisplayPrefs
 import team.sopa.boar.ui.settings.SettingsScreen
 import team.sopa.boar.setup.SetupViewModel
@@ -58,7 +57,6 @@ import team.sopa.boar.ui.models.ModelsScreen
 import team.sopa.boar.ui.setup.SetupScreen
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalView
-import java.io.File
 import java.util.Locale
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -86,11 +84,9 @@ import team.sopa.boar.ui.theme.BoarTheme
 
 /** The app: first-run setup until the required models are on disk, then the chat with past chats and settings in the drawer. */
 class MainActivity : ComponentActivity() {
-    /** The app language from settings ("en", "pt"), else the phone's. */
+    /** BOAR is English only: the texts, sizes and numbers are English whatever language the phone is set to. */
     override fun attachBaseContext(base: Context) {
-        val lang = AppSettings(File(base.filesDir, "settings.json")).languageId
-        if (lang == null) return super.attachBaseContext(base)
-        val config = Configuration(base.resources.configuration).apply { setLocale(Locale.forLanguageTag(lang)) }
+        val config = Configuration(base.resources.configuration).apply { setLocale(Locale.ENGLISH) }
         super.attachBaseContext(base.createConfigurationContext(config))
     }
 
@@ -145,7 +141,6 @@ class MainActivity : ComponentActivity() {
             val prefs = object : DisplayPrefs {
                 override fun setTheme(id: String) { theme = id }
                 override fun setFontScale(scale: String) { fontScale = scale }
-                override fun setLanguage(id: String?) { recreate() }
             }
             BoarTheme(theme, fontScale) {
                 if (locked.value) team.sopa.boar.ui.security.LockScreen(services.pinLock) { locked.value = false }

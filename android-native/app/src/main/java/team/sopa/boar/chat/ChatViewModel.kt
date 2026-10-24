@@ -425,14 +425,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** After setup or a model change: the active model's name, or that there's none. */
     fun refreshModel() {
         val m = services.answerModel()
-        val lang = getApplication<Application>().resources.configuration.locales[0]?.language
         val installed = services.catalog.corpusCatalog.filter { services.fileOf(it).isFile }.map { it.id }
         // shortModelLabel: the catalog label without its parenthesis ("Qwen3-4B-Instruct-2507").
         val label = m?.label?.let(::shortLabel)
-        // Fewer than 3 tested on this model (a Hugging Face model has none; Qwen2.5 1.5B has 1 in Portuguese): fill from
-        // the ideas tested on the other models, same language, only for packs on the phone.
-        val own = suggestionData.forModel(m?.id, lang, installed)
-        val tested = if (own.size >= 3) own else (own + suggestionData.validation.byModel.keys.flatMap { suggestionData.forModel(it, lang, installed) }).distinct()
+        // Fewer than 3 tested on this model (a Hugging Face model has none; Qwen2.5 1.5B has fewer than 3): fill from
+        // the ideas tested on the other models, only for packs on the phone.
+        val own = suggestionData.forModel(m?.id, "en", installed)
+        val tested = if (own.size >= 3) own else (own + suggestionData.validation.byModel.keys.flatMap { suggestionData.forModel(it, "en", installed) }).distinct()
         // Plus the short questions of BOAR's own 17-question evaluation, so each new chat shows a different few.
         ideaPool = (tested + BENCH_IDEAS).distinct()
         _state.update { it.copy(modelLabel = label, noModel = m == null, suggestions = pickIdeas()) }
