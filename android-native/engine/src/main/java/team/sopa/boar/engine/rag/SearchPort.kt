@@ -27,7 +27,16 @@ object SearchPort {
      * health-pack passages (the native health test misses most health questions, so the head pass reaches them). Turn it on
      * only after a health-safe append rule passes that gate.
      */
-    const val BOARLITE_DEFAULT = false
+    val BOARLITE_DEFAULT: Boolean get() = BOARLITE_MODE != Mode.OFF
+
+    /** How the app runs the port: off; on; or on except health turns (ON-NH, SEARCHPORT Addendum 2). */
+    enum class Mode { OFF, ON, ON_NO_HEALTH }
+
+    /**
+     * The BoarLite app's mode (the Retriever is built with the port when this is not OFF). ON_NO_HEALTH: a turn the health gate
+     * reads as health (HealthGate.isHealth, follow-ups included) searches and compresses exactly as with the port off.
+     */
+    val BOARLITE_MODE: Mode = Mode.OFF
 
     /** SEFIX F2: the df cut of a Stack Exchange pack without chunk vectors (0.02 elsewhere). */
     const val SE_MAX_DF = 0.25

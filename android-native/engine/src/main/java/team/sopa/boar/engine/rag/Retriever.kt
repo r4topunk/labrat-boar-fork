@@ -40,9 +40,11 @@ class Retriever(
     fun retrieve(
         query: String, topK: Int = 6, queryVec: FloatArray? = null, includeWikiPacks: Boolean = true, ownOnly: Boolean = false,
         sources: SourceFilter = SourceFilter.ALL,
+        /** The search port for this search ([SearchPort]); false on a port-on Retriever = exactly the search before the port (ON-NH's health turns). */
+        port: Boolean = this.port,
     ): List<Chunk> {
         val filter = if (ownOnly) SourceFilter.OWN_ONLY else sources
-        val mainR = retrieveOne(query, topK, queryVec, includeWikiPacks, null, null, null, filter)
+        val mainR = retrieveOne(query, topK, queryVec, includeWikiPacks, null, null, null, filter, port)
         val main = mainR.chunks
         fun side(list: List<Chunk>, vararg r: One): List<Chunk> =
             if (!port) list else SearchPort.Retrieved(list, SearchPort.Side(SearchPort.rankDense(list, r.flatMap { it.dense }), r.any { it.sidecar }, r.flatMap { it.seLead }))
@@ -54,7 +56,7 @@ class Retriever(
         val names = ids + PtLexicon.englishNamesIn(query, lexicon()).filter { it !in ids }
         if (names.isEmpty()) return side(main, mainR)
         val action = WikiPackText.ACTION_INTENT.containsMatchIn(query)
-        val foundR = retrieveOne(names.joinToString(" "), topK, null, includeWikiPacks, names, action, Explain.EXPLAIN_INTENT.containsMatchIn(query), filter)
+        val foundR = retrieveOne(names.joinToString(" "), topK, null, includeWikiPacks, names, action, Explain.EXPLAIN_INTENT.containsMatchIn(query), filter, port)
         val found = foundR.chunks
         val named = names.map { it.lowercase() }.toSet()
         // What-to-do sections first in an action question, then articles named exactly; disambiguation lists never.
@@ -70,6 +72,7 @@ class Retriever(
     private fun retrieveOne(
         query: String, topK: Int, queryVec: FloatArray?, includeWikiPacks: Boolean, titles: List<String>?, action: Boolean?, explain: Boolean?,
         filter: SourceFilter = SourceFilter.ALL,
+        port: Boolean = this.port,
     ): One {
         val vec = queryVec ?: embed(query)
         val ownOnly = filter.ownOnly

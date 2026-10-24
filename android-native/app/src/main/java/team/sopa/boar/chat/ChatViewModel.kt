@@ -736,7 +736,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     }
                 } else {
                     val pipeline = AnswerPipeline(session, retrieve, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) },
-                        headPass = services.retriever::headPass)
+                        headPass = services.retriever::headPass,
+                        // Search port ON-NH: a health turn searches without the port (SearchPort.Mode.ON_NO_HEALTH).
+                        plainRetrieve = if (team.sopa.boar.engine.rag.SearchPort.BOARLITE_MODE == team.sopa.boar.engine.rag.SearchPort.Mode.ON_NO_HEALTH)
+                            { query, k -> services.retriever.retrieve(query, k, sources = sourceFilter(), port = false) } else null)
                     val compact = compactAnswerModel()
                     val base = AnswerRequest(q, systemPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled, compactModel = compact)
                     val req = if (filesOnly) PersonalFiles.request(base, services.host.openedContext ?: AnswerPipeline.FALLBACK_CONTEXT, notFoundLine) else base

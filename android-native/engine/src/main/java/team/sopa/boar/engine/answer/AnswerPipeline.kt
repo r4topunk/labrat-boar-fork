@@ -93,12 +93,18 @@ class AnswerPipeline(
      * passages appended after the compressed ones. Null: nothing appended (the path as before the port).
      */
     private val headPass: ((String, List<Chunk>, List<Chunk>, (List<Chunk>) -> Int) -> List<Chunk>)? = null,
+    /**
+     * Search port ON-NH (SearchPort.Mode.ON_NO_HEALTH): the search without the port (Retriever.retrieve(port = false)). When set, a
+     * turn HealthGate.isHealth reads as health searches with it and gets no head pass: exactly the path with the port off.
+     */
+    private val plainRetrieve: ((String, Int) -> List<Chunk>)? = null,
 ) {
     constructor(
         session: LlamaSession, retrieve: (String, Int) -> List<Chunk>, classify: (String) -> String, retrievalIrrelevant: (String) -> Boolean,
         clock: () -> Double = { System.nanoTime() / 1e6 },
         headPass: ((String, List<Chunk>, List<Chunk>, (List<Chunk>) -> Int) -> List<Chunk>)? = null,
-    ) : this({ session }, retrieve, classify, retrievalIrrelevant, clock, headPass)
+        plainRetrieve: ((String, Int) -> List<Chunk>)? = null,
+    ) : this({ session }, retrieve, classify, retrievalIrrelevant, clock, headPass, plainRetrieve)
 
     /** [shouldStop]: the chat's Stop, honoured right before and while the answer is generated ([LlamaSession.generate]). */
     fun answer(req: AnswerRequest, shouldStop: () -> Boolean = { false }): Flow<AnswerEvent> = flow {
@@ -122,7 +128,10 @@ class AnswerPipeline(
             emit(AnswerEvent.Stage(AnswerStage.RETRIEVING))
             val t0 = clock()
             // A follow-up ("What did he publish?") is searched with the previous question (FollowUp).
-            val search = SEARCH_SCOPE.async { FollowUp.search(req.query, req.history, { c: Chunk -> "${c.title} ${c.body}" }) { retrieve(it, ANSWER_CONTEXT_CHUNKS) } }
+            // ON-NH: a health turn takes the search without the port, and no head pass below.
+            val portOff = plainRetrieve != null && HealthGate.isHealth(req.query, req.history)
+            val find = if (portOff) plainRetrieve!! else retrieve
+            val search = SEARCH_SCOPE.async { FollowUp.search(req.query, req.history, { c: Chunk -> "${c.title} ${c.body}" }) { find(it, ANSWER_CONTEXT_CHUNKS) } }
             // Stop during the search ends the answer now: the first question's search took up to 1.8 s while the warm-up
             // shared the CPU (Pixel 8a, Oct 23). The search can't be interrupted; it finishes on its own and is dropped.
             var waited = withTimeoutOrNull(STOP_POLL_MS) { search.await() }
@@ -137,7 +146,7 @@ class AnswerPipeline(
             else Compress.forAnswer(found.searchedFor, found.chunks, task)
             // Search port: passages found beside the list (SearchPort.headPass), compressed together with the retrieved ones
             // within a fifth more than the plain compression (SearchPort.fit); never for My files.
-            val appended = if (req.filesOnly || headPass == null) emptyList() else headPass.invoke(req.query, found.chunks, plain.chunks) { s ->
+            val appended = if (req.filesOnly || headPass == null || portOff) emptyList() else headPass.invoke(req.query, found.chunks, plain.chunks) { s ->
                 RagPure.assembleChatMessages(req.query, s, req.systemPrompt, req.history, req.styleReminder).sumOf { it.role.length + it.content.length }
             }
             val c = SearchPort.fit(found.searchedFor, found.chunks, plain, appended)

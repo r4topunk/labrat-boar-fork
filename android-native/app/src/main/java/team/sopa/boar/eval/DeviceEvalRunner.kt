@@ -359,7 +359,9 @@ class DeviceEvalRunner(
         systemPrompt: String, styleReminder: String?, maxTokens: Int, residency: String, loadMs: Double,
     ): JsonObject {
         val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k) ?: emptyList() }, classify, retrievalIrrelevant,
-            headPass = { query, raw, kept, chars -> retrieval?.retriever?.headPass(query, raw, kept, chars) ?: emptyList() })
+            headPass = { query, raw, kept, chars -> retrieval?.retriever?.headPass(query, raw, kept, chars) ?: emptyList() },
+            plainRetrieve = if (team.sopa.boar.engine.rag.SearchPort.BOARLITE_MODE == team.sopa.boar.engine.rag.SearchPort.Mode.ON_NO_HEALTH)
+                { query, k -> retrieval?.retriever?.retrieve(query, k, port = false) ?: emptyList() } else null)
         val tempBefore = batteryTempC()
         val peak = PeakRss().apply { start() }
         val start = System.nanoTime()

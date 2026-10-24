@@ -189,4 +189,36 @@ class SearchPortTest {
         assertTrue("pack:x:9" in s.chunks.map { it.chunkId })
         assertTrue(s.tokensAfter <= kotlin.math.floor(p.tokensAfter * SearchPort.READ_GROWTH))
     }
+
+    @Test fun `ON-NH searches a health turn without the port and gives it no head pass`() = runBlocking {
+        val ported = listOf(Chunk("p1", "d1", "Ported", "Bread goes stale. Keep it in a bag."))
+        val plain = listOf(Chunk("o1", "d2", "Plain", "Ibuprofen is a painkiller. Take it with food."))
+        val extra = Chunk("pack:x:9", "pack:x:a1", "Bread storage", "Keep bread in a cloth bag.")
+        var heads = 0
+        val pipeline = AnswerPipeline({ throw AssertionError("no model before the sources") }, { _, _ -> ported }, { "lookup" }, { false },
+            headPass = { _, _, _, _ -> heads++; listOf(extra) }, plainRetrieve = { _, _ -> plain })
+        val health = AnswerRequest("What is the maximum dose of ibuprofen per day?", null)
+        val h = pipeline.answer(health).first { it is AnswerEvent.Sources } as AnswerEvent.Sources
+        assertEquals(listOf("o1"), h.chunks.map { it.chunkId })
+        assertEquals(0, heads)
+        val other = AnswerRequest("How do I keep bread fresh?", null)
+        val o = pipeline.answer(other).first { it is AnswerEvent.Sources } as AnswerEvent.Sources
+        assertTrue(o.chunks.all { it.chunkId in setOf("p1", "pack:x:9") })
+        assertEquals(1, heads)
+    }
+
+    @Test fun `a port-on retriever searches as before when the turn asks for the port off`() {
+        val kb = KnowledgeBase(JdbcSqlite(copy("kb.sqlite", "kb3.sqlite")))
+        val packs = listOf(
+            OpenPack.Format2("local-dest", WikiPack.open(JdbcSqlite(copy("dest.sqlite", "dest3.sqlite")), jvmZstd)),
+            OpenPack.Format2("local-mini", WikiPack.open(JdbcSqlite(copy("mini.sqlite", "mini3.sqlite")), jvmZstd)),
+        )
+        val before = Retriever(kb, { packs }, GoldenEmbedding::hashVec, { RagTextGoldenTest.lexicon })
+        val on = Retriever(kb, { packs }, GoldenEmbedding::hashVec, { RagTextGoldenTest.lexicon }, port = true)
+        for (query in listOf("history of the roman empire", "o que fazer num terremoto")) {
+            val off = on.retrieve(query, 4, port = false)
+            assertEquals(query, before.retrieve(query, 4), off)
+            assertFalse(off is SearchPort.Retrieved)
+        }
+    }
 }
