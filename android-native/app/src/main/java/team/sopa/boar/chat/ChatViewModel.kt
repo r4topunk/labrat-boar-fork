@@ -716,10 +716,18 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     sources = r.first
                     timedOut = r.second
                     metrics = r.third
+                    // The router's answer comes from the same compact model, so it gets the same check as the plain path
+                    // (CT-1 and attribution, then the warning line). The task is the plan's; a task that searches nothing gets none.
+                    val task = lastAdaptive?.first ?: Classify.classifyTask(q).value
+                    if (!stopRequested && compactAnswerModel()) {
+                        val (revised, checkedCitations) = team.sopa.boar.engine.answer.Citations.applyShown(text.toString(), sources)
+                        if (revised != text.toString()) { text.setLength(0); text.append(revised) }
+                        warning = team.sopa.boar.engine.answer.AnswerWarning.of(q, task, !Classify.isRetrievalIrrelevant(TaskType.of(task)), sources.size,
+                            AnswerText.stripThinking(revised), false, checkedCitations.removed.isNotEmpty())
+                    }
                 } else {
                     val pipeline = AnswerPipeline(session, retrieve, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
-                    // A model of unknown size counts as compact: BoarLite ships one model, Qwen3 1.7B, and it is.
-                    val compact = services.answerModel()?.sizeBytes?.let { it <= team.sopa.boar.engine.answer.AnswerWarning.COMPACT_MODEL_BYTES } ?: true
+                    val compact = compactAnswerModel()
                     val base = AnswerRequest(q, systemPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled, compactModel = compact)
                     val req = if (filesOnly) PersonalFiles.request(base, services.host.openedContext ?: AnswerPipeline.FALLBACK_CONTEXT, notFoundLine) else base
                     // Stop pressed while this waited for the model (behind the warm prefill) is honoured inside the lock.
@@ -867,6 +875,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     @Volatile private var warmInside = false
 
     /** runAdaptiveChat: plan with the installed models and the user's routing settings, then execute. */
+    /** A model of unknown size counts as compact: BoarLite ships one model, Qwen3 1.7B, and it is. */
+    private fun compactAnswerModel(): Boolean =
+        services.answerModel()?.sizeBytes?.let { it <= team.sopa.boar.engine.answer.AnswerWarning.COMPACT_MODEL_BYTES } ?: true
+
     /** The last adaptive plan's task type and whether it had a verify step, for the receipt. */
     @Volatile private var lastAdaptive: Pair<String, Boolean>? = null
     /** The model the adaptive plan's generate step runs, for the header and the receipt; null on the other paths. */

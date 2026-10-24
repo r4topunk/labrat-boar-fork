@@ -33,9 +33,13 @@ class PacksViewModel(app: Application) : AndroidViewModel(app) {
 
     init { refresh() }
 
+    /** Reads each pack's file state off the main thread (AssetStore.status reads integrity.json and can delete an oversized file). */
     fun refresh() {
-        val items = services.catalog.corpusCatalog
-        _state.update { PacksState(items, items.associate { a -> a.id to Row(store.status(a).present) }) }
+        safeScope.launch(Dispatchers.IO) {
+            val items = services.catalog.corpusCatalog
+            val rows = items.associate { a -> a.id to Row(store.status(a).present) }
+            _state.update { PacksState(items, rows) }
+        }
     }
 
     fun remove(a: CatalogAsset) {

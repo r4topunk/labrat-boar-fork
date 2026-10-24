@@ -21,6 +21,7 @@ import team.sopa.boar.engine.models.BundleSource
 import team.sopa.boar.engine.models.DirBundleSource
 import team.sopa.boar.engine.rag.SeedCorpus
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 
 /** Where first-run setup is. */
@@ -79,12 +80,20 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     private val _state = MutableStateFlow(SetupState())
     val state: StateFlow<SetupState> = _state
     private var job: Job? = null
+    /** The copy's latest progress, for the remaining bytes when the disk fills mid-copy. */
+    @Volatile private var copying: BundleInstaller.Progress? = null
 
     /** The APK's bundle, read once: its fingerprint decides whether a launch installs again. */
     private val apkManifest: String? by lazy { apk.manifest() }
 
-    /** Whether the app can open the chat: the answer model is on the phone and a bundle was installed in full. */
-    fun ready(): Boolean = !installer.needsInstall(apkManifest?.let(BundleManifest::fingerprint))
+    private val _ready = MutableStateFlow<Boolean?>(null)
+    /**
+     * Whether the app can open the chat: the answer model is on the phone and a bundle was installed in full. Null until
+     * the check ran: it reads the APK's manifest and the installed files, so it runs off the main thread.
+     */
+    val ready: StateFlow<Boolean?> = _ready
+
+    init { safeScope.launch(Dispatchers.IO) { _ready.value = !installer.needsInstall(apkManifest?.let(BundleManifest::fingerprint)) } }
 
     /** Runs setup unless it is running: the screen calls it when it shows. */
     fun start() {
@@ -134,10 +143,12 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
             Log.i(TAG, "bundle source: ${source?.name ?: "none (already installed)"}")
             val names = catalog.models.associate { it.filename to it.shortName }
             var shownAt = 0L
+            copying = null
             val result = installer.install(bundled + builtIn, open = { item ->
                 if (item in builtIn) getApplication<Application>().assets.open("corpus/" + item.entry.path.substringAfterLast('/'), AssetManager.ACCESS_STREAMING)
                 else source!!.open(item.entry.path)
             }) { p ->
+                copying = p
                 val now = System.currentTimeMillis()
                 if (now - shownAt >= 100 || p.bytesDone >= p.bytesTotal) {
                     shownAt = now
@@ -149,20 +160,33 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
             services.settings.setActiveModelId("llm", catalog.answerModel.id)
             catalog.models.firstOrNull { it.kind == AssetKind.EMBEDDING && it.required }?.let { services.settings.setActiveModelId("embedding", it.id) }
             if (manifest != null) installer.markInstalled(BundleManifest.fingerprint(manifest))
-            // The adb-pushed copy is a second copy of every file: gone once the install is verified.
-            if (source != null && source !== apk) { source.discard(); Log.i(TAG, "removed the pushed bundle at ${source.name}") }
+            // The adb-pushed copy is a second copy of every file: gone once the install is verified, even when the install
+            // came from an APK that carries its own bundle (choose() prefers the APK's, and the pushed copy would stay).
+            external?.takeIf { it.isDirectory }?.let(::DirBundleSource)?.let { it.discard(); Log.i(TAG, "removed the pushed bundle at ${it.name}") }
             Log.i(TAG, "bundle installed in ${"%.1f".format((System.currentTimeMillis() - started) / 1000.0)} s " +
                 "(${result.copied} files copied, ${result.bytesCopied / 1_000_000} MB; ${result.skipped} already installed; source ${source?.name ?: "none"})")
+            _ready.value = true
             _state.value = SetupState(SetupPhase.DONE)
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: BundleInstaller.NotEnoughSpace) {
             Log.w(TAG, e.message ?: "not enough space")
             _state.value = SetupState(SetupPhase.NO_SPACE, neededBytes = e.neededBytes, freeBytes = e.freeBytes)
+        } catch (e: IOException) {
+            // The disk filled during the copy (another app wrote): the same screen as a short disk before it, with numbers.
+            if (e.message?.contains("ENOSPC") != true) return failed(e)
+            val free = getApplication<Application>().filesDir.usableSpace
+            val remaining = copying?.let { it.bytesTotal - it.bytesDone } ?: 0L
+            Log.w(TAG, "disk full during the copy: ${e.message}")
+            _state.value = SetupState(SetupPhase.NO_SPACE, neededBytes = remaining + BundleInstaller.SPACE_MARGIN_BYTES, freeBytes = free)
         } catch (e: Exception) {
-            Log.e(TAG, "setup failed", e)
-            _state.value = SetupState(SetupPhase.FAILED, detail = e.message ?: e.javaClass.simpleName)
+            failed(e)
         }
+    }
+
+    private fun failed(e: Exception) {
+        Log.e(TAG, "setup failed", e)
+        _state.value = SetupState(SetupPhase.FAILED, detail = e.message ?: e.javaClass.simpleName)
     }
 
     /**

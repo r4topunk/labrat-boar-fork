@@ -145,6 +145,8 @@ class NativeSqlite private constructor(private var db: Long) : SqlDatabase {
         private const val OPEN_READONLY = 0x1
         private const val OPEN_READWRITE = 0x2
         private const val OPEN_CREATE = 0x4
+        /** Lets ATTACH take a "file:...?mode=ro" name; a plain path (no "file:" prefix) is still a plain path. */
+        private const val OPEN_URI = 0x40
 
         /**
          * The bridge returns a handle (a pointer) or an SQLite error code negated. Only a small negative number is an
@@ -154,7 +156,7 @@ class NativeSqlite private constructor(private var db: Long) : SqlDatabase {
         internal fun isError(handle: Long) = handle in -0xFFFFFL..-1L
 
         fun open(path: String, readOnly: Boolean = false): NativeSqlite {
-            val flags = if (readOnly) OPEN_READONLY else OPEN_READWRITE or OPEN_CREATE
+            val flags = (if (readOnly) OPEN_READONLY else OPEN_READWRITE or OPEN_CREATE) or OPEN_URI
             val h = SqliteNative.open(path.toByteArray(), flags)
             if (h == 0L || isError(h)) throw SqlException((-h).toInt(), "can't open $path")
             return NativeSqlite(h)

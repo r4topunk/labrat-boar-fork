@@ -93,6 +93,8 @@ class AnswerPipeline(
     fun answer(req: AnswerRequest, shouldStop: () -> Boolean = { false }): Flow<AnswerEvent> = flow {
         val task = classify(req.query)
         var sources: List<Chunk> = emptyList()
+        // The retrieved passages in full, for the citation checks (the prompt carries the compressed ones).
+        var fullChunks: List<Chunk> = emptyList()
         var retrievalMs: Double? = null
         var before: Int? = null
         var after: Int? = null
@@ -115,6 +117,7 @@ class AnswerPipeline(
             val c = if (req.filesOnly) WholePassages.fit(found.searchedFor, found.chunks, req.contextSize ?: FALLBACK_CONTEXT, promptTokens(req), req.maxTokens)
             else Compress.forAnswer(found.searchedFor, found.chunks, task)
             retrievalMs = clock() - t0
+            fullChunks = found.chunks
             sources = c.chunks
             before = c.tokensBefore
             after = c.tokensAfter
@@ -153,9 +156,19 @@ class AnswerPipeline(
             }
         }
         // Decided once the answer is whole: whether it cites a passage is known only at its end. A stopped answer gets none,
-        // as in answer.ts (it returns before the line is added).
-        val warning = if (req.compactModel && !shouldStop()) AnswerWarning.of(req.query, task, retrieved, sources.size, AnswerText.stripThinking(text.toString()), req.filesOnly) else null
-        emit(AnswerEvent.Done(AnswerWarning.withLine(text.toString(), warning?.line), sources, task, retrieved, retrievalMs, before, after,
+        // as in answer.ts (it returns before the line is added). CT-1 and attribution come first, as there: a [n] its
+        // passage doesn't support goes, a sentence a passage supports at the 0.75 bar gets its [n], and the line goes by what is left.
+        val stopped = shouldStop()
+        var shown = text.toString()
+        var removedAny = false
+        if (!stopped && req.compactModel && retrieved && !req.filesOnly) {
+            val full = sources.map { s -> fullChunks.firstOrNull { it.chunkId == s.chunkId } ?: s }
+            val (revised, r) = Citations.applyShown(shown, full)
+            shown = revised
+            removedAny = r.removed.isNotEmpty()
+        }
+        val warning = if (req.compactModel && !stopped) AnswerWarning.of(req.query, task, retrieved, sources.size, AnswerText.stripThinking(shown), req.filesOnly, removedAny) else null
+        emit(AnswerEvent.Done(AnswerWarning.withLine(shown, warning?.line), sources, task, retrieved, retrievalMs, before, after,
             if (useTemplate) "chat-template" else "plain", metrics, warning = warning))
     }
 

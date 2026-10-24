@@ -21,6 +21,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -224,7 +225,14 @@ private fun PredictiveBackScreen(blocked: Boolean = false, onBack: () -> Unit, c
 
 @Composable
 private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel = viewModel(), setup: SetupViewModel = viewModel()) {
-    var screen by rememberSaveable { mutableStateOf(if (setup.ready()) "chat" else "setup") }
+    // "" while setup's check of the installed files runs (it reads files, so it is off the main thread): a blank screen, then the first one.
+    var screen by rememberSaveable { mutableStateOf("") }
+    val ready by setup.ready.collectAsState()
+    LaunchedEffect(ready) { if (screen.isEmpty() && ready != null) screen = if (ready == true) "chat" else "setup" }
+    if (screen.isEmpty()) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+        return
+    }
     // Where Back leads from Knowledge, About and Evaluation: Settings when it opened them, else the chat.
     var backTo by rememberSaveable { mutableStateOf("chat") }
     AnimatedContent(
@@ -281,7 +289,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
 private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, goTo: (String) -> Unit) {
     val setupState by setup.state.collectAsState()
     // Reopened from Settings (the app already works): the screen offers the way back to the chat.
-    val wasReady = remember { setup.ready() }
+    val wasReady = remember { setup.ready.value == true }
     val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, e -> if (e == androidx.lifecycle.Lifecycle.Event.ON_START) setup.onForeground() }

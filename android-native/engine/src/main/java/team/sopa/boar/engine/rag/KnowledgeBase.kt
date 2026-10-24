@@ -108,7 +108,10 @@ class KnowledgeBase(private val db: SqlDatabase) {
      * isn't such a snapshot (the caller then indexes as before).
      */
     fun importSnapshot(path: String, dims: Int): Int = write {
-        db.execute("ATTACH DATABASE ? AS kbsnap", listOf(path))
+        // Read-only, so nothing here can change the bundled file's size or mtime (AssetStore deletes an oversized file and
+        // re-hashes a touched one). The path is percent-encoded for the URI form.
+        val uri = "file:" + path.replace("%", "%25").replace("?", "%3f").replace("#", "%23") + "?mode=ro"
+        db.execute("ATTACH DATABASE ? AS kbsnap", listOf(uri))
         try {
             val tables = db.query("SELECT name FROM kbsnap.sqlite_master WHERE type = 'table'") { it.string(0) }.toSet()
             require(tables.containsAll(listOf("chunks", "chunk_embeddings", "chunks_fts"))) { "not a knowledge-base snapshot" }
