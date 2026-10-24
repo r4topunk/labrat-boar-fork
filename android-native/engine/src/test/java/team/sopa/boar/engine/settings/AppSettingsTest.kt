@@ -68,7 +68,7 @@ class AppSettingsTest {
     @Test fun `missing or broken file means defaults`() {
         for (s in listOf(AppSettings(file(null)), AppSettings(file("{not json")))) {
             assertNull(s.activeModelId("llm"))
-            assertEquals(AppSettings.AUTO_MAX_TOKENS_DETAILED, s.maxTokens)
+            assertEquals(AppSettings.AUTO_MAX_TOKENS, s.maxTokens)
             assertEquals("standard", s.fontScale)
             assertTrue(s.autoSummarize)
         }
@@ -101,9 +101,20 @@ class AppSettingsTest {
         assertEquals(2048, s.answerTokens(2048))
     }
 
+    @Test fun `no stored style gets the Succinct cap, not Detailed's`() {
+        assertEquals(AppSettings.AUTO_MAX_TOKENS, AppSettings.autoMaxTokens(null))
+        assertEquals(AppSettings.AUTO_MAX_TOKENS, AppSettings.autoMaxTokens("succinct"))
+        assertEquals(AppSettings.AUTO_MAX_TOKENS_DETAILED, AppSettings.autoMaxTokens("detailed"))
+        val s = AppSettings(file(null))
+        assertNull(s.personalityId)
+        assertEquals(512, s.maxTokens)
+        assertEquals(512, s.answerTokens(4096))
+    }
+
     @Test fun `Auto answer length is 1024 for Detailed, 512 for the other styles, a pick wins`() {
         val s = AppSettings(file(null))
         assertNull(s.maxTokensChoice)
+        s.personalityId = "detailed"
         assertEquals(1024, s.maxTokens)
         s.personalityId = "succinct"
         assertEquals(512, s.maxTokens)

@@ -115,10 +115,14 @@ class AppSettings(private val file: File) {
         fun fitToContext(cap: Int, openedContext: Int?): Int =
             if (openedContext == null) cap else minOf(cap, maxOf(MIN_AUTO_TOKENS, openedContext - PROMPT_RESERVE))
 
-        /** No style set means Detailed, the native app's default (BoarServices.DEFAULT_PERSONALITY_ID). */
+        /**
+         * Only Detailed gets the longer cap. No style set is Succinct, the app's default (personalities.json's defaultId,
+         * BoarServices.DEFAULT_PERSONALITY_ID): reading it as Detailed gave a fresh install 1024 tokens while it answered
+         * in Succinct.
+         */
         fun autoMaxTokens(personalityId: String?, deepResearch: Boolean = false): Int = when {
             deepResearch -> AUTO_MAX_TOKENS_RESEARCH
-            (personalityId ?: "detailed") == "detailed" -> AUTO_MAX_TOKENS_DETAILED
+            personalityId == "detailed" -> AUTO_MAX_TOKENS_DETAILED
             else -> AUTO_MAX_TOKENS
         }
     }
