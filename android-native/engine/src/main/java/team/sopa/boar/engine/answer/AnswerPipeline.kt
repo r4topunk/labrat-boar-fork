@@ -35,6 +35,11 @@ data class AnswerRequest(
     val notFoundText: String = PersonalFiles.NOT_FOUND,
     /** Sampling seed; -1 (the app) = random. A fixed seed makes an answer repeatable (the device eval's speed runs). */
     val seed: Int = -1,
+    /**
+     * The answering model is compact (answer.ts isCompactModel: [AnswerWarning.COMPACT_MODEL_BYTES] or smaller): its
+     * unsupported answers start with the warning line ([AnswerWarning]). BoarLite's one model, Qwen3 1.7B, is.
+     */
+    val compactModel: Boolean = true,
 )
 
 enum class AnswerStage { RETRIEVING, THINKING, GENERATING }
@@ -45,7 +50,7 @@ sealed interface AnswerEvent {
     data class Sources(val chunks: List<Chunk>, val retrievalMs: Double, val tokensBefore: Int, val tokensAfter: Int) : AnswerEvent
     data class Piece(val text: String) : AnswerEvent
     data class Done(
-        /** The model's full text (thinking included, as the TS stores it). */
+        /** The model's full text (thinking included, as the TS stores it), with the warning line before the answer when one fired. */
         val text: String,
         val sources: List<Chunk>,
         val taskType: String,
@@ -57,6 +62,8 @@ sealed interface AnswerEvent {
         val metrics: GenerationMetrics?,
         /** My files found nothing: the answer is the fixed line, and no model ran. */
         val notFound: Boolean = false,
+        /** The warning line put before the answer ([AnswerWarning]), or null; the streamed pieces never carry it. */
+        val warning: AnswerWarning.Warning? = null,
     ) : AnswerEvent
 }
 
@@ -145,7 +152,11 @@ class AnswerPipeline(
                 is GenerationEvent.Done -> metrics = e.metrics
             }
         }
-        emit(AnswerEvent.Done(text.toString(), sources, task, retrieved, retrievalMs, before, after, if (useTemplate) "chat-template" else "plain", metrics))
+        // Decided once the answer is whole: whether it cites a passage is known only at its end. A stopped answer gets none,
+        // as in answer.ts (it returns before the line is added).
+        val warning = if (req.compactModel && !shouldStop()) AnswerWarning.of(req.query, task, retrieved, sources.size, AnswerText.stripThinking(text.toString()), req.filesOnly) else null
+        emit(AnswerEvent.Done(AnswerWarning.withLine(text.toString(), warning?.line), sources, task, retrieved, retrievalMs, before, after,
+            if (useTemplate) "chat-template" else "plain", metrics, warning = warning))
     }
 
     /** The prompt without its passages, estimated as the plain prompt plus the files-only instruction and its heading. */

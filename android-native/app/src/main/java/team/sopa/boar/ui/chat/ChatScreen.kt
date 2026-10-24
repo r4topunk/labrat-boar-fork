@@ -51,6 +51,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
@@ -124,6 +125,7 @@ import team.sopa.boar.chat.ReceiptFormat
 import team.sopa.boar.chat.UiMessage
 import team.sopa.boar.engine.UserErrors
 import team.sopa.boar.engine.answer.AnswerText
+import team.sopa.boar.engine.answer.AnswerWarning
 import team.sopa.boar.engine.answer.ResearchStage
 import team.sopa.boar.ui.I18n
 import team.sopa.boar.ui.icons.BoarIcons
@@ -525,7 +527,11 @@ private fun Bubble(
                         fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = scheme.onSurfaceVariant, modifier = reasoningStyle)
                 else -> {
                     if (reasoningShown && split.thinking != null) Text(split.thinking!!, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = scheme.onSurfaceVariant, modifier = reasoningStyle)
-                    MarkdownMessage(shown, streaming)
+                    // An unsupported answer's warning line (AnswerWarning) stands apart from the answer, so it is read first and
+                    // never taken for part of it; Copy still takes it with the answer.
+                    val (warningLine, body) = AnswerWarning.split(shown)
+                    if (warningLine != null) WarningLine(warningLine)
+                    MarkdownMessage(body, streaming)
                 }
             }
             // The answer failed (no model, an engine or storage error): a plain line, never the exception text.
@@ -629,6 +635,7 @@ private fun receiptRows(r: Receipt): List<Pair<String, String>> {
     }
     return listOfNotNull(
         mode?.let { t("native.receipt.mode") to it },
+        r.warning?.let { t("native.receipt.warning") to it },
         r.retrievalMs?.let { t("chat.receipt.search") to ReceiptFormat.seconds(it) },
         r.prefillMs?.let { t("chat.receipt.prefill") to ReceiptFormat.seconds(it) },
         r.contextTokens?.let { t("chat.receipt.context") to count(it) },
@@ -680,6 +687,17 @@ private fun RedoButton(label: String, onClick: () -> Unit) {
         Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize).onTextLine(MaterialTheme.typography.labelLarge))
         Spacer(Modifier.width(ButtonDefaults.IconSpacing))
         Text(label)
+    }
+}
+
+/** The warning line before an answer from the model's memory: the warning icon in tertiary, the line in full. */
+@Composable
+private fun WarningLine(line: String) {
+    val scheme = MaterialTheme.colorScheme
+    Row(Modifier.padding(bottom = 4.dp).background(scheme.tertiaryContainer, MaterialTheme.shapes.small).padding(horizontal = 10.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Icon(Icons.Outlined.Warning, contentDescription = null, tint = scheme.onTertiaryContainer, modifier = Modifier.size(IconSize.Meta).onTextLine(MaterialTheme.typography.bodyMedium))
+        Text(line, style = MaterialTheme.typography.bodyMedium, color = scheme.onTertiaryContainer)
     }
 }
 

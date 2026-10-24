@@ -612,7 +612,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val history = ConversationHistory(
                 summary = runCatching { chats.listSessions().firstOrNull { it.id == sessionId }?.summary }.getOrNull(),
                 // Within a token budget: earlier answers cut to their opening sentences (HistoryBudget).
-                turns = HistoryBudget.budget(prior.takeLast(VERBATIM_MESSAGE_COUNT).map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) }),
+                // An earlier answer's warning line is the app's, not the model's words: left out, so the model doesn't copy it.
+                turns = HistoryBudget.budget(prior.takeLast(VERBATIM_MESSAGE_COUNT).map { ConversationTurn(it.role, if (it.role == "assistant") team.sopa.boar.engine.answer.AnswerWarning.split(AnswerText.stripThinking(it.text)).second else it.text) }),
             )
             val startAt = System.nanoTime()
             qaMark("answer.start")
@@ -634,6 +635,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val notFoundLine = team.sopa.boar.ui.I18n.t(getApplication(), "design.chat.filesNotFound")
             // The fixed line was written without the model: no receipt (no speed to show).
             var notFound = false
+            // The warning line the plain path put before an unsupported answer (AnswerWarning), added once the answer ends.
+            var warning: team.sopa.boar.engine.answer.AnswerWarning.Warning? = null
             var firstAt = 0L
             var tokens = 0
             // The limit the answer could hit, set once the model is loaded; the adaptive router picks its own.
@@ -715,7 +718,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     metrics = r.third
                 } else {
                     val pipeline = AnswerPipeline(session, retrieve, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
-                    val base = AnswerRequest(q, systemPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)
+                    // A model of unknown size counts as compact: BoarLite ships one model, Qwen3 1.7B, and it is.
+                    val compact = services.answerModel()?.sizeBytes?.let { it <= team.sopa.boar.engine.answer.AnswerWarning.COMPACT_MODEL_BYTES } ?: true
+                    val base = AnswerRequest(q, systemPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled, compactModel = compact)
                     val req = if (filesOnly) PersonalFiles.request(base, services.host.openedContext ?: AnswerPipeline.FALLBACK_CONTEXT, notFoundLine) else base
                     // Stop pressed while this waited for the model (behind the warm prefill) is honoured inside the lock.
                     pipeline.answer(req, shouldStop = { stopRequested }).collect { e ->
@@ -723,7 +728,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                             is AnswerEvent.Stage -> _state.update { it.copy(activity = when (e.stage) { AnswerStage.RETRIEVING -> Activity.Retrieving; AnswerStage.THINKING -> Activity.Thinking; AnswerStage.GENERATING -> Activity.Generating }) }
                             is AnswerEvent.Sources -> sources = e.chunks
                             is AnswerEvent.Piece -> onPiece(e.text)
-                            is AnswerEvent.Done -> { metrics = e.metrics; retrievalMs = e.retrievalMs; notFound = e.notFound }
+                            is AnswerEvent.Done -> { metrics = e.metrics; retrievalMs = e.retrievalMs; notFound = e.notFound; warning = e.warning }
                         }
                     }
                 }
@@ -743,12 +748,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             // My files: a not-found line the model opened with goes when a cited answer from the files follows it (the
             // instruction's English line, or the chat's own language's).
             if (filesOnly) PersonalFiles.dropHedge(PersonalFiles.dropHedge(text.toString()), notFoundLine).let { if (it != text.toString()) { text.setLength(0); text.append(it) } }
+            // The warning line before the answer itself: saved with it, so the chat, a reopened chat and Copy all show it.
+            team.sopa.boar.engine.answer.AnswerWarning.withLine(text.toString(), warning?.line).let { if (it != text.toString()) { text.setLength(0); text.append(it) } }
             val stopped = stopRequested
             // The failure line goes with this answer, so it's still there after the next question and when the chat opens again.
             val errorKey = _state.value.error?.takeIf { !stopped }?.let(team.sopa.boar.engine.UserErrors::chatKey)
             val receipt = receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)?.takeIf { !notFound }?.let { r ->
                 val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
-                r.copy(style = style, path = path, task = task, checked = checked, styleNote = shortReason?.takeIf { it != team.sopa.boar.engine.routing.ShortAnswer.SMALL_TALK })
+                r.copy(style = style, path = path, task = task, checked = checked, styleNote = shortReason?.takeIf { it != team.sopa.boar.engine.routing.ShortAnswer.SMALL_TALK }, warning = warning?.rule)
             }
             val cutAt = limited?.takeIf { !stopped && !timedOut && text.isNotBlank() && AnswerLimit.reached(metrics?.generatedTokens ?: tokens, it) }
             // No "Allow more and redo": the answer length is the Succinct value with no user control, and longer answers measured
