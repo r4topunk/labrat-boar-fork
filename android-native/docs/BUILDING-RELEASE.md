@@ -57,3 +57,7 @@ and `bundle installed in X s`.
 
 Settings → Run setup again (or Purge, then a relaunch) runs the installer again. It skips the files already verified,
 restores a pack removed from Knowledge, and installs a newer APK's bundle.
+
+## Signing
+
+`:app:assembleRelease` signs with BoarLite's own upload key when `~/.gradle/gradle.properties` names it (never put the values in the repo): `BOARLITE_UPLOAD_STORE_FILE`, `BOARLITE_UPLOAD_STORE_PASSWORD`, `BOARLITE_UPLOAD_KEY_ALIAS`, `BOARLITE_UPLOAD_KEY_PASSWORD`. Without them the release is debug-signed. Check the result with `scripts/check-release-apk.sh <apk>` (package, versionCode, signer, no INTERNET permission).

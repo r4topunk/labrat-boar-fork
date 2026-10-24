@@ -10,7 +10,33 @@ plugins {
 // the packs and the index under assets/bundle/, installed on first launch. Without it the APK has no bundle, so
 // development builds stay small and get their data from an adb-pushed folder instead (docs/BUILDING-RELEASE.md).
 val bundleDir: File? = providers.gradleProperty("boar.bundleDir").orNull?.trim()?.takeIf { it.isNotEmpty() }?.let { dir ->
-    file(dir).also { require(it.resolve("bundle/manifest.json").isFile) { "-Pboar.bundleDir=$dir has no bundle/manifest.json: run scripts/stage-bundle.sh first" } }
+    file(dir).also { root ->
+        require(root.resolve("bundle/manifest.json").isFile) { "-Pboar.bundleDir=$dir has no bundle/manifest.json: run scripts/stage-bundle.sh first" }
+        checkBundleAgainstCatalog(root.resolve("bundle"), file("src/main/assets/boar-data/catalog.json"))
+    }
+}
+
+// The staged bundle must still be the one the app's catalog.json describes: stage-bundle.sh checks sizes and sha256 once and
+// hard-links the sources, so a catalog edited afterwards (or a source rewritten in place) would build an APK whose first-run
+// install ends in a Mismatch on every phone. Every manifest entry must name a catalog file with the same size and sha256,
+// and the staged file must have that size (no hashing here: that is stage-bundle.sh's job).
+fun checkBundleAgainstCatalog(bundle: File, catalog: File) {
+    val slurper = groovy.json.JsonSlurper()
+    val models = (slurper.parse(catalog) as Map<*, *>)["models"] as List<*>
+    val byFilename = models.map { it as Map<*, *> }.associateBy { it["filename"] as String }
+    val entries = slurper.parse(bundle.resolve("manifest.json")) as List<*>
+    require(entries.isNotEmpty()) { "${bundle.resolve("manifest.json")} lists no files" }
+    for (entry in entries.map { it as Map<*, *> }) {
+        val path = entry["path"] as String
+        val want = byFilename[path] ?: error("bundle/manifest.json names $path, which catalog.json does not know: run scripts/stage-bundle.sh again")
+        require((want["sizeBytes"] as Number).toLong() == (entry["sizeBytes"] as Number).toLong() && want["sha256"] == entry["sha256"]) {
+            "bundle/manifest.json disagrees with catalog.json about $path (size or sha256): run scripts/stage-bundle.sh again"
+        }
+        val staged = bundle.resolve(path)
+        require(staged.isFile && staged.length() == (entry["sizeBytes"] as Number).toLong()) {
+            "staged $path is missing or is ${staged.length()} bytes, the manifest says ${entry["sizeBytes"]}: run scripts/stage-bundle.sh again"
+        }
+    }
 }
 
 android {
@@ -39,15 +65,15 @@ android {
         ndk { abiFilters += listOf("arm64-v8a") }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    // The Expo app's upload key, named in ~/.gradle/gradle.properties (never in the repo), as plugins/withReleaseSigning.js
-    // reads it. Without it the release is debug-signed, which can't install over a store or release build of BOAR.
-    val storeFile = providers.gradleProperty("BOAR_UPLOAD_STORE_FILE").orNull
+    // BoarLite's own upload key (D9), named in ~/.gradle/gradle.properties and never in the repo. It is not the Expo app's key,
+    // so BoarLite never updates a BOAR install. Without it the release is debug-signed.
+    val storeFile = providers.gradleProperty("BOARLITE_UPLOAD_STORE_FILE").orNull
     signingConfigs {
         if (storeFile != null) create("release") {
             this.storeFile = file(storeFile)
-            storePassword = providers.gradleProperty("BOAR_UPLOAD_STORE_PASSWORD").get()
-            keyAlias = providers.gradleProperty("BOAR_UPLOAD_KEY_ALIAS").get()
-            keyPassword = providers.gradleProperty("BOAR_UPLOAD_KEY_PASSWORD").get()
+            storePassword = providers.gradleProperty("BOARLITE_UPLOAD_STORE_PASSWORD").get()
+            keyAlias = providers.gradleProperty("BOARLITE_UPLOAD_KEY_ALIAS").get()
+            keyPassword = providers.gradleProperty("BOARLITE_UPLOAD_KEY_PASSWORD").get()
         }
     }
     buildTypes {
