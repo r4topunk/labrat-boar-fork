@@ -277,7 +277,7 @@ class DeviceEvalRunner(
             context.assets.open("lexicon/pt-en.json").bufferedReader().use { r -> Json.parseToJsonElement(r.readText()).jsonObject.mapValues { it.value.jsonPrimitive.content } }
         }.getOrDefault(emptyMap())
         val kb = KnowledgeBase(kbDb)
-        val retriever = Retriever(kb, { packs }, { text -> runBlocking { embedder.embed(text) } }, { lexicon })
+        val retriever = Retriever(kb, { packs }, { text -> runBlocking { embedder.embed(text) } }, { lexicon }, port = team.sopa.boar.engine.rag.SearchPort.BOARLITE_DEFAULT)
         log("[EVAL] retrieval: knowledge base + ${packs.size} packs, lexicon ${lexicon.size} names")
         return Retrieval(retriever, embedder, closeables, kb, packs)
     }
@@ -358,7 +358,8 @@ class DeviceEvalRunner(
         s: LlamaSession, retrieval: Retrieval?, runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String,
         systemPrompt: String, styleReminder: String?, maxTokens: Int, residency: String, loadMs: Double,
     ): JsonObject {
-        val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k) ?: emptyList() }, classify, retrievalIrrelevant)
+        val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k) ?: emptyList() }, classify, retrievalIrrelevant,
+            headPass = { query, raw, kept, chars -> retrieval?.retriever?.headPass(query, raw, kept, chars) ?: emptyList() })
         val tempBefore = batteryTempC()
         val peak = PeakRss().apply { start() }
         val start = System.nanoTime()

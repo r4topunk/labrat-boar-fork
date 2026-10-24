@@ -59,6 +59,12 @@ data class PackSearchOptions(
     val minHits: Int = 2,
     val queryVec: FloatArray? = null,
     val expand: ((String) -> List<String>)? = null,
+    /**
+     * BoarLite search port (SearchPort): Stack Exchange term cut 0.25 (SEFIX F2), cross-pack bm25 statistics when [global] is
+     * set (H4 gidf), and the semantic side lists ([WikiPack.Result.semantic] / [WikiPack.Result.seLead]). False = the search as before.
+     */
+    val port: Boolean = false,
+    val global: SearchPort.GlobalStats? = null,
 )
 
 data class PackTuning(
@@ -315,6 +321,10 @@ class WikiPack private constructor(
     private val hasMeta: Boolean,
     /** Sources besides Wikipedia and Wikivoyage in a multi-source pack: their titles count as names too. */
     private val topicSources: List<PackSource>,
+    /** The pack carries a chunk_vecs sidecar (an int8 bge-small vector per chunk): the two-stage dense path can run. */
+    val hasChunkVecs: Boolean = false,
+    /** A Stack Exchange Q&A pack (meta.sources names stackexchange). */
+    val isStackExchange: Boolean = false,
 ) {
     var tuning = PackTuning()
     private val blocks = lru<Long, ByteArray>(16)
@@ -322,7 +332,11 @@ class WikiPack private constructor(
     private val resolved = lru<String, Long?>(512)
     private val resolvedKeys = HashSet<String>()
 
-    data class Result(val hits: List<PackHit>, val stems: List<Stem>)
+    /**
+     * [semantic]: with [PackSearchOptions.port] and chunk_vecs, the two-stage dense chunk hits ([denseChunks]);
+     * [seLead]: with [PackSearchOptions.port], a Stack Exchange pack without chunk_vecs, its best lead-vector thread's answers ([seLead]).
+     */
+    data class Result(val hits: List<PackHit>, val stems: List<Stem>, val semantic: List<PackHit> = emptyList(), val seLead: List<PackHit> = emptyList())
 
     /** [stem, idf] for the content words of [text], stemmed by FTS5 itself. */
     fun stems(text: String): List<Stem> {
@@ -345,6 +359,102 @@ class WikiPack private constructor(
         val ranked = stems.sortedByDescending { it.idf }
         val kept = ranked.filter { it.idf >= ln(1 / maxDf) }.map { it.stem }
         return if (kept.size >= keepMin) kept else ranked.take(keepMin).map { it.stem }
+    }
+
+    /** Search port (SEFIX F2): a Stack Exchange pack without chunk_vecs keeps stems in up to 25 % of its chunks, so a domain word stays. */
+    fun portTerms(stems: List<Stem>, port: Boolean): List<String> =
+        if (port && isStackExchange && !hasChunkVecs) queryTerms(stems, SearchPort.SE_MAX_DF) else queryTerms(stems)
+
+    /** Rows of this pack's index (FTS5's nRow), for [SearchPort.GlobalStats]. */
+    val nRow: Double get() = nIndexed
+    private val termRowCache = lru<String, Long>(4096)
+
+    /** Rows of this pack's index that match the FTS term of [stem] (FTS5's nHit: df / the vocab view; a prefix term counted). */
+    fun termRows(stem: String): Long = synchronized(termRowCache) { termRowCache[stem] } ?: run {
+        val n = if (stem.endsWith("i") && stem.length > 4) {
+            db.query("SELECT count(*) FROM fts WHERE fts MATCH ?", listOf(WikiPackText.matchTerm(stem))) { it.long(0) }.firstOrNull() ?: 0L
+        } else {
+            (if (hasDf) db.query("SELECT doc FROM df WHERE term = ?", listOf(stem)) { it.long(0) }.firstOrNull() else null)
+                ?: db.query("SELECT doc FROM temp.fts_v WHERE term = ?", listOf(stem)) { it.long(0) }.firstOrNull() ?: 0L
+        }
+        synchronized(termRowCache) { termRowCache[stem] = n }
+        n
+    }
+
+    /** Search port (HEADPASS a2): the chunks at positions [from]..[to] (0-based, by start) of the article that holds chunk [chunkId]. */
+    fun headChunksOf(chunkId: Long, from: Int, to: Int): List<PackHit> {
+        val articleId = db.query("SELECT article_id FROM chunks WHERE id = ?", listOf(chunkId)) { it.long(0) }.firstOrNull() ?: return emptyList()
+        val rows = db.query("SELECT id, start, end FROM chunks WHERE article_id = ? ORDER BY start", listOf(articleId)) { Triple(it.long(0), it.long(1).toInt(), it.long(2).toInt()) }
+        return rows.drop(from).take(maxOf(0, to - from + 1)).map { (id, st, en) -> hit(articleId, id, st, en, 0.0, "bm25") }
+    }
+
+    /** Every article's lead vector (int8), read once: the two-stage dense path and the Stack Exchange lead search scan it. */
+    private class LeadMatrix(val ids: LongArray, val vecs: ByteArray, val norms: DoubleArray, val dims: Int)
+    @Volatile private var leadMatrix: LeadMatrix? = null
+
+    private fun leadMatrix(dims: Int): LeadMatrix = leadMatrix?.takeIf { it.dims == dims } ?: synchronized(this) {
+        leadMatrix?.takeIf { it.dims == dims } ?: run {
+            val ids = ArrayList<Long>()
+            val out = java.io.ByteArrayOutputStream()
+            db.query("SELECT article_id, vec FROM lead_vecs ORDER BY article_id") { ids += it.long(0); out.write(it.blob(1)!!, 0, dims) }
+            val vecs = out.toByteArray()
+            val norms = DoubleArray(ids.size) { i -> var n = 0.0; for (d in 0 until dims) { val v = vecs[i * dims + d].toDouble(); n += v * v }; kotlin.math.sqrt(n) }
+            LeadMatrix(ids.toLongArray(), vecs, norms, dims).also { leadMatrix = it }
+        }
+    }
+
+    /** The [m] articles whose lead is closest to [queryVec] (ties: lower article id first), with cosine >= [floor]. */
+    private fun topLeads(queryVec: FloatArray, m: Int, floor: Double = Double.NEGATIVE_INFINITY): List<Pair<Long, Double>> {
+        val lm = runCatching { leadMatrix(queryVec.size) }.getOrNull() ?: return emptyList()
+        var qn = 0.0
+        for (d in queryVec.indices) qn += queryVec[d].toDouble() * queryVec[d]
+        qn = kotlin.math.sqrt(qn).let { if (it == 0.0) 1.0 else it }
+        val topId = LongArray(m); val topS = DoubleArray(m); var n = 0
+        val dims = lm.dims
+        for (i in lm.ids.indices) {
+            var dot = 0.0
+            val o = i * dims
+            for (d in 0 until dims) dot += queryVec[d] * lm.vecs[o + d]
+            val s = if (lm.norms[i] != 0.0) dot / (qn * lm.norms[i]) else 0.0
+            if (s < floor) continue
+            if (n < m || s > topS[n - 1]) {
+                var j = if (n < m) n++ else n - 1
+                while (j > 0 && topS[j - 1] < s) { topId[j] = topId[j - 1]; topS[j] = topS[j - 1]; j-- }
+                topId[j] = lm.ids[i]; topS[j] = s
+            }
+        }
+        return (0 until n).map { topId[it] to topS[it] }
+    }
+
+    /**
+     * Search port (HEADPASS-X2b dense candidates): stage 1 ranks every article by its lead vector's cosine to the question and keeps the
+     * top [m]; stage 2 scores only those articles' chunk vectors (chunk_vecs) and returns the best [k] at cosine >= [floor], as
+     * "semantic" hits whose score is the cosine. Empty without chunk_vecs.
+     */
+    fun denseChunks(queryVec: FloatArray, m: Int = SearchPort.DENSE_ARTICLES, k: Int = SearchPort.DENSE_K, floor: Double = RagPure.MIN_SEMANTIC_SIMILARITY): List<PackHit> {
+        if (!hasChunkVecs) return emptyList()
+        val art = topLeads(queryVec, m).map { it.first }
+        if (art.isEmpty()) return emptyList()
+        data class Row(val id: Long, val articleId: Long, val start: Int, val end: Int, val s: Double)
+        val rows = db.query(
+            "SELECT c.id, c.article_id, c.start, c.end, v.vec FROM chunks c JOIN chunk_vecs v ON v.chunk_id = c.id WHERE c.article_id IN (${art.joinToString(",") { "?" }})", art,
+        ) { Row(it.long(0), it.long(1), it.long(2).toInt(), it.long(3).toInt(), RagPure.cosineInt8(queryVec, it.blob(4)!!)) }
+        return rows.filter { it.s >= floor }.sortedWith(compareByDescending<Row> { it.s }.thenBy { it.id }).take(k)
+            .map { hit(it.articleId, it.id, it.start, it.end, it.s, "semantic").copy(score = it.s) }
+    }
+
+    /**
+     * Search port (SEFIX F1): a Stack Exchange pack without chunk_vecs offers its best thread by lead-vector cosine >= [tau], as the
+     * chunks at positions 1-2 (accepted answer + next, by start) of that thread's article, scored by the cosine.
+     */
+    fun seLead(queryVec: FloatArray, tau: Double = SearchPort.SE_LEAD_TAU, threads: Int = 1): List<PackHit> {
+        if (!isStackExchange || hasChunkVecs) return emptyList()
+        val out = ArrayList<PackHit>()
+        for ((id, s) in topLeads(queryVec, threads, tau)) {
+            val rows = db.query("SELECT id, start, end FROM chunks WHERE article_id = ? ORDER BY start", listOf(id)) { Triple(it.long(0), it.long(1).toInt(), it.long(2).toInt()) }
+            for ((cid, st, en) in rows.drop(1).take(2)) out += hit(id, cid, st, en, s, "semantic").copy(score = s)
+        }
+        return out
     }
 
     private fun block(id: Long): ByteArray = blocks[id] ?: run {
@@ -457,17 +567,38 @@ class WikiPack private constructor(
     }
 
     /** bm25()'s ranking without reading article text; at most [perArticle] per article. */
-    fun bm25Candidates(stems: List<Stem>, pool: Int = tuning.pool, prior: Double = tuning.prior, perArticle: Int = 2): List<Candidate> {
-        val terms = queryTerms(stems)
+    fun bm25Candidates(
+        stems: List<Stem>, pool: Int = tuning.pool, prior: Double = tuning.prior, perArticle: Int = 2, port: Boolean = false, global: SearchPort.GlobalStats? = null,
+    ): List<Candidate> {
+        val terms = portTerms(stems, port)
         if (terms.isEmpty()) return emptyList()
         val w = tuning.weights.joinToString(", ") { jsNumber(it) }
+        data class Row(val id: Long, val s: Double, val articleId: Long, val start: Int, val end: Int, val views: Long, val source: Int)
         val rows = db.query(
             """SELECT f.rowid AS id, f.s, c.article_id, c.start, c.end, a.views, a.source
                FROM (SELECT rowid, bm25(fts, $w) AS s FROM fts WHERE fts MATCH ? ORDER BY s LIMIT ?) f
                JOIN chunks c ON c.id = f.rowid JOIN articles a ON a.id = c.article_id""",
             listOf(terms.joinToString(" OR ") { WikiPackText.matchTerm(it) }, pool),
-        ) { Candidate(it.long(0), it.long(2), it.long(3).toInt(), it.long(4).toInt(), -it.double(1) + prior * log10(1.0 + it.long(5)), SOURCES.getOrElse(it.long(6).toInt()) { PackSource.ENWIKI }) }
-        val sorted = rows.sortedWith(compareByDescending<Candidate> { it.score }.thenByDescending { it.articleId }.thenByDescending { it.start })
+        ) { Row(it.long(0), it.double(1), it.long(2), it.long(3).toInt(), it.long(4).toInt(), it.long(5), it.long(6).toInt()) }
+        // Search port (H4 gidf): FTS5's bm25 is the sum over the query terms of idf(term) x saturation(term, passage). Each term's part is
+        // read back with a one-term query on these passages, divided by this pack's idf and multiplied by the idf over all installed packs
+        // (same formula, summed row counts), so the scores of different packs share one scale. Pool, terms, prior and per-article cap unchanged.
+        var rescored: HashMap<Long, Double>? = null
+        if (global != null && rows.isNotEmpty()) {
+            val ids = rows.joinToString(",") { it.id.toString() }
+            val r = HashMap<Long, Double>()
+            for (t in terms) {
+                val nl = termRows(t)
+                val ratio = SearchPort.fts5Idf(global.nRow, (global.df[t] ?: nl).toDouble()) / SearchPort.fts5Idf(nIndexed, nl.toDouble())
+                db.query("SELECT rowid AS id, bm25(fts, $w) AS s FROM fts WHERE fts MATCH ? AND rowid IN ($ids)", listOf(WikiPackText.matchTerm(t))) { it.long(0) to it.double(1) }
+                    .forEach { (id, sc) -> r[id] = (r[id] ?: 0.0) + -sc * ratio }
+            }
+            rescored = r
+        }
+        val cands = rows.map {
+            Candidate(it.id, it.articleId, it.start, it.end, (rescored?.get(it.id) ?: -it.s) + prior * log10(1.0 + it.views), SOURCES.getOrElse(it.source) { PackSource.ENWIKI })
+        }
+        val sorted = cands.sortedWith(compareByDescending<Candidate> { it.score }.thenByDescending { it.articleId }.thenByDescending { it.start })
         val per = HashMap<Long, Int>()
         return sorted.filter { c -> val n = per[c.articleId] ?: 0; per[c.articleId] = n + 1; n < perArticle }
     }
@@ -580,7 +711,7 @@ class WikiPack private constructor(
         val seen = hits.map { it.chunkId }.toHashSet()
         var keyword: List<Candidate>? = null
         if (hits.size < limit) {
-            var kw = bm25Candidates(stems)
+            var kw = bm25Candidates(stems, port = opts.port, global = opts.global)
             val sem = opts.queryVec?.let { leadSimilarity(kw.map { c -> c.articleId }, it) }
             val w = tuning.semanticWeight
             if (sem != null && sem.isNotEmpty() && w > 0 && kw.isNotEmpty()) {
@@ -615,7 +746,7 @@ class WikiPack private constructor(
             }
         }
         if (action) {
-            val pool = keyword ?: bm25Candidates(stems)
+            val pool = keyword ?: bm25Candidates(stems, port = opts.port, global = opts.global)
             if (hits.none { it.source == PackSource.USGOV }) {
                 for (c in pool) {
                     // The source first: loading every candidate's article (a 64 KB block each) to find none from it cost
@@ -652,6 +783,12 @@ class WikiPack private constructor(
                 val have = hits.map { it.chunkId }.toSet()
                 result = hits + more.filter { it.chunkId !in have }
             }
+        }
+        val q = opts.queryVec
+        if (opts.port && q != null) {
+            // Search port: the semantic side lists, kept beside the keyword hits (the Retriever appends them after compression).
+            if (hasChunkVecs) return Result(result.take(limit + lay), stems, semantic = denseChunks(q))
+            if (isStackExchange) return Result(result.take(limit + lay), stems, seLead = seLead(q))
         }
         return Result(result.take(limit + lay), stems)
     }
@@ -707,7 +844,10 @@ class WikiPack private constructor(
                     .mapNotNull { SOURCES.getOrNull(it) }.filter { it != PackSource.ENWIKI && it != PackSource.ENWIKIVOYAGE }
             } else emptyList()
             val indexed = meta["indexedChunks"]?.toDoubleOrNull()?.takeIf { it != 0.0 && !it.isNaN() } ?: 1.0
-            return WikiPack(db, zstd, meta, indexed, "redirects" in tables, "df" in tables, "article_meta" in tables, topicSources)
+            val se = runCatching {
+                (kotlinx.serialization.json.Json.parseToJsonElement(meta["sources"] ?: "{}") as? kotlinx.serialization.json.JsonObject)?.containsKey("stackexchange") == true
+            }.getOrDefault(false)
+            return WikiPack(db, zstd, meta, indexed, "redirects" in tables, "df" in tables, "article_meta" in tables, topicSources, "chunk_vecs" in tables, se)
         }
 
         /** JavaScript's Number → string for the bm25 weights (2 → "2", 1.5 → "1.5"). */

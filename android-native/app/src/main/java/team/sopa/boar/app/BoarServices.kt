@@ -190,7 +190,8 @@ class BoarServices private constructor(private val context: Context) {
     }
 
     val retriever: Retriever by lazy {
-        Retriever(knowledgeBase, { packs }, { text -> runBlocking { embed(text) } }, { lexicon })
+        // BoarLite's search port (engine rag/SearchPort.kt): SearchPort.BOARLITE_DEFAULT, off until its safety gate passes; off = the search as before.
+        Retriever(knowledgeBase, { packs }, { text -> runBlocking { embed(text) } }, { lexicon }, port = team.sopa.boar.engine.rag.SearchPort.BOARLITE_DEFAULT)
     }
 
     // --- The generation model ----------------------------------------------------------------------------------

@@ -16,6 +16,7 @@ import team.sopa.boar.engine.rag.Chunk
 import team.sopa.boar.engine.rag.Compress
 import team.sopa.boar.engine.rag.ConversationHistory
 import team.sopa.boar.engine.rag.RagPure
+import team.sopa.boar.engine.rag.SearchPort
 import team.sopa.boar.engine.rag.WholePassages
 
 /** One question for the default answer path. */
@@ -87,11 +88,17 @@ class AnswerPipeline(
     /** isRetrievalIrrelevant for a task type name. */
     private val retrievalIrrelevant: (String) -> Boolean,
     private val clock: () -> Double = { System.nanoTime() / 1e6 },
+    /**
+     * BoarLite's search port (Retriever.headPass): (question, retrieved list, compressed passages, prompt length of a passage list) ->
+     * passages appended after the compressed ones. Null: nothing appended (the path as before the port).
+     */
+    private val headPass: ((String, List<Chunk>, List<Chunk>, (List<Chunk>) -> Int) -> List<Chunk>)? = null,
 ) {
     constructor(
         session: LlamaSession, retrieve: (String, Int) -> List<Chunk>, classify: (String) -> String, retrievalIrrelevant: (String) -> Boolean,
         clock: () -> Double = { System.nanoTime() / 1e6 },
-    ) : this({ session }, retrieve, classify, retrievalIrrelevant, clock)
+        headPass: ((String, List<Chunk>, List<Chunk>, (List<Chunk>) -> Int) -> List<Chunk>)? = null,
+    ) : this({ session }, retrieve, classify, retrievalIrrelevant, clock, headPass)
 
     /** [shouldStop]: the chat's Stop, honoured right before and while the answer is generated ([LlamaSession.generate]). */
     fun answer(req: AnswerRequest, shouldStop: () -> Boolean = { false }): Flow<AnswerEvent> = flow {
@@ -126,10 +133,16 @@ class AnswerPipeline(
             val found = waited
             // Only the sentences that answer: a shorter prompt brings the first word sooner. My files sends the user's
             // parts whole while they fit (WholePassages).
-            val c = if (req.filesOnly) WholePassages.fit(found.searchedFor, found.chunks, req.contextSize ?: FALLBACK_CONTEXT, promptTokens(req), req.maxTokens)
+            val plain = if (req.filesOnly) WholePassages.fit(found.searchedFor, found.chunks, req.contextSize ?: FALLBACK_CONTEXT, promptTokens(req), req.maxTokens)
             else Compress.forAnswer(found.searchedFor, found.chunks, task)
+            // Search port: passages found beside the list (SearchPort.headPass), compressed together with the retrieved ones
+            // within a fifth more than the plain compression (SearchPort.fit); never for My files.
+            val appended = if (req.filesOnly || headPass == null) emptyList() else headPass.invoke(req.query, found.chunks, plain.chunks) { s ->
+                RagPure.assembleChatMessages(req.query, s, req.systemPrompt, req.history, req.styleReminder).sumOf { it.role.length + it.content.length }
+            }
+            val c = SearchPort.fit(found.searchedFor, found.chunks, plain, appended)
             retrievalMs = clock() - t0
-            fullChunks = found.chunks
+            fullChunks = found.chunks + appended
             sources = c.chunks
             before = c.tokensBefore
             after = c.tokensAfter

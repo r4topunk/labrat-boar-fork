@@ -21,7 +21,16 @@ class Retriever(
     private val packs: () -> List<OpenPack>,
     private val embed: (String) -> FloatArray,
     private val lexicon: () -> Map<String, String>,
+    /** BoarLite's search port ([SearchPort]); false = the search as before it. */
+    private val port: Boolean = false,
 ) {
+    /** One search's list, plus (search port) the dense chunk hits and Stack Exchange thread answers found beside it. */
+    private class One(val chunks: List<Chunk>, val dense: List<Chunk> = emptyList(), val sidecar: Boolean = false, val seLead: List<Chunk> = emptyList())
+
+    /** The search port's appends after compression ([SearchPort.headPass]); none when the port is off. */
+    fun headPass(query: String, raw: List<Chunk>, kept: List<Chunk>, promptChars: (List<Chunk>) -> Int): List<Chunk> =
+        if (!port) emptyList() else SearchPort.headPass(query, raw, kept, packs(), promptChars)
+
     /**
      * [ownOnly]: the user's own files only (search only my files): no library, no packs, and a meaning hit passes at the
      * search floor (MIN_SEMANTIC_SIMILARITY) instead of the answer floor, since nothing else can come back.
@@ -33,16 +42,20 @@ class Retriever(
         sources: SourceFilter = SourceFilter.ALL,
     ): List<Chunk> {
         val filter = if (ownOnly) SourceFilter.OWN_ONLY else sources
-        val main = retrieveOne(query, topK, queryVec, includeWikiPacks, null, null, null, filter)
+        val mainR = retrieveOne(query, topK, queryVec, includeWikiPacks, null, null, null, filter)
+        val main = mainR.chunks
+        fun side(list: List<Chunk>, vararg r: One): List<Chunk> =
+            if (!port) list else SearchPort.Retrieved(list, SearchPort.Side(SearchPort.rankDense(list, r.flatMap { it.dense }), r.any { it.sidecar }, r.flatMap { it.seLead }))
         // A Portuguese question against English sources: search again with the English names it mentions and put
         // those results first. The English embedder and keyword index barely match Portuguese words.
-        if (!PtLexicon.looksPortuguese(query)) return main
+        if (!PtLexicon.looksPortuguese(query)) return side(main, mainR)
         // A standard's number (EIP-1559, ERC-20, BIP-32) names its page exactly: it goes before any lexicon name.
         val ids = Identifiers.identifiersIn(query)
         val names = ids + PtLexicon.englishNamesIn(query, lexicon()).filter { it !in ids }
-        if (names.isEmpty()) return main
+        if (names.isEmpty()) return side(main, mainR)
         val action = WikiPackText.ACTION_INTENT.containsMatchIn(query)
-        val found = retrieveOne(names.joinToString(" "), topK, null, includeWikiPacks, names, action, Explain.EXPLAIN_INTENT.containsMatchIn(query), filter)
+        val foundR = retrieveOne(names.joinToString(" "), topK, null, includeWikiPacks, names, action, Explain.EXPLAIN_INTENT.containsMatchIn(query), filter)
+        val found = foundR.chunks
         val named = names.map { it.lowercase() }.toSet()
         // What-to-do sections first in an action question, then articles named exactly; disambiguation lists never.
         fun rank(c: Chunk) = if (action && c.action) 0 else if (c.title.lowercase() in named) 1 else 2
@@ -51,13 +64,13 @@ class Retriever(
         val seen = HashSet<String>()
         val merged = (first.take(ceil(topK * 2 / 3.0).toInt()) + main + english).filter { !isDisambiguation(it) && seen.add(it.chunkId) }
         fun byId(c: Chunk) = ids.any { Identifiers.titleHasIdentifier(c.title, it) }
-        return Dedupe.dedupeArticleCopies(merged.filter(::byId) + merged.filterNot(::byId)).take(topK)
+        return side(Dedupe.dedupeArticleCopies(merged.filter(::byId) + merged.filterNot(::byId)).take(topK), mainR, foundR)
     }
 
     private fun retrieveOne(
         query: String, topK: Int, queryVec: FloatArray?, includeWikiPacks: Boolean, titles: List<String>?, action: Boolean?, explain: Boolean?,
         filter: SourceFilter = SourceFilter.ALL,
-    ): List<Chunk> {
+    ): One {
         val vec = queryVec ?: embed(query)
         val ownOnly = filter.ownOnly
         // Only the packs the user kept in Sources (none with Only my files); the rest are never opened for this search.
@@ -70,11 +83,15 @@ class Retriever(
         val f1 = SearchPool.map(installed.filterIsInstance<OpenPack.Format1>()) { p ->
             runCatching { Packs.searchFormat1(p.db, p.id, query, vec, topK * 2, explain) }.getOrNull()
         }.filterNotNull()
-        val wiki = if (!includeWikiPacks) emptyList() else SearchPool.map(installed.filterIsInstance<OpenPack.Format2>()) { p ->
+        val f2 = installed.filterIsInstance<OpenPack.Format2>()
+        // Search port (H4 gidf): one bm25 scale across the packs, from the row counts of the terms they will search.
+        val global = if (port && includeWikiPacks && f2.isNotEmpty()) globalStats(query, f2) else null
+        val wikiR = if (!includeWikiPacks) emptyList() else SearchPool.map(f2) { p ->
             runCatching {
-                p.id to p.pack.searchDetailed(query, PackSearchOptions(titles = titles ?: emptyList(), k = topK, action = action, explain = explain, queryVec = vec)).hits
+                p.id to p.pack.searchDetailed(query, PackSearchOptions(titles = titles ?: emptyList(), k = topK, action = action, explain = explain, queryVec = vec, port = port, global = global))
             }.getOrNull()
         }.filterNotNull()
+        val wiki = wikiR.map { (id, r) -> id to r.hits }
         val (lexical, semantic) = SearchPool.await(kbSearch)
         fun chunks(keep: (PackHit) -> Boolean) = wiki.flatMap { (id, hits) -> hits.filter(keep).map { Packs.packHitToChunk(id, it) } }
 
@@ -108,8 +125,26 @@ class Retriever(
             val lay = chunks { it.source in WikiPackText.LAY_SOURCES }.filter { it.chunkId !in inResult }
             result += Dedupe.dedupeArticleCopies(result + lay).drop(result.size).take(2)
         }
-        return result
+        if (!port) return One(result)
+        // Search port: the side lists, as chunks at their cosine (never in the list; the answer appends them after compression).
+        fun semantic(id: String, h: PackHit) = Packs.packHitToChunk(id, h).copy(matchType = MatchType.SEMANTIC, similarity = h.score)
+        return One(
+            result,
+            dense = wikiR.flatMap { (id, r) -> r.semantic.map { semantic(id, it) } },
+            sidecar = f2.any { it.pack.hasChunkVecs },
+            seLead = wikiR.flatMap { (id, r) -> r.seLead.map { semantic(id, it) } },
+        )
     }
+
+    /** H4 gidf: row counts over [f2] of the terms each pack will search (its own cut), summed, with the packs' summed row counts. */
+    private fun globalStats(query: String, f2: List<OpenPack.Format2>): SearchPort.GlobalStats? = runCatching {
+        val terms = LinkedHashSet<String>()
+        SearchPool.map(f2) { p -> runCatching { p.pack.portTerms(p.pack.stems(query), true) }.getOrDefault(emptyList()) }.forEach { terms += it }
+        val df = HashMap<String, Long>()
+        SearchPool.map(f2) { p -> terms.associateWith { t -> runCatching { p.pack.termRows(t) }.getOrDefault(0L) } }
+            .forEach { m -> m.forEach { (t, n) -> df[t] = (df[t] ?: 0L) + n } }
+        SearchPort.GlobalStats(f2.sumOf { it.pack.nRow }, df)
+    }.getOrNull()
 
     companion object {
         private val DISAMBIG_TITLE = Regex("(?i)\\(disambiguation\\)\\z")

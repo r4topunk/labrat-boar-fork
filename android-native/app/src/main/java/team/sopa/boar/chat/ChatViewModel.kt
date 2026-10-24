@@ -735,7 +735,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                         if (revised != text.toString()) { text.setLength(0); text.append(revised) }
                     }
                 } else {
-                    val pipeline = AnswerPipeline(session, retrieve, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
+                    val pipeline = AnswerPipeline(session, retrieve, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) },
+                        headPass = services.retriever::headPass)
                     val compact = compactAnswerModel()
                     val base = AnswerRequest(q, systemPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled, compactModel = compact)
                     val req = if (filesOnly) PersonalFiles.request(base, services.host.openedContext ?: AnswerPipeline.FALLBACK_CONTEXT, notFoundLine) else base
