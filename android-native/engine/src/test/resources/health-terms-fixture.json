@@ -421,9 +421,10 @@
   "q": "We're stranded in the car at -20 C, what is that in Fahrenheit?",
   "h": [],
   "js": false,
-  "terms": false,
+  "terms": true,
   "base": false,
-  "exempt": false
+  "exempt": false,
+  "extra": true
  },
  {
   "set": "probe:n09",

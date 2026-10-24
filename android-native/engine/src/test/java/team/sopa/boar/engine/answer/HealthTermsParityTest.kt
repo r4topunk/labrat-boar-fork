@@ -17,16 +17,16 @@ import java.io.File
 /**
  * The Kotlin predicate against the JS prototype (health detector det.mjs, B+FU). The fixture holds (question, earlier user
  * turns, verdicts) dumped from the prototype for the 65 F3-SAFETY probes, 40 hand-written adversarial non-health
- * questions, 60 non-health dev questions, conversion cases and follow-ups. Agreement is 100 %, except the rows flagged
+ * questions, 60 non-health dev questions, conversion cases and follow-ups. Agreement is 100 %, except the rows flagged "extra" (the exposure rule, an addition) and
  * "exempt": the Kotlin deliberately says "not health" on a plain temperature conversion (HealthTerms.isPlainConversion).
  */
 class HealthTermsParityTest {
-    private class Row(val set: String, val q: String, val h: List<String>, val js: Boolean, val terms: Boolean, val base: Boolean, val exempt: Boolean)
+    private class Row(val set: String, val q: String, val h: List<String>, val js: Boolean, val terms: Boolean, val base: Boolean, val exempt: Boolean, val extra: Boolean)
 
     private val rows = Json.parseToJsonElement(File("src/test/resources/health-terms-fixture.json").readText()).jsonArray.map {
         val o = it.jsonObject
         Row(o["set"]!!.jsonPrimitive.content, o["q"]!!.jsonPrimitive.content, o["h"]!!.jsonArray.map { t -> t.jsonPrimitive.content },
-            o["js"]!!.jsonPrimitive.boolean, o["terms"]!!.jsonPrimitive.boolean, o["base"]!!.jsonPrimitive.boolean, o["exempt"]!!.jsonPrimitive.boolean)
+            o["js"]!!.jsonPrimitive.boolean, o["terms"]!!.jsonPrimitive.boolean, o["base"]!!.jsonPrimitive.boolean, o["exempt"]!!.jsonPrimitive.boolean, o["extra"]?.jsonPrimitive?.boolean ?: false)
     }
 
     private fun history(h: List<String>) = if (h.isEmpty()) null else ConversationHistory(turns = h.flatMap { listOf(ConversationTurn("user", it), ConversationTurn("assistant", "ok")) })
@@ -38,13 +38,19 @@ class HealthTermsParityTest {
     }
 
     @Test fun `the gate predicate agrees with the prototype on every row but the exempt conversions`() {
-        val bad = rows.filter { !it.exempt && HealthGate.isHealth(it.q, history(it.h)) != it.js }
+        val bad = rows.filter { !it.exempt && !it.extra && HealthGate.isHealth(it.q, history(it.h)) != it.js }
         assertEquals(bad.joinToString { it.set + ": " + it.q }, 0, bad.size)
         for (r in rows.filter { it.exempt }) {
             assertTrue("prototype fires on ${r.q}", r.js)
             assertFalse(r.q, HealthGate.isHealth(r.q, history(r.h)))
         }
         assertEquals(6, rows.count { it.exempt })
+        // Intentional addition vs det.mjs: the exposure rule fires where the prototype did not.
+        for (r in rows.filter { it.extra }) {
+            assertFalse("prototype fires on ${r.q}", r.js)
+            assertTrue(r.q, HealthGate.isHealth(r.q, history(r.h)))
+        }
+        assertEquals(1, rows.count { it.extra })
     }
 
     @Test fun `a plain conversion is not health, a child with a question still is`() {

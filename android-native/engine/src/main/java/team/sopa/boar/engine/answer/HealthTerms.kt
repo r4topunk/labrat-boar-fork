@@ -4,7 +4,7 @@ import team.sopa.boar.engine.routing.JsRegex
 import team.sopa.boar.engine.routing.QueryContext
 
 /**
- * The widened lexical health rules (r4to's "B+FU", Oct 24): 11 whole-word rules for health questions that
+ * The widened lexical health rules (r4to's "B+FU", Oct 24): 11 whole-word rules (plus the exposure rule, an addition not in the prototype) for health questions that
  * [team.sopa.boar.engine.routing.QueryContext.isHealthQuestion] misses (a drug name, a dose, a vital sign, a lay symptom,
  * a poisoning, pregnancy, a fall...), and the follow-up rule. The regex sources are the JS prototype's (det.mjs B_RULES,
  * FU CONTINUES) verbatim, through [JsRegex]; HealthTermsParityTest pins the verdicts to the prototype's.
@@ -23,6 +23,7 @@ object HealthTerms {
         "pregnancy" to JsRegex.re("""(?<![\p{L}\p{N}])(?:pregnan\p{L}*|water broke|contractions|in labou?r|miscarr\p{L}*|gr[áa]vida|embarazada)(?![\p{L}])""", "iu"),
         "childDose" to JsRegex.re("""(?<![\p{L}])(?:child|kid|baby|toddler|infant|newborn|son|daughter|\d+[- ]?(?:year|month|yr)[- ]?old|niñ[oa]|crian[çc]a)(?![\p{L}])[^.?!]{0,60}(?<![\p{L}])(?:ml|syrup|drops|gotas|dose|mg|medicine)(?![\p{L}])|(?<![\p{L}])(?:newborn|infant|preemie)(?![\p{L}])""", "iu"),
         "trauma" to JsRegex.re("""(?<![\p{L}\p{N}])(?:fell\s+\d+(?:[.,]\d+)?\s*(?:m|ft|feet|meters|metres|stories|storeys)|fell (?:off|from) (?:a|the|his|her|my|their) (?:ladder|roof|tree|horse|bike|bicycle|balcony|wall|cliff|stairs|bed|scaffold\p{L}*)|fell down (?:the )?stairs|hit head|altitude sickness|mountain sickness|the bends|decompression sickness|surfaced (?:too )?fast|surfaced from)(?![\p{L}])""", "iu"),
+        "exposure" to JsRegex.re("""(?<![\p{L}\p{N}])(?:stranded|stuck|trapped|lost|snowed in|broke(?:n)? down|locked (?:in|out))(?![\p{L}])[^.?!]{0,60}?(?<![\p{L}\p{N}])(?:-?\d+(?:[.,]\d+)?\s*°?\s*(?:c|f|celsius|fahrenheit)|freezing|below zero|sub-?zero|hypothermi\p{L}*|frostbit\p{L}*|heat ?stroke|heat exhaustion|overheating|no heat(?:ing)?|no (?:ac|air conditioning)|snowstorm|blizzard|whiteout|desert|scorching)(?![\p{L}])|(?<![\p{L}\p{N}])(?:-?\d+(?:[.,]\d+)?\s*°?\s*(?:c|f|celsius|fahrenheit)|freezing|below zero|sub-?zero|hypothermi\p{L}*|frostbit\p{L}*|heat ?stroke|heat exhaustion|overheating|no heat(?:ing)?|no (?:ac|air conditioning)|snowstorm|blizzard|whiteout|desert|scorching)(?![\p{L}])[^.?!]{0,60}?(?<![\p{L}\p{N}])(?:stranded|stuck|trapped|lost|snowed in|broke(?:n)? down|locked (?:in|out))(?![\p{L}])|(?<![\p{L}\p{N}])(?:hypothermi(?:a|c)|frostbit(?:e|ten)|heat ?stroke|heat exhaustion)(?![\p{L}])""", "iu"),
     )
 
     /** The rules a question fires, by name. */

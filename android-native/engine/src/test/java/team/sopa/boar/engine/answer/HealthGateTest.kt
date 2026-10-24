@@ -99,4 +99,15 @@ class HealthGateTest {
         assertNull(noSearch("hi"))
         assertTrue(noSearch("What is 15% of 80?")!!.calculated)
     }
+
+    @Test fun `exposure rule needs a stuck cue near a cold or heat cue, or a named condition`() {
+        for (q in listOf("We're stranded in the car at -20 C, what is that in Fahrenheit?", "lost in the desert, how much water per day?",
+            "the car broke down in a blizzard", "no heating and we are trapped at 5 °C", "locked out in freezing weather",
+            "scorching day, we're stuck on the road", "what are the signs of hypothermia", "is frostbitten skin black", "heatstroke vs heat exhaustion")) {
+            assertTrue(q, HealthGate.isHealth(q)); assertTrue(q, HealthTerms.hits(q).contains("exposure"))
+        }
+        for (q in listOf("stuck in traffic for 2 hours, how far is 120 km at 60 km/h?", "my car broke down, how do I change a tire?",
+            "-20 C in F?")) assertFalse(q, HealthGate.isHealth(q))
+        assertTrue(HealthGate.fixedText("lost in the desert, how much water per day?", emptyList()) != null)
+    }
 }
