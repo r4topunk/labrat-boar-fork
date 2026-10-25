@@ -55,7 +55,6 @@ boar-lite/
   assets/
     brand/                    # logo sources for the launcher icon and mascot
     corpus/                   # bundled Wikipedia-derived corpora (copied into the APK at build time)
-    lexicon/                  # name lexicon (copied into the APK at build time)
   scripts/
     audit-apk.py              # network-surface audit of an APK
     check-release-apk.sh      # package, versionCode, signer, no INTERNET permission

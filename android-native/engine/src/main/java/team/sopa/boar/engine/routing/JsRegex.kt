@@ -134,21 +134,20 @@ internal object JsNumber {
         return if (r == 0.0 && (x < 0 || 1.0 / x < 0)) -0.0 else r
     }
 
-    /** n.toLocaleString(pt ? "pt-BR" : "en-US", { maximumFractionDigits }), as ICU prints it (half-expand rounding). */
-    fun locale(n: Double, pt: Boolean, maxFractionDigits: Int = 3): String {
+    /** n.toLocaleString("en-US", { maximumFractionDigits }), as ICU prints it (half-expand rounding). */
+    fun locale(n: Double, maxFractionDigits: Int = 3): String {
         if (n.isNaN()) return "NaN"
         val neg = n < 0 || (n == 0.0 && 1.0 / n < 0)
         if (n.isInfinite()) return (if (neg) "-" else "") + "∞"
         val plain = shortest(kotlin.math.abs(n)).setScale(maxFractionDigits, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString()
         val intPart = plain.substringBefore('.')
         val frac = plain.substringAfter('.', "")
-        val group = if (pt) '.' else ','
         val grouped = StringBuilder()
         intPart.forEachIndexed { i, ch ->
-            if (i > 0 && (intPart.length - i) % 3 == 0) grouped.append(group)
+            if (i > 0 && (intPart.length - i) % 3 == 0) grouped.append(',')
             grouped.append(ch)
         }
-        val body = if (frac.isEmpty()) grouped.toString() else "$grouped${if (pt) ',' else '.'}$frac"
+        val body = if (frac.isEmpty()) grouped.toString() else "$grouped.$frac"
         return (if (neg) "-" else "") + body
     }
 }

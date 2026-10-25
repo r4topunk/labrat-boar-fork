@@ -5,9 +5,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import team.sopa.boar.engine.BoarEngine
 import team.sopa.boar.engine.CpuTopology
 import team.sopa.boar.engine.EngineParams
@@ -92,11 +89,6 @@ class BoarServices private constructor(private val context: Context) {
     val chats = ChatStore(kbDb)
 
     private fun asset(path: String) = context.assets.open(path).bufferedReader().use { it.readText() }
-
-    /** Portuguese article names for PT questions (assets/lexicon/pt-en.json), loaded on first use. */
-    val lexicon: Map<String, String> by lazy {
-        runCatching { Json.parseToJsonElement(asset("lexicon/pt-en.json")).jsonObject.mapValues { it.value.jsonPrimitive.content } }.getOrDefault(emptyMap())
-    }
 
     fun fileOf(asset: CatalogAsset) = File(files, asset.filename)
     /** Everything BOAR keeps on the phone: models, packs, the knowledge base with imported documents, chats, settings. */
@@ -190,7 +182,7 @@ class BoarServices private constructor(private val context: Context) {
 
     val retriever: Retriever by lazy {
         // BoarLite's search port (engine rag/SearchPort.kt): SearchPort.BOARLITE_DEFAULT, off until its safety gate passes; off = the search as before.
-        Retriever(knowledgeBase, { packs }, { text -> runBlocking { embed(text) } }, { lexicon }, port = team.sopa.boar.engine.rag.SearchPort.BOARLITE_DEFAULT)
+        Retriever(knowledgeBase, { packs }, { text -> runBlocking { embed(text) } }, port = team.sopa.boar.engine.rag.SearchPort.BOARLITE_DEFAULT)
     }
 
     // --- The generation model ----------------------------------------------------------------------------------

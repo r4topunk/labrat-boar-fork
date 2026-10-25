@@ -29,10 +29,10 @@ class PersonalFilesPipelineTest {
         assertEquals(listOf(PersonalFiles.NOT_FOUND), events.filterIsInstance<AnswerEvent.Piece>().map { it.text })
     }
 
-    @Test fun `the chat's own language's line is written as given`() = runBlocking {
-        val pt = "Não encontrei isso nos seus arquivos."
-        val done = pipeline(emptyList()).answer(request(pt)).toList().filterIsInstance<AnswerEvent.Done>().single()
-        assertEquals(pt, done.text)
+    @Test fun `a custom not-found line is written as given`() = runBlocking {
+        val line = "Nothing in your documents matches that."
+        val done = pipeline(emptyList()).answer(request(line)).toList().filterIsInstance<AnswerEvent.Done>().single()
+        assertEquals(line, done.text)
         assertTrue(done.notFound)
     }
 
@@ -52,10 +52,10 @@ class PersonalFilesPipelineTest {
         assertEquals("According to your blood test from March, your cholesterol was 231 [1].", PersonalFiles.dropHedge(a))
     }
 
-    @Test fun `the localized line is dropped the same way`() {
-        val pt = "Não encontrei isso nos seus arquivos."
-        val a = "$pt No entanto, segundo seu exame de março, o colesterol era 231 [1]."
-        assertEquals("Segundo seu exame de março, o colesterol era 231 [1].", PersonalFiles.dropHedge(a, pt))
+    @Test fun `a custom not-found line is dropped the same way`() {
+        val line = "Nothing in your documents matches that."
+        val a = "$line However, according to your blood test from March, your cholesterol was 231 [1]."
+        assertEquals("According to your blood test from March, your cholesterol was 231 [1].", PersonalFiles.dropHedge(a, line))
     }
 
     @Test fun `the not-found line alone, or with a short sign-off, stays`() {

@@ -34,10 +34,9 @@ class RoutingLeavesGoldenTest {
     }
 
     private val JsonObject.q get() = this["q"]!!.str!!
-    private val JsonObject.pt get() = this["pt"]!!.jsonPrimitive.boolean
 
     @Test fun `emergency numbers line`() = check("emergencyLine") {
-        Triple("emergencyNumbersLine(${it.q}, ${it.pt})", it["out"]!!.str, EmergencyNumbers.emergencyNumbersLine(it.q, it.pt))
+        Triple("emergencyNumbersLine(${it.q})", it["out"]!!.str, EmergencyNumbers.emergencyNumbersLine(it.q))
     }
 
     @Test fun `task classification and retrieval relevance`() = check("classify") {
@@ -47,14 +46,14 @@ class RoutingLeavesGoldenTest {
 
     @Test fun `parse numbers like the TypeScript Number()`() = check("parseNumber") {
         val raw = it["raw"]!!.str!!
-        val n = Calculators.parseNumber(raw, it.pt)
-        Triple("parseNumber($raw, ${it.pt})", it["out"]!!.str, if (n == 0.0 && 1.0 / n < 0) "-0" else JsNumber.toString(n))
+        val n = Calculators.parseNumber(raw)
+        Triple("parseNumber($raw)", it["out"]!!.str, if (n == 0.0 && 1.0 / n < 0) "-0" else JsNumber.toString(n))
     }
 
     @Test fun `calculators`() = check("calculate") {
         val out = it["out"]!!
         val want = if (out is JsonNull) null else Calculators.Calculation(out.jsonObject["kind"]!!.str!!, out.jsonObject["text"]!!.str!!)
-        Triple("calculate(${it.q}, ${it.pt})", want, Calculators.calculate(it.q, it.pt))
+        Triple("calculate(${it.q})", want, Calculators.calculate(it.q))
     }
 
     @Test fun `task types serialize to the TypeScript strings`() {

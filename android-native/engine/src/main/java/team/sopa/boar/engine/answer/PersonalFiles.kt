@@ -20,7 +20,7 @@ object PersonalFiles {
 
     /** An answer this long after the not-found line is a real answer, not a sign-off. */
     const val ANSWER_AFTER_HEDGE_CHARS = 40
-    private val LEAD = Regex("^(however|but|that said|still|nevertheless|no entanto|mas|porém|contudo)[,:]?\\s+", RegexOption.IGNORE_CASE)
+    private val LEAD = Regex("^(however|but|that said|still|nevertheless)[,:]?\\s+", RegexOption.IGNORE_CASE)
     private val CITATION = Regex("\\[\\d+]")
 
     /**

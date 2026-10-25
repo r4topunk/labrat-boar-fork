@@ -14,7 +14,7 @@ import java.nio.file.Files
 
 /**
  * Full retrieval must match src/rag/retrieve.ts: a knowledge base seeded with the bundled corpus, one format-1 and three
- * format-2 packs, English and Portuguese questions (the lexicon path), the same chunks in the same order with the same
+ * format-2 packs, English questions, the same chunks in the same order with the same
  * scores.
  */
 class RetrieverGoldenTest {
@@ -31,7 +31,7 @@ class RetrieverGoldenTest {
             OpenPack.Format2("local-mini", WikiPack.open(JdbcSqlite(copy("mini.sqlite")), jvmZstd)),
             OpenPack.Format2("local-sources", WikiPack.open(JdbcSqlite(copy("sources.sqlite")), jvmZstd)),
         )
-        val r = Retriever(kb, { packs }, GoldenEmbedding::hashVec, { RagTextGoldenTest.lexicon })
+        val r = Retriever(kb, { packs }, GoldenEmbedding::hashVec)
         val lines = PacksGoldenTest()
         val cases = Json.parseToJsonElement(File(dir, "retrieve.json").readText()).jsonObject["retrieval"]!!.jsonArray.map { it.jsonObject }
         for (c in cases) {

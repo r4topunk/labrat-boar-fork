@@ -20,7 +20,7 @@ class UserDocumentsRetrievalTest {
         "holds the power to switch it off. Improved: When your AI lives on someone else's server, they can switch it off, reprice it, " +
         "filter it or watch it. Image prompt: a phone lying on a dark wooden table, its screen glowing warm orange."
 
-    private fun retriever(kb: KnowledgeBase) = Retriever(kb, { emptyList() }, { questionVec }, { emptyMap() })
+    private fun retriever(kb: KnowledgeBase) = Retriever(kb, { emptyList() }, { questionVec })
 
     private fun kbWithDocument(active: Boolean = true) = KnowledgeBase(JdbcSqlite()).apply {
         insertChunk(Chunk("wiki-1", "authority", "Authority", "Authority is the right to exercise power over others."), floatArrayOf(0f, 0f, 1f))

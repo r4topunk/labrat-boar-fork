@@ -272,13 +272,9 @@ class DeviceEvalRunner(
                 }
             }.getOrNull()
         }
-        // The Portuguese article names ship in the APK (assets/lexicon/pt-en.json), as the chat reads them.
-        val lexicon: Map<String, String> = runCatching {
-            context.assets.open("lexicon/pt-en.json").bufferedReader().use { r -> Json.parseToJsonElement(r.readText()).jsonObject.mapValues { it.value.jsonPrimitive.content } }
-        }.getOrDefault(emptyMap())
         val kb = KnowledgeBase(kbDb)
-        val retriever = Retriever(kb, { packs }, { text -> runBlocking { embedder.embed(text) } }, { lexicon }, port = team.sopa.boar.engine.rag.SearchPort.BOARLITE_DEFAULT)
-        log("[EVAL] retrieval: knowledge base + ${packs.size} packs, lexicon ${lexicon.size} names")
+        val retriever = Retriever(kb, { packs }, { text -> runBlocking { embedder.embed(text) } }, port = team.sopa.boar.engine.rag.SearchPort.BOARLITE_DEFAULT)
+        log("[EVAL] retrieval: knowledge base + ${packs.size} packs")
         return Retrieval(retriever, embedder, closeables, kb, packs)
     }
 

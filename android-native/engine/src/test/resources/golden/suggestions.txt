@@ -6,15 +6,3 @@ null|en||
 null|en|wiki-vital5|
 null|en|boar-preparedness|
 null|en|wiki-vital5,boar-preparedness|
-null|pt||
-null|pt|wiki-vital5|
-null|pt|boar-preparedness|
-null|pt|wiki-vital5,boar-preparedness|
-null|pt-BR||
-null|pt-BR|wiki-vital5|
-null|pt-BR|boar-preparedness|
-null|pt-BR|wiki-vital5,boar-preparedness|
-null|es||
-null|es|wiki-vital5|
-null|es|boar-preparedness|
-null|es|wiki-vital5,boar-preparedness|

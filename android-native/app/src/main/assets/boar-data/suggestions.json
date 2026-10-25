@@ -12,9 +12,6 @@
           "q4",
           "q7",
           "q8"
-        ],
-        "pt": [
-          "q8"
         ]
       }
     }
@@ -74,8 +71,7 @@
         "Emergency bleeding control"
       ],
       "langs": [
-        "en",
-        "pt"
+        "en"
       ]
     },
     {
@@ -87,8 +83,7 @@
         "Monsoon"
       ],
       "langs": [
-        "en",
-        "pt"
+        "en"
       ]
     },
     {
@@ -100,8 +95,7 @@
         "Plate tectonics"
       ],
       "langs": [
-        "en",
-        "pt"
+        "en"
       ]
     },
     {

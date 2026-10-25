@@ -127,12 +127,11 @@ android {
 
 kotlin { jvmToolchain(17) }
 
-// Data the Expo app ships in the repo's assets/, copied at build time so it stays in one place: the Portuguese name
-// lexicon (assets/lexicon/pt-en.json) and the bundled corpus (assets/corpus).
+// The bundled corpus (assets/corpus at the repo root), copied into the APK at build time.
 val sharedAssets = layout.buildDirectory.dir("generated/sharedAssets")
 val copySharedAssets by tasks.registering(Copy::class) {
     from(rootProject.file("../assets")) {
-        include("lexicon/pt-en.json", "corpus/*.json")
+        include("corpus/*.json")
     }
     into(sharedAssets)
 }

@@ -396,7 +396,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         // shortModelLabel: the catalog label without its parenthesis ("Qwen3-4B-Instruct-2507").
         val label = m?.label?.let(::shortLabel)
         // The ideas tested on the answer model, only for packs on the phone (also while its file is missing).
-        val tested = suggestionData.forModel((m ?: services.catalog.answerModel).id, "en", installed)
+        val tested = suggestionData.forModel((m ?: services.catalog.answerModel).id, installed)
         // Plus the short questions of BOAR's own 17-question evaluation, so each new chat shows a different few.
         ideaPool = (tested + BENCH_IDEAS).distinct()
         _state.update { it.copy(modelLabel = label, suggestions = pickIdeas()) }

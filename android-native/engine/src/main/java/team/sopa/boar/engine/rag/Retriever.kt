@@ -1,7 +1,6 @@
 package team.sopa.boar.engine.rag
 
 import team.sopa.boar.engine.db.SqlDatabase
-import kotlin.math.ceil
 
 /** An installed knowledge pack, opened: format 1 (FTS5 + int8 vectors) or format 2 (WikiPack). */
 sealed class OpenPack(val id: String) {
@@ -12,15 +11,13 @@ sealed class OpenPack(val id: String) {
 /**
  * Hybrid retrieval over the knowledge base and the installed packs (port of src/rag/retrieve.ts): lexical and
  * semantic results fused after the relevance gate, articles the question names first, what-to-do sections and lay
- * sources kept for action questions, and a second, English search for Portuguese questions. Nothing here touches
- * the network. Synchronous; run it off the main thread.
+ * sources kept for action questions. Nothing here touches the network. Synchronous; run it off the main thread.
  */
 class Retriever(
     private val kb: KnowledgeBase,
     /** Installed packs in the order the app lists them (catalog first, then local files by name). */
     private val packs: () -> List<OpenPack>,
     private val embed: (String) -> FloatArray,
-    private val lexicon: () -> Map<String, String>,
     /** BoarLite's search port ([SearchPort]); false = the search as before it. */
     private val port: Boolean = false,
 ) {
@@ -48,25 +45,7 @@ class Retriever(
         val main = mainR.chunks
         fun side(list: List<Chunk>, vararg r: One): List<Chunk> =
             if (!port) list else SearchPort.Retrieved(list, SearchPort.Side(SearchPort.rankDense(list, r.flatMap { it.dense }), r.any { it.sidecar }, r.flatMap { it.seLead }))
-        // A Portuguese question against English sources: search again with the English names it mentions and put
-        // those results first. The English embedder and keyword index barely match Portuguese words.
-        if (!PtLexicon.looksPortuguese(query)) return side(main, mainR)
-        // A standard's number (EIP-1559, ERC-20, BIP-32) names its page exactly: it goes before any lexicon name.
-        val ids = Identifiers.identifiersIn(query)
-        val names = ids + PtLexicon.englishNamesIn(query, lexicon()).filter { it !in ids }
-        if (names.isEmpty()) return side(main, mainR)
-        val action = WikiPackText.ACTION_INTENT.containsMatchIn(query)
-        val foundR = retrieveOne(names.joinToString(" "), topK, null, includeWikiPacks, names, action, Explain.EXPLAIN_INTENT.containsMatchIn(query), filter, port)
-        val found = foundR.chunks
-        val named = names.map { it.lowercase() }.toSet()
-        // What-to-do sections first in an action question, then articles named exactly; disambiguation lists never.
-        fun rank(c: Chunk) = if (action && c.action) 0 else if (c.title.lowercase() in named) 1 else 2
-        val english = found.filter { !isDisambiguation(it) }.sortedBy(::rank)
-        val first = if (action) english.filter { it.action } else english
-        val seen = HashSet<String>()
-        val merged = (first.take(ceil(topK * 2 / 3.0).toInt()) + main + english).filter { !isDisambiguation(it) && seen.add(it.chunkId) }
-        fun byId(c: Chunk) = ids.any { Identifiers.titleHasIdentifier(c.title, it) }
-        return side(Dedupe.dedupeArticleCopies(merged.filter(::byId) + merged.filterNot(::byId)).take(topK), mainR, foundR)
+        return side(main, mainR)
     }
 
     private fun retrieveOne(

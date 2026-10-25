@@ -40,7 +40,7 @@ object HealthGate {
     /** The fixed text for [query] given the passages the answer would read ([kept]), or null when the model answers. */
     fun fixedText(query: String, kept: List<Chunk>, history: ConversationHistory? = null): String? {
         if (!isHealth(query, history) || hasHealthSource(kept)) return null
-        return EmergencyNumbers.emergencyNumbersLine(query, pt = false)?.let { "$NO_SOURCE\n$it" } ?: NO_SOURCE
+        return EmergencyNumbers.emergencyNumbersLine(query)?.let { "$NO_SOURCE\n$it" } ?: NO_SOURCE
     }
 
     /** What an exposure turn with a conversion answers: [text] is final (no model wrote it); [source] is the one passage listed under it, if any. */

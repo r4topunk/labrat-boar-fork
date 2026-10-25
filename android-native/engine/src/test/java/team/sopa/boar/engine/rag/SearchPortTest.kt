@@ -150,9 +150,9 @@ class SearchPortTest {
             OpenPack.Format2("local-mini", WikiPack.open(JdbcSqlite(copy("mini.sqlite", "mini2.sqlite")), jvmZstd)),
             OpenPack.Format2("local-sources", WikiPack.open(JdbcSqlite(copy("sources.sqlite")), jvmZstd)),
         )
-        val before = Retriever(kb, { packs }, GoldenEmbedding::hashVec, { RagTextGoldenTest.lexicon })
-        val off = Retriever(kb, { packs }, GoldenEmbedding::hashVec, { RagTextGoldenTest.lexicon }, port = false)
-        val on = Retriever(kb, { packs }, GoldenEmbedding::hashVec, { RagTextGoldenTest.lexicon }, port = true)
+        val before = Retriever(kb, { packs }, GoldenEmbedding::hashVec)
+        val off = Retriever(kb, { packs }, GoldenEmbedding::hashVec, port = false)
+        val on = Retriever(kb, { packs }, GoldenEmbedding::hashVec, port = true)
         for (query in listOf("history of the roman empire", "what to do in an earthquake", "o que fazer num terremoto", "Paris")) {
             val a = before.retrieve(query, 4)
             assertEquals(query, a, off.retrieve(query, 4))
@@ -213,8 +213,8 @@ class SearchPortTest {
             OpenPack.Format2("local-dest", WikiPack.open(JdbcSqlite(copy("dest.sqlite", "dest3.sqlite")), jvmZstd)),
             OpenPack.Format2("local-mini", WikiPack.open(JdbcSqlite(copy("mini.sqlite", "mini3.sqlite")), jvmZstd)),
         )
-        val before = Retriever(kb, { packs }, GoldenEmbedding::hashVec, { RagTextGoldenTest.lexicon })
-        val on = Retriever(kb, { packs }, GoldenEmbedding::hashVec, { RagTextGoldenTest.lexicon }, port = true)
+        val before = Retriever(kb, { packs }, GoldenEmbedding::hashVec)
+        val on = Retriever(kb, { packs }, GoldenEmbedding::hashVec, port = true)
         for (query in listOf("history of the roman empire", "o que fazer num terremoto")) {
             val off = on.retrieve(query, 4, port = false)
             assertEquals(query, before.retrieve(query, 4), off)

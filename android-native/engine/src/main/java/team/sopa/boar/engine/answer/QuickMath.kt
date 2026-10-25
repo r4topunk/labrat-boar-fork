@@ -43,8 +43,8 @@ object QuickMath {
 
     private val CONVERT_WORD = JsRegex.re("""^\s*convert\b""", "i")
 
-    private fun fmt(n: Double): String = JsNumber.locale(n, false, 2)
-    private fun num(s: String): Double = Calculators.parseNumber(s, false)
+    private fun fmt(n: Double): String = JsNumber.locale(n, 2)
+    private fun num(s: String): Double = Calculators.parseNumber(s)
 
     /** Anything the health gate would take: not a calculation. */
     private fun healthy(q: String, history: ConversationHistory?): Boolean =
@@ -104,7 +104,7 @@ object QuickMath {
         unitsOf(q)?.let { (_, a, b) -> if (a in UNITS && b in UNITS || a in TEMP && b in TEMP) return true }
         // An explicit "convert 5 furlongs to cubits" with units the table lacks: the model, without passages.
         if (CONVERT_WORD.containsMatchIn(q) && unitsOf(q) != null) return true
-        return HealthTerms.isPlainConversion(q) || Calculators.calculate(q, pt = false) != null
+        return HealthTerms.isPlainConversion(q) || Calculators.calculate(q) != null
     }
 
     private val TEMP = setOf("c", "f", "celsius", "fahrenheit", "centigrade")
@@ -124,7 +124,7 @@ object QuickMath {
                 evaluate(body)?.let { return "$body = ${fmt(it)}." }
             }
         }
-        Calculators.calculate(q, pt = false)?.let { return it.text }
+        Calculators.calculate(q)?.let { return it.text }
         unitsOf(q)?.let { (v, a, b) ->
             val from = UNITS[a]; val to = UNITS[b]
             if (from != null && to != null && from.kind == to.kind) return "${fmt(v)} ${from.label} = ${fmt(v * from.toBase / to.toBase)} ${to.label}."

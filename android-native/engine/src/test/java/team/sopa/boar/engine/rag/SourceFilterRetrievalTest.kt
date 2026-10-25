@@ -31,7 +31,7 @@ class SourceFilterRetrievalTest {
             OpenPack.Format2("local-sources", WikiPack.open(JdbcSqlite(copy("sources.sqlite")), jvmZstd)),
         )
     }
-    private val golden by lazy { Retriever(KnowledgeBase(JdbcSqlite(copy("kb.sqlite"))), { packs }, GoldenEmbedding::hashVec, { RagTextGoldenTest.lexicon }) }
+    private val golden by lazy { Retriever(KnowledgeBase(JdbcSqlite(copy("kb.sqlite"))), { packs }, GoldenEmbedding::hashVec) }
     private val cases by lazy {
         Json.parseToJsonElement(File(dir, "retrieve.json").readText()).jsonObject["retrieval"]!!.jsonArray.map { it.jsonObject }
             .map { it["query"]!!.jsonPrimitive.content to it["topK"]!!.jsonPrimitive.int }
@@ -107,7 +107,7 @@ class SourceFilterRetrievalTest {
     }
 
     @Test fun `the retriever leaves out the user's files or the library as asked`() {
-        val r = Retriever(smallKb(), { emptyList() }, { qVec }, { emptyMap() })
+        val r = Retriever(smallKb(), { emptyList() }, { qVec })
         val q = "What is the capital of Bhutan?"
         assertEquals(setOf("wiki-1", "doc-1"), r.retrieve(q).map { it.chunkId }.toSet())
         assertEquals(listOf("wiki-1"), r.retrieve(q, sources = SourceFilter(own = false)).map { it.chunkId })
