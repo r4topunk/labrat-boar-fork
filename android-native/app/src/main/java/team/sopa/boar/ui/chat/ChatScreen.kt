@@ -3,12 +3,20 @@ package team.sopa.boar.ui.chat
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.foundation.layout.offset
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -91,6 +99,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -127,6 +136,7 @@ import team.sopa.boar.ui.icons.BoarIcons
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import team.sopa.boar.ui.theme.FixedSizeChrome
+import team.sopa.boar.ui.setup.rememberMotionEnabled
 
 /**
  * The chat on Material 3: a TopAppBar with the mascot, the bubbles, the loading strip, the empty state and the input
@@ -193,6 +203,16 @@ fun ChatScreen(
     }
     // Back at the end after a drag: follow again from where the finger left it.
     LaunchedEffect(follow, scrolling) { if (follow && !scrolling && count > 0) list.scrollToItem(count - 1, Int.MAX_VALUE / 2) }
+    // The answer ended: its settle (the note, receipt and sources entering) grows the last item with no new token, so
+    // keep its end in view while it expands; the last source card stayed under the input bar (r4to 2026-10-25).
+    LaunchedEffect(state.answeringId) {
+        if (state.answeringId != null) return@LaunchedEffect
+        val end = withFrameMillis { it } + SETTLE_FOLLOW_MS
+        while (withFrameMillis { it } < end) {
+            val n = list.layoutInfo.totalItemsCount
+            if (follow && !list.isScrollInProgress && n > 0 && list.canScrollForward) list.scrollToItem(n - 1, Int.MAX_VALUE / 2)
+        }
+    }
     // The bar tints to surfaceContainer once the messages scroll under it.
     val barScroll = TopAppBarDefaults.pinnedScrollBehavior()
     Box(Modifier.fillMaxSize().background(scheme.background)) {
@@ -236,6 +256,35 @@ fun ChatScreen(
         }
     }
     state.toast?.let { Toast(it, onToastHidden) }
+}
+
+/** How long the list keeps following the end after an answer finishes: the settle's longest step, with a margin. */
+private const val SETTLE_FOLLOW_MS = 450L
+
+/** M3 emphasized decelerate: things entering the screen (the settle at the end of an answer). */
+private val EmphasizedDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
+
+/** The settle: fades in 200 ms, expands in 250 ms, each group 50 ms after the one above (note → receipt → sources). */
+private const val SETTLE_FADE_MS = 200
+private const val SETTLE_EXPAND_MS = 250
+private const val SETTLE_STAGGER_MS = 50
+
+/**
+ * What appears under an answer when it finishes: with [animate] it enters (fade + expand from the top, step [step] of
+ * the stagger); otherwise it is just there. Decided once, when the part first composes, so a recomposition or a
+ * scroll back into view never replays it.
+ */
+@Composable
+private fun Settle(animate: Boolean, step: Int, content: @Composable () -> Unit) {
+    val visible = remember { MutableTransitionState(!animate).apply { targetState = true } }
+    val delay = step * SETTLE_STAGGER_MS
+    AnimatedVisibility(visible,
+        enter = if (!animate) EnterTransition.None else fadeIn(tween(SETTLE_FADE_MS, delay, EmphasizedDecelerate)) +
+            expandVertically(tween(SETTLE_EXPAND_MS, delay, EmphasizedDecelerate), expandFrom = Alignment.Top),
+        exit = ExitTransition.None) {
+        // AnimatedVisibility stacks its children; the bubble's own 4 dp rhythm inside a group.
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) { content() }
+    }
 }
 
 /** The chat column's widest: about 75 characters of body text. */
@@ -449,6 +498,16 @@ private fun Bubble(
     val user = m.role == "user"
     var reasoningShown by remember { mutableStateOf(false) }
     val clipboard = LocalClipboardManager.current
+    // The settle (r4to 2026-10-25): an answer seen streaming here lets what follows enter instead of popping in. History,
+    // or an answer already finished when it composes (opened, scrolled back into view), starts false and shows as is.
+    val motion = rememberMotionEnabled()
+    var settles by remember(m.id) { mutableStateOf(false) }
+    if (streaming && motion) settles = true
+    // One frame more as if streaming after it ends: the text's size animation is attached first, so the end-of-stream
+    // cleanup (citations, inline bullets) reflows smoothly in the next frame instead of jumping.
+    var settled by remember(m.id) { mutableStateOf(!streaming) }
+    LaunchedEffect(streaming) { settled = !streaming }
+    val live = streaming || (settles && !settled)
     // The question: a tonal bubble at the end (surfaceContainerHigh, the corner at its speaker squared a little), up to
     // 85 % of the width; held, it goes back to the input. The answer: no bubble, the text straight on the surface at
     // the full readable width, under a small byline (the boar).
@@ -471,43 +530,46 @@ private fun Bubble(
             }
             val split = AnswerText.splitThinking(m.text)
             // Sources are attached when the reply finishes, so invented citations are cleaned only then.
-            val shown = if (streaming) split.answer else AnswerText.splitInlineBullets(AnswerText.cleanCitations(split.answer, m.sources.size))
+            val shown = if (live) split.answer else AnswerText.splitInlineBullets(AnswerText.cleanCitations(split.answer, m.sources.size))
             val reasoningStyle = Modifier.drawBehind { drawRect(c.borderDefault, size = size.copy(width = 2.dp.toPx())) }.padding(start = 8.dp, bottom = 8.dp)
             when {
-                m.text.isEmpty() && streaming -> ProcessingIndicator(if (stopping) t("native.chat.stopping") else activityLabel(activity))
-                split.thinkingInProgress && split.answer.isEmpty() && streaming -> ThinkingTail(split.thinking.orEmpty(), reasoningStyle)
+                m.text.isEmpty() && live -> ProcessingIndicator(if (stopping) t("native.chat.stopping") else activityLabel(activity))
+                split.thinkingInProgress && split.answer.isEmpty() && live -> ThinkingTail(split.thinking.orEmpty(), reasoningStyle)
                 // The reasoning used the whole answer budget: the note points at the reasoning button, which shows what it reasoned.
                 split.thinkingInProgress && split.answer.isEmpty() ->
                     Text(if (reasoningShown && split.thinking != null) split.thinking!! else t("chatScreen.reasoningUnfinished"),
                         fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = scheme.onSurfaceVariant, modifier = reasoningStyle)
                 else -> {
                     if (reasoningShown && split.thinking != null) Text(split.thinking!!, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = scheme.onSurfaceVariant, modifier = reasoningStyle)
-                    MarkdownMessage(shown, streaming)
+                    // Sized smoothly only once the stream ended: per token it would lag a frame behind the auto-scroll.
+                    MarkdownMessage(shown, live, if (settles && !streaming) Modifier.animateContentSize(tween(SETTLE_EXPAND_MS, easing = EmphasizedDecelerate)) else Modifier)
                     // Every answer the model wrote ends with one quiet line (AnswerNote), under it, once it is whole: read after
                     // the answer and above its time, speed and sources. Small secondary text, not a banner; not part of the saved text.
-                    if (!streaming && m.receipt?.note == true) Text(AnswerNote.LINE, style = type.bodySmall, color = scheme.onSurfaceVariant)
+                    if (!live && m.receipt?.note == true) Settle(settles, 0) { Text(AnswerNote.LINE, style = type.bodySmall, color = scheme.onSurfaceVariant) }
                 }
             }
             // The answer failed (no model, an engine or storage error): a plain line, never the exception text.
             // Kept on the message (UiMessage.error), so it stays after the next question; the live error covers a failure
             // before the answer could be saved.
             val errorKey = m.error ?: liveError?.let(UserErrors::chatKey)
-            if (!streaming && !m.stopped && errorKey != null) {
+            if (!live && !m.stopped && errorKey != null) Settle(settles, 0) {
                 Text(t(errorKey), style = type.bodyLarge, color = scheme.error)
                 if ((errorKey == UserErrors.chatKey(UserErrors.EMPTY_ANSWER) || errorKey == UserErrors.INTERRUPTED_KEY) && !busy)
                     RedoButton(t("native.chat.tryAgain")) { onRetry(m.id) }
                 // Holding a question already copies it back to the input (onReuse); say so where it helps.
                 Text(t("native.chat.holdToReuse"), style = type.bodySmall, color = scheme.onSurface, modifier = Modifier.padding(top = 2.dp))
             }
-            if (m.stopped) NoteBadge(BoarIcons.StopCircle, t("chatScreen.stoppedByUser"))
-            if (m.timedOut) NoteBadge(BoarIcons.Timer, t("chatScreen.stageTimedOut"))
-            m.cutAt?.let { limit ->
-                Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    NoteBadge(BoarIcons.ContentCut, t("native.chat.cutAtLimit", "limit" to limit))
+            if (!live && m.stopped) Settle(settles, 1) { NoteBadge(BoarIcons.StopCircle, t("chatScreen.stoppedByUser")) }
+            if (!live && m.timedOut) Settle(settles, 1) { NoteBadge(BoarIcons.Timer, t("chatScreen.stageTimedOut")) }
+            if (!live) m.cutAt?.let { limit ->
+                Settle(settles, 1) {
+                    Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        NoteBadge(BoarIcons.ContentCut, t("native.chat.cutAtLimit", "limit" to limit))
+                    }
                 }
             }
             var receiptOpen by remember { mutableStateOf(false) }
-            if (m.text.isNotEmpty() && !streaming) {
+            if (m.text.isNotEmpty() && !live) Settle(settles, 1) {
                 // The actions first, the icon lined up with the text edge; the receipt after them, quiet, never cut.
                 // The 48 dp button pulls back by its padding plus the glyph's own inset, so the copy ink meets the text edge.
                 Row(Modifier.fillMaxWidth().padding(top = 4.dp).offset(x = FooterPullBack), horizontalArrangement = Arrangement.spacedBy(0.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -533,7 +595,7 @@ private fun Bubble(
                 if (receiptOpen && technicalDetails) m.receipt?.let { r -> ReceiptDetails(r) }
             }
             // The sources last, under the time and speed (r4to 2026-10-24: the receipt reads with the answer, above its sources).
-            if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, technicalDetails)
+            if (!live && m.sources.isNotEmpty()) Settle(settles, 2) { SourceFootnotes(m.sources, if (m.stopped && shown.isBlank()) t("native.chat.foundBeforeStop") else null, technicalDetails) }
         }
     }
 }
