@@ -142,7 +142,6 @@ fun ChatScreen(
     onNewChat: () -> Unit,
     onMenu: () -> Unit,
     /** The cut answer's "Allow more and redo": its id and the higher limit. */
-    onRedo: (String, Int) -> Unit = { _, _ -> },
     onRetry: (String) -> Unit = {},
     /** The memory note (LoadNote): close it, and its actions by model id. */
     onDismissLoadNote: () -> Unit = {},
@@ -226,7 +225,7 @@ fun ChatScreen(
                         Bubble(m, streaming, busy = state.answeringId != null, stopping = streaming && state.stopping,
                             activity = if (streaming) state.activity else null,
                             liveError = state.error?.takeIf { state.messages.lastOrNull()?.id == m.id }, technicalDetails = state.technicalDetails,
-                            onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, modifier = Modifier.animateItem())
+                            onReuse = { input = it; onReused() }, onRetry = onRetry, modifier = Modifier.animateItem())
                     }
                 }
             }
@@ -443,7 +442,7 @@ private fun Bubble(
     /** The live error, on the last message only (before the answer could be saved). */
     liveError: String?,
     technicalDetails: Boolean,
-    onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit, modifier: Modifier = Modifier,
+    onReuse: (String) -> Unit, onRetry: (String) -> Unit, modifier: Modifier = Modifier,
 ) {
     val c = Boar.colors
     val scheme = MaterialTheme.colorScheme
@@ -502,14 +501,11 @@ private fun Bubble(
                 Text(t("native.chat.holdToReuse"), style = type.bodySmall, color = scheme.onSurface, modifier = Modifier.padding(top = 2.dp))
             }
             // Stopped before writing anything: these are what the search found, not what the answer cites.
-            // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
-            if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = type.bodySmall, color = scheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp)) }
             if (m.stopped) NoteBadge(BoarIcons.StopCircle, t("chatScreen.stoppedByUser"))
             if (m.timedOut) NoteBadge(BoarIcons.Timer, t("chatScreen.stageTimedOut"))
             m.cutAt?.let { limit ->
                 Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     NoteBadge(BoarIcons.ContentCut, t("native.chat.cutAtLimit", "limit" to limit))
-                    if (m.nextLimit != null && !busy) RedoButton(t("native.chat.allowMore", "limit" to m.nextLimit)) { onRedo(m.id, m.nextLimit) }
                 }
             }
             var receiptOpen by remember { mutableStateOf(false) }

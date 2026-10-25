@@ -317,7 +317,6 @@ private fun ChatHost(services: BoarServices, vm: ChatViewModel, onNavigate: (Str
             onToggleSource = vm::toggleSource,
             onRefreshSources = vm::refreshSources,
             onResetOptions = vm::resetOptions,
-            onRedo = vm::redoWithLimit,
             onRetry = vm::retry,
             onDismissLoadNote = vm::dismissLoadNote,
             onRetryLessMemory = vm::retryWithLessMemory,

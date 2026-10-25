@@ -33,8 +33,5 @@ class ChatExportTest {
         assertTrue(AnswerLimit.reached(1024, 1024))
         assertTrue(AnswerLimit.reached(1022, 1024))
         assertFalse(AnswerLimit.reached(900, 1024))
-        assertEquals(2048, AnswerLimit.next(1024, listOf(256, 512, 1024, 2048), 4096))
-        assertEquals(null, AnswerLimit.next(1024, listOf(256, 512, 1024, 2048), 3000))
-        assertEquals(null, AnswerLimit.next(2048, listOf(256, 512, 1024, 2048), null))
     }
 }

@@ -67,7 +67,6 @@ class AppSettings(private val file: File) {
      * Summary, Custom) is ignored here and rewritten by [retireRemovedOptions].
      */
     val personalityId: String get() = ANSWER_STYLE
-    var customSystemPrompt: String? get() = str("customSystemPrompt"); set(v) = set("customSystemPrompt", v?.let(::JsonPrimitive))
     /** The answer's token limit: Succinct's Auto length. There is no length setting; a stored "maxTokens" is ignored. */
     val maxTokens: Int get() = autoMaxTokens(personalityId)
 
@@ -86,7 +85,7 @@ class AppSettings(private val file: File) {
     /**
      * Settings → Reset settings: every preference back to its default (theme, Advanced tweaks, display and voice switches,
      * chat history options; an old build's style, length and Deep Research keys too). The style stays Succinct, which
-     * [personalityId] always is. Kept: models and their roles, the PIN, the custom prompt and the app's own
+     * [personalityId] always is. Kept: models and their roles, the PIN and the app's own
      * bookkeeping. Chats live elsewhere and stay too.
      */
     fun resetPreferences() = update { PREFERENCE_KEYS.forEach { remove(it) } }

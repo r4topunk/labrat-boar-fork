@@ -59,9 +59,8 @@ data class UiMessage(
     val stopped: Boolean = false,
     val timedOut: Boolean = false,
     val receipt: Receipt? = null,
-    /** It ended at this token limit, not by itself (shown as a note with a redo at [nextLimit]). */
+    /** It ended at this token limit, not by itself (shown as a note). */
     val cutAt: Int? = null,
-    val nextLimit: Int? = null,
     /** Why it failed (a native.chat.error* key): stays under the answer after the next question and in the saved chat. */
     val error: String? = null,
 )
@@ -302,7 +301,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val settings = services.settings
         val style = settings.personalityId
         val smallModel = (services.answerModel()?.sizeBytes ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
-        return team.sopa.boar.engine.answer.WarmPrefix.forChat(services.personalities, style, settings.customSystemPrompt, smallModel, _state.value.sourcesOwn)
+        return team.sopa.boar.engine.answer.WarmPrefix.forChat(services.personalities, style, null, smallModel, _state.value.sourcesOwn)
     }
 
     /**
@@ -559,16 +558,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         send(q)
     }
 
-    /** Asks [answerId]'s question again with a higher token limit, for this answer only (the setting stays as it is). */
-    fun redoWithLimit(answerId: String, limit: Int) {
-        val messages = _state.value.messages
-        val i = messages.indexOfFirst { it.id == answerId }
-        val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
-        send(q, limit)
-    }
-
-    /** [limit] overrides the answer's token limit (the "Allow more and redo" note); null uses the setting. */
-    fun send(query: String, limit: Int? = null) {
+    fun send(query: String) {
         val q = query.trim()
         if (q.isEmpty() || job?.isActive == true) return
         // The user's model may not fit, or closed the app last time: the note asks first, and the question waits.
@@ -604,16 +594,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     messages = it.messages + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", ""))
             }
             val settings = services.settings
-            // Health and first aid answer in Succinct even when Detailed is picked: a sentence-level audit of 15 Detailed
-            // answers (r4to, Oct 17) found 20 % of claims wrong, 5 of them safety errors ("a first-degree burn is painless").
-            val chosenStyle = settings.personalityId
-            // Health and seed-phrase questions answer short even under Detailed: a padded detail there can hurt (r4to's audits).
-            // A follow-up in such a chat too ("and for how long?" after a burn question).
-            val shortReason = team.sopa.boar.engine.routing.ShortAnswer.reason(chosenStyle, q, prior.lastOrNull { it.role == "user" }?.text)
-            val style = if (shortReason != null) "succinct" else chosenStyle
+            val style = settings.personalityId
             // A small answer model (the 1.5B) gets Detailed without D4's "Always do what the user asks" (r4to, Oct 18).
             val smallModel = (services.answerModel()?.sizeBytes ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
-            val (systemPrompt, styleReminder) = services.personalities.promptFor(style, settings.customSystemPrompt, smallModel)
+            val (systemPrompt, styleReminder) = services.personalities.promptFor(style, null, smallModel)
             val history = ConversationHistory(
                 summary = runCatching { chats.listSessions().firstOrNull { it.id == sessionId }?.summary }.getOrNull(),
                 // Within a token budget: earlier answers cut to their opening sentences (HistoryBudget).
@@ -677,7 +661,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 val session = services.activeSession()
                 qaMark("answer.loaded")
                 // Read after the load: Auto fits the length to the context the model was opened with.
-                val budget = (limit ?: settings.answerTokens(services.host.openedContext)).let {
+                val budget = settings.answerTokens(services.host.openedContext).let {
                     // A thank-you or greeting: Succinct's length in any style. Not the router's 128: a model that thinks first
                     // (LFM2.5) would spend it all on reasoning.
                     if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)) minOf(it, team.sopa.boar.engine.settings.AppSettings.AUTO_MAX_TOKENS) else it
@@ -771,14 +755,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val errorKey = _state.value.error?.takeIf { !stopped }?.let(team.sopa.boar.engine.UserErrors::chatKey)
             val receipt = receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)?.takeIf { !notFound && !healthFixed && !calculated && !exposureComputed }?.let { r ->
                 val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
-                r.copy(style = style, path = path, task = task, checked = checked, styleNote = shortReason?.takeIf { it != team.sopa.boar.engine.routing.ShortAnswer.SMALL_TALK },
+                r.copy(style = style, path = path, task = task, checked = checked,
                     // AnswerNote's line under every answer the model wrote, never under small talk.
                     note = !team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q))
             }
             val cutAt = limited?.takeIf { !stopped && !timedOut && text.isNotBlank() && AnswerLimit.reached(metrics?.generatedTokens ?: tokens, it) }
-            // No "Allow more and redo": the answer length is the Succinct value with no user control, and longer answers measured
-            // more wrong-without-warning, so the cut note stays and the redo offer is gone.
-            val nextLimit: Int? = null
             try {
                 chats.upsertMessage(sessionId, "assistant", text.toString(), answerId)
                 // Always written: it replaces the interrupted mark of the partial saves.
@@ -794,7 +775,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             if (!stopped && text.isNotEmpty()) team.sopa.boar.app.Haptics.finished(getApplication())
             _state.update { s ->
                 s.copy(answeringId = null, answeringModel = null, activity = null, stopping = false,
-                    messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt, cutAt = cutAt, nextLimit = nextLimit, error = errorKey) else it })
+                    messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt, cutAt = cutAt, error = errorKey) else it })
             }
         }
         // However the answer ends (done, stopped, failed, or cancelled before it started), the notification goes with it.
