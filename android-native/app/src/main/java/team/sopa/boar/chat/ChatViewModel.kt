@@ -32,7 +32,6 @@ import team.sopa.boar.engine.answer.HistoryBudget
 import team.sopa.boar.engine.answer.PersonalFiles
 import team.sopa.boar.engine.answer.PipelineInput
 import team.sopa.boar.engine.answer.PlanExecutor
-import team.sopa.boar.engine.answer.ResearchStage
 import team.sopa.boar.engine.answer.SessionEngine
 import team.sopa.boar.engine.answer.Summarize
 import team.sopa.boar.engine.models.AssetKind
@@ -72,8 +71,6 @@ sealed interface Activity {
     data object Retrieving : Activity
     data object Thinking : Activity
     data object Generating : Activity
-    /** Deep Research: stage, sub-question index (1-based) and count. */
-    data class Researching(val stage: ResearchStage, val index: Int?, val count: Int?) : Activity
 }
 
 /** A note over the chat about the answer model and the phone's memory, with what the user can do about it. */
@@ -686,15 +683,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)) minOf(it, team.sopa.boar.engine.settings.AppSettings.AUTO_MAX_TOKENS) else it
                 }
                 limited = budget
-                // Small talk never starts a Deep Research or the router (AnswerPath): "hi" took minutes on a big model.
-                // My files answers through the plain pipeline only: Deep Research's and the router's write-ups have no
-                // files-only prompt or not-found line, so they could answer from memory. A recap of this chat still runs.
-                // Deep Research is not offered (AppSettings.deepResearchMode is always false), so its path is never taken.
-                val way = team.sopa.boar.engine.routing.AnswerPath.of(settings.deepResearchMode, aboutConversation(q, history, conversation),
+                // Small talk never starts a recap or the router (AnswerPath): "hi" took minutes on a big model.
+                // My files answers through the plain pipeline only: the router's write-ups have no files-only prompt
+                // or not-found line, so they could answer from memory. A recap of this chat still runs.
+                val way = team.sopa.boar.engine.routing.AnswerPath.of(aboutConversation(q, history, conversation),
                     settings.adaptiveRoutingEnabled, team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)).let {
                         // A health question too: only the plain pipeline has the health gate (HealthGate).
                         if ((filesOnly || team.sopa.boar.engine.routing.QueryContext.isHealthQuestion(q)) &&
-                            (it == team.sopa.boar.engine.routing.AnswerPath.RESEARCH || it == team.sopa.boar.engine.routing.AnswerPath.ADAPTIVE))
+                            it == team.sopa.boar.engine.routing.AnswerPath.ADAPTIVE)
                             team.sopa.boar.engine.routing.AnswerPath.PIPELINE else it
                     }
                 // The preload's warm prefill holds the model's lock: waited for only when it fills this question's prefix
@@ -705,14 +701,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     // Stop pressed while the model loaded: the load can't be interrupted, the answer can be skipped.
                 } else if (session == null) {
                     _state.update { it.copy(noModel = true, error = team.sopa.boar.engine.UserErrors.NO_MODEL) }
-                } else if (way == team.sopa.boar.engine.routing.AnswerPath.RESEARCH || way == team.sopa.boar.engine.routing.AnswerPath.RECAP) {
-                    val research = way == team.sopa.boar.engine.routing.AnswerPath.RESEARCH
-                    path = if (research) "deep" else "chat"
-                    val r = DeepResearch(SessionEngine(session, settings.engineTweaks.thinkingEnabled), retrieve, settings.engineTweaks::stageTimeoutMs, settings.engineTweaks::writeUpTimeoutMs).run(
+                } else if (way == team.sopa.boar.engine.routing.AnswerPath.RECAP) {
+                    path = "chat"
+                    val r = DeepResearch(SessionEngine(session, settings.engineTweaks.thinkingEnabled), settings.engineTweaks::stageTimeoutMs, settings.engineTweaks::writeUpTimeoutMs).run(
                         q, systemPrompt, history, budget,
-                        onProgress = { p -> _state.update { it.copy(activity = if (research) Activity.Researching(p.stage, p.subQuestionIndex?.plus(1), p.subQuestionCount) else Activity.Thinking) } },
+                        onProgress = { _state.update { it.copy(activity = Activity.Thinking) } },
                         onToken = ::onPiece,
-                        shouldStop = { stopRequested },
                         previousAnswer = lastAnswer?.text?.let(AnswerText::stripThinking),
                         conversation = conversation,
                     )

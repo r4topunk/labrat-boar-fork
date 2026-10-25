@@ -84,7 +84,6 @@ class SettingsDeviceTest {
         for (text in listOf("How BoarLite answers", "Thorough", "Executive Summary", "Deep Research", "Max output tokens", "Custom style"))
             assertFalse("'$text' is offered in Settings", compose.shows(text, substring = true))
         assertEquals("succinct", services.settings.personalityId)
-        assertFalse(services.settings.deepResearchMode)
     }
 
     @Test fun themeAndTextSizeApplyAtOnceAndAreSaved() {

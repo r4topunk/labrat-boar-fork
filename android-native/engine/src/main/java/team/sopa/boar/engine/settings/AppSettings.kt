@@ -107,11 +107,6 @@ class AppSettings(private val file: File) {
         const val AUTO_MAX_TOKENS = 512
         /** Detailed answers ran past 512 tokens and stopped mid-sentence (X6, Oct 11). */
         const val AUTO_MAX_TOKENS_DETAILED = 1024
-        /**
-         * A Deep Research write-up, any style: a Detailed one ran past 1024 tokens and stopped mid-sentence inside its own
-         * conclusion (X6, Oct 14). The largest choice in Settings; the style still sets how long it really is.
-         */
-        const val AUTO_MAX_TOKENS_RESEARCH = 2048
 
         /** Context kept for the prompt (instructions, sources, history) when Auto sizes the answer. */
         const val PROMPT_RESERVE = 1500
@@ -120,7 +115,7 @@ class AppSettings(private val file: File) {
 
         /**
          * Auto length on a small context: a phone with up to 4.5 GB of RAM opens 2048 tokens (contextSizeForRam), where
-         * a 2048-token Deep Research write-up can't fit next to its prompt. Unknown context (no model loaded yet): [cap].
+         * a 2048-token answer can't fit next to its prompt. Unknown context (no model loaded yet): [cap].
          */
         fun fitToContext(cap: Int, openedContext: Int?): Int =
             if (openedContext == null) cap else minOf(cap, maxOf(MIN_AUTO_TOKENS, openedContext - PROMPT_RESERVE))
@@ -130,17 +125,11 @@ class AppSettings(private val file: File) {
          * defaultId): reading it as Detailed gave a fresh install 1024 tokens while it answered
          * in Succinct.
          */
-        fun autoMaxTokens(personalityId: String?, deepResearch: Boolean = false): Int = when {
-            deepResearch -> AUTO_MAX_TOKENS_RESEARCH
+        fun autoMaxTokens(personalityId: String?): Int = when {
             personalityId == "detailed" -> AUTO_MAX_TOKENS_DETAILED
             else -> AUTO_MAX_TOKENS
         }
     }
-    /**
-     * Always off: Deep Research is not offered in this app (r4to, Oct 24: only what surely works ships). The engine's
-     * Deep Research code stays, unreachable from the chat; a stored "deepResearchMode": true is ignored.
-     */
-    val deepResearchMode: Boolean get() = false
     /** The user closed the "Mixture of agents" line under the header (it stays closed). */
     var researchBannerHidden: Boolean get() = bool("researchBannerHidden") ?: false; set(v) = set("researchBannerHidden", JsonPrimitive(v))
     /** The one-time note on the first 👍/👎 (kept on the phone, not used yet) was shown. Not a preference: Reset keeps it. */

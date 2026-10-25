@@ -22,7 +22,6 @@ class AppSettingsTest {
         // Stored "detailed", "maxTokens": 1024 and Deep Research on: the app answers in Succinct at its length anyway.
         assertEquals("succinct", s.personalityId)
         assertEquals(AppSettings.AUTO_MAX_TOKENS, s.maxTokens)
-        assertFalse(s.deepResearchMode)
         assertEquals("moonlight", s.themeId)
         assertEquals("large", s.fontScale)
         assertFalse(s.adaptiveRoutingEnabled)
@@ -79,7 +78,7 @@ class AppSettingsTest {
         assertEquals("succinct", again.personalityId)
         assertEquals(AppSettings.AUTO_MAX_TOKENS, again.maxTokens)
         assertFalse("personalityId" in again.raw() || "maxTokens" in again.raw() || "deepResearchMode" in again.raw())
-        assertFalse(again.deepResearchMode); assertTrue(again.showLiveStats); assertFalse(again.researchBannerHidden)
+        assertTrue(again.showLiveStats); assertFalse(again.researchBannerHidden)
         assertEquals("standard", again.fontScale)
         assertEquals(EngineTweaks(), again.engineTweaks)
     }
@@ -110,9 +109,8 @@ class AppSettingsTest {
     @Test fun `no stored style gets the Succinct cap, not Detailed's`() {
         assertEquals(AppSettings.AUTO_MAX_TOKENS, AppSettings.autoMaxTokens(null))
         assertEquals(AppSettings.AUTO_MAX_TOKENS, AppSettings.autoMaxTokens("succinct"))
-        // The benchmark runner still sizes the other styles and Deep Research through the same function.
+        // The benchmark runner still sizes the other styles through the same function.
         assertEquals(AppSettings.AUTO_MAX_TOKENS_DETAILED, AppSettings.autoMaxTokens("detailed"))
-        assertEquals(AppSettings.AUTO_MAX_TOKENS_RESEARCH, AppSettings.autoMaxTokens("succinct", deepResearch = true))
         val s = AppSettings(file(null))
         assertEquals(512, s.maxTokens)
     }

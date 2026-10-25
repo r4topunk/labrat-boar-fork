@@ -6,27 +6,25 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AnswerPathTest {
-    private fun path(q: String, deep: Boolean, about: Boolean = false, adaptive: Boolean = false) =
-        AnswerPath.of(deep, about, adaptive, ShortAnswer.isSmallTalk(q))
+    private fun path(q: String, about: Boolean = false, adaptive: Boolean = false) =
+        AnswerPath.of(about, adaptive, ShortAnswer.isSmallTalk(q))
 
-    @Test fun `small talk never starts a Deep Research or the router`() {
+    @Test fun `small talk never starts a recap or the router`() {
         for (q in listOf("hi", "oi", "hola", "thanks", "bom dia", "hey, what's up?", "obrigado!", "buenos días")) {
-            assertEquals(q, AnswerPath.PIPELINE, path(q, deep = true))
-            assertEquals(q, AnswerPath.PIPELINE, path(q, deep = false, adaptive = true))
+            assertEquals(q, AnswerPath.PIPELINE, path(q, about = true))
+            assertEquals(q, AnswerPath.PIPELINE, path(q, adaptive = true))
         }
     }
 
     @Test fun `a real question keeps its path, greeting or not`() {
         for (q in listOf("Why is Kyoto historically important?", "hi, can you compare Paris and Rome?", "oi, compare X e Y")) {
-            assertEquals(q, AnswerPath.RESEARCH, path(q, deep = true))
-            assertEquals(q, AnswerPath.ADAPTIVE, path(q, deep = false, adaptive = true))
-            assertEquals(q, AnswerPath.PIPELINE, path(q, deep = false))
+            assertEquals(q, AnswerPath.ADAPTIVE, path(q, adaptive = true))
+            assertEquals(q, AnswerPath.PIPELINE, path(q))
         }
     }
 
     @Test fun `a recap still goes to Deep Research's recap`() {
-        assertEquals(AnswerPath.RECAP, path("Summarize what we talked about so far.", deep = false, about = true, adaptive = true))
-        assertEquals(AnswerPath.RESEARCH, path("Summarize what we talked about so far.", deep = true, about = true))
+        assertEquals(AnswerPath.RECAP, path("Summarize what we talked about so far.", about = true, adaptive = true))
     }
 
     @Test fun `greetings in Portuguese, Spanish, French and German are small talk`() {

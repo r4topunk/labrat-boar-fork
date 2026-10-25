@@ -5,7 +5,6 @@ import team.sopa.boar.engine.EngineTweaks
 import team.sopa.boar.engine.rag.Chunk
 import team.sopa.boar.engine.rag.ConversationHistory
 import team.sopa.boar.engine.rag.Js
-import team.sopa.boar.engine.routing.ResearchContext
 
 /**
  * One instruction-style generation: system + user in the model's chat template, or a plain prompt ending in "Answer:"
@@ -16,23 +15,14 @@ fun interface StageGenerator {
     suspend fun generate(system: String, user: String, nPredict: Int, temperature: Float, timeoutMs: Long?, onToken: ((String) -> Unit)?): GenResult
 }
 
-enum class ResearchStage { DECOMPOSING, RESEARCHING, SYNTHESIZING }
+enum class ResearchStage { SYNTHESIZING }
 
-data class ResearchProgress(
-    val stage: ResearchStage,
-    val subQuestionIndex: Int? = null,
-    val subQuestionCount: Int? = null,
-    val subQuestion: String? = null,
-    val answering: Boolean = false,
-)
+data class ResearchProgress(val stage: ResearchStage)
 
 data class ResearchResult(
     val answer: String,
-    val subQuestions: List<String>,
     /** Global numbered sources: "[n]" in the answer is citations[n - 1]. */
     val citations: List<Chunk>,
-    /** The same sources as retrieved, before compression. */
-    val fullCitations: List<Chunk>,
     /** A stage hit its time limit and was cut off. */
     val timedOut: Boolean = false,
     /** Written from the previous answer alone ("summary", "continue"): its sources are the previous answer's. */
@@ -42,14 +32,12 @@ data class ResearchResult(
 )
 
 /**
- * Deep Research (port of src/services/orchestrator.ts): one model, several passes. Decompose the question into 2–3
- * sub-questions, research each over its own retrieval (compressed, off-topic sources dropped, numbered globally),
- * then synthesize one answer. Same prompts as the TS (golden test with a recording generator).
+ * What is left of Deep Research (port of src/services/orchestrator.ts) in BoarLite: the answers written from the chat
+ * itself, with no search. A recap of the whole conversation, or a summary/conclusion of the last answer. The
+ * sub-question research is not offered, so it is gone.
  */
 class DeepResearch(
     private val generator: StageGenerator,
-    /** retrieve(query, topK) */
-    private val retrieve: (String, Int) -> List<Chunk>,
     /** Time limit for a stage of n tokens (EngineTweaks.stageTimeoutMs, the user's setting); null = none. */
     private val timeoutFor: (Int) -> Long? = EngineTweaks()::stageTimeoutMs,
     /** The final write-up's limit (EngineTweaks.writeUpTimeoutMs: none on Auto, since Stop ends it). */
@@ -62,11 +50,7 @@ class DeepResearch(
         maxTokens: Int,
         onProgress: (ResearchProgress) -> Unit = {},
         onToken: (String) -> Unit = {},
-        shouldStop: () -> Boolean = { false },
-        retrieveK: Int = 6,
         answerLanguage: String? = null,
-        onSources: (List<Chunk>) -> Unit = {},
-        onPartialSources: (List<Chunk>, Int, Int) -> Unit = { _, _, _ -> },
         /** The last answer in full (history keeps only its opening): what a meta follow-up is written from. */
         previousAnswer: String? = null,
         /** Every earlier exchange, oldest first (history keeps only the last few): what a conversation recap is written from. */
@@ -80,52 +64,18 @@ class DeepResearch(
         if (topics.isNotEmpty() && isConversationRecap(query)) {
             onProgress(ResearchProgress(ResearchStage.SYNTHESIZING))
             val answer = recap(query, topics, history?.summary, systemPrompt, maxTokens, onToken, answerLanguage)
-            return ResearchResult(answer, emptyList(), emptyList(), emptyList(), timedOut, metrics = lastMetrics)
+            return ResearchResult(answer, emptyList(), timedOut, metrics = lastMetrics)
         }
-        onProgress(ResearchProgress(ResearchStage.DECOMPOSING))
-        // A follow-up ("conclusion", "continue", "and its side effects?") is split, searched and judged as a standalone
-        // question; split as written it searched for "conclusion" and refused (X6, Oct 13).
-        val meta = isMetaFollowUp(query)
         // A meta follow-up refers to the last answer whatever its wording ("TL;DR" reads as a name to FollowUp's rule).
-        val exchange = if (meta) lastAnswered(query, history) else lastExchange(query, history)
-        val asked = query
-        // "summary", "conclusion", "TL;DR", "continue": the answer is already on screen, so write from it instead of
-        // researching again (~5 min of splitting and searching for a summary, X6, Oct 14).
-        if (exchange != null && meta) {
+        // "summary", "conclusion", "TL;DR": the answer is already on screen, so write from it instead of searching again.
+        val exchange = if (isMetaFollowUp(query)) lastAnswered(query, history) else null
+        if (exchange != null) {
             onProgress(ResearchProgress(ResearchStage.SYNTHESIZING))
             val answer = fromPrevious(query, exchange, previousAnswer, systemPrompt, maxTokens, onToken, answerLanguage)
-            return ResearchResult(answer, emptyList(), emptyList(), emptyList(), timedOut, fromPreviousAnswer = true, metrics = lastMetrics)
+            return ResearchResult(answer, emptyList(), timedOut, fromPreviousAnswer = true, metrics = lastMetrics)
         }
-        @Suppress("NAME_SHADOWING") val query = if (exchange != null) standalone(query, exchange) else query
-        // Stop cancels only the generation running at that moment: the next stage would start a new one.
-        if (shouldStop()) return ResearchResult("", emptyList(), emptyList(), emptyList(), timedOut)
-        val subQuestions = decompose(query)
-        val subResults = ArrayList<Pair<String, String>>()
-        val perQuestion = ArrayList<List<Chunk>>()
-        var all: List<Chunk> = emptyList()
-        val fullById = LinkedHashMap<String, Chunk>()
-        fun full() = all.map { fullById[it.chunkId] ?: it }
-        for ((i, sub) in subQuestions.withIndex()) {
-            if (shouldStop()) return ResearchResult("", subQuestions, all, full(), timedOut)
-            onProgress(ResearchProgress(ResearchStage.RESEARCHING, i, subQuestions.size, sub))
-            val retrieved = retrieve(sub, retrieveK)
-            for (c in retrieved) fullById.putIfAbsent(c.chunkId, c)
-            val compressed = ResearchContext.compressContext(sub, retrieved, tokenBudget = SUB_QUESTION_CONTEXT_TOKENS).chunks
-            // A source off the topic of this sub-question, or of the whole question, is not read, numbered or shown.
-            val chunks = compressed.filter { ResearchContext.onTopic(sub, it) || ResearchContext.onTopic(query, it) }
-            perQuestion += chunks
-            val merged = ResearchContext.mergeSources(perQuestion)
-            val grew = merged.sources.size > all.size
-            all = merged.sources
-            if (grew) onPartialSources(all, i, subQuestions.size)
-            onProgress(ResearchProgress(ResearchStage.RESEARCHING, i, subQuestions.size, sub, answering = true))
-            subResults += sub to researchSubQuestion(sub, chunks, merged.indexMaps[i], systemPrompt, history)
-        }
-        onSources(all)
-        if (shouldStop()) return ResearchResult("", subQuestions, all, full(), timedOut)
-        onProgress(ResearchProgress(ResearchStage.SYNTHESIZING))
-        val answer = synthesize(query, subResults, systemPrompt, maxTokens, onToken, answerLanguage, exchange?.let { it to asked })
-        return ResearchResult(answer, subQuestions, all, full(), timedOut, metrics = lastMetrics)
+        // The chat calls this only for those two (ChatViewModel.aboutConversation): anything else has nothing to write from.
+        return ResearchResult("", emptyList(), timedOut)
     }
 
     private var timedOut = false
@@ -139,15 +89,7 @@ class DeepResearch(
         return r.text
     }
 
-    private suspend fun decompose(query: String): List<String> {
-        val prompt = "Break this research question into 2-3 focused sub-questions that " +
-            "together cover it well (e.g. technical analysis, counter-arguments, " +
-            "practical implications — whichever fit this question). One per line, " +
-            "no numbering, no extra commentary.\n\nQuestion: $query\n\nSub-questions:"
-        return parseSubQuestions(stage("You plan research.", prompt, 150, 0.4f, null), query)
-    }
-
-    /** A meta follow-up written from the previous answer alone: one generation, no splitting, no search. */
+    /** A meta follow-up written from the previous answer alone: one generation, no search. */
     private suspend fun fromPrevious(asked: String, exchange: Exchange, previousAnswer: String?, systemPrompt: String?, maxTokens: Int, onToken: (String) -> Unit, answerLanguage: String?): String {
         val answer = previousAnswer?.let { Js.trim(it) }?.takeIf { it.isNotEmpty() }?.let { if (it.length > FULL_PREVIOUS_ANSWER_CHARS) it.take(FULL_PREVIOUS_ANSWER_CHARS) + "…" else it } ?: exchange.answer
         val system = "${instructionOf(systemPrompt)} The user asks something about your previous answer. Work only from that answer: " +
@@ -176,47 +118,7 @@ class DeepResearch(
         return stage(system, "${earlier}Conversation so far:\n\n$turns\n\nRequest: $asked$language", maxTokens, 0.4f, onToken, writeUpTimeoutFor(maxTokens))
     }
 
-    /** The follow-up rewritten from [exchange] into one question that names its subject; [query] if that fails. */
-    private suspend fun standalone(query: String, exchange: Exchange): String {
-        val prompt = "Previous question: ${exchange.question}\n\nPrevious answer: ${exchange.answer}\n\n" +
-            "Follow-up: $query\n\nRewrite the follow-up as one standalone question that names its subject, in the " +
-            "follow-up's language. If it asks to continue, conclude or expand, ask for that about the previous topic. " +
-            "Reply with the question only.\n\nStandalone question:"
-        val text = stage("You rewrite follow-up questions.", prompt, 80, 0.2f, null)
-        return text.split("\n").map { Js.trim(it.replaceFirst(LIST_MARK, "")).trim('"') }
-            .firstOrNull { it.length > 8 && !REFUSAL.containsMatchIn(it) } ?: query
-    }
-
-    private suspend fun researchSubQuestion(sub: String, chunks: List<Chunk>, globalIndices: List<Int>, systemPrompt: String?, history: ConversationHistory?): String {
-        val summary = history?.summary?.let { Js.trim(it) }?.takeIf { it.isNotEmpty() }?.let { "Summary of earlier conversation:\n$it\n\n" } ?: ""
-        val context = if (chunks.isNotEmpty()) "Context:\n${numberedContext(chunks, globalIndices)}\n\n" else ""
-        val system = "${instructionOf(systemPrompt)} Answer the question in a short paragraph using the context. " +
-            "Cite sources with the exact bracket numbers shown in the context, like [3]. " +
-            "If the context does not cover it, say so."
-        return stage(system, "$summary${context}Question: $sub", 300, 0.6f, null)
-    }
-
-    /** [followUp]: the last exchange and the follow-up as the user wrote it, when [query] was rewritten from them. */
-    private suspend fun synthesize(query: String, results: List<Pair<String, String>>, systemPrompt: String?, maxTokens: Int, onToken: (String) -> Unit, answerLanguage: String?, followUp: Pair<Exchange, String>? = null): String {
-        val perspectives = results.mapIndexed { i, (q, a) -> "Perspective ${i + 1} ($q):\n$a" }.joinToString("\n\n")
-        val system = "${instructionOf(systemPrompt)} You are synthesizing multiple research perspectives into one answer. " +
-            "Compare them, reconcile any conflicts, and write one unified, well-reasoned answer. " +
-            "Keep the source numbers exactly as the perspectives cite them, like [3]; do not renumber or invent sources." +
-            // A Detailed write-up ended with "Synthesis of Perspectives: Perspective 1… 2… 3…" (X6, Oct 14); the TS prompt
-            // stops at the sentence above, so the golden recordings carry this one added.
-            " Do this silently: the reader never sees the perspectives, so never mention them, the sub-questions or the research steps, and add no section about them." +
-            // The write-up is the answer the user reads: it gets BOAR's identity as a normal answer does, whatever the style.
-            " " + team.sopa.boar.engine.rag.RagPure.GROUNDING_INSTRUCTION
-        val language = answerLanguage?.let { Js.trim(it) }?.takeIf { it.isNotEmpty() }?.let { "\n\n($it)" } ?: ""
-        val earlier = followUp?.let { (e, asked) -> "Previous question: ${e.question}\n\nPrevious answer: ${e.answer}\n\nFollow-up as asked: $asked\n\n" } ?: ""
-        return stage(system, "${earlier}Original question: $query\n\n$perspectives$language", maxTokens, 0.6f, onToken, writeUpTimeoutFor(maxTokens))
-    }
-
     companion object {
-        /** Per-sub-question context budget: three of these plus the synthesis still prefill fast. */
-        const val SUB_QUESTION_CONTEXT_TOKENS = 600
-        private val LIST_MARK = Regex("^[-*\\d.)${Js.WS.removePrefix("[").removeSuffix("]")}]+")
-
         /** The earlier question and the answer to it, for a follow-up. */
         data class Exchange(val question: String, val answer: String)
 
@@ -305,23 +207,6 @@ class DeepResearch(
                 (RECAP_ASK.containsMatchIn(query) && RECAP_OBJECT.containsMatchIn(query) ||
                     isWriteUpAsk(query) && CHAT_REFERENCE.containsMatchIn(query))
 
-        /** A model declining instead of answering ("I'm sorry, but…", "Desculpe, não posso…"). */
-        private val REFUSAL = Regex(
-            "^(i'?m sorry|i am sorry|sorry|i (cannot|can't|can ?not|am unable|'m unable|don't have|do not have)|as an ai|" +
-                "unfortunately|desculp|lamento|infelizmente|não (posso|consigo|tenho)|nao (posso|consigo|tenho))",
-            RegexOption.IGNORE_CASE,
-        )
-
-        /**
-         * The last exchange before [query] when [query] reads as a follow-up (FollowUp.plan: it points back, or it is short
-         * with no name of its own); null for a question that stands alone or a conversation's first.
-         */
-        fun lastExchange(query: String, history: ConversationHistory?): Exchange? {
-            val p = FollowUp.plan(query, history)
-            if (p.direct == null && p.fallback == null) return null
-            return lastAnswered(query, history)
-        }
-
         /** The latest question in [history] that got an answer, and that answer (cut to [PREVIOUS_ANSWER_CHARS]). */
         fun lastAnswered(@Suppress("UNUSED_PARAMETER") query: String, history: ConversationHistory?): Exchange? {
             val turns = history?.turns.orEmpty()
@@ -336,16 +221,6 @@ class DeepResearch(
             val answer = answerAfter(i)
             return Exchange(Js.trim(turns[i].text), if (answer.length > PREVIOUS_ANSWER_CHARS) answer.take(PREVIOUS_ANSWER_CHARS) + "…" else answer)
         }
-
-        /** The decomposition's lines as sub-questions (at most 3), refusals dropped; the question itself when none is usable. */
-        fun parseSubQuestions(text: String, query: String): List<String> {
-            val lines = text.split("\n").map { Js.trim(it.replaceFirst(LIST_MARK, "")) }.filter { it.length > 8 && !REFUSAL.containsMatchIn(it) }
-            return lines.take(3).ifEmpty { listOf(query) }
-        }
-
-        /** Context block numbered with global source numbers. */
-        fun numberedContext(chunks: List<Chunk>, globalIndices: List<Int>): String =
-            chunks.mapIndexed { i, c -> "[${globalIndices[i] + 1}] ${c.title}\n${c.body}" }.joinToString("\n\n")
 
         private fun instructionOf(systemPrompt: String?): String =
             systemPrompt?.let { Js.trim(it) }?.takeIf { it.isNotEmpty() } ?: "You are an offline research assistant."

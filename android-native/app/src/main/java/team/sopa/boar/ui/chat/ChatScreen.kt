@@ -122,7 +122,6 @@ import team.sopa.boar.chat.UiMessage
 import team.sopa.boar.engine.UserErrors
 import team.sopa.boar.engine.answer.AnswerText
 import team.sopa.boar.engine.answer.AnswerNote
-import team.sopa.boar.engine.answer.ResearchStage
 import team.sopa.boar.ui.I18n
 import team.sopa.boar.ui.icons.BoarIcons
 import team.sopa.boar.ui.t
@@ -429,11 +428,6 @@ private fun activityLabel(a: Activity?): String = when (a) {
     Activity.Retrieving -> t("processingIndicator.retrieving")
     Activity.Thinking -> t("processingIndicator.thinking")
     Activity.Generating -> t("processingIndicator.generating")
-    is Activity.Researching -> when (a.stage) {
-        ResearchStage.DECOMPOSING -> t("chatScreen.research.decomposing")
-        ResearchStage.RESEARCHING -> t("chatScreen.research.researching", "index" to (a.index ?: 1), "count" to (a.count ?: 1))
-        ResearchStage.SYNTHESIZING -> t("chatScreen.research.synthesizing")
-    }
     null -> ""
 }
 
@@ -457,10 +451,9 @@ private fun Bubble(
     val user = m.role == "user"
     var reasoningShown by remember { mutableStateOf(false) }
     val clipboard = LocalClipboardManager.current
-    val researched = !user && m.receipt?.path == "deep"
     // The question: a tonal bubble at the end (surfaceContainerHigh, the corner at its speaker squared a little), up to
     // 85 % of the width; held, it goes back to the input. The answer: no bubble, the text straight on the surface at
-    // the full readable width, under a small byline (the boar, or Deep Research in its tertiary color).
+    // the full readable width, under a small byline (the boar).
     if (user) {
         BoxWithConstraints(modifier.fillMaxWidth()) {
             Text(m.text, style = type.bodyLarge, color = scheme.onSurface,
@@ -475,9 +468,8 @@ private fun Bubble(
     Box(modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(Modifier.padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // The label alone, no mark (r4to 2026-10-24); Deep Research tells itself apart by its name and color.
-                Text(if (researched) t("native.chat.roleDeepResearch") else t("chatScreen.roleAssistant"), style = type.labelLarge,
-                    color = if (researched) scheme.tertiary else scheme.onSurfaceVariant)
+                // The label alone, no mark (r4to 2026-10-24).
+                Text(t("chatScreen.roleAssistant"), style = type.labelLarge, color = scheme.onSurfaceVariant)
             }
             val split = AnswerText.splitThinking(m.text)
             // Sources are attached when the reply finishes, so invented citations are cleaned only then.
@@ -586,12 +578,11 @@ private fun ReceiptDetails(r: Receipt) {
 private fun receiptRows(r: Receipt): List<Pair<String, String>> {
     val ctx = LocalContext.current
     fun count(tokens: Int) = I18n.t(ctx, "chat.receipt.tokenCount", "tokens" to "$tokens", "words" to "${ReceiptFormat.words(tokens.toDouble())}")
-    // Mode first: the answer style, then how it was written (Deep Research, from this chat, adaptive routing and its plan).
+    // Mode first: the answer style, then how it was written (from this chat, adaptive routing and its plan).
     val mode = r.style?.let { style ->
         listOfNotNull(
             t("native.receipt.style.$style").takeUnless { it == "native.receipt.style.$style" } ?: style,  // an unknown style shows its id
             when (r.path) {
-                "deep" -> t("native.receipt.path.deep")
                 "chat" -> t("native.receipt.path.chat")
                 "adaptive" -> listOfNotNull(t("native.receipt.path.adaptive"), r.task, if (r.checked) t("native.receipt.checked") else null).joinToString(" · ")
                 else -> null
