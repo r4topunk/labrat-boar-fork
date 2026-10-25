@@ -47,7 +47,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
@@ -207,8 +206,7 @@ fun ChatScreen(
             // Header and bubbles take only what they show: [state] is a new object on every streamed token, so passing it
             // whole re-ran the app bar and every earlier answer (its Markdown included) per token.
             FixedSizeChrome {
-                Header(state.messages.isNotEmpty(), state.answeringModel?.takeIf { state.answeringId != null }, state.modelLabel,
-                    state.technicalDetails, state.liveTokPerSec.takeIf { state.activity == Activity.Generating && state.technicalDetails }, onMenu, onNewChat, barScroll)
+                Header(state.liveTokPerSec.takeIf { state.activity == Activity.Generating && state.technicalDetails }, onMenu, onNewChat, barScroll)
             }
             state.loadingKey?.let { LoadingBanner(t(it)) } ?: run { if (state.modelLoading) LoadingBanner(t("clean.chat.loadingModel")) }
             state.loadNote?.let { LoadNoteBanner(it, onDismissLoadNote, onRetryLessMemory, onLoadAnyway) }
@@ -255,14 +253,13 @@ private fun modelName(raw: String, technical: Boolean): String {
 }
 
 /**
- * ChatHeader.tsx as a small TopAppBar: menu, mascot with the name and the model, the constant "Works offline" chip
- * (it opens what working offline means) and New chat.
+ * A small TopAppBar: menu, the name alone and New chat (r4to 2026-10-24: no mark and no "Works offline · model" line,
+ * which also cut off with Large text). Tapping the name still opens what working offline means.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Header(
-    hasMessages: Boolean, routed: String?, picked: String?, technicalDetails: Boolean, tps: Double?,
-    onMenu: () -> Unit, onNewChat: () -> Unit, scrollBehavior: TopAppBarScrollBehavior,
+    tps: Double?, onMenu: () -> Unit, onNewChat: () -> Unit, scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val scheme = MaterialTheme.colorScheme
     var info by remember { mutableStateOf(false) }
@@ -272,40 +269,13 @@ private fun Header(
         title = { Text(t("chatHeader.offlineTitle")) },
         text = { Text(t("chatHeader.offlineBody")) },
     )
-    // While adaptive routing has another model write the answer ([routed]): "→ that model", then back to the pick.
-    val subtitle = when {
-        routed != null -> "→ " + modelName(routed, technicalDetails)
-        picked != null -> modelName(picked, technicalDetails)
-        else -> t("chatHeader.localLlmCore")
-    }
     Column {
         TopAppBar(
             title = {
-                // One tappable identity block: the mascot, the name, and one quiet line with the on-device claim and the
-                // model. Tapping it opens what working offline means (it was a separate chip that crowded the bar).
-                Row(
-                    Modifier.clip(MaterialTheme.shapes.medium).clickable(onClickLabel = t("chatHeader.offlineTitle"), role = Role.Button) { info = true }
-                        .padding(end = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    // The empty chat already shows the boar large in the middle: one brand mark per screen. With the first
-                    // message the mark slides in (width and fade), so the title moves smoothly instead of jumping, and the
-                    // empty chat has no blank gap before the title.
-                    androidx.compose.animation.AnimatedVisibility(hasMessages,
-                        enter = androidx.compose.animation.expandHorizontally() + androidx.compose.animation.fadeIn(),
-                        exit = androidx.compose.animation.shrinkHorizontally() + androidx.compose.animation.fadeOut()) {
-                        Image(painterResource(R.drawable.mascot), null, Modifier.size(IconSize.Standard), contentScale = ContentScale.Fit)
-                    }
-                    Column {
-                        Text("BoarLite", style = MaterialTheme.typography.titleMedium, maxLines = 1)
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = scheme.primary,
-                                modifier = Modifier.size(IconSize.Status).onTextLine(MaterialTheme.typography.labelMedium))
-                            Text(t("clean.chat.worksOffline") + " · " + subtitle, style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant,
-                                maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                    }
-                }
+                Text("BoarLite", style = MaterialTheme.typography.titleMedium, maxLines = 1,
+                    modifier = Modifier.clip(MaterialTheme.shapes.medium)
+                        .clickable(onClickLabel = t("chatHeader.offlineTitle"), role = Role.Button) { info = true }
+                        .padding(horizontal = 4.dp, vertical = 6.dp))
             },
             navigationIcon = {
                 IconButton(onMenu) { Icon(Icons.Filled.Menu, contentDescription = t("chatHeader.openDrawer")) }
