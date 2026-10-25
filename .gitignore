@@ -1,13 +1,7 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# dependencies
-node_modules/
-
-# Expo
-.expo/
+# build output (scripts/offline-proof.sh writes dist/offline-proof)
 dist/
-web-build/
-expo-env.d.ts
 
 # Native
 .kotlin/
@@ -18,43 +12,12 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
 # macOS
 .DS_Store
 *.pem
 
-# local env files (copy .env.example to .env)
-.env
-.env*.local
-
 # MCP servers point at our own projects; each developer adds theirs
 .mcp.json
 
-# typescript
-*.tsbuildinfo
-
-# generated native folders
-/ios
-/android
-modules/*/android/build/
-modules/*/android/.cxx/
-
-# model weights and generated indexes (fetched via scripts/setup-models.sh)
-assets/models/
+# model weights
 *.gguf
-
-# device evaluation results (npm run eval:device)
-eval-results/
-
-# knowledge pack builds (scripts/build-knowledge-pack.mjs)
-build/knowledge-pack/
-
-# Raw demo recording (31 MB); the compressed copy is docs/demo/boar_demo_small.mp4
-docs/demo/boar_demo.mp4

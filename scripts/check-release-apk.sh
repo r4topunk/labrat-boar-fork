@@ -18,7 +18,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Signer certificate SHA-256 of BoarLite's upload key (apksigner verify --print-certs on a release build).
 RELEASE_SIGNER=f777722b39c5f29f8a0bfc4ef3e8746374015a5fd925c8f75eeece88d9db57e9
 want_package=team.sopa.boar.lite
-# BoarLite is a native app: its version code lives in the Gradle build, not in the Expo app.json.
+# BoarLite is a native app: its version code lives in the Gradle build, not in an app config file.
 want_code=$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$ROOT/android-native/app/build.gradle.kts" | head -1)
 [[ -n "$want_code" ]] || { echo "android-native/app/build.gradle.kts has no versionCode" >&2; exit 2; }
 

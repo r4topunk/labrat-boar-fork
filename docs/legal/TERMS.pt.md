@@ -32,7 +32,7 @@ O app baixa e usa conteúdo de terceiros, que mantém a própria licença:
 
 - **Modelos de IA**, cada um sob a licença de quem o criou (por exemplo, Apache 2.0 para o Qwen, MIT
   para o Phi, a LFM Open License, os termos do Gemma). O BOAR mostra a licença de cada modelo em
-  Ajustes → Sobre e em [docs/MODELS.md](../MODELS.md). Usar um modelo significa aceitar a licença dele.
+  Ajustes → Sobre. Usar um modelo significa aceitar a licença dele.
 - **Pacotes de conhecimento:** conteúdo da Wikipédia e do Wikivoyage sob CC BY-SA 4.0, e outras fontes
   conforme os créditos no app.
 - **Lugares:** dados do OpenStreetMap, © colaboradores do OpenStreetMap, sob a Open Database License

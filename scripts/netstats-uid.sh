@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# Prints the network traffic Android's kernel has counted for one app (docs/OFFLINE_PROOF.md, "On a phone").
+# Prints the network traffic Android's kernel has counted for one app.
 # Reads `dumpsys netstats detail`: the per-UID BPF counters since boot (mAppUidStatsMap) and the recorded
 # per-UID history (UID stats). Exit 0 when both are empty for the app, 1 when it has traffic, 2 when it
 # can't tell (a section missing from this Android's dump, or more than one uid for the package).
 #
-#   scripts/netstats-uid.sh team.sopa.aoair.offline     # expect: 0 bytes, exit 0
-#   scripts/netstats-uid.sh team.sopa.aoair              # the downloader app: its downloads show up here
+#   scripts/netstats-uid.sh team.sopa.boar.lite     # expect: 0 bytes, exit 0
 #
 # ADB=/path/to/adb and ANDROID_SERIAL=<serial> are honoured. Needs USB debugging, not root.
 set -euo pipefail

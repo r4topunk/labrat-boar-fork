@@ -7,131 +7,78 @@ constraints this design targets:
 
 - ≤ 12GB peak RAM during inference
 - ≤ 50GB total on-disk (app + weights + indexes)
-- Small, fast-to-build/install app; a mandatory one-time setup step downloads
-  the default models on first launch (the app's only required network use).
-  From then on it works completely offline — matching "work completely
-  offline once installed" (installed = app + one-time model setup done).
+- Works completely offline: the app has no network permission, and a one-time
+  first-launch step installs the bundled models and packs (installed = app +
+  that setup done).
 - No Google Play Services dependency (runs on GrapheneOS)
 - Real Android device, not just emulator
 
 ## Stack
 
-- **App shell**: Expo (React Native) + `expo-dev-client` (custom dev build, not Expo Go —
-  we need native modules Expo Go can't load).
-- **Inference engine**: [`llama.rn`](https://github.com/mybigday/llama.rn) — React Native
-  bindings to llama.cpp, supports GGUF, mmap weight streaming, Android NDK build, no GMS.
-- **Default model**: Qwen2.5-1.5B-Instruct (Apache-2.0, 1.5B, Q4_K_M, ~0.99GB), the
-  routing layer's `fast` role (`src/routing/`). Downloaded once on first launch with
-  the embedding model (see "First-run model setup" below), about 1 GB total, so setup
-  takes minutes. Suggested models in the same in-app catalog, all tested on a real
-  phone: Phi-3.5-mini-instruct (MIT, 3.8B), Qwen2.5-7B-Instruct, LFM2.5-8B-A1B
-  (mixture of experts, ~1.5B active) and Gemma 4 E4B (see `docs/MODELS.md`).
-- **Retrieval**: `expo-sqlite` with FTS5 for lexical search over a local offline knowledge
-  base, plus bge-small-en-v1.5 (MIT, 33M) for a local vector index (brute-force cosine) —
-  hybrid BM25 + vector RAG, fully local at query time.
-- **Storage**: model weights + FTS5 DB + vector index all live in
-  `FileSystem.documentDirectory`, verified via checksum/size against a manifest.
+- **App shell**: native Android, Kotlin + Jetpack Compose (module `android-native/app`).
+- **Inference engine**: [llama.cpp](https://github.com/ggml-org/llama.cpp) (a git submodule) called
+  through JNI from `android-native/engine` (`BoarNative.kt`). GGUF, mmap weight streaming, Android NDK
+  build, no GMS.
+- **Default model**: Qwen3 1.7B (Q4_K_M), the only answer model. It ships in the data bundle, together
+  with the embedding model, so there is no model picker.
+- **Retrieval**: SQLite (FTS5) for lexical search over the local knowledge packs, plus bge-small-en-v1.5
+  (MIT, 33M) for a local vector index (brute-force cosine): hybrid BM25 + vector RAG, fully local at
+  query time.
+- **Storage**: model weights, packs and the search index live in the app's files folder, verified by
+  sha256 against `catalog.json`.
 
-## First-run model setup
+## First-run data setup
 
-The app itself stays small and fast to build (no multi-GB assets baked into the
-APK), and gets its default models the first time it's opened:
+BoarLite is a closed app (the manifest removes the `INTERNET` permission), so nothing is downloaded. Its
+models, knowledge packs and search index come in a data bundle (about 3.0 GB) that the build adds to the
+APK (`-Pboar.bundleDir`, see `android-native/docs/BUILDING-RELEASE.md`):
 
-1. `App.tsx` checks `ModelManager.requiredModelsPresent()` on launch. If the
-   default LLM + embedding model aren't on disk yet, it shows
-   `ModelSetupScreen` in `mode="required"` instead of the chat UI.
-2. That screen auto-starts downloading both `required: true` catalog entries
-   (`src/models/manifest.ts`) via `ModelManager.downloadCatalogModel`, with a
-   progress bar per model, and verifies each download's size against the
-   catalog before accepting it.
-3. Once both are present, "Continue" unlocks and the app moves to the normal
-   chat UI. From this point on, no further network access is needed —
-   verified: turning off networking (airplane mode) doesn't affect chat,
-   retrieval, or generation, all of which are pure on-device code paths.
-4. The same screen, in `mode="optional"` (reached later via the chat screen's
-   "Models" button), lets the user browse/download additional/alternate
-   models, or remove ones they no longer want — still opt-in, still the only
-   network call site in the app.
+1. On launch the app checks whether its data is installed. If not, it shows the "Unpacking BoarLite"
+   screen (or "BoarLite needs its data" when the APK carries no bundle) instead of the chat UI.
+2. The installer copies each bundle file into the app's files folder and checks it against its sha256 in
+   `catalog.json`. If the copy stops, it resumes at the file it stopped in.
+3. Once the data is installed the app moves to the normal chat UI. Chat, retrieval and generation are pure
+   on-device code paths, so airplane mode changes nothing.
 
-**Alternate build path (not used by default):** `modules/bundled-assets` +
-`plugins/withBundledModels.js` can bake the default models directly into the
-APK at build time instead (verified working via an actual `expo prebuild`
-run — see git history), for a build that needs zero network ever, at the
-cost of a much larger APK and slower builds/uploads. Re-add
-`"./plugins/withBundledModels"` to `app.json`'s `plugins` array to use it.
+An APK without a bundle (development builds) reads the same bundle from the app's external files folder
+after an `adb push`.
 
 ## Directory layout
 
 ```
-boar-app/
-  App.tsx                  # checks required models -> setup screen or chat
-  src/
-    inference/              # llama.rn wrapper, streaming token bridge
-    rag/                    # FTS5 setup, embedding, retrieval + prompt assembly
-    models/                 # model catalog, checksum/size verify, download
-    ui/                     # chat UI, model setup/catalog UI, system monitor bar
-  modules/
-    ram-monitor/             # native module: real process RSS via /proc/self/status
-    bundled-assets/           # native module: copy APK-bundled models to disk (alt path)
-  plugins/
-    withBundledModels.js      # config plugin for the alternate bundled-build path
-  android/                   # generated by `expo prebuild` (gitignored, regenerable)
+boar-lite/
+  android-native/
+    app/                      # Compose UI, setup/installer, eval hooks (BenchActivity, DeviceEvalRunner)
+    engine/                   # answer pipeline, retrieval, llama.cpp JNI, unit tests with golden data
+    scripts/stage-bundle.sh   # stages the data bundle for a release build
+    docs/BUILDING-RELEASE.md  # release build, signing, adb-push install
   assets/
-    models/                   # (gitignored) verified GGUF files, populated by setup-models.sh
-    corpus/corpus.json         # bundled Wikipedia-derived bootstrap knowledge base
-  docs/
-    MODELS.md                 # documented model/dataset/index choices
-    EVAL_QUERIES.md             # example queries for the bounty demo
+    brand/                    # logo sources for the launcher icon and mascot
+    corpus/                   # bundled Wikipedia-derived corpora (copied into the APK at build time)
+    lexicon/                  # name lexicon (copied into the APK at build time)
   scripts/
-    setup-models.sh            # dev-machine: fetches + verifies model weights
-    build-corpus.mjs            # dev-machine: builds the bundled knowledge base
-  eas.json / .easignore         # EAS Build config (cloud builds w/o local Android SDK)
+    audit-apk.py              # network-surface audit of an APK
+    check-release-apk.sh      # package, versionCode, signer, no INTERNET permission
+    offline-proof.sh          # runs the audit and writes a report
+    netstats-uid.sh           # on-device traffic counters for one app
 ```
 
 ## Non-negotiables enforced in code
 
-1. No Firebase / GMS / Play Services libraries in `android/app/build.gradle`.
-2. The **only** network call site in `src/` is `ModelManager.downloadCatalogModel`,
-   invoked exclusively from `ModelSetupScreen` (both its required first-run mode and
-   its optional later mode) — chat, inference, and retrieval are fully local code
-   paths with no `fetch`/network calls anywhere in them.
+1. No Firebase / GMS / Play Services libraries in `android-native/app/build.gradle.kts`.
+2. No network call site in android-native: the manifest removes `INTERNET`, and `scripts/check-release-apk.sh`
+   fails a release APK that has it.
 3. A visible system-monitor bar (RAM + storage) so the RAM/storage caps are auditable live
    on-device, not just claimed.
 
 ## Status
 
-- [x] Expo TS scaffold, `expo-dev-client`, `expo-sqlite`, `expo-file-system`, `llama.rn` installed
-- [x] ModelManager (download + checksum/size verification; optional bundled-install path)
+- [x] Native Kotlin + Compose app with a llama.cpp JNI engine (`:app`, `:engine`)
+- [x] First-run installer for the bundled data (sha256-verified, resumable)
 - [x] FTS5 schema + hybrid (lexical+semantic) retrieval + prompt assembly
-- [x] LlamaEngine/EmbeddingEngine wrappers over `llama.rn`, release previous
-      context before loading a new one (no native memory leak on model switch)
-- [x] Mandatory first-run setup wizard (tier picker + downloads) + optional
-      Settings screen (model catalog, active-model switch, corpus packs,
-      storage/RAM monitor) — `ModelSetupScreen`, the app's only network call site
-- [x] Chat UI: streaming tokens, citations, prompt-ideas onboarding carousel,
-      offline voice input button
-- [x] **Verified end-to-end on real Android hardware** (Xiaomi/Redmi,
-      Snapdragon/Adreno): `expo prebuild` + `expo run:android` actually compile
-      and install; first-run wizard downloads models on-device; app runs
-- [x] Primary (MIT) + secondary (Apache-2.0, `fast` routing role) + embedding
-      models required at first-run setup, + one further optional Apache-2.0
-      LLM alternative (Qwen2.5-7B-Instruct), all sha256-verified, GGUF
-      headers validated
-- [x] Three setup tiers (Minimum/Standard/Full) with downloadable corpus packs
-      (300/1,300/5,300 topics), hosted via `raw.githubusercontent.com` off this
-      public repo, sha256-verified like every other catalog asset
-- [x] Native modules: `ram-monitor` (real process RSS), `bundled-assets` +
-      `withBundledModels` (alternate fully-bundled build path, not default),
-      `voice-input` (offline `SpeechRecognizer` wrapper) — all confirmed
-      discovered by Expo's Android autolinking, all built successfully in a
-      real `expo run:android` compile
-- [x] EAS Build configured (`eas.json`) and project linked (`boar-app`, previously
-      `ao-air` before the rebrand — may need re-linking on expo.dev if cloud builds
-      complain about a slug mismatch) for cloud builds without a local Android SDK
-- [x] Public GitHub repo: https://github.com/rferrari/boar-app
-- [x] Unit tests (vitest, 22 tests) for pure retrieval/manifest/tier logic + CI
-- [x] `Makefile` with `setup`/`start`/`run-android`/`build-eas`/`test`/`clean`
-      shortcuts for the commands above
+- [x] Chat UI: streaming tokens, sources, free follow-ups, onboarding card tour
+- [x] Device QA on real Android hardware through the `BenchActivity` eval hook
+- [x] Engine unit tests with golden data (`./gradlew :engine:testDebugUnitTest`) + CI
 - [ ] Benchmark chosen models on real hardware (tokens/sec, RSS) — not yet measured
 - [ ] whisper.cpp binding for voice input on devices with no system speech
       service (GrapheneOS) — documented as future work, not attempted

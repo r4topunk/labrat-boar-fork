@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Audits an APK's network surface with scripts/audit-apk.py and writes a report anyone can reproduce
-# (docs/OFFLINE_PROOF.md). Exit 1 unless:
+# Audits an APK's network surface with scripts/audit-apk.py and writes a report anyone can reproduce.
+# Exit 1 unless:
 # - the offline variant is NO-NETWORK-BY-CONSTRUCTION (no INTERNET permission, no Play Services or
 #   tracker classes); the downloader variant only gets the report, since it needs the network by design,
 # - with RELEASE=1, the APK is signed with the release key (check-release-apk.sh's RELEASE_SIGNER).
@@ -8,7 +8,6 @@
 #   scripts/offline-proof.sh dist/boar-offline-1.1.0-arm64.apk
 #   RELEASE=1 scripts/offline-proof.sh boar-offline-v1.1.0-arm64.apk
 #   RELEASE_VARIANT=downloader scripts/offline-proof.sh boar-v1.1.0-arm64.apk
-#   make offline-proof APK=path.apk [RELEASE_VARIANT=downloader] [RELEASE=1]
 #
 # Reports go to dist/offline-proof/<apk>.md and .json (OUT= to change). Needs python3 and the Android
 # SDK build-tools (aapt2); no Java.

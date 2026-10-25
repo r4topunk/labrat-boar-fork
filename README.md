@@ -55,7 +55,7 @@ a phone can get. What we believe: [MANIFESTO.md](MANIFESTO.md).
 </tr>
 </table>
 
-**Android first.** `main` is the Android app: an APK you install yourself, with no Play Store or Google account needed. Search, packs, models, measurements and sharing are one shared engine; on top of it sits an app built for mid-range phones, in the Campfire and Moonlight themes (`src/ui-android`). The iPhone app is built from the same engine on the [`ios`](https://github.com/rferrari/boar-app/tree/ios) branch.
+**Android first.** `main` is the Android app: an APK you install yourself, with no Play Store or Google account needed. Search, packs, models, measurements and sharing are one shared engine; on top of it sits an app built for mid-range phones, in the Campfire and Moonlight themes. The iPhone app is built from the same engine on the [`ios`](https://github.com/rferrari/boar-app/tree/ios) branch.
 
 ## Online once, offline from then on
 
@@ -76,18 +76,18 @@ Routing picks **how deep** to answer, never which model writes a normal answer:
 an **instant** source sentence (no LLM, under 1 s), a **fast** answer from your
 model over compressed sources, or a **deep** answer from a large MoE or several
 passes ("Go deeper"), checked by a second model. Retrieval is local and hybrid: SQLite FTS5
-keyword search plus on-device embeddings. Inference is `llama.cpp` via `llama.rn`.
+keyword search plus on-device embeddings. Inference is `llama.cpp` through JNI.
 Every answer records the model, load time, time to first token, tokens/sec,
-memory and what it retrieved. Details: [docs/ADAPTIVE_ROUTING.md](docs/ADAPTIVE_ROUTING.md).
+memory and what it retrieved.
 
 ## What it can cite
 
 <img src="docs/readme/knowledge.png" alt="Built-in Wikipedia, topic packs, OpenStreetMap places packs and your own files feed one local hybrid index" />
 
 - **Built in:** Wikipedia articles, plus the Standard (+1,000 topics) and Full (+4,000) libraries. The Encyclopedia setup adds 50,000 Wikipedia Vital Articles.
-- **Knowledge packs:** pre-indexed files such as Wikipedia Vital Articles, Emergency & preparedness, Ethereum & cryptography ([KNOWLEDGE_PACKS](docs/KNOWLEDGE_PACKS.md)).
-- **Places packs (in the iPhone app on [`ios`](https://github.com/rferrari/boar-app/tree/ios) for now):** OpenStreetMap restaurants and cafés with diet tags and hours, plus Wikivoyage listings. Download a city in setup or in Knowledge (Berlin is 3.3 MB for 15,278 places) ([POI_PACKS](docs/POI_PACKS.md)).
-- **Your files:** `.txt`, `.md`, `.csv`, `.json`, `.pdf` (selectable text, no OCR), chunked and embedded on the phone. Toggle, delete, or export a collection as a JSON pack to share over Bluetooth or Nearby Share ([USING](docs/USING.md)).
+- **Knowledge packs:** pre-indexed files such as Wikipedia Vital Articles, Emergency & preparedness, Ethereum & cryptography.
+- **Places packs (in the iPhone app on [`ios`](https://github.com/rferrari/boar-app/tree/ios) for now):** OpenStreetMap restaurants and cafés with diet tags and hours, plus Wikivoyage listings. Download a city in setup or in Knowledge (Berlin is 3.3 MB for 15,278 places).
+- **Your files:** `.txt`, `.md`, `.csv`, `.json`, `.pdf` (selectable text, no OCR), chunked and embedded on the phone. Toggle, delete, or export a collection as a JSON pack to share over Bluetooth or Nearby Share.
 
 ## Measured on a real phone
 
@@ -108,17 +108,12 @@ Later runs, with the phone kept cool and the model kept loaded: Qwen2.5-1.5B at 
 - Its weak spot: it reasons before answering, and with a 512-token budget 4 of 17 answers ran out before the final answer.
 - Not every MoE loads yet: Instella-MoE-16B-A3B fails on this llama.cpp build, and the evaluation records that instead of skipping it.
 
-Repeat or extend the runs on your own phone with one command:
-[docs/DEVICE_EVALUATION.md](docs/DEVICE_EVALUATION.md). Raw files:
-[docs/evidence](docs/evidence/).
-
 ## Bounty requirements
 
 <img src="docs/readme/limits.png" alt="Peak RAM at most 12 GB, disk at most 50 GB, offline after setup, no Google Play Services, real device" />
 
 Built for the [poidh bounty #31](https://poidh.xyz/mainnet/bounty/31), "Best Offline
-AI Research App". Status of each requirement, with the benchmark files:
-[docs/COMPLIANCE.md](docs/COMPLIANCE.md). Submission wallet:
+AI Research App". Submission wallet:
 `0x32d1C8A4d133241a710d780f1198992A015Ea5Ed`.
 
 ## Get it
@@ -150,14 +145,7 @@ adb install boar-v1.0.0-arm64.apk           # or open the file on the phone
 The v1.0.0 APK (Sep 26) downloads Qwen2.5-1.5B (about 1 GB) on first launch.
 Builds from `main` let you pick the model in setup: Qwen3-4B (about 2.5 GB) is recommended on 12 GB phones and Qwen2.5-1.5B (about 1 GB) on smaller ones. They also have the Campfire and Moonlight look.
 
-**Guided setup:** the wizard downloads and installs the APK over USB, builds from
-source (cloud via EAS, no Android SDK needed, or local), starts a live-reload dev
-build, or builds a bigger knowledge pack.
-
-```bash
-git clone https://github.com/rferrari/boar-app.git && cd boar-app
-make setup    # or: node scripts/setup.mjs · `make help` lists the single steps
-```
+**Build from source:** see [android-native/docs/BUILDING-RELEASE.md](android-native/docs/BUILDING-RELEASE.md) (and `AGENTS.md` for the commands).
 
 **iPhone:** the iOS app is built from the same engine on the [`ios`](https://github.com/rferrari/boar-app/tree/ios) branch, together with its build guide and the steps to install it on your own iPhone with a free Apple ID.
 
@@ -165,15 +153,8 @@ make setup    # or: node scripts/setup.mjs · `make help` lists the single steps
 
 | | |
 |---|---|
-| [docs/demo](docs/demo/README.md) | Videos and screenshots from a phone in airplane mode |
-| [docs/USING.md](docs/USING.md) | Import documents, find more models, recover from a bad model load, reset the app |
-| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Build commands, dev mode, Wi‑Fi troubleshooting |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Design, first-run setup, network permission |
-| [docs/MODELS.md](docs/MODELS.md) | Exact models, datasets and indexes |
-| [docs/KNOWLEDGE_PACKS.md](docs/KNOWLEDGE_PACKS.md) | How knowledge packs are built and searched |
-| [docs/EVAL_QUERIES.md](docs/EVAL_QUERIES.md) | The evaluation questions, including the set on Vitalik's topics |
-| [docs/RESULTS_SCORE.md](docs/RESULTS_SCORE.md) | How shared runs are signed and scored |
-| [docs/RELEASING.md](docs/RELEASING.md) | Building and publishing a signed release |
+| [android-native/docs/BUILDING-RELEASE.md](android-native/docs/BUILDING-RELEASE.md) | Building a release APK with its data bundle, signing, adb-push install |
 | [PRIVACY.md](PRIVACY.md) · [TERMS.md](TERMS.md) | Privacy policy and terms (preview) |
 
 License: [LICENSE](LICENSE).

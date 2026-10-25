@@ -4,23 +4,11 @@ on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
 
 jobs:
-  typecheck-and-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm test
-
   native-engine:
-    # The native app (android-native/) on pull requests into fullnative-dev: engine unit tests, app compiles.
-    if: github.base_ref == 'fullnative-dev'
+    # The native app (android-native/) on pull requests into main: engine unit tests, app compiles.
     runs-on: ubuntu-latest
     # It runs the pull request's Gradle build: a read-only token, not kept in the checkout.
     permissions:

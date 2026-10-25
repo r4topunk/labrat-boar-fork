@@ -29,8 +29,7 @@ disclaimers below.
 The app downloads and uses third-party content that keeps its own license:
 
 - **AI models**, each under its maker's license (for example Apache 2.0 for Qwen, MIT for Phi, the LFM
-  Open License, the Gemma terms). BOAR shows each model's license in Settings → About and in
-  [docs/MODELS.md](docs/MODELS.md). Using a model means accepting its license.
+  Open License, the Gemma terms). BOAR shows each model's license in Settings → About. Using a model means accepting its license.
 - **Knowledge packs:** Wikipedia and Wikivoyage content under CC BY-SA 4.0, and other sources as
   credited in the app.
 - **Places:** OpenStreetMap data, © OpenStreetMap contributors, under the Open Database License (ODbL).

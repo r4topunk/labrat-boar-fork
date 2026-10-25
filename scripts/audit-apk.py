@@ -3,7 +3,7 @@
 
 Works on any APK (Kotlin or React Native/Hermes), not only BOAR's. Needs python3 (stdlib only) and the
 Android build-tools' aapt2; no Java. Same APK + same tool version => byte-identical report, so anyone can
-reproduce a published result. See docs/OFFLINE_PROOF.md.
+reproduce a published result.
 
     scripts/audit-apk.py app.apk [more.apk ...] --out dist/offline-proof/
     scripts/audit-apk.py app.apk                      # markdown to stdout
@@ -725,7 +725,7 @@ def md(r: dict) -> str:
     w("- Proves *capability*, not *behaviour*. Without INTERNET the kernel blocks sockets for this UID, which is the strongest "
       "static guarantee; with INTERNET, hosts built at runtime or fetched from config are invisible here.")
     w("- Does not see what other apps (browser, GMS, keyboard, speech service) do with data handed to them.")
-    w("- Pair with a dynamic test on a phone (docs/OFFLINE_PROOF.md, \"On a phone\").")
+    w("- Pair with a dynamic test on a phone (scripts/netstats-uid.sh).")
     return "\n".join(L) + "\n"
 
 

@@ -4,17 +4,13 @@ Tracks the bounty's actual requirements against repo state. Code-reachable work
 is done (see `ARCHITECTURE.md` for the detailed status list); everything below
 needs your device/accounts and can't be done from within an agent session.
 
-- [ ] `make setup` (or `npm install`)
-- [ ] `make run-android` (or `npx expo prebuild -p android --clean && npx expo run:android`)
+- [ ] `cd android-native && ./gradlew :app:assembleRelease -Pboar.bundleDir=<out>` (after
+      `bash scripts/stage-bundle.sh <out> --model … --embedding …`), then `adb install` the APK
       on a connected device — the real unverified step, needs an actual Gradle/NDK compile.
-      Models are NOT bundled into the APK by default (that's `scripts/setup-models.sh` +
-      the `withBundledModels` plugin — an alternate path that isn't active in `app.json`'s
-      plugin list right now); the app instead shows a first-run setup wizard that
-      downloads the two default LLMs (primary + fast/secondary) + embedding model
-      (~3.2GB) once you launch it.
+      The data bundle (model, embedding model, packs) is built into the APK and copied on first launch.
 - [ ] Confirm the first-run wizard downloads and loads all three default models, and
       the app answers a query end-to-end
-- [ ] Try the queries in `docs/EVAL_QUERIES.md` and capture the responses
+- [ ] Try example queries and capture the responses
 - [ ] Spot-check RAM via the in-app monitor (Settings > Stats & System) stays under 12GB,
       and storage stays under 50GB
 - [ ] Turn off networking entirely (airplane mode) and re-verify the app still works —

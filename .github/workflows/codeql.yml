@@ -45,10 +45,11 @@ jobs:
         include:
         - language: actions
           build-mode: none
-        - language: javascript-typescript
+        # python: scripts/audit-apk.py.
+        - language: python
           build-mode: none
-        # Not java-kotlin: main's Kotlin (modules/*/android) only builds after expo prebuild, and CodeQL can't read
-        # Kotlin without a build.
+        # Not java-kotlin: CodeQL can't read Kotlin without a build, and android-native/ needs the NDK and CMake
+        # (it would need build-mode: manual with the NDK steps of ci.yml and ./gradlew :app:compileDebugKotlin).
         # CodeQL supports the following values keywords for 'language': 'actions', 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'rust', 'swift'
         # Use `c-cpp` to analyze code written in C, C++ or both
         # Use 'java-kotlin' to analyze code written in Java, Kotlin or both
