@@ -110,12 +110,12 @@ class SettingsDeviceTest {
     @Test fun eachRowOpensItsScreenOrFlow() {
         show()
         assertFalse("no model row: BoarLite has one model", compose.shows(tr("clean.settings.model.title")))
-        compose.scrollAndPress(tr("clean.settings.knowledge.title")); assertEquals("documents", opened)
+        assertFalse("no Knowledge row: the menu has it", compose.shows("Packs and documents"))
+        assertFalse("no chat-title switch: titles are always written", compose.shows("Auto-generate chat titles"))
         compose.scrollAndPress(tr("aboutScreen.title")); assertEquals("about", opened)
         compose.scrollAndPress(tr("modelSetupScreen.recovery.wizardButton"))
         assertTrue(setupAgain)
-        for (section in listOf("modelSetupScreen.sections.knowledgeBase", "modelSetupScreen.sections.memory",
-            "modelSetupScreen.sections.displayTheme", "design.settings.about", "modelSetupScreen.sections.recovery")) visible(tr(section))
+        for (section in listOf("modelSetupScreen.sections.displayTheme", "design.settings.about", "modelSetupScreen.sections.recovery")) visible(tr(section))
     }
 
     @Test fun clearChatHistoryAsksFirstThenEmptiesTheChats() {

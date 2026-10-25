@@ -12,13 +12,6 @@
     <string name="clean_nav_deleteButton" formatted="false">Delete</string>
     <string name="clean_nav_undo" formatted="false">Undo</string>
     <string name="clean_settings_model_title" formatted="false">Model</string>
-    <string name="clean_settings_knowledge_title" formatted="false">Packs and documents</string>
-    <string name="clean_settings_knowledge_packs_one" formatted="false">{{count}} pack</string>
-    <string name="clean_settings_knowledge_packs_other" formatted="false">{{count}} packs</string>
-    <string name="clean_settings_knowledge_noPacks" formatted="false">No packs yet</string>
-    <string name="clean_settings_knowledge_docs_one" formatted="false">{{count}} document</string>
-    <string name="clean_settings_knowledge_docs_other" formatted="false">{{count}} documents</string>
-    <string name="clean_settings_knowledge_noDocs" formatted="false">No documents yet</string>
     <string name="clean_settings_chats_remember" formatted="false">Remember long chats</string>
     <string name="clean_settings_about_copyAddress" formatted="false">Copy address</string>
     <string name="clean_library_yourDocs" formatted="false">Your documents</string>

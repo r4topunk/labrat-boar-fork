@@ -49,8 +49,6 @@
     <string name="modelSetupScreen_header_title" formatted="false">Settings</string>
     <string name="modelSetupScreen_header_subtitle" formatted="false">BoarLite — Adaptive Local Intelligence</string>
     <string name="modelSetupScreen_sections_models" formatted="false">Reasoning Models</string>
-    <string name="modelSetupScreen_sections_knowledgeBase" formatted="false">Offline Knowledge Base (RAG)</string>
-    <string name="modelSetupScreen_sections_memory" formatted="false">Memory &amp; Context Settings</string>
     <string name="modelSetupScreen_sections_telemetry" formatted="false">Hardware Telemetry &amp; Compliance</string>
     <string name="modelSetupScreen_sections_displayTheme" formatted="false">Display &amp; Theme</string>
     <string name="modelSetupScreen_sections_voice" formatted="false">Voice Input Configuration</string>
@@ -58,7 +56,7 @@
     <string name="modelSetupScreen_installedModels" formatted="false">Installed models</string>
     <string name="modelSetupScreen_discoverHfModels" formatted="false">Discover Hugging Face GGUF models</string>
     <string name="modelSetupScreen_toasts_indexed" formatted="false">Indexed \"{{name}}\" in offline knowledge base</string>
-    <string name="modelSetupScreen_recovery_wizardDesc" formatted="false">Re-run the initial 3-step onboarding flow to re-scan device hardware or switch your base model tier.</string>
+    <string name="modelSetupScreen_recovery_wizardDesc" formatted="false">Checks BoarLite's files again and restores any pack you removed.</string>
     <string name="modelSetupScreen_recovery_wizardButton" formatted="false">Relaunch Setup Wizard ➔</string>
     <string name="modelSetupScreen_recovery_dangerDesc" formatted="false">Permanently wipes the GGUF weights, offline SQLite database indices, and conversation logs from this device.</string>
     <string name="modelSetupScreen_recovery_dangerButton" formatted="false">🚨 Purge All Data &amp; Reset App</string>
@@ -80,8 +78,6 @@
     <string name="personalDocumentsManager_docCount_other" formatted="false">{{count}} docs</string>
     <string name="personalDocumentsManager_exportButton" formatted="false">Export / Share</string>
     <string name="memorySettings_maxSavedSessions" formatted="false">Max saved chat sessions</string>
-    <string name="memorySettings_autoTitlesLabel" formatted="false">Auto-generate chat titles</string>
-    <string name="memorySettings_autoTitlesValue" formatted="false">Names new chats from your first message</string>
     <string name="memorySettings_clearAllConfirmTitle" formatted="false">Clear all chat history?</string>
     <string name="memorySettings_clearAllButton" formatted="false">Clear All</string>
     <string name="memorySettings_clearAllChatHistory" formatted="false">Clear All Chat History</string>

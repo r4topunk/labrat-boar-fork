@@ -28,7 +28,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.AlertDialog
@@ -68,7 +67,6 @@ import team.sopa.boar.app.BoarServices
 import team.sopa.boar.app.DevOptions
 import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.ui.components.BoarTopBar
-import team.sopa.boar.ui.icons.BoarIcons
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import team.sopa.boar.ui.theme.ThemeMode
@@ -80,8 +78,7 @@ interface DisplayPrefs {
 }
 
 /**
- * Settings as a Material grouped list: the model, knowledge, chats, display, About, then
- * Start over. No answer style, answer length or Deep Research: the app answers in Succinct at its Auto length (r4to,
+ * Settings as a Material grouped list: the model, display, About, then Start over (clear chats, setup, reset, wipe). No answer style, answer length or Deep Research: the app answers in Succinct at its Auto length (r4to,
  * Oct 24). The measurement knobs (technical details, memory numbers) live in Developer options, shown only after seven taps on the version in About. The engine's
  * own knobs keep their saved values (Auto by default) and the engine reads them as before.
  */
@@ -103,13 +100,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onSetup: () -> U
         Column(Modifier.padding(inner).fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
             Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
                 ModelsSection(services)
-                KnowledgeSection(services, onOpen)
-                Section(t("modelSetupScreen.sections.memory")) {
-                    var titles by remember { mutableStateOf(s.autoGenerateTitles) }
-                    SwitchRow(t("memorySettings.autoTitlesLabel"), t("memorySettings.autoTitlesValue"), titles, icon = Icons.Outlined.Edit) { titles = it; s.autoGenerateTitles = it }
-                    // No long-chat summary and no PIN lock in BoarLite (r4to 2026-10-24).
-                    ClearChats(services)
-                }
+                // No Knowledge row (the menu has it) and no chat-title switch: titles are always written (r4to 2026-10-25).
                 Section(t("modelSetupScreen.sections.displayTheme")) {
                     var theme by remember { mutableStateOf(ThemeMode.normalize(s.themeId)) }
                     Choices(t("clean.settings.theme"), ThemeMode.all.map { it to t("clean.settings.theme.$it") }, theme) { theme = it; s.themeId = it; prefs.setTheme(it) }
@@ -144,20 +135,6 @@ private fun ModelsSection(services: BoarServices) {
     val emb = services.catalog.models.firstOrNull { it.kind == AssetKind.EMBEDDING }
     if (emb != null && !services.fileOf(emb).isFile) Section(t("modelSetupScreen.sections.models")) {
         Info(t("native.settings.embeddingMissing", "model" to emb.shortName), MaterialTheme.colorScheme.error)
-    }
-}
-
-/** The knowledge packs on the phone and your documents. */
-@Composable
-private fun KnowledgeSection(services: BoarServices, onOpen: (String) -> Unit) {
-    Section(t("modelSetupScreen.sections.knowledgeBase")) {
-        val packs = services.catalog.corpusCatalog.count { services.fileOf(it).isFile }
-        val docs = services.knowledgeBase.collections().size
-        val note = listOf(
-            if (packs == 0) t("clean.settings.knowledge.noPacks") else t("clean.settings.knowledge.packs", "count" to packs),
-            if (docs == 0) t("clean.settings.knowledge.noDocs") else t("clean.settings.knowledge.docs", "count" to docs),
-        ).joinToString(" · ")
-        ActionRow(t("clean.settings.knowledge.title"), note = note, icon = BoarIcons.LibraryBooks, chevron = true) { onOpen("documents") }
     }
 }
 
@@ -244,7 +221,7 @@ private fun ClearChats(services: BoarServices) {
         dismissButton = { TextButton({ asking = false }) { Text(t("common.cancel")) } })
 }
 
-/** System Recovery & Danger Zone: run setup again, reset settings, or wipe everything and start over. */
+/** Start over: clear the chats, run setup again, reset settings, or wipe everything. */
 @Composable
 private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup: () -> Unit) {
     val ctx = LocalContext.current
@@ -252,6 +229,8 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
     var purging by remember { mutableStateOf(false) }
     var resetting by remember { mutableStateOf(false) }
     Section(t("modelSetupScreen.sections.recovery")) {
+        // Clearing the chats sits with the other ways to start over (r4to 2026-10-25).
+        ClearChats(services)
         ActionRow(t("modelSetupScreen.recovery.wizardButton"), note = t("modelSetupScreen.recovery.wizardDesc"), icon = Icons.Outlined.PlayArrow, onClick = onSetup)
         // Defaults back without the multi-GB re-download "Clear all data" costs.
         ActionRow(t("native.settings.resetButton"), note = t("clean.settings.resetDesc"), icon = Icons.Filled.Refresh) { resetting = true }

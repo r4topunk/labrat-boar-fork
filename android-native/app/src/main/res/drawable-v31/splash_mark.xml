@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The splash's BoarLite mark (r4to 2026-10-25): the launcher mark's plates alone, no blue disc, in the color opposite
+     the splash background (values-v31/colors.xml). Same geometry as ic_launcher_foreground. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.5"
+        android:scaleY="0.5"
+        android:translateX="24"
+        android:translateY="26.75">
+        <path
+            android:fillColor="@color/splash_mark"
+            android:fillType="evenOdd"
+            android:pathData="M14 6L41 15L29 35Z M106 6L79 15L91 35Z M46 18H74L86 38L72 62H48L34 38Z M46 68H74L84 84L74 100H46L36 84Z M48.5 80a3 3 0 0 1 6 0v8a3 3 0 0 1-6 0Z M65.5 80a3 3 0 0 1 6 0v8a3 3 0 0 1-6 0Z M79 103L89 87L102 62L98 90Z M41 103L31 87L18 62L22 90Z" />
+    </group>
+</vector>

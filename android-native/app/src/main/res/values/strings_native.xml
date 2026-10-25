@@ -234,12 +234,10 @@
     <string name="native_settings_freeMemory" formatted="false">Free memory when I leave BoarLite</string>
     <string name="native_settings_freeMemoryNote" formatted="false">Frees memory a few seconds after you leave. The next answer starts a little slower.</string>
     <string name="native_modelSetupScreen_sections_telemetry" formatted="false">This phone</string>
-    <string name="native_modelSetupScreen_sections_memory" formatted="false">Chats &amp; history</string>
     <string name="native_modelSetupScreen_sections_models" formatted="false">Models</string>
-    <string name="native_modelSetupScreen_sections_knowledgeBase" formatted="false">Knowledge</string>
     <string name="native_modelSetupScreen_sections_voice" formatted="false">Voice input</string>
     <string name="native_modelSetupScreen_sections_recovery" formatted="false">Start over</string>
-    <string name="native_modelSetupScreen_recovery_wizardDesc" formatted="false">Run the first-time setup again to pick another model.</string>
+    <string name="native_modelSetupScreen_recovery_wizardDesc" formatted="false">Checks BoarLite's files again and restores any pack you removed.</string>
     <string name="native_modelSetupScreen_recovery_wizardButton" formatted="false">Run setup again</string>
     <string name="native_modelSetupScreen_recovery_dangerDesc" formatted="false">Deletes every model and pack, your documents and all chats from this phone. It can\'t be undone.</string>
     <string name="native_modelSetupScreen_recovery_dangerButton" formatted="false">Erase everything</string>

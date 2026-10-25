@@ -4,5 +4,7 @@
     <style name="Theme.Boar" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@android:color/system_neutral1_900</item>
         <item name="android:windowSplashScreenBackground">@android:color/system_neutral1_900</item>
+        <!-- Only the mark, no icon disc: without this the splash shows the adaptive launcher icon on its blue background. -->
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_mark</item>
     </style>
 </resources>

@@ -84,18 +84,22 @@ class AppSettings(private val file: File) {
             "maxTokens", "deepResearchMode", "adaptiveRoutingEnabled", "routingPreset", "modelRoleAssignments", "autoSummarize", "historyTurnThreshold",
             // The PIN lock and its key material (removed; no build with a PIN was ever installed).
             "pinWrapped", "pinSalt", "pinIterations", "pinFailures", "pinLockedUntil",
+            // Chat titles are always written now (r4to 2026-10-25: no switch).
+            "autoGenerateTitles",
         )
 
         /** What "Reset settings" clears ([resetPreferences]). */
         val PREFERENCE_KEYS = listOf(
             "themeId", "fontScale", "screenOrientation", "personalityId", "maxTokens", "deepResearchMode", "researchBannerHidden",
             "engineTweaks", "showLiveStats", "voiceInputEnabled", "hapticsEnabled",
-            "hidePromptIdeas", "maxSavedSessions", "autoGenerateTitles",
+            "hidePromptIdeas", "maxSavedSessions",
             "freeMemoryInBackground", "freeMemoryAfterMinutes",
         )
         /** The one answer style (personalities.json's "succinct"). */
         const val ANSWER_STYLE = "succinct"
         const val AUTO_MAX_TOKENS = 512
+        /** Chats kept before the oldest go: 10 filled one screen of the menu and dropped chats people expected to scroll to (r4to 2026-10-25). */
+        const val DEFAULT_MAX_SAVED_SESSIONS = 50
 
         /** Context kept for the prompt (instructions, sources, history) when Auto sizes the answer. */
         const val PROMPT_RESERVE = 1500
@@ -126,8 +130,7 @@ class AppSettings(private val file: File) {
     var freeMemoryAfterMinutes: Int? get() = int("freeMemoryAfterMinutes"); set(v) = set("freeMemoryAfterMinutes", v?.let(::JsonPrimitive))
 
     /** Chat history options. */
-    var maxSavedSessions: Int get() = int("maxSavedSessions") ?: 10; set(v) = set("maxSavedSessions", JsonPrimitive(v))
-    var autoGenerateTitles: Boolean get() = bool("autoGenerateTitles") ?: true; set(v) = set("autoGenerateTitles", JsonPrimitive(v))
+    var maxSavedSessions: Int get() = int("maxSavedSessions") ?: DEFAULT_MAX_SAVED_SESSIONS; set(v) = set("maxSavedSessions", JsonPrimitive(v))
 
     /** Advanced tweaks (native only); all Auto when unset or unreadable. */
     var engineTweaks: EngineTweaks

@@ -756,7 +756,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * After an answer: a new chat gets a model-written title (autoGenerateTitles), in the background.
+     * After an answer: a new chat gets a model-written title, in the background.
      */
     private fun afterAnswer(sessionId: String, isNewSession: Boolean, stopped: Boolean, all: List<UiMessage>, systemPrompt: String?, hadSources: Boolean, filesOnly: Boolean) {
         if (stopped) return
@@ -765,11 +765,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             deferredAfterAnswer = { afterAnswer(sessionId, isNewSession, false, all, systemPrompt, hadSources, filesOnly) }
             return
         }
-        val s = services.settings
         val session = services.host.current() ?: return
         // Reads the model's info: throws once the model was unloaded (switched in Models or Settings) after the answer.
         val gen = runCatching { SessionEngine(session) }.getOrNull() ?: return
-        if (isNewSession && s.autoGenerateTitles) {
+        if (isNewSession) {
             background = safeScope.launch(Dispatchers.Default) {
                 runCatching { services.chats.setTitle(sessionId, Summarize.title(gen, all.first { it.role == "user" }.text)) }
                 runCatching { warmPrefix(session, systemPrompt, hadSources, filesOnly) }

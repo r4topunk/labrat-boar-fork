@@ -7,7 +7,6 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.unit.dp
-import team.sopa.boar.setup.KnowledgeTheme
 
 /**
  * The tour's line icons (24 dp, 2 dp stroke, round caps), drawn as in the onboarding design: the knowledge themes, the
@@ -37,7 +36,6 @@ internal object TourIcons {
     }
     /** Whole wifi arcs under one slash (cut arcs read as a clipped glyph at badge size). */
     val Offline by lazy { stroke("Offline", "M3 3l18 18", "M2 8.8a15 15 0 0 1 20 0", "M5 12.6a10 10 0 0 1 14 0", "M8.5 16.4a5 5 0 0 1 7 0", "M12 20h.01") }
-    val Crypto by lazy { stroke("Crypto", "M12 2l6 10-6 4-6-4z", "M6 14l6 8 6-8-6 4z") }
     val Device by lazy { stroke("Device", "M9 2h6a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z", "M11 18h2") }
     val Shield by lazy { stroke("Shield", "M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z") }
 
@@ -50,20 +48,5 @@ internal object TourIcons {
         "clean.tour.group.money" -> Coins
         "clean.tour.group.cooking" -> Cooking
         else -> More
-    }
-
-    /** The icon of a Knowledge row: its theme's, except the reference packs, which each get their own subject. */
-    fun forPack(id: String, theme: KnowledgeTheme): ImageVector = when (id) {
-        "boar-factbook" -> Globe
-        "qa-money-se" -> Coins
-        "qa-cooking-se" -> Cooking
-        else -> when (theme) {
-            KnowledgeTheme.ENCYCLOPEDIA -> Book
-            KnowledgeTheme.HEALTH -> Health
-            KnowledgeTheme.TRAVEL -> Compass
-            KnowledgeTheme.REFERENCE -> Globe
-            KnowledgeTheme.CRYPTO -> Crypto
-            KnowledgeTheme.OTHER -> More
-        }
     }
 }

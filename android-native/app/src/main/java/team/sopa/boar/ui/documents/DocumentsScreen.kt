@@ -8,7 +8,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -41,7 +40,6 @@ import team.sopa.boar.setup.KnowledgeTheme
 import team.sopa.boar.ui.chat.groupedShape
 import team.sopa.boar.ui.components.BoarTopBar
 import team.sopa.boar.ui.icons.BoarIcons
-import team.sopa.boar.ui.setup.TourIcons
 import team.sopa.boar.ui.setup.countText
 import team.sopa.boar.ui.setup.sizeText
 import team.sopa.boar.ui.t
@@ -197,14 +195,7 @@ fun KnowledgeLibrary(state: PacksState, vm: PacksViewModel) {
                     sizeText(item.sizeBytes),
                 ).joinToString(" · ")
                 ListItem(
-                    // The theme's line icon in a tonal disc, as on the tour; Health in the error tone there too.
-                    leadingContent = {
-                        Box(Modifier.size(40.dp).clip(CircleShape)
-                            .background(scheme.surfaceContainerLowest), contentAlignment = Alignment.Center) {
-                            Icon(TourIcons.forPack(item.id, item.theme), null, Modifier.size(20.dp),
-                                tint = if (item.theme == KnowledgeTheme.HEALTH) scheme.error else scheme.primary)
-                        }
-                    },
+                    // No icon per pack: every row of a group repeated its header's icon (r4to 2026-10-25).
                     headlineContent = { Text(item.nameKey?.let { t(it) } ?: item.fallbackName) },
                     supportingContent = { Text(facts, color = scheme.onSurfaceVariant) },
                     trailingContent = {
