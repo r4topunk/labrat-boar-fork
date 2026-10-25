@@ -84,7 +84,7 @@ class RagPureGoldenTest {
         for (c in g["prompts"]!!.jsonArray) {
             val o = c.jsonObject
             val history = (o["history"] as? JsonObject)?.let { h ->
-                ConversationHistory(h["summary"]?.str, h["turns"]?.jsonArray?.map { t -> ConversationTurn(t.jsonObject["role"]!!.str!!, t.jsonObject["text"]!!.str!!) }.orEmpty())
+                ConversationHistory(h["turns"]?.jsonArray?.map { t -> ConversationTurn(t.jsonObject["role"]!!.str!!, t.jsonObject["text"]!!.str!!) }.orEmpty())
             }
             val args = { f: (String, List<Chunk>, String?, ConversationHistory?, String?) -> Any -> f(o["query"]!!.str!!, chunks(o["chunks"]!!), o["systemPrompt"]?.str, history, o["style"]?.str) }
             assertEquals(o["prompt"]!!.str, args { q, ch, s, h, st -> RagPure.assemblePrompt(q, ch, s, h, st) })

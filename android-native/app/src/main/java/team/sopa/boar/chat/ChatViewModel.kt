@@ -166,7 +166,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         sourcesOff = app.getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE).getStringSet(SOURCES_OFF, null).orEmpty().toSet()))
     val state: StateFlow<ChatState> = _state
     private var job: Job? = null
-    /** A chat title or summary still being written; a new question stops it (one model, one generation). */
+    /** A chat title still being written; a new question stops it (one model, one generation). */
     private var background: Job? = null
     @Volatile private var stopRequested = false
 
@@ -183,7 +183,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     @Volatile private var warmJob: Job? = null
     @Volatile private var warmKey: team.sopa.boar.engine.answer.WarmPrefix.Key? = null
     /**
-     * A title or summary skipped because the answer ended with BOAR in the background, written when BOAR is back on
+     * A title skipped because the answer ended with BOAR in the background, written when BOAR is back on
      * screen. Run then, it would hold the model past MIUI's freeze about 8 s after the answering service stops, and MIUI
      * force-stops a frozen BOAR still holding the model (F3, Oct 19, 17:46:30-40).
      */
@@ -200,7 +200,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             if (job?.isActive != true && warmInside) services.host.current()?.cancel()
         }
     }
-    /** For Free memory when I leave BOAR: the model isn't unloaded while an answer, title, summary or preload runs. */
+    /** For Free memory when I leave BOAR: the model isn't unloaded while an answer, title or preload runs. */
     private val busy: () -> Boolean = { job?.isActive == true || background?.isActive == true || preloading?.isActive == true }
 
     init {
@@ -265,7 +265,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /**
      * Back on screen after Free memory when I leave BOAR unloaded the model (Auto: as soon as BOAR leaves): load it and
      * warm the instructions again, as the chat's preload does. Before, only the next question loaded it, and it also read
-     * the ~250-token instructions again (2.7 s on the 1.5B, Pixel 8a). Not while an answer, a title or summary (which
+     * the ~250-token instructions again (2.7 s on the 1.5B, Pixel 8a). Not while an answer or a title (which
      * loads the model itself) or a preload runs, nor for a model the chat would ask about first.
      */
     private fun reloadOnReturn() {
@@ -582,7 +582,6 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val style = settings.personalityId
             val (systemPrompt, styleReminder) = services.personalities.promptFor(style)
             val history = ConversationHistory(
-                summary = runCatching { chats.listSessions().firstOrNull { it.id == sessionId }?.summary }.getOrNull(),
                 // Within a token budget: earlier answers cut to their opening sentences (HistoryBudget).
                 turns = HistoryBudget.budget(prior.takeLast(VERBATIM_MESSAGE_COUNT).map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) }),
             )
@@ -744,11 +743,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * Stops a title or summary still being written, as ChatScreen.tsx does (cancelBackgroundTask), instead of making the
-     * question wait for it: a summary reads every older turn first, which on a slow phone held the next question for tens
-     * of seconds. Cancelling the job keeps one that hasn't started from starting, and makes one that has throw instead of
-     * returning, so nothing half-written is saved; the native cancel stops the prompt reading or writing in progress. A
-     * stopped title keeps the question as the chat's title; a stopped summary is written after a later answer.
+     * Stops a title still being written instead of making the question wait for it. Cancelling the job keeps one that
+     * hasn't started from starting, and makes one that has throw instead of returning, so nothing half-written is saved;
+     * the native cancel stops the prompt reading or writing in progress. A stopped title keeps the question as the
+     * chat's title.
      */
     private suspend fun stopBackground() {
         val running = background?.takeIf { it.isActive } ?: return
@@ -758,8 +756,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * As ChatScreen.tsx after an answer: a new chat gets a model-written title (autoGenerateTitles); a long one gets its
-     * older turns summarized (autoSummarize, past historyTurnThreshold), in the background.
+     * After an answer: a new chat gets a model-written title (autoGenerateTitles), in the background.
      */
     private fun afterAnswer(sessionId: String, isNewSession: Boolean, stopped: Boolean, all: List<UiMessage>, systemPrompt: String?, hadSources: Boolean, filesOnly: Boolean) {
         if (stopped) return
@@ -777,23 +774,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 runCatching { services.chats.setTitle(sessionId, Summarize.title(gen, all.first { it.role == "user" }.text)) }
                 runCatching { warmPrefix(session, systemPrompt, hadSources, filesOnly) }
             }
-        } else if (s.autoSummarize && all.size / 2 > s.historyTurnThreshold) {
-            val older = all.dropLast(VERBATIM_MESSAGE_COUNT)
-            if (older.isEmpty()) return
-            val previous = services.chats.listSessions().firstOrNull { it.id == sessionId }?.summary
-            background = safeScope.launch(Dispatchers.Default) {
-                runCatching {
-                    // Bounded like the answer's history: a whole long chat (thousands of tokens) took tens of seconds to read.
-                    val turns = HistoryBudget.budget(older.map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) })
-                    services.chats.setSummary(sessionId, Summarize.summary(gen, turns, previous))
-                }
-                runCatching { warmPrefix(session, systemPrompt, hadSources, filesOnly) }
-            }
         }
     }
 
     /**
-     * Back on screen: the title or summary skipped in the background, once the model is loaded again (as the chat's
+     * Back on screen: the title skipped in the background, once the model is loaded again (as the chat's
      * preload, only when it may load on its own). A question asked meanwhile stops it, and the question stays the title.
      */
     private fun resumeAfterAnswer() {
@@ -806,7 +791,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * A title or summary left its own prompt in the KV cache, so the next question would read the whole system prompt
+     * A title left its own prompt in the KV cache, so the next question would read the whole system prompt
      * again (about 230 tokens, 8 s on a 4B). Prefill it back: the next answer reuses it (#72's warm-up).
      */
     private suspend fun warmPrefix(session: team.sopa.boar.engine.LlamaSession, systemPrompt: String?, withSources: Boolean, filesOnly: Boolean) {

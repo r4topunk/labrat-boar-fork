@@ -20,7 +20,6 @@
     <string name="clean_settings_knowledge_docs_other" formatted="false">{{count}} documents</string>
     <string name="clean_settings_knowledge_noDocs" formatted="false">No documents yet</string>
     <string name="clean_settings_chats_remember" formatted="false">Remember long chats</string>
-    <string name="clean_settings_chats_rememberNote" formatted="false">Keeps a short summary of earlier messages so BoarLite doesn\'t forget them.</string>
     <string name="clean_settings_about_copyAddress" formatted="false">Copy address</string>
     <string name="clean_library_yourDocs" formatted="false">Your documents</string>
     <string name="clean_library_docsHint" formatted="false">Text, Markdown, CSV, JSON or PDF. Stays on this phone.</string>

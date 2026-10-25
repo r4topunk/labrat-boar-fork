@@ -62,7 +62,7 @@ class AppSettings(private val file: File) {
 
     /**
      * Writes over what an earlier build let the user choose: the style becomes Succinct, and a picked answer length, the
-     * Deep Research switch and the adaptive-routing keys are dropped, so settings.json says what the app does. Writes
+     * Deep Research switch, the adaptive-routing keys and the long-chat summary options are dropped, so settings.json says what the app does. Writes
      * nothing when already clean.
      */
     fun retireRemovedOptions() {
@@ -80,13 +80,15 @@ class AppSettings(private val file: File) {
 
     companion object {
         /** Keys of options an earlier build offered and this one doesn't: [retireRemovedOptions] drops them. */
-        private val REMOVED_KEYS = listOf("maxTokens", "deepResearchMode", "adaptiveRoutingEnabled", "routingPreset", "modelRoleAssignments")
+        private val REMOVED_KEYS = listOf(
+            "maxTokens", "deepResearchMode", "adaptiveRoutingEnabled", "routingPreset", "modelRoleAssignments", "autoSummarize", "historyTurnThreshold",
+        )
 
         /** What "Reset settings" clears ([resetPreferences]). */
         val PREFERENCE_KEYS = listOf(
             "themeId", "fontScale", "screenOrientation", "personalityId", "maxTokens", "deepResearchMode", "researchBannerHidden",
             "engineTweaks", "showLiveStats", "voiceInputEnabled", "hapticsEnabled",
-            "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles",
+            "hidePromptIdeas", "maxSavedSessions", "autoGenerateTitles",
             "freeMemoryInBackground", "freeMemoryAfterMinutes",
         )
         /** The one answer style (personalities.json's "succinct"). */
@@ -121,9 +123,7 @@ class AppSettings(private val file: File) {
     /** Advanced tweaks → Free memory after, in minutes (0 = immediately); null is Auto ([FreeMemory.AUTO_SECONDS], in seconds). */
     var freeMemoryAfterMinutes: Int? get() = int("freeMemoryAfterMinutes"); set(v) = set("freeMemoryAfterMinutes", v?.let(::JsonPrimitive))
 
-    /** DEFAULT_MEMORY_SETTINGS when unset. */
-    var autoSummarize: Boolean get() = bool("autoSummarize") ?: true; set(v) = set("autoSummarize", JsonPrimitive(v))
-    var historyTurnThreshold: Int get() = int("historyTurnThreshold") ?: 6; set(v) = set("historyTurnThreshold", JsonPrimitive(v))
+    /** Chat history options. */
     var maxSavedSessions: Int get() = int("maxSavedSessions") ?: 10; set(v) = set("maxSavedSessions", JsonPrimitive(v))
     var autoGenerateTitles: Boolean get() = bool("autoGenerateTitles") ?: true; set(v) = set("autoGenerateTitles", JsonPrimitive(v))
 

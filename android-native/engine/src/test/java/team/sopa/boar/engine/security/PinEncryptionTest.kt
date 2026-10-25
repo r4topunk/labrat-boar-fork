@@ -43,12 +43,11 @@ class PinEncryptionTest {
         store.addMessage(s.id, "user", "Where can I buy a SIM card?", "u1")
         store.addMessage(s.id, "assistant", "At the airport.", "a1")
         store.setMessageMeta("a1", """{"sources":[{"title":"Lisbon"}]}""")
-        store.setSummary(s.id, "Planning a trip.")
         // Turn the PIN on: the old rows are re-sealed in place.
         val aes = AesTextCipher(PinKeys.newDataKey())
         store.reseal(PlainCipher, aes); store.cipher = aes
         store.addMessage(s.id, "user", "And a taxi?", "u2")
-        val raw = db.query("SELECT text FROM chat_messages") { it.string(0)!! } + db.query("SELECT title || ' ' || summary FROM chat_sessions") { it.string(0)!! } +
+        val raw = db.query("SELECT text FROM chat_messages") { it.string(0)!! } + db.query("SELECT title FROM chat_sessions") { it.string(0)!! } +
             db.query("SELECT meta FROM chat_message_meta") { it.string(0)!! }
         assertTrue(raw.none { it.contains("Lisbon") || it.contains("SIM") || it.contains("taxi") || it.contains("airport") || it.contains("trip", ignoreCase = true) })
         assertEquals(listOf("Where can I buy a SIM card?", "At the airport.", "And a taxi?"), store.messages(s.id).map { it.text })

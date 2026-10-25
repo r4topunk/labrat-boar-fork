@@ -55,9 +55,6 @@ class BoarServices private constructor(private val context: Context) {
     fun applyDefaults(afterReset: Boolean = false) {
         settings.retireRemovedOptions()
         if (settings.showLiveStats && !DevOptions.enabled(context)) settings.showLiveStats = false
-        // No long-chat summary in BoarLite (r4to 2026-10-24): on the Pixel the 1.7B answered from the last three exchanges
-        // only, and the summary is an extra background generation. Follow-ups keep the recent turns (ChatViewModel).
-        settings.autoSummarize = false
         val lite = context.getSharedPreferences("boarlite", Context.MODE_PRIVATE)
         if (afterReset || !lite.getBoolean("hapticsDefaultApplied", false)) {
             settings.hapticsEnabled = true
@@ -310,7 +307,7 @@ class BoarServices private constructor(private val context: Context) {
 
     fun addBackgroundHook(hook: () -> Unit) { backgroundHooks += hook }
     fun removeBackgroundHook(hook: () -> Unit) { backgroundHooks -= hook }
-    /** What uses the model besides a single generation: the chat's answer, its title or summary job, its preload. */
+    /** What uses the model besides a single generation: the chat's answer, its title job, its preload. */
     private val busyChecks = java.util.concurrent.CopyOnWriteArrayList<() -> Boolean>()
 
     fun addBusyCheck(check: () -> Boolean) { busyChecks += check }
@@ -319,7 +316,7 @@ class BoarServices private constructor(private val context: Context) {
 
     /**
      * BOAR left the screen: with Settings → Free memory when I leave BOAR on, the model is unloaded after the chosen
-     * delay (Auto: at once). An answer, title or summary still running is waited for; coming back first cancels it. The chat stays as it is and the next question loads the model again.
+     * delay (Auto: at once). An answer or title still running is waited for; coming back first cancels it. The chat stays as it is and the next question loads the model again.
      */
     @Synchronized fun onBackground() {
         inForeground = false

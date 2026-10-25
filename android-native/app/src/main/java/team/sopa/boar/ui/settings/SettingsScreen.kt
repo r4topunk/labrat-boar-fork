@@ -107,8 +107,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onSetup: () -> U
                 Section(t("modelSetupScreen.sections.memory")) {
                     var titles by remember { mutableStateOf(s.autoGenerateTitles) }
                     SwitchRow(t("memorySettings.autoTitlesLabel"), t("memorySettings.autoTitlesValue"), titles, icon = Icons.Outlined.Edit) { titles = it; s.autoGenerateTitles = it }
-                    // No switch for the long-chat summary or a PIN (r4to 2026-10-24): BoarLite writes no summary
-                    // (BoarServices.applyDefaults) and has no PIN lock.
+                    // No long-chat summary and no PIN lock in BoarLite (r4to 2026-10-24).
                     ClearChats(services)
                 }
                 Section(t("modelSetupScreen.sections.displayTheme")) {
@@ -302,8 +301,6 @@ private fun DeveloperSection(services: BoarServices, technical: Boolean, onTechn
         SwitchRow(t("native.tweaks.technicalDetails"), t("native.tweaks.technicalDetailsNote"), technical) { s.showLiveStats = it; onTechnical(it) }
         val emb = services.catalog.models.firstOrNull { it.kind == AssetKind.EMBEDDING }
         if (emb != null && services.fileOf(emb).isFile) Note(t("native.settings.embeddingOk", "model" to emb.shortName))
-        var turns by remember { mutableStateOf(s.historyTurnThreshold) }
-        Choices(t("memorySettings.turnsBeforeSummarizing"), listOf(4, 6, 8, 12).map { it to "$it" }, turns) { turns = it; s.historyTurnThreshold = it }
         var max by remember { mutableStateOf(s.maxSavedSessions) }
         Choices(t("memorySettings.maxSavedSessions"), listOf(5, 10, 25, 50).map { it to "$it" }, max) { max = it; s.maxSavedSessions = it }
         SwitchRow(t("clean.settings.dev.enabled"), t("clean.settings.dev.enabledNote"), true) { on ->

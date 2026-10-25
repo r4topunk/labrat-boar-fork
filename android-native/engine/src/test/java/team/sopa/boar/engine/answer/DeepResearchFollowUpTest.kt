@@ -126,13 +126,12 @@ class DeepResearchFollowUpTest {
         assertFalse(DeepResearch.isSummaryFollowUp("How do vaccines work?"))
     }
 
-    @Test fun `a recap drops the old citation numbers and keeps the earlier summary past 12 exchanges`() = runBlocking {
+    @Test fun `a recap drops the old citation numbers and says how many earlier exchanges it leaves out past 12`() = runBlocking {
         val gen = Recorder { _, _ -> "ok" }
         val conversation = (1..14).map { DeepResearch.Companion.Exchange("Question $it?", "Answer $it [2].") }
-        DeepResearch(gen, { null }).run("recap our chat", null,
-            ConversationHistory(summary = "Talked about tides [1]."), 256, conversation = conversation)
+        DeepResearch(gen, { null }).run("recap our chat", null, ConversationHistory(), 256, conversation = conversation)
         val user = gen.calls.single().second
-        assertTrue(user.contains("Summary of the earlier conversation:\nTalked about tides."))
+        assertTrue(user.contains("(2 earlier exchanges are not shown.)"))
         assertFalse(user.contains("Question 2?"))
         assertTrue(user.contains("1. Question: Question 3?\nAnswer: Answer 3."))
         assertFalse(user.contains("[2]"))

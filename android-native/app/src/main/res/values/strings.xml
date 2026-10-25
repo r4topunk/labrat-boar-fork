@@ -79,7 +79,6 @@
     <string name="personalDocumentsManager_docCount_one" formatted="false">{{count}} doc</string>
     <string name="personalDocumentsManager_docCount_other" formatted="false">{{count}} docs</string>
     <string name="personalDocumentsManager_exportButton" formatted="false">Export / Share</string>
-    <string name="memorySettings_turnsBeforeSummarizing" formatted="false">Recent turns before summarizing</string>
     <string name="memorySettings_maxSavedSessions" formatted="false">Max saved chat sessions</string>
     <string name="memorySettings_autoTitlesLabel" formatted="false">Auto-generate chat titles</string>
     <string name="memorySettings_autoTitlesValue" formatted="false">Names new chats from your first message</string>

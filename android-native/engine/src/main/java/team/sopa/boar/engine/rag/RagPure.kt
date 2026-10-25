@@ -28,7 +28,7 @@ data class LexicalTerm(val forms: List<String>)
 data class LexicalQuery(val match: String, val terms: List<LexicalTerm>)
 
 data class ConversationTurn(val role: String, val text: String)
-data class ConversationHistory(val summary: String? = null, val turns: List<ConversationTurn> = emptyList())
+data class ConversationHistory(val turns: List<ConversationTurn> = emptyList())
 data class PromptMessage(val role: String, val content: String)
 
 /** Pure retrieval and prompt helpers (port of src/rag/pure.ts). Outputs match the TS byte for byte (golden tests). */
@@ -200,14 +200,13 @@ object RagPure {
         filesOnly: Boolean = false,
     ): String {
         val instruction = instructionOf(systemPrompt)
-        val summary = history?.summary?.trim()?.takeIf { it.isNotEmpty() }?.let { "Summary of earlier conversation:\n$it\n\n" } ?: ""
         val turns = history?.turns?.takeIf { it.isNotEmpty() }?.let { t ->
             "Recent conversation:\n${t.joinToString("\n") { "${if (it.role == "user") "User" else "Assistant"}: ${it.text}" }}\n\n"
         } ?: ""
         val hasContext = chunks.isNotEmpty()
         val ctxInstr = if (hasContext) contextInstruction(filesOnly) else ""
         val ctx = if (hasContext) "Context:\n${contextOf(chunks)}\n\n" else ""
-        return "$instruction$ctxInstr $GROUNDING_INSTRUCTION\n\n$summary$turns${ctx}Question: $userQuery${styleSection(styleReminder)}\n\nAnswer:"
+        return "$instruction$ctxInstr $GROUNDING_INSTRUCTION\n\n$turns${ctx}Question: $userQuery${styleSection(styleReminder)}\n\nAnswer:"
     }
 
     /** The fixed start of every sourced answer prompt for a tone, kept prefilled in the KV cache. */
@@ -226,8 +225,7 @@ object RagPure {
         val hasContext = chunks.isNotEmpty()
         val ctxInstr = if (hasContext) contextInstruction(filesOnly) else ""
         val ctx = if (hasContext) "\n\nContext:\n${contextOf(chunks)}" else ""
-        val summary = history?.summary?.trim()?.takeIf { it.isNotEmpty() }?.let { "\n\nSummary of earlier conversation:\n$it" } ?: ""
-        val system = PromptMessage("system", "$instruction$ctxInstr $GROUNDING_INSTRUCTION$summary$ctx")
+        val system = PromptMessage("system", "$instruction$ctxInstr $GROUNDING_INSTRUCTION$ctx")
         val past = history?.turns.orEmpty().map { PromptMessage(it.role, it.text) }
         return listOf(system) + past + PromptMessage("user", userQuery + styleSection(styleReminder))
     }

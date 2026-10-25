@@ -5,7 +5,7 @@ import team.sopa.boar.engine.security.PlainCipher
 import team.sopa.boar.engine.security.TextCipher
 import kotlin.random.Random
 
-data class ChatSession(val id: String, val title: String, val summary: String?, val createdAt: Long, val updatedAt: Long)
+data class ChatSession(val id: String, val title: String, val createdAt: Long, val updatedAt: Long)
 
 data class ChatMessageRecord(
     val id: String,
@@ -24,7 +24,7 @@ data class ChatMessageRecord(
  * Chat sessions and messages in the knowledge base's own tables (port of src/services/chatHistory.ts), so chats made
  * in the Expo app reopen after an upgrade. The schema is created by KnowledgeBase; chat_message_meta here.
  *
- * With a PIN, [cipher] seals every text a chat stores (titles, summaries, messages, their sources) before it reaches
+ * With a PIN, [cipher] seals every text a chat stores (titles, messages, their sources) before it reaches
  * the database, and opens it on the way out; ids, times and ratings stay plain.
  */
 class ChatStore(private val db: SqlDatabase, private val now: () -> Long = System::currentTimeMillis) {
@@ -40,14 +40,14 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
 
     fun createSession(title: String = "New chat"): ChatSession {
         val t = now()
-        val s = ChatSession(newId(), title, null, t, t)
-        db.execute("INSERT INTO chat_sessions (id, title, summary, created_at, updated_at) VALUES (?, ?, ?, ?, ?)", listOf(s.id, seal(s.title), null, t, t))
+        val s = ChatSession(newId(), title, t, t)
+        db.execute("INSERT INTO chat_sessions (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)", listOf(s.id, seal(s.title), t, t))
         return s
     }
 
     fun listSessions(): List<ChatSession> =
-        db.query("SELECT id, title, summary, created_at, updated_at FROM chat_sessions ORDER BY updated_at DESC") {
-            ChatSession(it.string(0)!!, open(it.string(1)!!), it.string(2)?.let(::open), it.long(3), it.long(4))
+        db.query("SELECT id, title, created_at, updated_at FROM chat_sessions ORDER BY updated_at DESC") {
+            ChatSession(it.string(0)!!, open(it.string(1)!!), it.long(2), it.long(3))
         }
 
     fun messages(sessionId: String): List<ChatMessageRecord> = db.query(
@@ -93,8 +93,6 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
         true
     }
 
-    fun setSummary(sessionId: String, summary: String) { db.execute("UPDATE chat_sessions SET summary = ? WHERE id = ?", listOf(seal(summary), sessionId)) }
-
     fun deleteSession(sessionId: String) = db.transaction {
         val inSession = "SELECT id FROM chat_messages WHERE session_id = ?"
         db.execute("DELETE FROM chat_message_meta WHERE message_id IN ($inSession)", listOf(sessionId))
@@ -109,7 +107,8 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
 
     /**
      * Re-stores every chat text with [to], reading it with [from]: turning the PIN on (plain → sealed) or off (sealed →
-     * plain). One transaction, so a crash leaves either all rows in the old form or all in the new.
+     * plain). One transaction, so a crash leaves either all rows in the old form or all in the new. The summary column
+     * (written by earlier builds, never read or written now) is re-stored too, so an old value stays consistent.
      */
     fun reseal(from: TextCipher, to: TextCipher) = db.transaction {
         db.query("SELECT id, title, summary FROM chat_sessions") { Triple(it.string(0)!!, it.string(1)!!, it.string(2)) }.forEach { (id, title, summary) ->

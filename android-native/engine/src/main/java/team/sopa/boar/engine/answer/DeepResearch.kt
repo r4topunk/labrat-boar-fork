@@ -63,7 +63,7 @@ class DeepResearch(
         val topics = conversation.filterNot { isConversationRecap(it.question) || isSummaryFollowUp(it.question) }
         if (topics.isNotEmpty() && isConversationRecap(query)) {
             onProgress(ResearchProgress(ResearchStage.SYNTHESIZING))
-            val answer = recap(query, topics, history?.summary, systemPrompt, maxTokens, onToken, answerLanguage)
+            val answer = recap(query, topics, systemPrompt, maxTokens, onToken, answerLanguage)
             return ResearchResult(answer, emptyList(), timedOut, metrics = lastMetrics)
         }
         // A meta follow-up refers to the last answer whatever its wording ("TL;DR" reads as a name to FollowUp's rule).
@@ -100,16 +100,13 @@ class DeepResearch(
     }
 
     /** A summary of the whole conversation from each exchange's opening: one generation, no search. */
-    private suspend fun recap(asked: String, conversation: List<Exchange>, earlierSummary: String?, systemPrompt: String?, maxTokens: Int, onToken: (String) -> Unit, answerLanguage: String?): String {
+    private suspend fun recap(asked: String, conversation: List<Exchange>, systemPrompt: String?, maxTokens: Int, onToken: (String) -> Unit, answerLanguage: String?): String {
         val turns = conversation.takeLast(RECAP_EXCHANGES).mapIndexed { i, e ->
             val a = Js.trim(e.answer.replace(CITATION, "")).let { if (it.length > RECAP_ANSWER_CHARS) it.take(RECAP_ANSWER_CHARS) + "…" else it }
             "${i + 1}. Question: ${e.question}\nAnswer: $a"
         }.joinToString("\n\n")
-        // Past 12 exchanges the oldest are left out; the chat's running summary (autoSummarize) stands in for them.
-        val earlier = if (conversation.size > RECAP_EXCHANGES) {
-            earlierSummary?.let { Js.trim(it.replace(CITATION, "")) }?.takeIf { it.isNotEmpty() }?.let { "Summary of the earlier conversation:\n$it\n\n" }
-                ?: "(${conversation.size - RECAP_EXCHANGES} earlier exchanges are not shown.)\n\n"
-        } else ""
+        // Past 12 exchanges the oldest are left out, and the recap says so.
+        val earlier = if (conversation.size > RECAP_EXCHANGES) "(${conversation.size - RECAP_EXCHANGES} earlier exchanges are not shown.)\n\n" else ""
         val system = "${instructionOf(systemPrompt)} The user asks about the conversation so far. Cover every topic it went " +
             "through, in order, in the form the user asks for (a number of bullets or sentences, if given); with fewer points than " +
             "topics, group related topics into each point so that none is left out. Work only from the " +

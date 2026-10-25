@@ -21,7 +21,7 @@ object FreeMemory {
 
     /**
      * When the timer fires: nothing to do if the setting is off, BOAR is back on screen or no model is loaded; an answer,
-     * a chat title or summary, or a load still running is waited for; otherwise the model goes.
+     * a chat title, or a load still running is waited for; otherwise the model goes.
      */
     fun decide(enabled: Boolean, inForeground: Boolean, loaded: Boolean, busy: Boolean): Decision = when {
         !enabled || inForeground -> Decision.SKIP
