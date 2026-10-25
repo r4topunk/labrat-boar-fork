@@ -97,8 +97,8 @@ sends anything.
 No computer needed. LabRat is not on any app store: you download one APK (about 3.04 GB) that
 carries everything, the model, the search index and the 13 packs.
 
-- APK: {{HF_APK_URL}}
-- sha256: `{{APK_SHA256}}`
+- APK: https://huggingface.co/r4topunk/labrat/resolve/main/LabRat-1.0.0.apk
+- sha256: `93a68484e4b7f20b09154c425e8c44a199ebe2eb96ebe4e63d3c6108d197a3e0`
 
 **Requirements:** Android 8.0 or newer (minSdk 26), or GrapheneOS; no Google Play Services. About
 6-9 GB of free storage: the 3 GB download, the installed app and the 3 GB unpacked on first launch

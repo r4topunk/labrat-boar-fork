@@ -19,7 +19,7 @@ need a device or an account can't be done from an agent session.
       "zero connectivity" requirement (`scripts/offline-proof.sh`)
 - [ ] The 7 packs listed in `docs/PACKS-UPLOAD-PLAN.md` are on Hugging Face, `LABRAT_K13_REV` is pinned, and
       `bash scripts/fetch-bundle-inputs.sh --check-urls` prints 16 × `ok`
-- [ ] The APK is on Hugging Face and the README's `{{HF_APK_URL}}` and `{{APK_SHA256}}` are filled in
+- [ ] The APK is on Hugging Face and the README's `https://huggingface.co/r4topunk/labrat/resolve/main/LabRat-1.0.0.apk` and `93a68484e4b7f20b09154c425e8c44a199ebe2eb96ebe4e63d3c6108d197a3e0` are filled in
 - [ ] Post a public demo (X or Farcaster): offline proof, example queries, a brief approach explanation,
       a link to this repository (github.com/r4topunk/labrat-boar-fork) and the APK on Hugging Face, and credit
       BOAR (github.com/rferrari/boar-app, MIT) as the base.
