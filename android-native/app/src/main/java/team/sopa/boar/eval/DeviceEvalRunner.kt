@@ -22,6 +22,8 @@ import team.sopa.boar.engine.LlamaSession
 import team.sopa.boar.engine.answer.AnswerEvent
 import team.sopa.boar.engine.answer.AnswerPipeline
 import team.sopa.boar.engine.answer.AnswerRequest
+import team.sopa.boar.engine.answer.AnswerText
+import team.sopa.boar.engine.answer.HistoryBudget
 import team.sopa.boar.engine.answer.Personalities
 import team.sopa.boar.engine.db.NativeSqlite
 import team.sopa.boar.engine.eval.DeviceEval
@@ -32,6 +34,8 @@ import team.sopa.boar.engine.eval.EvalRequestException
 import team.sopa.boar.engine.eval.EvalSets
 import team.sopa.boar.engine.eval.ModelRef
 import team.sopa.boar.engine.eval.Resolved
+import team.sopa.boar.engine.rag.ConversationHistory
+import team.sopa.boar.engine.rag.ConversationTurn
 import team.sopa.boar.engine.rag.KnowledgeBase
 import team.sopa.boar.engine.rag.OpenPack
 import team.sopa.boar.engine.rag.Packs
@@ -222,6 +226,28 @@ class DeviceEvalRunner(
                         atomicWrite(rowsFile, rows.joinToString("") { it.toString() + "\n" })
                         listener.onRow(row)
                         log("[EVAL] ${q.id}: ${row["outcome"]} ${row["tokPerSec"] ?: ""}")
+                        // Follow-ups: the same chat, with the history ChatViewModel sends (last 6 messages, HistoryBudget).
+                        val s = session
+                        if (config is EvalConfig.Model && s != null && q.followUps.isNotEmpty()) {
+                            val chat = mutableListOf(ConversationTurn("user", q.query), ConversationTurn("assistant", shown(row)))
+                            for ((fi, f) in q.followUps.withIndex()) {
+                                if (stopRequested) break@run
+                                val fq = q.copy(id = "${q.id}#t${fi + 2}", query = f, followUps = emptyList())
+                                val history = ConversationHistory(HistoryBudget.budget(chat.takeLast(6).map {
+                                    ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) }))
+                                val style = team.sopa.boar.engine.settings.AppSettings.ANSWER_STYLE
+                                val (systemPrompt, styleReminder) = personalities.promptFor(style)
+                                running = s
+                                val fr = answerRow(s, retrieval, runId, config, fq, style, systemPrompt, styleReminder, maxTokens, "resident", 0.0, history)
+                                running = null
+                                rows += fr
+                                atomicWrite(rowsFile, rows.joinToString("") { it.toString() + "\n" })
+                                listener.onRow(fr)
+                                log("[EVAL] ${fq.id}: ${fr["outcome"]} ${fr["tokPerSec"] ?: ""}")
+                                chat += ConversationTurn("user", f)
+                                chat += ConversationTurn("assistant", shown(fr))
+                            }
+                        }
                     }
                 } finally {
                     running = null
@@ -346,6 +372,7 @@ class DeviceEvalRunner(
     private suspend fun answerRow(
         s: LlamaSession, retrieval: Retrieval?, runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String,
         systemPrompt: String, styleReminder: String?, maxTokens: Int, residency: String, loadMs: Double,
+        history: ConversationHistory? = null,
     ): JsonObject {
         val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k) ?: emptyList() }, classify, retrievalIrrelevant,
             headPass = { query, raw, kept, chars -> retrieval?.retriever?.headPass(query, raw, kept, chars) ?: emptyList() },
@@ -357,13 +384,14 @@ class DeviceEvalRunner(
         var genStart = 0L
         var firstToken = 0L
         var tokens = 0
+        val streamed = StringBuilder()
         var done: AnswerEvent.Done? = null
         var error: String? = null
         try {
-            pipeline.answer(AnswerRequest(q.query, systemPrompt, styleReminder, maxTokens, seed = overrides["seed"]?.toIntOrNull() ?: -1)).collect { e ->
+            pipeline.answer(AnswerRequest(q.query, systemPrompt, styleReminder, maxTokens, history, seed = overrides["seed"]?.toIntOrNull() ?: -1)).collect { e ->
                 when (e) {
                     is AnswerEvent.Stage -> if (e.stage == team.sopa.boar.engine.answer.AnswerStage.THINKING) genStart = System.nanoTime()
-                    is AnswerEvent.Piece -> { tokens++; if (firstToken == 0L) firstToken = System.nanoTime() }
+                    is AnswerEvent.Piece -> { tokens++; streamed.append(e.text); if (firstToken == 0L) firstToken = System.nanoTime() }
                     is AnswerEvent.Done -> done = e
                     else -> {}
                 }
@@ -395,6 +423,9 @@ class DeviceEvalRunner(
             "predictedTokens" to m?.generatedTokens, "predictedMs" to m?.decodeMs,
             "configId" to config.id, "configLabel" to config.label, "personalityId" to personalityId, "maxTokens" to maxTokens,
             "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to answer, "promptFormat" to d?.promptFormat,
+            // What the chat shows: the streamed text, or the fixed text no model wrote.
+            "shownText" to (if (streamed.isNotEmpty()) streamed.toString() else answer), "historyTurns" to (history?.turns?.size ?: 0),
+            "healthFixed" to d?.healthFixed, "calculated" to d?.calculated, "exposureComputed" to d?.exposureComputed,
             "retrievedTitles" to titles, "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, titles),
             "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
             "batteryTempBefore" to tempBefore, "batteryTempAfter" to batteryTempC(), "stopReason" to m?.stopReason,
@@ -404,6 +435,8 @@ class DeviceEvalRunner(
     }
 
     private fun d0(d: AnswerEvent.Done?) = d?.retrieved == true
+
+    private fun shown(row: JsonObject) = (row["shownText"] as? JsonPrimitive)?.content ?: (row["answer"] as? JsonPrimitive)?.content ?: ""
 
     private fun failureRow(runId: String, config: EvalConfig, q: EvalQuery, personalityId: String, maxTokens: Int, error: String) = json(
         "modelId" to (config as? EvalConfig.Model)?.modelId, "taskType" to classify(q.query), "adaptiveRoutingUsed" to (config is EvalConfig.Adaptive),

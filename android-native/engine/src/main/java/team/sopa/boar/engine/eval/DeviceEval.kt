@@ -17,6 +17,8 @@ data class EvalQuery(
     val expectedKbTitles: List<String> = emptyList(),
     val gradingNotes: String = "",
     val setVersion: String,
+    /** Later user turns of the same chat, answered in order with the chat's history (device eval only). */
+    val followUps: List<String> = emptyList(),
 )
 
 @Serializable
@@ -120,6 +122,7 @@ object DeviceEval {
                 category = str("category") ?: "custom",
                 query = str("query")?.takeIf { it.isNotBlank() } ?: throw EvalRequestException("question ${str("id")} has no query"),
                 setVersion = setVersion,
+                followUps = (o["followUps"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.takeIf { p -> p.isString }?.content } ?: emptyList(),
             )
         }
     }
