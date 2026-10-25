@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- BoarLite mark (M2), the in-app identity: chat header, empty state, answer avatar, drawer, setup and tour.
-     Same path as the launcher icon (assets/brand/boarlite-mark.svg), centred in a 140-unit viewport so the ear
-     tips stay inside a circle clip. -->
+<!-- LabRat mark (rat), the in-app identity: chat header, empty state, answer avatar, drawer, setup and tour.
+     Same path as the launcher icon (assets/brand/labrat-mark.svg), centred in a 140-unit viewport so the ears
+     stay inside a circle clip. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="140dp"
     android:height="140dp"
@@ -13,6 +13,6 @@
         <path
             android:fillColor="#835400"
             android:fillType="evenOdd"
-            android:pathData="M14 6L41 15L29 35Z M106 6L79 15L91 35Z M46 18H74L86 38L72 62H48L34 38Z M46 68H74L84 84L74 100H46L36 84Z M48.5 80a3 3 0 0 1 6 0v8a3 3 0 0 1-6 0Z M65.5 80a3 3 0 0 1 6 0v8a3 3 0 0 1-6 0Z M79 103L89 87L102 62L98 90Z M41 103L31 87L18 62L22 90Z" />
+            android:pathData="M9 23.5a17 17 0 1 0 34 0a17 17 0 1 0 -34 0Z M17 23.5a9 9 0 1 0 18 0a9 9 0 1 0 -18 0Z M77 23.5a17 17 0 1 0 34 0a17 17 0 1 0 -34 0Z M85 23.5a9 9 0 1 0 18 0a9 9 0 1 0 -18 0Z M44 33.5L76 33.5L92 53.5L66 89.5L54 89.5L28 53.5Z M45.5 55.5a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0 -9 0Z M65.5 55.5a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0 -9 0Z M55 97.5a5 5 0 1 0 10 0a5 5 0 1 0 -10 0Z M80 75.5L104 69.5L105 73.5L81 79.5Z M40 75.5L16 69.5L15 73.5L39 79.5Z M77 83.5L104 86.5L103 90.5L76 87.5Z M43 83.5L16 86.5L17 90.5L44 87.5Z" />
     </group>
 </vector>

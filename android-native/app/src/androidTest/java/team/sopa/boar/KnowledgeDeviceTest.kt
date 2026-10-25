@@ -99,7 +99,7 @@ class KnowledgeDeviceTest {
             compose.scrollTo(hasText(tr("clean.onboarding.caveat")))
             assertTrue(compose.shows(tr("clean.onboarding.caveat")))
         }
-        // A library that isn't on the phone has no Download button: BoarLite can't download anything.
+        // A library that isn't on the phone has no Download button: LabRat can't download anything.
         val wikivoyage = tr("clean.onboarding.pack.wikivoyage.name")
         if (!File(ctx.filesDir, "corpus/boar-wikivoyage-en.sqlite").isFile) {
             compose.scrollTo(hasText(wikivoyage))

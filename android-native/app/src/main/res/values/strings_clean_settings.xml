@@ -6,13 +6,13 @@
     <string name="clean_settings_theme_light" formatted="false">Light</string>
     <string name="clean_settings_theme_dark" formatted="false">Dark</string>
     <string name="clean_settings_section_about" formatted="false">About</string>
-    <string name="clean_settings_aboutNote" formatted="false">What BoarLite is, its version, and the open work it stands on.</string>
+    <string name="clean_settings_aboutNote" formatted="false">What LabRat is, its version, and the open work it stands on.</string>
     <string name="clean_settings_resetDesc" formatted="false">Theme and display options go back to their defaults. Your models and chats stay. Setup opens again.</string>
     <string name="clean_settings_section_developer" formatted="false">Developer options</string>
-    <string name="clean_settings_dev_intro" formatted="false">Tools for measuring BoarLite. Most people never need them.</string>
+    <string name="clean_settings_dev_intro" formatted="false">Tools for measuring LabRat. Most people never need them.</string>
     <string name="clean_settings_dev_enabled" formatted="false">Show developer options</string>
     <string name="clean_settings_dev_enabledNote" formatted="false">Turn off to hide this section. Seven taps on the version in About bring it back.</string>
-    <string name="clean_about_model" formatted="false">Answer model: {{model}} (the only one in BoarLite)</string>
+    <string name="clean_about_model" formatted="false">Answer model: {{model}} (the only one in LabRat)</string>
     <string name="clean_about_devOn" formatted="false">Developer options on</string>
     <string name="clean_about_devOff" formatted="false">Developer options off</string>
 </resources>

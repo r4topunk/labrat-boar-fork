@@ -94,7 +94,7 @@ class ChatFlowDeviceTest {
             assertTrue("defaults: the plain options button", compose.exists(hasContentDescription(tr("design.options.button"))))
             compose.pressIcon(tr("design.options.button"))
             compose.waitForText(title)
-            assertFalse("no Model row: BoarLite has one model", compose.shows(tr("design.options.model")))
+            assertFalse("no Model row: LabRat has one model", compose.shows(tr("design.options.model")))
             assertTrue(compose.shows(tr("design.options.sources")))
             // Only English resources ship, so these literals hold on every phone.
             assertFalse("no Style row", compose.shows("Style"))

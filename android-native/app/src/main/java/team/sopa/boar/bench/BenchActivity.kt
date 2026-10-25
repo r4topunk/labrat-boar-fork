@@ -230,7 +230,7 @@ private fun BenchScreen(
         Modifier.fillMaxSize().background(Color(0xFF17110D)).padding(16.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text("BoarLite engine bench", color = Color(0xFFFFF4E8), fontSize = 22.sp)
+        Text("LabRat engine bench", color = Color(0xFFFFF4E8), fontSize = 22.sp)
         if (models.isEmpty()) Text("Push a .gguf to Android/data/team.sopa.boar.lite.debug/files/models", color = Color(0xFFF2C14E))
         models.forEach { f ->
             FilterChip(selected = model == f, onClick = { model = f }, label = { Text("${f.name} · ${f.length() / 1_000_000} MB") })

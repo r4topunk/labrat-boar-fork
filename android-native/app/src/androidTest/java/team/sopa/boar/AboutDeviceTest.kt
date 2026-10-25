@@ -111,7 +111,7 @@ class AboutDeviceTest {
         compose.scrollTo(hasText(row))
         compose.press(row)
         compose.waitForText("Permission is hereby granted", substring = true)
-        assertTrue("BoarLite's copyright line", compose.shows("BOAR contributors", substring = true))
+        assertTrue("LabRat's copyright line", compose.shows("BOAR contributors", substring = true))
         compose.pressInDialog(tr("common.close"))
         compose.waitForTextGone("Permission is hereby granted", substring = true)
     }

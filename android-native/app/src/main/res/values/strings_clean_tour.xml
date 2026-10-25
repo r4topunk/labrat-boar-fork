@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The first-run tour shown after "Unpacking BoarLite" (ui/setup/SetupTour.kt), and the chat's model-loading line. Keys: clean.tour.*, clean.chat.* -->
+<!-- The first-run tour shown after "Unpacking LabRat" (ui/setup/SetupTour.kt), and the chat's model-loading line. Keys: clean.tour.*, clean.chat.* -->
 <resources>
     <!-- The live strip over every card -->
     <string name="clean_tour_strip_unpacking" formatted="false">Unpacking {{done}} of {{total}}</string>
-    <string name="clean_tour_strip_preparing" formatted="false">Unpacking BoarLite…</string>
+    <string name="clean_tour_strip_preparing" formatted="false">Unpacking LabRat…</string>
     <string name="clean_tour_strip_loading" formatted="false">Loading the language model…</string>
     <string name="clean_tour_strip_ready" formatted="false">Ready ✓</string>
     <string name="clean_tour_strip_failed" formatted="false">The language model did not load.</string>
@@ -12,13 +12,13 @@
     <string name="clean_tour_skip" formatted="false">Skip</string>
     <string name="clean_tour_back" formatted="false">Back</string>
     <string name="clean_tour_next" formatted="false">Next</string>
-    <string name="clean_tour_open" formatted="false">Open BoarLite</string>
+    <string name="clean_tour_open" formatted="false">Open LabRat</string>
     <string name="clean_tour_cardA11y" formatted="false">Card {{index}} of {{count}}</string>
 
     <string name="clean_tour_gettingReady" formatted="false">Getting ready…</string>
 
     <!-- 1. Welcome (the orbit of the knowledge themes) -->
-    <string name="clean_tour_welcome_title" formatted="false">Everything BoarLite knows is inside this phone</string>
+    <string name="clean_tour_welcome_title" formatted="false">Everything LabRat knows is inside this phone</string>
     <string name="clean_tour_welcome_body" formatted="false">The language model, the search model and {{count}} knowledge packs come with the app. Nothing is downloaded.</string>
     <string name="clean_tour_welcome_packs" formatted="false">packs inside</string>
     <string name="clean_tour_welcome_offline" formatted="false">No internet needed</string>
@@ -36,9 +36,9 @@
     <string name="clean_tour_demo_src3_body" formatted="false">Kyoto has about 1,600 Buddhist temples and 400 Shinto shrines. Seventeen places in and around the city are UNESCO World Heritage Sites.</string>
     <string name="clean_tour_demo_healthQuestion" formatted="false">How many mg of ibuprofen for a 20 kg child?</string>
 
-    <!-- 1. What BoarLite knows offline -->
-    <string name="clean_tour_knows_title" formatted="false">What BoarLite knows offline</string>
-    <string name="clean_tour_knows_body" formatted="false">{{count}} knowledge packs come inside the app. BoarLite answers from them, with no internet.</string>
+    <!-- 1. What LabRat knows offline -->
+    <string name="clean_tour_knows_title" formatted="false">What LabRat knows offline</string>
+    <string name="clean_tour_knows_body" formatted="false">{{count}} knowledge packs come inside the app. LabRat answers from them, with no internet.</string>
     <string name="clean_tour_group_encyclopedia" formatted="false">Encyclopedia</string>
     <string name="clean_tour_group_countries" formatted="false">Countries</string>
     <string name="clean_tour_group_travel" formatted="false">Travel &amp; outdoors</string>
@@ -56,12 +56,12 @@
     <string name="clean_tour_ask_one" formatted="false">Ask one question at a time.</string>
     <string name="clean_tour_ask_short" formatted="false">Answers are short, with numbered sources.</string>
     <string name="clean_tour_ask_followUp" formatted="false">Follow-up questions are fine.</string>
-    <string name="clean_tour_ask_sources" formatted="false">To choose where BoarLite searches, open Answer options › Sources.</string>
+    <string name="clean_tour_ask_sources" formatted="false">To choose where LabRat searches, open Answer options › Sources.</string>
 
     <!-- 3. Health & emergencies -->
     <string name="clean_tour_health_title" formatted="false">Health &amp; emergencies</string>
-    <string name="clean_tour_health_fixed" formatted="false">When no health source matches your question, BoarLite gives fixed, safe guidance and the emergency number.</string>
-    <string name="clean_tour_health_doctor" formatted="false">BoarLite is not a doctor.</string>
+    <string name="clean_tour_health_fixed" formatted="false">When no health source matches your question, LabRat gives fixed, safe guidance and the emergency number.</string>
+    <string name="clean_tour_health_doctor" formatted="false">LabRat is not a doctor.</string>
     <string name="clean_tour_health_caveat" formatted="false">The health packs are AI-reviewed, not clinically reviewed.</string>
     <string name="clean_tour_health_us" formatted="false">911 · US</string>
     <string name="clean_tour_health_eu" formatted="false">112 · Europe</string>
@@ -73,9 +73,9 @@
 
     <!-- 5. Your chats stay here -->
     <string name="clean_tour_private_title" formatted="false">Your chats stay here</string>
-    <string name="clean_tour_private_body" formatted="false">BoarLite has no internet permission. Nothing you type leaves this phone.</string>
+    <string name="clean_tour_private_body" formatted="false">LabRat has no internet permission. Nothing you type leaves this phone.</string>
     <string name="clean_tour_private_noNet" formatted="false">No internet permission</string>
-    <string name="clean_tour_private_noNetSub" formatted="false">BoarLite cannot go online, by design.</string>
+    <string name="clean_tour_private_noNetSub" formatted="false">LabRat cannot go online, by design.</string>
     <string name="clean_tour_private_phone" formatted="false">Nothing leaves this phone</string>
     <string name="clean_tour_private_phoneSub" formatted="false">Your chats are saved here only.</string>
     <string name="clean_tour_private_airplane" formatted="false">Works in airplane mode</string>

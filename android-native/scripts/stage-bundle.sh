@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Stages BoarLite's data bundle: every file the closed app installs on first launch (the answer model, the search model,
+# Stages LabRat's data bundle: every file the closed app installs on first launch (the answer model, the search model,
 # the 13 knowledge packs of the K13 kit and the prebuilt search index), under <outDir>/bundle/ at its installed path,
 # plus bundle/manifest.json. Each sha256 is checked against the app's catalog.json, so the APK never carries a file the
 # app would reject. Files are hard links (no copy: the packs and model are about 3 GB), so <outDir> must be on the same

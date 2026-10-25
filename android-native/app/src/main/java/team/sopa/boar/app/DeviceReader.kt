@@ -7,7 +7,7 @@ import team.sopa.boar.engine.CpuTopology
 import team.sopa.boar.engine.eval.DeviceInfo
 import java.io.File
 
-/** What Settings → Telemetry and the Evaluation screen show about this phone. It stays on the phone: BoarLite has no network. */
+/** What Settings → Telemetry and the Evaluation screen show about this phone. It stays on the phone: LabRat has no network. */
 object DeviceReader {
     fun device(context: Context): DeviceInfo.Device {
         val ram = runCatching { ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }.totalMem }.getOrNull()

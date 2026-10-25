@@ -2,7 +2,7 @@ package team.sopa.boar.engine.routing
 
 /**
  * From r4to's PR #85 (BOAR R&D, MIT): only the question predicates NumGuard needs (health). The word lists keep their
- * Spanish terms, so a health question in Spanish is still caught; BoarLite answers English only.
+ * Spanish terms, so a health question in Spanish is still caught; LabRat answers English only.
  * The regexes are the original JavaScript ones verbatim, through JsRegex.
  */
 object QueryContext {

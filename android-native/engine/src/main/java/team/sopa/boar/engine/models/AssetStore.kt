@@ -9,7 +9,7 @@ import java.security.MessageDigest
 import kotlin.math.abs
 
 /**
- * Installed assets on disk: status and sha256 verification (BoarLite has no network permission, so files only
+ * Installed assets on disk: status and sha256 verification (LabRat has no network permission, so files only
  * arrive from the app's own bundle).
  *
  * Layout: assets live at `<filesDir>/<asset.filename>` and verified files are listed in

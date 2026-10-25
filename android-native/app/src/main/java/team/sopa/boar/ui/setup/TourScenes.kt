@@ -148,7 +148,7 @@ private fun Question(text: String) {
     }
 }
 
-/** The answer's byline as the chat draws it: the label alone ("Boar"). */
+/** The answer's byline as the chat draws it: the label alone ("Rat"). */
 @Composable
 private fun Byline() =
     Text(t("chatScreen.roleAssistant"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -255,7 +255,7 @@ internal fun WelcomeScene(groups: List<TourGroup>, count: Int, play: Boolean, mo
     }
 }
 
-// --- 2. What BoarLite knows --------------------------------------------------------------------------------------------
+// --- 2. What LabRat knows --------------------------------------------------------------------------------------------
 
 /** The count, then one tile per theme (icon, pack count, pack names) popping in, then the calculator. */
 @Composable
@@ -378,7 +378,7 @@ internal fun SourceScene(play: Boolean, motion: Boolean, modifier: Modifier) {
 
 // --- 5. Health & emergencies -------------------------------------------------------------------------------------------
 
-/** A dose question; BoarLite "types", then the fixed health text (HealthGate) with the numbers, then the caveat. */
+/** A dose question; LabRat "types", then the fixed health text (HealthGate) with the numbers, then the caveat. */
 @Composable
 internal fun HealthScene(play: Boolean, motion: Boolean, modifier: Modifier) {
     val cs = MaterialTheme.colorScheme

@@ -10,7 +10,7 @@ import androidx.compose.ui.res.painterResource
 import team.sopa.boar.R
 
 /**
- * The BoarLite mark (R.drawable.mascot) in the accent color, the theme's primary (r4to 2026-10-24, general rule for the
+ * The LabRat mark (R.drawable.mascot) in the accent color, the theme's primary (r4to 2026-10-24, general rule for the
  * app; the launcher icon keeps its own colors). The vector pads the mark inside its box: it fills about 3/4 of [modifier]'s size.
  */
 @Composable

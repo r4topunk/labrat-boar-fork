@@ -317,7 +317,7 @@ private fun Header(
     Column {
         TopAppBar(
             title = {
-                Text("BoarLite", style = MaterialTheme.typography.titleMedium, maxLines = 1,
+                Text("LabRat", style = MaterialTheme.typography.titleMedium, maxLines = 1,
                     modifier = Modifier.clip(MaterialTheme.shapes.medium)
                         .clickable(onClickLabel = t("chatHeader.offlineTitle"), role = Role.Button) { info = true }
                         .padding(horizontal = 4.dp, vertical = 6.dp))

@@ -22,7 +22,7 @@ object ThemeMode {
 /**
  * The Material color scheme, always the brand's (Moonlight's navy and amber at night, a warm cream with the same amber
  * by day) on every Android version. No wallpaper colors (Material You): the warm palette matches the mascot and the
- * onboarding, and BoarLite looks the same on every phone. `context` stays for the callers.
+ * onboarding, and LabRat looks the same on every phone. `context` stays for the callers.
  */
 @Suppress("UNUSED_PARAMETER")
 fun boarColorScheme(context: Context, dark: Boolean): ColorScheme = if (dark) brandDark else brandLight

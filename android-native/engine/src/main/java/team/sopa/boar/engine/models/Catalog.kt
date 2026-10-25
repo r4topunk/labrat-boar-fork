@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * The model and corpus catalog, read from assets/boar-data/catalog.json. BoarLite has one answer model (Qwen3 1.7B) and
+ * The model and corpus catalog, read from assets/boar-data/catalog.json. LabRat has one answer model (Qwen3 1.7B) and
  * one search model; everything else in it is a knowledge pack.
  */
 @Serializable
@@ -14,7 +14,7 @@ data class Catalog(
     val ramBudgetBytes: Long,
     val models: List<CatalogAsset>,
 ) {
-    /** The one language model BoarLite answers with. */
+    /** The one language model LabRat answers with. */
     val answerModel: CatalogAsset get() = models.first { it.kind == AssetKind.LLM }
 
     /** What the app needs on disk to answer: the search model and the answer model. */
@@ -48,7 +48,7 @@ data class CatalogAsset(
     val filename: String,
     val sizeBytes: Long,
     val sha256: String,
-    /** Where the file came from (provenance only: BoarLite has no network permission and never fetches it). */
+    /** Where the file came from (provenance only: LabRat has no network permission and never fetches it). */
     val sourceUrl: String = "",
     val license: String,
     val description: String,

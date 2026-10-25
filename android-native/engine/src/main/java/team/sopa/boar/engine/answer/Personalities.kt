@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * The answer style's prompt. BoarLite has one style, Succinct (assets/boar-data/personalities.json): the same prompts
+ * The answer style's prompt. LabRat has one style, Succinct (assets/boar-data/personalities.json): the same prompts
  * the chat and the device eval send.
  */
 @Serializable

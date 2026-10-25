@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="./assets/brand/boarlite-mark.svg" width="112" alt="BoarLite logo" />
+  <img src="./assets/brand/labrat-mark.svg" width="112" alt="LabRat logo" />
 </p>
 
-<h1 align="center">BoarLite</h1>
+<h1 align="center">LabRat</h1>
 
 <p align="center">
   <b>AI that works when the internet doesn't.</b><br />
@@ -28,10 +28,10 @@
 ## What it is
 
 Search and chat assistants stop working the moment you lose signal: on a plane, a
-trail, a border crossing, a blackout. BoarLite answers in airplane mode, with no
+trail, a border crossing, a blackout. LabRat answers in airplane mode, with no
 account, no server and no Google Play Services.
 
-BoarLite is a **closed offline build** (package `team.sopa.boar.lite`): the APK declares no
+LabRat is a **closed offline build** (package `team.sopa.boar.lite`): the APK declares no
 `INTERNET` permission, so the app itself cannot send anything you ask, read or import over a network. Everything
 the app needs is built into the APK (about 3.0 GB) and unpacked on first launch:
 
@@ -76,7 +76,7 @@ sends anything.
 
 ## Install
 
-BoarLite is not published on any store and its source repository is private. You get an APK
+LabRat is not published on any store and its source repository is private. You get an APK
 from the team and install it yourself:
 
 ```bash
@@ -96,9 +96,9 @@ your documents and all chats).
 
 ## Based on BOAR
 
-BoarLite is a fork of [BOAR](https://github.com/rferrari/boar-app) (MIT), the open-source
+LabRat is a fork of [BOAR](https://github.com/rferrari/boar-app) (MIT), the open-source
 offline research app by its community of contributors. The engine, the pack search design and
-much of the UI come from BOAR; BoarLite fixes one model, one language and one answer style, and
+much of the UI come from BOAR; LabRat fixes one model, one language and one answer style, and
 removes everything that needs a network. BOAR's own README, release badges, benchmarks and
 store or download instructions describe that project, not this build. The MIT license and
 copyright notice are in [LICENSE](LICENSE), and third-party credits are in
@@ -111,7 +111,7 @@ copyright notice are in [LICENSE](LICENSE), and third-party credits are in
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Design notes (inherited from BOAR; where it differs, this README and the code win) |
 | [android-native/docs/BUILDING-RELEASE.md](android-native/docs/BUILDING-RELEASE.md) | Building a release APK with its data bundle, signing, adb-push install |
 | [AGENTS.md](AGENTS.md) | Compile and install from source |
-| [PRIVACY.md](PRIVACY.md) · [TERMS.md](TERMS.md) | Privacy notice and terms for BoarLite |
+| [PRIVACY.md](PRIVACY.md) · [TERMS.md](TERMS.md) | Privacy notice and terms for LabRat |
 | [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md) | Release and submission checks |
 
 License: [LICENSE](LICENSE).

@@ -81,7 +81,7 @@ class SettingsDeviceTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync { DevOptions.setEnabled(ctx, true) }
         show()
         visible(tr("clean.settings.section.developer"))
-        for (text in listOf("How BoarLite answers", "Thorough", "Executive Summary", "Deep Research", "Max output tokens", "Custom style"))
+        for (text in listOf("How LabRat answers", "Thorough", "Executive Summary", "Deep Research", "Max output tokens", "Custom style"))
             assertFalse("'$text' is offered in Settings", compose.shows(text, substring = true))
         assertEquals("succinct", services.settings.personalityId)
     }
@@ -109,7 +109,7 @@ class SettingsDeviceTest {
 
     @Test fun eachRowOpensItsScreenOrFlow() {
         show()
-        assertFalse("no model row: BoarLite has one model", compose.shows(tr("clean.settings.model.title")))
+        assertFalse("no model row: LabRat has one model", compose.shows(tr("clean.settings.model.title")))
         assertFalse("no Knowledge row: the menu has it", compose.shows("Packs and documents"))
         assertFalse("no chat-title switch: titles are always written", compose.shows("Auto-generate chat titles"))
         compose.scrollAndPress(tr("aboutScreen.title")); assertEquals("about", opened)

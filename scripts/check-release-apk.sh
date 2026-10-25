@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Checks a BoarLite release APK before it is shared. Exit 1 unless:
-# - the application id is BoarLite's (team.sopa.boar.lite),
+# Checks a LabRat release APK before it is shared. Exit 1 unless:
+# - the application id is LabRat's (team.sopa.boar.lite),
 # - versionCode equals the one android-native/app/build.gradle.kts declares (a stale APK, or one with the same or a lower
 #   code, won't install over the previous release),
-# - the APK is signed with BoarLite's own release key (D9): a different signer can't update an installed BoarLite,
+# - the APK is signed with LabRat's own release key (D9): a different signer can't update an installed LabRat,
 # - the manifest asks for no INTERNET permission (D1: the app is closed, it has no network).
 #
 #   scripts/check-release-apk.sh android-native/app/build/outputs/apk/release/app-release.apk
@@ -15,10 +15,10 @@ apk=${1:?usage: $0 <release.apk>}
 [[ -f "$apk" ]] || { echo "not found: $apk" >&2; exit 2; }
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# Signer certificate SHA-256 of BoarLite's upload key (apksigner verify --print-certs on a release build).
+# Signer certificate SHA-256 of LabRat's upload key (apksigner verify --print-certs on a release build).
 RELEASE_SIGNER=f777722b39c5f29f8a0bfc4ef3e8746374015a5fd925c8f75eeece88d9db57e9
 want_package=team.sopa.boar.lite
-# BoarLite is a native app: its version code lives in the Gradle build, not in an app config file.
+# LabRat is a native app: its version code lives in the Gradle build, not in an app config file.
 want_code=$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$ROOT/android-native/app/build.gradle.kts" | head -1)
 [[ -n "$want_code" ]] || { echo "android-native/app/build.gradle.kts has no versionCode" >&2; exit 2; }
 
@@ -38,13 +38,13 @@ name=$(sed -n "s/.*versionName='\([^']*\)'.*/\1/p" <<<"$badging")
 
 signers=$("$tools/apksigner" verify --print-certs "$apk" 2>&1) || bad "apksigner verify failed: $signers"
 signer=$(grep -m1 "certificate SHA-256 digest" <<<"$signers" | awk '{print $NF}' || true)
-[[ "$signer" == "$RELEASE_SIGNER" ]] || bad "signer is '${signer:-none}', expected BoarLite's $RELEASE_SIGNER"
+[[ "$signer" == "$RELEASE_SIGNER" ]] || bad "signer is '${signer:-none}', expected LabRat's $RELEASE_SIGNER"
 
 if "$tools/aapt2" dump permissions "$apk" | grep -q "android.permission.INTERNET"; then
   bad "the APK asks for android.permission.INTERNET"
 fi
 
 if [[ $fail == 0 ]]; then
-  echo "OK: $apk ($package $name, versionCode $code, signed with BoarLite's release key, no INTERNET)"
+  echo "OK: $apk ($package $name, versionCode $code, signed with LabRat's release key, no INTERNET)"
 fi
 exit $fail

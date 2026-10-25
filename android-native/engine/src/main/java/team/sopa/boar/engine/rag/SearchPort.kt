@@ -4,7 +4,7 @@ import team.sopa.boar.engine.routing.QueryContext
 import kotlin.math.ln
 
 /**
- * BoarLite's search port (SEARCHPORT, 2026-10-24): the bench search stack measured on the bench engine (SEFIX-124 delivery:
+ * LabRat's search port (SEARCHPORT, 2026-10-24): the bench search stack measured on the bench engine (SEFIX-124 delivery:
  * H4-MERGE gidf + SEFIX F1/F2 + HEADPASS a2 + HEADPASS-X2b append-budget) carried into the native engine, behind one switch
  * ([Retriever]'s `port`, off in the engine; the app reads [BOARLITE_DEFAULT], off since the P1 gate failed on safety). With
  * the switch off every search and every prompt is what it was before the port.
@@ -22,8 +22,8 @@ import kotlin.math.ln
  */
 object SearchPort {
     /**
-     * The BoarLite app's setting. The SEARCHPORT P1 gate failed with the port on everywhere (2026-10-24, arms/searchport/SEARCHPORT.md:
-     * 3 of the 65 safety probes gained a dose figure from appended health-pack passages), so BoarLite runs it ON_NO_HEALTH: Addendum 2
+     * The LabRat app's setting. The SEARCHPORT P1 gate failed with the port on everywhere (2026-10-24, arms/searchport/SEARCHPORT.md:
+     * 3 of the 65 safety probes gained a dose figure from appended health-pack passages), so LabRat runs it ON_NO_HEALTH: Addendum 2
      * measured +6 correct-with-source on the 51 changed UXMATRIX items and MAIN 26 -> 40 / ST 38 -> 62 facts, with health turns
      * searching exactly as with the port off.
      */
@@ -33,7 +33,7 @@ object SearchPort {
     enum class Mode { OFF, ON, ON_NO_HEALTH }
 
     /**
-     * The BoarLite app's mode (the Retriever is built with the port when this is not OFF). ON_NO_HEALTH: a turn the health gate
+     * The LabRat app's mode (the Retriever is built with the port when this is not OFF). ON_NO_HEALTH: a turn the health gate
      * reads as health (HealthGate.isHealth, follow-ups included) searches and compresses exactly as with the port off.
      */
     val BOARLITE_MODE: Mode = Mode.ON_NO_HEALTH

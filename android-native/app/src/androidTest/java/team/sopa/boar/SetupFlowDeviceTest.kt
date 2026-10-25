@@ -22,7 +22,7 @@ import team.sopa.boar.engine.models.BundleInstaller
 /**
  * The first-run flow (ui/setup), reopened from Settings → Run setup again on an install that already works, so nothing
  * is wiped: the tour starts at once while the install checks its files behind it (every file already verified, the
- * index merged again); its Open BoarLite waits for the answer model (BoarServices.modelState READY), and Back on the
+ * index merged again); its Open LabRat waits for the answer model (BoarServices.modelState READY), and Back on the
  * first card returns to the chat. The devtest install carries no bundle, so a file missing from the phone would show
  * the "needs its data" screen instead.
  */
@@ -51,17 +51,17 @@ class SetupFlowDeviceTest {
         assertFalse("no unpack screen", compose.exists(hasText(tr("clean.setup.unpackTitle"))))
     }
 
-    @Test fun runSetupAgainShowsTheTourAndOpensBoarLiteOnceTheModelIsReady() {
+    @Test fun runSetupAgainShowsTheTourAndOpensLabRatOnceTheModelIsReady() {
         needsAWorkingInstall()
         val before = services.activeModel()!!.id
         runSetupAgainToTheTour()
-        // Next through the cards to the last one, where Open BoarLite is.
+        // Next through the cards to the last one, where Open LabRat is.
         repeat(5) { compose.press(tr("clean.tour.next")) }
         compose.waitFor(hasText(tr("clean.tour.private.title")), "the last card", 10_000)
         // Enabled only once the model is loaded (about 2 min the first time on a Pixel 8a): waited for on the Compose clock.
         val open = hasText(tr("clean.tour.open")) and hasClickAction()
         try { compose.waitUntil(300_000) { compose.exists(open and isEnabled()) } }
-        catch (e: Throwable) { throw AssertionError("Open BoarLite was not enabled within 300 s (model ${services.modelState.value})", e) }
+        catch (e: Throwable) { throw AssertionError("Open LabRat was not enabled within 300 s (model ${services.modelState.value})", e) }
         assertEquals(BoarServices.ModelLoadState.READY, services.modelState.value)
         compose.pressNode(open)
         compose.waitForChat()

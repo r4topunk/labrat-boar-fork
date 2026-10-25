@@ -60,14 +60,14 @@ import team.sopa.boar.ui.t
 /** The tour's cards, in order. */
 private enum class TourCard { WELCOME, KNOWS, ASK, SOURCE, HEALTH, PRIVATE }
 
-/** Where the first run is: the unpack, then the answer model's load. Shown only by Open BoarLite on the last card. */
+/** Where the first run is: the unpack, then the answer model's load. Shown only by Open LabRat on the last card. */
 internal enum class TourStatus {
     UNPACKING, LOADING, READY, FAILED,
     /** The model may not fit, or closed the app last time: it isn't loaded on its own, the chat asks first (StartLoad). */
     ASK,
 }
 
-/** "Open BoarLite" opens the chat only once the model is ready (or when the chat must ask before loading it). */
+/** "Open LabRat" opens the chat only once the model is ready (or when the chat must ask before loading it). */
 internal fun TourStatus.canOpen() = this == TourStatus.READY || this == TourStatus.ASK
 
 @Composable
@@ -87,8 +87,8 @@ private fun tourStatus(setup: SetupState, model: ModelLoadState, services: BoarS
 
 /**
  * First run: six swipeable cards, each a stage where the app shows itself (the chat's own parts, animated) over a title
- * and one line: welcome, what BoarLite knows, how to ask, checking a source, health, privacy. It starts at once while
- * the bundle unpacks and the answer model loads behind it, with no progress shown and no Skip: only Open BoarLite, on
+ * and one line: welcome, what LabRat knows, how to ask, checking a source, health, privacy. It starts at once while
+ * the bundle unpacks and the answer model loads behind it, with no progress shown and no Skip: only Open LabRat, on
  * the last card, waits until the model is ready. [onExit] (setup reopened from Settings) is Back on the first card.
  */
 @Composable
@@ -147,7 +147,7 @@ internal fun SetupTour(setup: SetupState, onExit: (() -> Unit)?, onOpen: () -> U
 }
 
 /**
- * Back, the card dots (the current one a pill) and Next; on the last card, Back and Open BoarLite, which reads
+ * Back, the card dots (the current one a pill) and Next; on the last card, Back and Open LabRat, which reads
  * "Getting ready…" until the model is loaded, or says the load failed with Retry.
  */
 @Composable

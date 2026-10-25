@@ -32,7 +32,7 @@ data class ResearchResult(
 )
 
 /**
- * What is left of Deep Research in BoarLite: the answers written from the chat
+ * What is left of Deep Research in LabRat: the answers written from the chat
  * itself, with no search. A recap of the whole conversation, or a summary/conclusion of the last answer. The
  * sub-question research is not offered, so it is gone.
  */

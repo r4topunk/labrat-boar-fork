@@ -810,7 +810,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** The warm prefill holds the model's lock (set from its first shouldStop check, cleared when it ends). */
     @Volatile private var warmInside = false
 
-    /** A model of unknown size counts as compact: BoarLite ships one model, Qwen3 1.7B, and it is. */
+    /** A model of unknown size counts as compact: LabRat ships one model, Qwen3 1.7B, and it is. */
     private fun compactAnswerModel(): Boolean =
         services.answerModel()?.sizeBytes?.let { it <= team.sopa.boar.engine.answer.AnswerNote.COMPACT_MODEL_BYTES } ?: true
 

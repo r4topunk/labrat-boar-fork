@@ -38,7 +38,7 @@ data class AnswerRequest(
     val seed: Int = -1,
     /**
      * The answering model is compact ([AnswerNote.COMPACT_MODEL_BYTES] or smaller): its
-     * answers go through CT-1 and attribution ([Citations]). BoarLite's one model, Qwen3 1.7B, is.
+     * answers go through CT-1 and attribution ([Citations]). LabRat's one model, Qwen3 1.7B, is.
      */
     val compactModel: Boolean = true,
 )
@@ -89,7 +89,7 @@ class AnswerPipeline(
     private val retrievalIrrelevant: (String) -> Boolean,
     private val clock: () -> Double = { System.nanoTime() / 1e6 },
     /**
-     * BoarLite's search port (Retriever.headPass): (question, retrieved list, compressed passages, prompt length of a passage list) ->
+     * LabRat's search port (Retriever.headPass): (question, retrieved list, compressed passages, prompt length of a passage list) ->
      * passages appended after the compressed ones. Null: nothing appended (the path as before the port).
      */
     private val headPass: ((String, List<Chunk>, List<Chunk>, (List<Chunk>) -> Int) -> List<Chunk>)? = null,

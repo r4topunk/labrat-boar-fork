@@ -2,7 +2,7 @@ package team.sopa.boar.engine.eval
 
 /**
  * What the Settings telemetry and the Evaluation screen say about this phone, and how the raw hardware values read as
- * text. Nothing here is sent anywhere: BoarLite has no network permission.
+ * text. Nothing here is sent anywhere: LabRat has no network permission.
  */
 object DeviceInfo {
     data class Device(

@@ -118,7 +118,7 @@ fun BoarDrawer(
                         BoarMark(null, Modifier.size(44.dp)) // about 34 dp of mark, as in the design
                     }
                     Column {
-                        Text("BoarLite", style = Boar.type.title, fontWeight = FontWeight.ExtraBold, color = scheme.onPrimaryContainer)
+                        Text("LabRat", style = Boar.type.title, fontWeight = FontWeight.ExtraBold, color = scheme.onPrimaryContainer)
                         if (brandNote.isNotEmpty()) Text(brandNote, style = type.bodySmall, color = scheme.onPrimaryContainer)
                     }
                 }

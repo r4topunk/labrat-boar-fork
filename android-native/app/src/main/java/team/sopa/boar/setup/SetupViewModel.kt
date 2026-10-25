@@ -39,7 +39,7 @@ enum class SetupPhase {
     FAILED,
 }
 
-/** What the "Unpacking BoarLite" screen shows. */
+/** What the "Unpacking LabRat" screen shows. */
 data class SetupState(
     val phase: SetupPhase = SetupPhase.CHECKING,
     /** The file being copied, by its catalog name ("Qwen3 1.7B"). */
@@ -65,8 +65,8 @@ private class ApkBundleSource(private val assets: AssetManager) : BundleSource {
 }
 
 /**
- * First run: installs BoarLite's data from its own bundle (BundleInstaller), then merges the prebuilt search index,
- * opens the packs and selects the one answer model, and the chat opens. BoarLite has no network: the bundle comes from
+ * First run: installs LabRat's data from its own bundle (BundleInstaller), then merges the prebuilt search index,
+ * opens the packs and selects the one answer model, and the chat opens. LabRat has no network: the bundle comes from
  * the APK, or, for a build without one, from `<external files>/bundle` filled by adb push (deleted once installed).
  * The JSON Wikipedia corpora are always copied from the APK's assets/corpus.
  */

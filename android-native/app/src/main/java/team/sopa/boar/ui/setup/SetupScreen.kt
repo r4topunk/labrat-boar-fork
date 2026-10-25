@@ -36,7 +36,7 @@ import team.sopa.boar.setup.SetupViewModel
 import team.sopa.boar.ui.t
 
 /**
- * First run: "Unpacking BoarLite". The app's data comes out of its own bundle (about 14 s for 3 GB on a Pixel 8a), with
+ * First run: "Unpacking LabRat". The app's data comes out of its own bundle (about 14 s for 3 GB on a Pixel 8a), with
  * the file and bytes shown; when it is done the caller moves on to the tour ([SetupTour]) by itself. When there is no
  * bundle to unpack, the screen says so plainly (with the adb command for testers); a full phone or a failed copy gets a
  * retry. [onSkip] is set when it was reopened from Settings and the app already works.

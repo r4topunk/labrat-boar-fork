@@ -6,7 +6,7 @@ plugins {
     jacoco
 }
 
-// BoarLite's data bundle (scripts/stage-bundle.sh <outDir>): with -Pboar.bundleDir=<outDir> the APK carries the model,
+// LabRat's data bundle (scripts/stage-bundle.sh <outDir>): with -Pboar.bundleDir=<outDir> the APK carries the model,
 // the packs and the index under assets/bundle/, installed on first launch. Without it the APK has no bundle, so
 // development builds stay small and get their data from an adb-pushed folder instead (docs/BUILDING-RELEASE.md).
 val bundleDir: File? = providers.gradleProperty("boar.bundleDir").orNull?.trim()?.takeIf { it.isNotEmpty() }?.let { dir ->
@@ -46,7 +46,7 @@ android {
     ndkVersion = "27.1.12297006"
 
     defaultConfig {
-        // BoarLite has its own id: it installs beside BOAR (team.sopa.aoair) and never over it or its models.
+        // LabRat has its own id: it installs beside BOAR (team.sopa.aoair) and never over it or its models.
         applicationId = "team.sopa.boar.lite"
         minSdk = 26
         targetSdk = 36
@@ -65,8 +65,8 @@ android {
         ndk { abiFilters += listOf("arm64-v8a") }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    // BoarLite's own upload key (D9), named in ~/.gradle/gradle.properties and never in the repo. It is not any earlier app's key,
-    // so BoarLite never updates a BOAR install. Without it the release is debug-signed.
+    // LabRat's own upload key (D9), named in ~/.gradle/gradle.properties and never in the repo. It is not any earlier app's key,
+    // so LabRat never updates a BOAR install. Without it the release is debug-signed.
     val storeFile = providers.gradleProperty("BOARLITE_UPLOAD_STORE_FILE").orNull
     signingConfigs {
         if (storeFile != null) create("release") {

@@ -58,7 +58,7 @@
     <string name="clean_onboarding_pack_crypto_name" formatted="false">Crypto &amp; Ethereum reference</string>
     <string name="clean_onboarding_pack_crypto_desc" formatted="false">EIPs, BIPs, Ethereum specs and ethereum.org docs.</string>
     <string name="clean_onboarding_progressA11y" formatted="false">Setup {{pct}}% done</string>
-    <string name="clean_onboarding_welcome_mascotA11y" formatted="false">BoarLite mascot</string>
+    <string name="clean_onboarding_welcome_mascotA11y" formatted="false">LabRat mascot</string>
     <string name="clean_onboarding_articles_one" formatted="false">{{value}} article</string>
     <string name="clean_onboarding_articles_other" formatted="false">{{value}} articles</string>
     <string name="clean_chat_loadNote_crashedTitle" formatted="false">{{model}} closed while loading</string>

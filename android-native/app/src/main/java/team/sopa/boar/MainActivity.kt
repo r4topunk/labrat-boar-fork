@@ -238,7 +238,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
 
 /**
  * First-run setup, and setup reopened from Settings: the tour (SetupTour) while the bundle unpacks behind it; its Open
- * BoarLite opens the chat once the model is ready. Settings → Run setup again runs the same (files already verified
+ * LabRat opens the chat once the model is ready. Settings → Run setup again runs the same (files already verified
  * are kept), and Back on the first card returns to the chat.
  */
 @Composable
@@ -252,7 +252,7 @@ private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, prefs: DisplayPr
         lifecycle.addObserver(observer)
         onDispose { lifecycle.removeObserver(observer) }
     }
-    // The tour starts at once and the unpack runs behind it; "Unpacking BoarLite" shows only when it can't go on (no
+    // The tour starts at once and the unpack runs behind it; "Unpacking LabRat" shows only when it can't go on (no
     // bundle, no space, a failed copy), with its retry.
     LaunchedEffect(Unit) { setup.start() }
     val phase = setupState.phase

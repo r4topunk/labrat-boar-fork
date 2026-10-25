@@ -1,4 +1,4 @@
-> Inherited from BOAR. BoarLite removed downloads, model choice, Deep Research beyond the recap, adaptive routing and Portuguese.
+> Inherited from BOAR. LabRat removed downloads, model choice, Deep Research beyond the recap, adaptive routing and Portuguese.
 > Where this document differs from the code, the code wins.
 
 # BOAR — Adaptive Local Intelligence (Android)
@@ -32,12 +32,12 @@ constraints this design targets:
 
 ## First-run data setup
 
-BoarLite is a closed app (the manifest removes the `INTERNET` permission), so nothing is downloaded. Its
+LabRat is a closed app (the manifest removes the `INTERNET` permission), so nothing is downloaded. Its
 models, knowledge packs and search index come in a data bundle (about 3.0 GB) that the build adds to the
 APK (`-Pboar.bundleDir`, see `android-native/docs/BUILDING-RELEASE.md`):
 
-1. On launch the app checks whether its data is installed. If not, it shows the "Unpacking BoarLite"
-   screen (or "BoarLite needs its data" when the APK carries no bundle) instead of the chat UI.
+1. On launch the app checks whether its data is installed. If not, it shows the "Unpacking LabRat"
+   screen (or "LabRat needs its data" when the APK carries no bundle) instead of the chat UI.
 2. The installer copies each bundle file into the app's files folder and checks it against its sha256 in
    `catalog.json`. If the copy stops, it resumes at the file it stopped in.
 3. Once the data is installed the app moves to the normal chat UI. Chat, retrieval and generation are pure

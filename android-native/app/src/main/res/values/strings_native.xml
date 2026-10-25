@@ -54,16 +54,16 @@
     <string name="native_about_tagline" formatted="false">Your questions.\nYour phone. Your AI.</string>
     <string name="native_about_bio" formatted="false">Offline AI research on your phone. Answers with sources, no signal needed. Based on BOAR (MIT).</string>
     <string name="native_about_post_why" formatted="false">When AI lives only on someone else\'s server, whoever runs it holds a switch.\n\nWe\'d rather no one did. So the model lives on your phone, and no server receives your questions.</string>
-    <string name="native_about_post_offline" formatted="false">BoarLite has no internet access at all, so airplane mode is fine: it answers from the library on your phone and shows the articles it used.</string>
+    <string name="native_about_post_offline" formatted="false">LabRat has no internet access at all, so airplane mode is fine: it answers from the library on your phone and shows the articles it used.</string>
     <string name="native_about_post_receipt" formatted="false">Every answer the model writes shows how long it took and which articles it used.</string>
-    <string name="native_about_post_budget" formatted="false">Before a model loads, BoarLite checks that it fits your phone\'s memory.</string>
+    <string name="native_about_post_budget" formatted="false">Before a model loads, LabRat checks that it fits your phone\'s memory.</string>
     <string name="native_about_post_packs" formatted="false">Knowledge packs from R4to\'s R&amp;D Lab:</string>
     <string name="native_about_post_team" formatted="false">Core team, on X:</string>
     <string name="native_about_post_credits" formatted="false">Standing on open work, each under its own license:</string>
     <string name="native_about_creditsAll" formatted="false">Show all {{n}}</string>
     <string name="native_about_creditsLess" formatted="false">Show fewer</string>
     <string name="native_about_licenseTexts" formatted="false">License texts</string>
-    <string name="native_about_licenseTextsNote" formatted="false">The MIT licenses of BoarLite and of llama.cpp / ggml</string>
+    <string name="native_about_licenseTextsNote" formatted="false">The MIT licenses of LabRat and of llama.cpp / ggml</string>
     <string name="native_about_packsTitle" formatted="false">Knowledge packs</string>
     <string name="native_about_packsBody" formatted="false">Packs from R4to\'s R&amp;D Lab.</string>
     <string name="native_about_teamTitle" formatted="false">Core team</string>
@@ -77,9 +77,9 @@
     <string name="native_about_addressesTitle" formatted="false">Official addresses</string>
     <string name="native_about_siteLabel" formatted="false">Website</string>
     <string name="native_about_creditsTitle" formatted="false">Credits</string>
-    <string name="native_chatScreen_roleAssistant" formatted="false">Boar</string>
+    <string name="native_chatScreen_roleAssistant" formatted="false">Rat</string>
     <string name="native_drawer_brandNote" formatted="false">{{count}} packs · works offline</string>
-    <string name="native_drawer_knowledgeNote" formatted="false">What BoarLite can read</string>
+    <string name="native_drawer_knowledgeNote" formatted="false">What LabRat can read</string>
     <string name="native_drawer_settingsNote" formatted="false">Theme, text size, chats</string>
     <string name="native_drawer_evaluation" formatted="false">🧪 Evaluation</string>
     <string name="native_eval_modelsTitle" formatted="false">Models ({{chosen}} of {{count}} chosen)</string>
@@ -95,8 +95,8 @@
     <string name="native_eval_score_noneExpected" formatted="false">none expected</string>
     <string name="native_eval_score_note" formatted="false">Speed 60 %, reliability 25 %, sources found 15 %, measured on this phone. It doesn\'t say whether the answers are right.</string>
     <string name="native_eval_keepScreenOn" formatted="false">Keep the screen on and the app open while it runs. The chat\'s model is unloaded first so the two don\'t share memory.</string>
-    <string name="native_chat_loadCrashed" formatted="false">{{crashed}} ran out of memory and BoarLite had to close. For now, BoarLite is answering with {{fallback}}.</string>
-    <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} ran out of memory and BoarLite had to close. You can try again using less memory, or pick a smaller model.</string>
+    <string name="native_chat_loadCrashed" formatted="false">{{crashed}} ran out of memory and LabRat had to close. For now, LabRat is answering with {{fallback}}.</string>
+    <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} ran out of memory and LabRat had to close. You can try again using less memory, or pick a smaller model.</string>
     <string name="native_chat_retryLessMemory" formatted="false">Try again with less memory</string>
     <string name="native_chat_mayNotFit" formatted="false">{{model}} may be too big for this phone.</string>
     <string name="native_chat_mayNotFitOnly" formatted="false">{{model}} may be too big for this phone. A smaller model, such as Qwen3 1.7B (about 1.1 GB), will run better.</string>
@@ -121,12 +121,12 @@
     <string name="native_telemetry_features" formatted="false">CPU features for llama.cpp</string>
     <string name="native_telemetry_build" formatted="false">Engine CPU build</string>
     <string name="native_telemetry_appMemory" formatted="false">App memory now</string>
-    <string name="native_telemetry_storage" formatted="false">BoarLite\'s storage</string>
+    <string name="native_telemetry_storage" formatted="false">LabRat\'s storage</string>
     <string name="native_telemetry_memory" formatted="false">Memory</string>
-    <string name="native_telemetry_memoryCaption" formatted="false">BoarLite {{app}} · other apps {{others}}</string>
+    <string name="native_telemetry_memoryCaption" formatted="false">LabRat {{app}} · other apps {{others}}</string>
     <string name="native_telemetry_disk" formatted="false">Storage</string>
     <string name="native_telemetry_technical" formatted="false">TECHNICAL</string>
-    <string name="native_telemetry_storageValue" formatted="false">{{used}} of BoarLite\'s {{limit}} limit</string>
+    <string name="native_telemetry_storageValue" formatted="false">{{used}} of LabRat\'s {{limit}} limit</string>
     <string name="native_telemetry_ramValue" formatted="false">{{total}} · {{used}} in use now</string>
     <string name="native_telemetry_chats" formatted="false">Chats saved</string>
     <string name="native_telemetry_evals" formatted="false">Evaluation runs on this phone</string>
@@ -136,11 +136,11 @@
     <string name="native_telemetry_note" formatted="false">Nothing here leaves the phone.</string>
     <string name="native_voice_onDevice" formatted="false">On-device speech recognizer (audio stays on the phone)</string>
     <string name="native_tweaks_technicalDetails" formatted="false">Show technical details</string>
-    <string name="native_tweaks_technicalDetailsNote" formatted="false">Under each answer, tap the time and speed for the details (time to the first word, context, model); live speed in the header while BoarLite answers; memory and storage at the bottom of the menu; This phone in Settings.</string>
+    <string name="native_tweaks_technicalDetailsNote" formatted="false">Under each answer, tap the time and speed for the details (time to the first word, context, model); live speed in the header while LabRat answers; memory and storage at the bottom of the menu; This phone in Settings.</string>
     <string name="native_tweaks_presets" formatted="false">Presets</string>
-    <string name="native_tweaks_preset_run" formatted="false">Run BoarLite Run</string>
+    <string name="native_tweaks_preset_run" formatted="false">Run LabRat Run</string>
     <string name="native_tweaks_preset_runNote" formatted="false">Fastest answers: the fast cores only, prompts read in bigger batches (the first word about twice as soon in our tests), no time limit. More heat and battery.</string>
-    <string name="native_tweaks_preset_path" formatted="false">BoarLite\'s Path</string>
+    <string name="native_tweaks_preset_path" formatted="false">LabRat\'s Path</string>
     <string name="native_tweaks_preset_pathNote" formatted="false">Auto: what we measured best on real phones. Balanced.</string>
     <string name="native_tweaks_preset_forage" formatted="false">Chill Forage</string>
     <string name="native_tweaks_preset_forageNote" formatted="false">Cooler and longer battery: 2 threads, a smaller context, no reasoning, 5 minutes at most per step. Slower answers.</string>
@@ -152,12 +152,12 @@
     <string name="native_chat_errorNoModel" formatted="false">No answer model is loaded. Open the Model Catalog to pick one.</string>
     <string name="native_common_somethingWrong" formatted="false">Something went wrong. Try again.</string>
     <string name="native_chat_dbFailed" formatted="false">Couldn\'t do that. Try again.</string>
-    <string name="native_chat_ratingNote" formatted="false">Saved on this phone only. Nothing is sent. BoarLite doesn\'t learn from it yet.</string>
+    <string name="native_chat_ratingNote" formatted="false">Saved on this phone only. Nothing is sent. LabRat doesn\'t learn from it yet.</string>
     <string name="native_chat_errorGeneric" formatted="false">Something went wrong while answering. Try again.</string>
     <string name="native_chat_errorEmpty" formatted="false">The model stopped without writing an answer.</string>
-    <string name="native_chat_errorInterrupted" formatted="false">Interrupted: BoarLite was closed while answering.</string>
+    <string name="native_chat_errorInterrupted" formatted="false">Interrupted: LabRat was closed while answering.</string>
     <string name="native_answering_channel" formatted="false">Answering</string>
-    <string name="native_answering_title" formatted="false">BoarLite is answering…</string>
+    <string name="native_answering_title" formatted="false">Rat is answering…</string>
     <string name="native_answering_text" formatted="false">The answer keeps going while you use other apps.</string>
     <string name="native_chat_tryAgain" formatted="false">Try again</string>
     <string name="native_chat_holdToReuse" formatted="false">Press and hold any of your messages to copy it back into the input.</string>
@@ -215,7 +215,7 @@
     <string name="native_tweaks_runWarning" formatted="false">Fastest answers. The phone gets warmer and uses more battery, and answers have no time limit (use Stop). Best while charging.</string>
     <string name="native_tweaks_runWarningLowRam" formatted="false">This phone has less than 8 GB of RAM: large models may run out of memory.</string>
     <string name="native_tweaks_runWarningGo" formatted="false">Run</string>
-    <string name="native_tweaks_runWarningKeepPath" formatted="false">Keep BoarLite\'s Path</string>
+    <string name="native_tweaks_runWarningKeepPath" formatted="false">Keep LabRat\'s Path</string>
     <string name="native_personalDocumentsManager_hint" formatted="false">Import your own .txt, .md, .csv, .json or .pdf notes. They are indexed on this device only and never uploaded. PDFs need selectable text: scanned or image-only pages can\'t be read (there\'s no OCR), and password-protected PDFs aren\'t supported.</string>
     <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">This deletes \"{{name}}\" ({{count}} chunks) from your local knowledge base. This can\'t be undone. Export it first if you want to keep a copy.</string>
     <string name="native_interfaceSettings_hapticFeedbackValue" formatted="false">Vibrate when you send a question and when its answer finishes.</string>
@@ -224,20 +224,20 @@
     <string name="native_drawer_answeringHint" formatted="false">Answering… stop it to switch chats.</string>
     <string name="native_documents_tooLarge" formatted="false">Too large: {{name}} (over {{mb}} MB).</string>
     <string name="native_documents_unreadable" formatted="false">Couldn\'t read {{name}}.</string>
-    <string name="native_documents_passwordProtected" formatted="false">{{name}} is password-protected. BoarLite can\'t open protected PDFs.</string>
-    <string name="native_documents_noText" formatted="false">{{name}} has no selectable text. Scanned pages need OCR, which BoarLite doesn\'t do.</string>
+    <string name="native_documents_passwordProtected" formatted="false">{{name}} is password-protected. LabRat can\'t open protected PDFs.</string>
+    <string name="native_documents_noText" formatted="false">{{name}} has no selectable text. Scanned pages need OCR, which LabRat doesn\'t do.</string>
     <string name="native_documents_failed" formatted="false">Couldn\'t import these files. Try again.</string>
     <string name="native_documents_shareTitle" formatted="false">Share the {{name}} knowledge base</string>
-    <string name="native_drawerStats_ramBoar" formatted="false">BoarLite uses {{app}} of the phone\'s memory</string>
-    <string name="native_drawerStats_diskLimit" formatted="false">BoarLite\'s storage limit, not the phone\'s</string>
+    <string name="native_drawerStats_ramBoar" formatted="false">LabRat uses {{app}} of the phone\'s memory</string>
+    <string name="native_drawerStats_diskLimit" formatted="false">LabRat\'s storage limit, not the phone\'s</string>
     <string name="native_common_ok" formatted="false">OK</string>
-    <string name="native_settings_freeMemory" formatted="false">Free memory when I leave BoarLite</string>
+    <string name="native_settings_freeMemory" formatted="false">Free memory when I leave LabRat</string>
     <string name="native_settings_freeMemoryNote" formatted="false">Frees memory a few seconds after you leave. The next answer starts a little slower.</string>
     <string name="native_modelSetupScreen_sections_telemetry" formatted="false">This phone</string>
     <string name="native_modelSetupScreen_sections_models" formatted="false">Models</string>
     <string name="native_modelSetupScreen_sections_voice" formatted="false">Voice input</string>
     <string name="native_modelSetupScreen_sections_recovery" formatted="false">Start over</string>
-    <string name="native_modelSetupScreen_recovery_wizardDesc" formatted="false">Checks BoarLite\'s files again and restores any pack you removed.</string>
+    <string name="native_modelSetupScreen_recovery_wizardDesc" formatted="false">Checks LabRat\'s files again and restores any pack you removed.</string>
     <string name="native_modelSetupScreen_recovery_wizardButton" formatted="false">Run setup again</string>
     <string name="native_modelSetupScreen_recovery_dangerDesc" formatted="false">Deletes every model and pack, your documents and all chats from this phone. It can\'t be undone.</string>
     <string name="native_modelSetupScreen_recovery_dangerButton" formatted="false">Erase everything</string>
@@ -248,5 +248,5 @@
     <string name="native_memorySettings_clearAllConfirmTitle" formatted="false">Clear chat history?</string>
     <string name="native_memorySettings_clearAllButton" formatted="false">Clear</string>
     <string name="native_modelSetupScreen_sections_displayTheme" formatted="false">Display &amp; theme</string>
-    <string name="native_documents_unsupported" formatted="false">BoarLite can\'t read {{name}}: it imports .txt, .md, .csv, .json and .pdf. Save the page as one of those (a browser can save it as PDF) and import it again.</string>
+    <string name="native_documents_unsupported" formatted="false">LabRat can\'t read {{name}}: it imports .txt, .md, .csv, .json and .pdf. Save the page as one of those (a browser can save it as PDF) and import it again.</string>
 </resources>

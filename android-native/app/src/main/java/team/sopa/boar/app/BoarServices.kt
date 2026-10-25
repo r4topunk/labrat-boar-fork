@@ -36,7 +36,7 @@ class BoarServices private constructor(private val context: Context) {
     /** The app's files dir, where models, packs and the chat database live. */
     val filesDir: java.io.File get() = files
     val settings = AppSettings(File(files, "settings.json"))
-    /** Qwen3 1.7B, the search model and the knowledge packs: everything BoarLite can use is listed here, nothing is added later. */
+    /** Qwen3 1.7B, the search model and the knowledge packs: everything LabRat can use is listed here, nothing is added later. */
     val catalog: Catalog = Catalog.parse(asset("boar-data/catalog.json"))
     /**
      * The answer style's prompt: the app answers in Succinct only (AppSettings.personalityId), and the device eval
@@ -49,7 +49,7 @@ class BoarServices private constructor(private val context: Context) {
      * At start and after "Reset settings". The style is written down as Succinct and an older build's length pick and
      * Deep Research switch are dropped (AppSettings.retireRemovedOptions), so settings.json matches what the app does;
      * technical details only show while developer options are on, since their switch lives there. Haptics start on in
-     * BoarLite (r4to 2026-10-24) while AppSettings keeps its off default: switched on once per install and again after a
+     * LabRat (r4to 2026-10-24) while AppSettings keeps its off default: switched on once per install and again after a
      * reset ([afterReset]), so turning them off in Settings holds.
      */
     fun applyDefaults(afterReset: Boolean = false) {
@@ -177,7 +177,7 @@ class BoarServices private constructor(private val context: Context) {
     }
 
     val retriever: Retriever by lazy {
-        // BoarLite's search port (engine rag/SearchPort.kt): SearchPort.BOARLITE_DEFAULT, off until its safety gate passes; off = the search as before.
+        // LabRat's search port (engine rag/SearchPort.kt): SearchPort.BOARLITE_DEFAULT, off until its safety gate passes; off = the search as before.
         Retriever(knowledgeBase, { packs }, { text -> runBlocking { embed(text) } }, port = team.sopa.boar.engine.rag.SearchPort.BOARLITE_DEFAULT)
     }
 

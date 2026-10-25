@@ -18,7 +18,7 @@ class Retriever(
     /** Installed packs in the order the app lists them (catalog first, then local files by name). */
     private val packs: () -> List<OpenPack>,
     private val embed: (String) -> FloatArray,
-    /** BoarLite's search port ([SearchPort]); false = the search as before it. */
+    /** LabRat's search port ([SearchPort]); false = the search as before it. */
     private val port: Boolean = false,
 ) {
     /** One search's list, plus (search port) the dense chunk hits and Stack Exchange thread answers found beside it. */

@@ -60,7 +60,7 @@ data class PackSearchOptions(
     val queryVec: FloatArray? = null,
     val expand: ((String) -> List<String>)? = null,
     /**
-     * BoarLite search port (SearchPort): Stack Exchange term cut 0.25 (SEFIX F2), cross-pack bm25 statistics when [global] is
+     * LabRat search port (SearchPort): Stack Exchange term cut 0.25 (SEFIX F2), cross-pack bm25 statistics when [global] is
      * set (H4 gidf), and the semantic side lists ([WikiPack.Result.semantic] / [WikiPack.Result.seLead]). False = the search as before.
      */
     val port: Boolean = false,

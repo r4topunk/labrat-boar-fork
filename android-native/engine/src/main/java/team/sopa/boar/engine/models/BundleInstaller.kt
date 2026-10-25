@@ -64,8 +64,8 @@ class DirBundleSource(private val dir: File) : BundleSource {
 }
 
 /**
- * Installs BoarLite's data (the answer model, the search model, the knowledge packs and the prebuilt index) from its
- * bundle into the files folder, where [AssetStore] and the app expect them. BoarLite has no network: this copy is the
+ * Installs LabRat's data (the answer model, the search model, the knowledge packs and the prebuilt index) from its
+ * bundle into the files folder, where [AssetStore] and the app expect them. LabRat has no network: this copy is the
  * only way files arrive.
  *
  * Each file is streamed to `<filename>.part` and hashed as it is written; only a full-size copy with the catalog's

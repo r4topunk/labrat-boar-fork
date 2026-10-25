@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- First-run texts ("Unpacking BoarLite") and the drawer's. Keys: clean.setup.*, clean.drawer.* -->
+<!-- First-run texts ("Unpacking LabRat") and the drawer's. Keys: clean.setup.*, clean.drawer.* -->
 <resources>
-    <string name="clean_setup_unpackTitle" formatted="false">Unpacking BoarLite</string>
-    <string name="clean_setup_unpackBody" formatted="false">Everything BoarLite knows is inside this app. Nothing is downloaded.</string>
+    <string name="clean_setup_unpackTitle" formatted="false">Unpacking LabRat</string>
+    <string name="clean_setup_unpackBody" formatted="false">Everything LabRat knows is inside this app. Nothing is downloaded.</string>
     <string name="clean_setup_unpackChecking" formatted="false">Checking what is already on this phone…</string>
     <string name="clean_setup_unpackFile" formatted="false">{{name}} (file {{index}} of {{count}})</string>
     <string name="clean_setup_unpackBytes" formatted="false">{{done}} of {{total}}</string>
     <string name="clean_setup_unpackIndex" formatted="false">Preparing search…</string>
-    <string name="clean_setup_noDataTitle" formatted="false">BoarLite needs its data</string>
-    <string name="clean_setup_noDataBody" formatted="false">This copy of BoarLite was built without its data (the language model and the knowledge packs), and BoarLite never downloads anything. Install the full BoarLite APK, which carries everything.</string>
+    <string name="clean_setup_noDataTitle" formatted="false">LabRat needs its data</string>
+    <string name="clean_setup_noDataBody" formatted="false">This copy of LabRat was built without its data (the language model and the knowledge packs), and LabRat never downloads anything. Install the full LabRat APK, which carries everything.</string>
     <string name="clean_setup_noDataTesters" formatted="false">Testers: copy a staged bundle (scripts/stage-bundle.sh) to the phone from a computer, then tap Check again:</string>
     <string name="clean_setup_noSpaceTitle" formatted="false">Not enough space</string>
-    <string name="clean_setup_noSpaceBody" formatted="false">BoarLite needs {{needed}} free to unpack its data, and this phone has {{free}} free. Free some space, then try again.</string>
+    <string name="clean_setup_noSpaceBody" formatted="false">LabRat needs {{needed}} free to unpack its data, and this phone has {{free}} free. Free some space, then try again.</string>
     <string name="clean_setup_failedTitle" formatted="false">Unpacking stopped</string>
     <string name="clean_setup_failedBody" formatted="false">A file did not unpack correctly. Try again; files already unpacked are kept.</string>
     <string name="clean_setup_retry" formatted="false">Try again</string>

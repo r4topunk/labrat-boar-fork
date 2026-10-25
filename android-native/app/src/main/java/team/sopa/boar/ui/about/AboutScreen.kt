@@ -62,9 +62,9 @@ import team.sopa.boar.ui.setup.TourIcons
 import team.sopa.boar.ui.t
 
 /**
- * About BoarLite in the app's own grouped-list style (Settings, Knowledge): the boar and the tagline, why it exists,
+ * About LabRat in the app's own grouped-list style (Settings, Knowledge): the boar and the tagline, why it exists,
  * then groups for how it works, the BOAR it is based on, the BOAR project's addresses, the core team and the credits. An
- * address is plain text with its own copy button: BoarLite has no network and opens nothing. The model line and the
+ * address is plain text with its own copy button: LabRat has no network and opens nothing. The model line and the
  * version and build line close the screen (the engine joins it once Developer options are on); seven taps on it turn
  * Developer options on or off.
  */
@@ -93,12 +93,12 @@ fun AboutScreen(onClose: () -> Unit) {
                     IconRow(TourIcons.Device, t("native.about.how.budget"), t("native.about.post.budget"))
                 }
                 Section("Based on BOAR") {
-                    Note("BoarLite is a fork of BOAR, the open-source offline research app (MIT). The BoarLite repository is private; the BOAR code and BOAR's published knowledge packs are public:")
+                    Note("LabRat is a fork of BOAR, the open-source offline research app (MIT). The LabRat repository is private; the BOAR code and BOAR's published knowledge packs are public:")
                     CopyRow("BOAR code (MIT)", "github.com/rferrari/boar-app")
                     CopyRow(t("native.about.packsTitle"), "huggingface.co/datasets/r4topunk/boar-packs")
                 }
                 Section("BOAR project addresses") {
-                    Note("These belong to the BOAR project, not to BoarLite, which has no network and sends nothing. BoarLite is not published on any store: install it only from the team that gave it to you.")
+                    Note("These belong to the BOAR project, not to LabRat, which has no network and sends nothing. LabRat is not published on any store: install it only from the team that gave it to you.")
                     CopyRow(t("native.about.siteLabel"), "boarapp.com")
                     CopyRow("X", "x.com/boar_app")
                     CopyRow("Farcaster", "farcaster.xyz/boarapp")
@@ -117,7 +117,7 @@ fun AboutScreen(onClose: () -> Unit) {
     }
 }
 
-/** The boar in a tonal disc (as on the tour's last card), the name, the tagline and bio, then why BoarLite exists. */
+/** The boar in a tonal disc (as on the tour's last card), the name, the tagline and bio, then why LabRat exists. */
 @Composable
 private fun Hero() {
     val scheme = MaterialTheme.colorScheme
@@ -126,7 +126,7 @@ private fun Hero() {
         Box(Modifier.size(120.dp).clip(CircleShape).background(scheme.primaryContainer), contentAlignment = Alignment.Center) {
             BoarMark(null, Modifier.size(96.dp), contentScale = ContentScale.Fit)
         }
-        Text("BoarLite", style = MaterialTheme.typography.headlineSmall, color = scheme.onSurface, modifier = Modifier.padding(top = 6.dp))
+        Text("LabRat", style = MaterialTheme.typography.headlineSmall, color = scheme.onSurface, modifier = Modifier.padding(top = 6.dp))
         Text(t("native.about.tagline"), style = MaterialTheme.typography.titleMedium, color = scheme.primary, textAlign = TextAlign.Center)
         Text(t("native.about.bio"), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, textAlign = TextAlign.Center)
     }
@@ -156,7 +156,7 @@ private fun Note(text: String) = Text(text, style = MaterialTheme.typography.bod
     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
 
 /**
- * An address as plain text, never opened (BoarLite has no network): [label] over the address, and the row and its
+ * An address as plain text, never opened (LabRat has no network): [label] over the address, and the row and its
  * trailing button copy [copy] (the address itself by default; a team member's X address behind their handle).
  */
 @Composable
@@ -167,7 +167,7 @@ private fun CopyRow(label: String, address: String, copy: String = address) {
     val copyLabel = t("clean.settings.about.copyAddress")
     val doCopy = {
         (ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager)
-            .setPrimaryClip(android.content.ClipData.newPlainText("BoarLite", copy))
+            .setPrimaryClip(android.content.ClipData.newPlainText("LabRat", copy))
         android.widget.Toast.makeText(ctx, copied, android.widget.Toast.LENGTH_SHORT).show()
     }
     ListItem(
@@ -179,7 +179,7 @@ private fun CopyRow(label: String, address: String, copy: String = address) {
     )
 }
 
-/** The open work BoarLite stands on: libraries, then each model and pack with its license; the full list one tap away. */
+/** The open work LabRat stands on: libraries, then each model and pack with its license; the full list one tap away. */
 @Composable
 private fun Credits() {
     val scheme = MaterialTheme.colorScheme
@@ -209,7 +209,7 @@ private fun Credits() {
 }
 
 /**
- * The MIT license texts the APK ships (assets/licenses: BoarLite's and llama.cpp / ggml's, as MIT asks of every copy), behind
+ * The MIT license texts the APK ships (assets/licenses: LabRat's and llama.cpp / ggml's, as MIT asks of every copy), behind
  * a row that opens them in a scrollable dialog. The files sit outside boar-data, which the build checks against the catalog.
  */
 @Composable
@@ -286,6 +286,6 @@ private fun versionName(ctx: android.content.Context): String = listOfNotNull(
 /** Taps further apart than this start the count again. */
 private const val TAP_WINDOW_MS = 1500L
 
-/** BoarLite's core team on X, alphabetical by name. */
+/** LabRat's core team on X, alphabetical by name. */
 private val TEAM = listOf("Bielcx" to "bielthegoat", "Jasper" to "btcjasper", "r4to" to "r4topunk", "Sopa" to "sopaagency",
     "vaipraonde" to "arferrari", "vlad" to "sk8ordao")

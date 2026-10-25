@@ -166,7 +166,7 @@ object KnowledgeCatalog {
     private const val MAX_SAMPLES = 10
 
     /**
-     * The first-run tour's "What BoarLite knows offline" card: the bundled packs (catalog sqlite packs) in six themes,
+     * The first-run tour's "What LabRat knows offline" card: the bundled packs (catalog sqlite packs) in six themes,
      * [TourGroup.titleKey] → pack names (catalog labels without their "(50,000)" counts). A pack this list doesn't name
      * goes under "More"; empty groups are left out.
      */

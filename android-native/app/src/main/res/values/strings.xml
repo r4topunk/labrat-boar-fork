@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Originally generated from the TS engine's en.json locale; edit by hand now. -->
 <resources>
-    <string name="app_name" formatted="false">BoarLite</string>
+    <string name="app_name" formatted="false">LabRat</string>
     <string name="common_done" formatted="false">Done</string>
     <string name="common_cancel" formatted="false">Cancel</string>
     <string name="common_close" formatted="false">Close</string>
@@ -47,7 +47,7 @@
     <string name="drawerFooterStats_disk" formatted="false">DISK</string>
     <string name="drawerFooterStats_lastQuery" formatted="false">{{rate}} tok/s last query</string>
     <string name="modelSetupScreen_header_title" formatted="false">Settings</string>
-    <string name="modelSetupScreen_header_subtitle" formatted="false">BoarLite — Adaptive Local Intelligence</string>
+    <string name="modelSetupScreen_header_subtitle" formatted="false">LabRat — Adaptive Local Intelligence</string>
     <string name="modelSetupScreen_sections_models" formatted="false">Reasoning Models</string>
     <string name="modelSetupScreen_sections_telemetry" formatted="false">Hardware Telemetry &amp; Compliance</string>
     <string name="modelSetupScreen_sections_displayTheme" formatted="false">Display &amp; Theme</string>
@@ -56,7 +56,7 @@
     <string name="modelSetupScreen_installedModels" formatted="false">Installed models</string>
     <string name="modelSetupScreen_discoverHfModels" formatted="false">Discover Hugging Face GGUF models</string>
     <string name="modelSetupScreen_toasts_indexed" formatted="false">Indexed \"{{name}}\" in offline knowledge base</string>
-    <string name="modelSetupScreen_recovery_wizardDesc" formatted="false">Checks BoarLite\'s files again and restores any pack you removed.</string>
+    <string name="modelSetupScreen_recovery_wizardDesc" formatted="false">Checks LabRat\'s files again and restores any pack you removed.</string>
     <string name="modelSetupScreen_recovery_wizardButton" formatted="false">Relaunch Setup Wizard ➔</string>
     <string name="modelSetupScreen_recovery_dangerDesc" formatted="false">Permanently wipes the GGUF weights, offline SQLite database indices, and conversation logs from this device.</string>
     <string name="modelSetupScreen_recovery_dangerButton" formatted="false">🚨 Purge All Data &amp; Reset App</string>
@@ -86,8 +86,8 @@
     <string name="chatHeader_openDrawer" formatted="false">Open Navigation Drawer</string>
     <string name="chatHeader_localLlmCore" formatted="false">No model yet</string>
     <string name="chatHeader_offlineTitle" formatted="false">You\'re offline</string>
-    <string name="chatHeader_offlineBody" formatted="false">BoarLite has no internet access at all. Everything works: answers, search and your library are all on this phone.</string>
-    <string name="chatScreen_mountingWeights" formatted="false">Getting BoarLite ready…</string>
+    <string name="chatHeader_offlineBody" formatted="false">LabRat has no internet access at all. Everything works: answers, search and your library are all on this phone.</string>
+    <string name="chatScreen_mountingWeights" formatted="false">Getting LabRat ready…</string>
     <string name="chatScreen_reasoningElapsed" formatted="false">💭 Reasoning… {{seconds}}s</string>
     <string name="chatScreen_reasoningUnfinished" formatted="false">Reasoning didn\'t finish before the reply ended (stopped or out of tokens). Tap the reasoning button to read it.</string>
     <string name="chatScreen_showReasoning" formatted="false">Show reasoning</string>
@@ -98,11 +98,11 @@
     <string name="chatScreen_stopGeneration" formatted="false">Stop generation</string>
     <string name="chatScreen_sendMessage" formatted="false">Send message</string>
     <string name="chatScreen_roleYou" formatted="false">You</string>
-    <string name="chatScreen_roleAssistant" formatted="false">BoarLite</string>
+    <string name="chatScreen_roleAssistant" formatted="false">Rat</string>
     <string name="chatScreen_stoppedByUser" formatted="false">Stopped by user</string>
     <string name="chatScreen_copyResponse" formatted="false">Copy response</string>
     <string name="chatScreen_stageTimedOut" formatted="false">A research step took too long and was cut short</string>
-    <string name="aboutScreen_title" formatted="false">About BoarLite</string>
+    <string name="aboutScreen_title" formatted="false">About LabRat</string>
     <string name="aboutScreen_versionBadge" formatted="false">v{{version}} • {{build}}</string>
     <string name="aboutScreen_buildDevelopment" formatted="false">Development build</string>
     <string name="aboutScreen_buildRelease" formatted="false">Release build</string>

@@ -1,8 +1,8 @@
-# Building the BoarLite release
+# Building the LabRat release
 
-BoarLite is a closed offline app: it has no network permission, so everything it uses (Qwen3 1.7B, the BGE search
+LabRat is a closed offline app: it has no network permission, so everything it uses (Qwen3 1.7B, the BGE search
 model, the 13 knowledge packs of the K13 kit and the prebuilt search index, about 3.0 GB) comes in its data bundle.
-On first launch the "Unpacking BoarLite" screen copies the bundle into the app's files folder. Each file is checked
+On first launch the "Unpacking LabRat" screen copies the bundle into the app's files folder. Each file is checked
 against its sha256 in `catalog.json` while it is copied. If the copy stops, it resumes at the file it stopped in.
 
 ## 1. Stage the bundle
@@ -47,7 +47,7 @@ adb shell am start -n team.sopa.boar.lite.debug/team.sopa.boar.MainActivity   # 
 adb push ../../bundle-out/bundle /sdcard/Android/data/team.sopa.boar.lite.debug/files/
 ```
 
-Then tap **Check again** on the "BoarLite needs its data" screen. For a release build, use the package
+Then tap **Check again** on the "LabRat needs its data" screen. For a release build, use the package
 `team.sopa.boar.lite`. The screen shows the exact command for the installed package.
 
 ## What the app logs
@@ -60,4 +60,4 @@ restores a pack removed from Knowledge, and installs a newer APK's bundle.
 
 ## Signing
 
-`:app:assembleRelease` signs with BoarLite's own upload key when `~/.gradle/gradle.properties` names it (never put the values in the repo): `BOARLITE_UPLOAD_STORE_FILE`, `BOARLITE_UPLOAD_STORE_PASSWORD`, `BOARLITE_UPLOAD_KEY_ALIAS`, `BOARLITE_UPLOAD_KEY_PASSWORD`. Without them the release is debug-signed. Check the result with `scripts/check-release-apk.sh <apk>` (package, versionCode, signer, no INTERNET permission).
+`:app:assembleRelease` signs with LabRat's own upload key when `~/.gradle/gradle.properties` names it (never put the values in the repo): `BOARLITE_UPLOAD_STORE_FILE`, `BOARLITE_UPLOAD_STORE_PASSWORD`, `BOARLITE_UPLOAD_KEY_ALIAS`, `BOARLITE_UPLOAD_KEY_PASSWORD`. Without them the release is debug-signed. Check the result with `scripts/check-release-apk.sh <apk>` (package, versionCode, signer, no INTERNET permission).

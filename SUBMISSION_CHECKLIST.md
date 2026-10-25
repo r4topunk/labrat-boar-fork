@@ -1,6 +1,6 @@
 # Submission checklist
 
-Tracks the bounty's requirements against what BoarLite (the closed offline build) must show. Steps that
+Tracks the bounty's requirements against what LabRat (the closed offline build) must show. Steps that
 need a device or an account can't be done from an agent session.
 
 - [ ] `cd android-native && ./gradlew :app:assembleRelease -Pboar.bundleDir=<out>` (after
@@ -17,7 +17,7 @@ need a device or an account can't be done from an agent session.
 - [ ] Turn off networking entirely (airplane mode) and re-verify the app works, as the proof of the
       "zero connectivity" requirement (`scripts/offline-proof.sh`)
 - [ ] Post a public demo (X or Farcaster): offline proof, example queries, a brief approach explanation.
-      The BoarLite repository is private: do not link it as source, and credit BOAR
+      The LabRat repository is private: do not link it as source, and credit BOAR
       (github.com/rferrari/boar-app, MIT) as the base.
 - [ ] Submit a screenshot + links to poidh
 - [ ] Make sure what is claimed matches the APK that was demoed

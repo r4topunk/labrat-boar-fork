@@ -1,4 +1,4 @@
-# AGENTS.md — compiling & installing BoarLite from source
+# AGENTS.md — compiling & installing LabRat from source
 
 This file is for an AI coding agent (or anyone scripting a build) that needs
 to go from a clean checkout to a running app on a real Android device — the
@@ -8,7 +8,7 @@ fail. For what the app *is* and how it's designed, read `README.md` and
 
 ## The one fact that changes everything: the APK is built only from `android-native/`
 
-BoarLite is a native Kotlin + Compose app. The APK is built by Gradle from
+LabRat is a native Kotlin + Compose app. The APK is built by Gradle from
 `android-native/` only: module `:app` (UI, setup, eval hooks) and module
 `:engine` (answer pipeline, retrieval, llama.cpp JNI), with the `llama.cpp`
 and `zstd` submodules under `android-native/engine/src/main/cpp/`. There is no
@@ -49,7 +49,7 @@ Signing uses `BOARLITE_UPLOAD_STORE_FILE`, `BOARLITE_UPLOAD_STORE_PASSWORD`,
 `BOARLITE_UPLOAD_KEY_ALIAS` and `BOARLITE_UPLOAD_KEY_PASSWORD` in
 `~/.gradle/gradle.properties` (never in the repo). Without them the release
 build is debug-signed, which is fine for your own phone. An APK signed with a
-different key can't install over an existing BoarLite: Android requires
+different key can't install over an existing LabRat: Android requires
 uninstalling first, which deletes the app's data. Full steps:
 `android-native/docs/BUILDING-RELEASE.md`.
 
@@ -58,7 +58,7 @@ uninstalling first, which deletes the app's data. Full steps:
 The app has no network permission, so the Qwen3 1.7B model, the search model, the
 knowledge packs and the search index come in a data bundle. A release APK built
 with `-Pboar.bundleDir` carries it and copies it on first launch ("Unpacking
-BoarLite"). An APK without a bundle shows the "BoarLite needs its data" screen
+LabRat"). An APK without a bundle shows the "LabRat needs its data" screen
 until the bundle is pushed with `adb` (see `BUILDING-RELEASE.md`, section 3).
 If you're scripting an unattended install-and-verify flow, one of the two has to
 happen before the app is usable.
