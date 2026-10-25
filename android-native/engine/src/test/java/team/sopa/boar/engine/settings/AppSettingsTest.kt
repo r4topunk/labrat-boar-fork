@@ -66,7 +66,7 @@ class AppSettingsTest {
         s.setActiveModelId("llm", "qwen3-4b")
         s.pinSalt = "salt"; s.pinWrapped = "wrapped"
         s.themeId = "campfire"
-        s.fontScale = "large"; s.showLiveStats = false; s.researchBannerHidden = true
+        s.fontScale = "large"; s.showLiveStats = false
         s.engineTweaks = EngineTweaks(threads = 2)
         s.resetPreferences()
         val again = AppSettings(f)
@@ -76,7 +76,7 @@ class AppSettingsTest {
         assertEquals("succinct", again.personalityId)
         assertEquals(AppSettings.AUTO_MAX_TOKENS, again.maxTokens)
         assertFalse("personalityId" in again.raw() || "maxTokens" in again.raw() || "deepResearchMode" in again.raw())
-        assertTrue(again.showLiveStats); assertFalse(again.researchBannerHidden)
+        assertTrue(again.showLiveStats)
         assertEquals("standard", again.fontScale)
         assertEquals(EngineTweaks(), again.engineTweaks)
     }

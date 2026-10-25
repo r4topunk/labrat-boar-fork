@@ -78,10 +78,10 @@ sealed interface LoadNote {
     val label: String
 
     /**
-     * [label]'s last load closed the app (not enough memory) and it isn't loaded on its own. [fallbackLabel] answers
-     * instead (null: no model can); [onlyModel]: no other model is installed.
+     * [label]'s last load closed the app (not enough memory) and it isn't loaded on its own. [onlyModel]: no other
+     * model is installed.
      */
-    data class Crashed(override val modelId: String, override val label: String, val fallbackLabel: String?, val onlyModel: Boolean) : LoadNote
+    data class Crashed(override val modelId: String, override val label: String, val onlyModel: Boolean) : LoadNote
 
     /** [label] is rated RED for this phone's memory and wasn't loaded; "Load anyway" loads it. */
     data class Risky(override val modelId: String, override val label: String, val onlyModel: Boolean) : LoadNote
@@ -318,15 +318,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** The note for a decision that doesn't load the user's model on its own; null when it loads. */
     private fun noteFor(d: StartLoad.Decision): LoadNote? = when (d) {
         is StartLoad.Decision.AskRisky -> LoadNote.Risky(d.modelId, labelOf(d.modelId), d.onlyModel)
-        is StartLoad.Decision.NoFallback -> LoadNote.Crashed(d.blockedId, labelOf(d.blockedId), null, d.onlyModel)
+        is StartLoad.Decision.NoFallback -> LoadNote.Crashed(d.blockedId, labelOf(d.blockedId), d.onlyModel)
         else -> null
     }
 
     private fun crashNote(c: team.sopa.boar.engine.models.LoadGuard.Crash): LoadNote.Crashed {
-        val answering = services.answerModel()?.takeIf { it.id != c.crashedModelId }
         val only = services.installed(AssetKind.LLM).none { it.id != c.crashedModelId }
         val label = services.catalog.byId(c.crashedModelId)?.label?.let(::shortLabel) ?: c.crashedLabel
-        return LoadNote.Crashed(c.crashedModelId, label, answering?.label?.let(::shortLabel), only)
+        return LoadNote.Crashed(c.crashedModelId, label, only)
     }
 
     private fun labelOf(modelId: String) = services.catalog.byId(modelId)?.label?.let(::shortLabel) ?: modelId

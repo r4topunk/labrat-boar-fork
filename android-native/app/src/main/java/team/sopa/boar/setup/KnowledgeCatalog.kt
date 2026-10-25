@@ -81,8 +81,6 @@ object KnowledgeCatalog {
         Def("qa-money-se", listOf("qa-money-se"), KnowledgeTheme.REFERENCE, "moneyQa"),
         Def("qa-cooking-se", listOf("qa-cooking-se"), KnowledgeTheme.REFERENCE, "cookingQa"),
         Def("boar-crypto", listOf("boar-crypto"), KnowledgeTheme.CRYPTO, "crypto"),
-        Def("qa-ethereum-se", listOf("qa-ethereum-se"), KnowledgeTheme.CRYPTO, "ethereumQa"),
-        Def("qa-bitcoin-se", listOf("qa-bitcoin-se"), KnowledgeTheme.CRYPTO, "bitcoinQa"),
     )
 
     private val json = Json { ignoreUnknownKeys = true }

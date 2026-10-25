@@ -322,8 +322,7 @@ private fun LoadNoteBanner(
         is team.sopa.boar.chat.LoadNote.Crashed -> {
             val retry = t("clean.chat.loadNote.lessMemory") to { onRetryLessMemory(note.modelId) }
             val title = t("clean.chat.loadNote.crashedTitle", "model" to name)
-            if (note.fallbackLabel != null) Copy(title, t("clean.chat.loadNote.crashedFallback", "fallback" to note.fallbackLabel), listOf(retry))
-            else Copy(title, t("clean.chat.loadNote.crashedBody"), listOf(retry))
+            Copy(title, t("clean.chat.loadNote.crashedBody"), listOf(retry))
         }
         is team.sopa.boar.chat.LoadNote.Risky -> Copy(t("clean.chat.loadNote.riskyTitle", "model" to name), t("clean.chat.loadNote.riskyBody"),
             listOf(t("native.chat.loadAnyway") to { onLoadAnyway(note.modelId) }))

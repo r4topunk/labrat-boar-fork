@@ -48,15 +48,6 @@ class AppSettings(private val file: File) {
         put("activeModelId", JsonObject(m))
     }
 
-    /** When each model was last loaded to answer ([MODEL_LAST_USED]): epoch ms by id. */
-    fun modelTimes(key: String): Map<String, Long> =
-        (data[key] as? JsonObject)?.mapNotNull { (k, v) -> (v as? JsonPrimitive)?.longOrNull?.let { k to it } }?.toMap() ?: emptyMap()
-    fun stampModel(key: String, id: String, at: Long = System.currentTimeMillis()) = update {
-        val m = (this[key] as? JsonObject)?.toMutableMap() ?: mutableMapOf()
-        m[id] = JsonPrimitive(at)
-        put(key, JsonObject(m))
-    }
-
     /** modelRoleAssignments: role ("fast", "general"…) to model id. */
     fun modelRoleAssignments(): Map<String, String> =
         (data["modelRoleAssignments"] as? JsonObject)?.mapNotNull { (k, v) -> (v as? JsonPrimitive)?.contentOrNull?.ifEmpty { null }?.let { k to it } }?.toMap() ?: emptyMap()
@@ -98,9 +89,6 @@ class AppSettings(private val file: File) {
             "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles",
             "freeMemoryInBackground", "freeMemoryAfterMinutes",
         )
-        const val MODEL_LAST_USED = "modelLastUsedAt"
-        /** Portrait unless the user picks Auto or Landscape (Oct 18): the chat reads best upright on a phone. */
-        const val DEFAULT_ORIENTATION = "portrait"
         /** The one answer style (personalities.json's "succinct"). */
         const val ANSWER_STYLE = "succinct"
         const val AUTO_MAX_TOKENS = 512
@@ -129,22 +117,12 @@ class AppSettings(private val file: File) {
             else -> AUTO_MAX_TOKENS
         }
     }
-    /** The user closed the "Mixture of agents" line under the header (it stays closed). */
-    var researchBannerHidden: Boolean get() = bool("researchBannerHidden") ?: false; set(v) = set("researchBannerHidden", JsonPrimitive(v))
-    /** The one-time note on the first 👍/👎 (kept on the phone, not used yet) was shown. Not a preference: Reset keeps it. */
-    var ratingNoteShown: Boolean get() = bool("ratingNoteShown") ?: false; set(v) = set("ratingNoteShown", JsonPrimitive(v))
-    /** Run Boar Run's heat and battery card was shown and accepted once: picking it again doesn't ask. */
-    var runPresetWarned: Boolean get() = bool("runPresetWarned") ?: false; set(v) = set("runPresetWarned", JsonPrimitive(v))
     var adaptiveRoutingEnabled: Boolean get() = bool("adaptiveRoutingEnabled") ?: false; set(v) = set("adaptiveRoutingEnabled", JsonPrimitive(v))
     var routingPreset: String? get() = str("routingPreset"); set(v) = set("routingPreset", v?.let(::JsonPrimitive))
     /** "campfire" or "moonlight"; the theme's default when unset. */
     var themeId: String? get() = str("themeId"); set(v) = set("themeId", v?.let(::JsonPrimitive))
     var fontScale: String get() = str("fontScale") ?: "standard"; set(v) = set("fontScale", JsonPrimitive(v))
-    /** "auto" (follows the phone's rotation setting), "portrait" or "landscape". */
-    var screenOrientation: String get() = str("screenOrientation") ?: DEFAULT_ORIENTATION; set(v) = set("screenOrientation", JsonPrimitive(v))
-    var voiceInputEnabled: Boolean get() = bool("voiceInputEnabled") ?: true; set(v) = set("voiceInputEnabled", JsonPrimitive(v))
     var hapticsEnabled: Boolean get() = bool("hapticsEnabled") ?: false; set(v) = set("hapticsEnabled", JsonPrimitive(v))
-    var hidePromptIdeas: Boolean get() = bool("hidePromptIdeas") ?: false; set(v) = set("hidePromptIdeas", JsonPrimitive(v))
     /**
      * Advanced tweaks → Show technical details (the Expo app's live-stats key): off, the chat shows the short receipt
      * only; on, the receipt's details, live tok/s in the header, the menu's memory and storage bars, Hardware telemetry.

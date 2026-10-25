@@ -1,7 +1,6 @@
 package team.sopa.boar.engine.models
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 import team.sopa.boar.engine.models.StartLoad.Decision
 
@@ -15,8 +14,8 @@ class StartLoadTest {
     private val red = StartLoad.Model("big-12b", 7 * gb)
     private val none: (String) -> Boolean = { false }
 
-    private fun decide(active: StartLoad.Model?, installed: List<StartLoad.Model>, blocked: Set<String> = emptySet(), last: String? = null, anyway: Set<String> = emptySet()) =
-        StartLoad.decide(active, installed, { it in blocked }, last, ram, anyway)
+    private fun decide(active: StartLoad.Model?, installed: List<StartLoad.Model>, blocked: Set<String> = emptySet(), anyway: Set<String> = emptySet()) =
+        StartLoad.decide(active, installed, { it in blocked }, ram, anyway)
 
     @Test fun `green and yellow models load`() {
         assertEquals(Decision.Load("qwen3-4b"), decide(mid, listOf(small, mid)))
@@ -30,16 +29,11 @@ class StartLoadTest {
     }
 
     @Test fun `unknown RAM is never risky`() {
-        assertEquals(Decision.Load("big-12b"), StartLoad.decide(red, listOf(red), none, null, 0, emptySet()))
+        assertEquals(Decision.Load("big-12b"), StartLoad.decide(red, listOf(red), none, 0, emptySet()))
     }
 
-    @Test fun `a blocked model falls back to the last that loaded, else the smallest`() {
-        assertEquals(Decision.Fallback("lfm2.5-8b", "qwen3-4b"), decide(yellow, listOf(small, mid, yellow), setOf("lfm2.5-8b"), last = "qwen3-4b"))
-        assertEquals(Decision.Fallback("lfm2.5-8b", "qwen2.5-1.5b"), decide(yellow, listOf(mid, small, yellow), setOf("lfm2.5-8b"), last = "lfm2.5-8b"))
-        assertEquals(Decision.Fallback("lfm2.5-8b", "qwen2.5-1.5b"), decide(yellow, listOf(mid, small, yellow), setOf("lfm2.5-8b")))
-    }
-
-    @Test fun `a blocked model with every other blocked loads nothing`() {
+    @Test fun `a blocked model loads nothing, whatever else is installed`() {
+        assertEquals(Decision.NoFallback("lfm2.5-8b", onlyModel = false), decide(yellow, listOf(small, mid, yellow), setOf("lfm2.5-8b")))
         assertEquals(Decision.NoFallback("lfm2.5-8b", onlyModel = false), decide(yellow, listOf(small, yellow), setOf("lfm2.5-8b", "qwen2.5-1.5b")))
     }
 
@@ -51,6 +45,5 @@ class StartLoadTest {
 
     @Test fun `no model installed`() {
         assertEquals(Decision.NoModel, decide(null, emptyList()))
-        assertNull(StartLoad.fallback(emptyList(), none, null))
     }
 }

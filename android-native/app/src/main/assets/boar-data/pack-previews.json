@@ -201,48 +201,6 @@
    "What does \"Baggage: 1PC\" mean on my flight ticket?"
   ]
  },
- "qa-ethereum-se": {
-  "articles": 34588,
-  "sources": [
-   {
-    "name": "Stack Exchange",
-    "documents": 34588
-   }
-  ],
-  "samples": [
-   "How do I buy Ethereum with USD?",
-   "How to Mine Ether and use Ethereum on Windows?",
-   "How to import a plain private key into geth or Mist?",
-   "What is meant by the term \"gas\"?",
-   "For pool mining, what exactly is a share?",
-   "What is the total supply of Ether?",
-   "Is CPU mining even worth the Ether?",
-   "What is the recommended way to safely store Ether?",
-   "What actually is a DAG?",
-   "What is a DApp?"
-  ]
- },
- "qa-bitcoin-se": {
-  "articles": 26042,
-  "sources": [
-   {
-    "name": "Stack Exchange",
-    "documents": 26042
-   }
-  ],
-  "samples": [
-   "What is the difference between kH/s, MH/s, and GH/s?",
-   "How can I change BTC into normal cash?",
-   "How much Bitcoin will I mine right now with hardware X?",
-   "What are bitcoin miners really solving?",
-   "How long does it usually take to mine a bitcoin block?",
-   "What is a 'Satoshi'?",
-   "What are stale shares and what can I do to avoid them?",
-   "What are \"bitcoin days destroyed\"?",
-   "How can I buy Bitcoin via a Credit Card or Paypal?",
-   "Import wallet.dat into a new Bitcoin-Qt client"
-  ]
- },
  "boar-simplewiki-en": {
   "articles": 208622,
   "sources": [
