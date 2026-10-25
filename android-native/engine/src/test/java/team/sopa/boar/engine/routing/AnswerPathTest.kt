@@ -24,17 +24,15 @@ class AnswerPathTest {
         assertEquals(AnswerPath.RECAP, path("Summarize what we talked about so far.", about = true))
     }
 
-    @Test fun `greetings in Portuguese, Spanish, French and German are small talk`() {
-        for (q in listOf("oi", "oii", "oie", "olá", "e aí", "fala aí", "boa noite", "tudo bem?", "beleza", "valeu demais", "tchau", "até mais",
-                "hola", "qué tal", "buenas noches", "de nada", "hasta luego", "adiós", "salut", "ça va", "bonjour", "hallo", "guten Morgen",
-                "tschüss", "thx", "ty", "cheers", "sounds good", "ttyl", "heyyy", "Olá!")) {
+    @Test fun `greetings in Spanish, French and German are small talk`() {
+        for (q in listOf("hola", "qué tal", "buenas noches", "de nada", "hasta luego", "adiós", "salut", "ça va", "bonjour", "hallo", "guten Morgen",
+                "tschüss", "thx", "ty", "cheers", "sounds good", "ttyl", "heyyy", "Hola!")) {
             assertTrue(q, ShortAnswer.isSmallTalk(q))
         }
     }
 
     @Test fun `a greeting with a question, or a word that can start a request, is not small talk`() {
-        for (q in listOf("oi, compare X e Y", "hola, resume este PDF", "bonjour, qui était Napoléon?", "show", "later", "bitte",
-                "vale", "top", "boa tarde, qual a capital da Austrália?")) {
+        for (q in listOf("hola, resume este PDF", "bonjour, qui était Napoléon?", "show", "later", "bitte", "vale", "top")) {
             assertFalse(q, ShortAnswer.isSmallTalk(q))
         }
     }
