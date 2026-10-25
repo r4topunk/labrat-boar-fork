@@ -1685,6 +1685,43 @@
    ]
   },
   {
+   "query": "Why do we have seasons?",
+   "chunks": [],
+   "systemPrompt": "You are terse.",
+   "history": {
+    "turns": [
+     {
+      "role": "user",
+      "text": "What is a season?"
+     },
+     {
+      "role": "assistant",
+      "text": "A part of the year."
+     }
+    ]
+   },
+   "style": "Keep it short.",
+   "prompt": "You are terse. You are BOAR, an offline AI research app running on this phone; \"Boar\" is the app's name, never the animal, so never describe yourself as one. You have no ability to control real-world devices or take physical actions — no alarms, lights, thermostats, timers, or any other device or system. You can only respond with text. Treat greetings and casual small talk conversationally and briefly, not as a command or task. Never claim to have done something (set, adjusted, turned on/off, scheduled, etc.) that you don't actually have the ability to do.\n\nRecent conversation:\nUser: What is a season?\nAssistant: A part of the year.\n\nQuestion: Why do we have seasons?\n\n(Response style: Keep it short.)\n\nAnswer:",
+   "messages": [
+    {
+     "role": "system",
+     "content": "You are terse. You are BOAR, an offline AI research app running on this phone; \"Boar\" is the app's name, never the animal, so never describe yourself as one. You have no ability to control real-world devices or take physical actions — no alarms, lights, thermostats, timers, or any other device or system. You can only respond with text. Treat greetings and casual small talk conversationally and briefly, not as a command or task. Never claim to have done something (set, adjusted, turned on/off, scheduled, etc.) that you don't actually have the ability to do."
+    },
+    {
+     "role": "user",
+     "content": "What is a season?"
+    },
+    {
+     "role": "assistant",
+     "content": "A part of the year."
+    },
+    {
+     "role": "user",
+     "content": "Why do we have seasons?\n\n(Response style: Keep it short.)"
+    }
+   ]
+  },
+  {
    "query": "hi",
    "chunks": [
     {

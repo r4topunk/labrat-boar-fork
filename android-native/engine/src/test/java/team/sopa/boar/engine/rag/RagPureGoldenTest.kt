@@ -13,6 +13,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 
@@ -81,6 +82,7 @@ class RagPureGoldenTest {
     }
 
     @Test fun `prompts and chat messages are identical`() {
+        var historyCases = 0
         for (c in g["prompts"]!!.jsonArray) {
             val o = c.jsonObject
             val history = (o["history"] as? JsonObject)?.let { h ->
@@ -88,6 +90,11 @@ class RagPureGoldenTest {
             }
             val args = { f: (String, List<Chunk>, String?, ConversationHistory?, String?) -> Any -> f(o["query"]!!.str!!, chunks(o["chunks"]!!), o["systemPrompt"]?.str, history, o["style"]?.str) }
             assertEquals(o["prompt"]!!.str, args { q, ch, s, h, st -> RagPure.assemblePrompt(q, ch, s, h, st) })
+            if (history?.turns?.isNotEmpty() == true) {
+                assertTrue("recent conversation in the prompt for ${o["query"]!!.str}", o["prompt"]!!.str!!.contains("Recent conversation:\n"))
+                history.turns.forEach { t -> assertTrue(o["prompt"]!!.str!!.contains("${if (t.role == "user") "User" else "Assistant"}: ${t.text}")) }
+                historyCases++
+            }
             val msgs = args { q, ch, s, h, st -> RagPure.assembleChatMessages(q, ch, s, h, st) } as List<*>
             assertEquals(o["messages"]!!.jsonArray.map { it.jsonObject["role"]!!.str to it.jsonObject["content"]!!.str }, msgs.map { (it as PromptMessage).role to it.content })
         }
@@ -97,5 +104,6 @@ class RagPureGoldenTest {
             assertEquals(o["out"]!!.jsonObject["system"]!!.str, system)
             assertEquals(o["out"]!!.jsonObject["prompt"]!!.str, prompt)
         }
+        assertTrue("a golden prompt case carries conversation turns", historyCases >= 1)
     }
 }
