@@ -388,7 +388,8 @@ private fun ChatDrawer(
                     if (devOptions) add(DrawerItem("evaluation", t("evaluation.title"), BoarIcons.Science) { go { onNavigate("evaluation") } })
                     add(DrawerItem("settings", t("chatScreen.drawerItems.settings"), Icons.Outlined.Settings, t("native.drawer.settingsNote")) { go { onNavigate("settings") } })
                 },
-                brandNote = t("native.drawer.brandNote", "count" to remember { services.catalog.corpusCatalog.count { services.fileOf(it).isFile } }),
+                // Counted as the tour counts them (the knowledge packs, not the two JSON corpora behind Wikipedia essentials).
+                brandNote = t("native.drawer.brandNote", "count" to remember { services.catalog.corpusCatalog.count { it.format == "sqlite-pack" && services.fileOf(it).isFile } }),
                 lastTokPerSec = lastTokPerSec,
                 storageUsed = { services.storageUsedBytes() },
                 storageBudgetBytes = services.catalog.storageBudgetBytes,
