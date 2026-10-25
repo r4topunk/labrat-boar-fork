@@ -62,7 +62,7 @@ class DrawerDeviceTest {
         compose.openDrawer()
         assertTrue("Knowledge entry", compose.exists(hasText(tr("nav.knowledge")) and hasClickAction()))
         assertTrue("Settings entry", compose.exists(hasText(tr("chatScreen.drawerItems.settings")) and hasClickAction()))
-        assertTrue("the brand line", compose.shows(tr("flows.onboarding.brandSub")))
+        assertTrue("the brand card's line", compose.shows(tr("native.drawer.brandNote", "count" to "").trim(), substring = true))
         // Evaluation is a developer tool: not in the drawer while developer options are off.
         if (!DevOptions.enabled(ctx)) assertFalse(compose.exists(hasText(tr("evaluation.title")) and hasClickAction()))
 

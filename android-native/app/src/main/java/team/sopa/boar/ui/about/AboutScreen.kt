@@ -1,7 +1,6 @@
 package team.sopa.boar.ui.about
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -46,14 +45,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import team.sopa.boar.R
+import team.sopa.boar.ui.components.BoarMark
 import team.sopa.boar.app.DevOptions
 import team.sopa.boar.engine.BoarEngine
 import team.sopa.boar.ui.components.BoarTopBar
@@ -127,7 +125,7 @@ private fun Hero() {
     Column(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Box(Modifier.size(120.dp).clip(CircleShape).background(scheme.primaryContainer), contentAlignment = Alignment.Center) {
-            Image(painterResource(R.drawable.mascot), null, Modifier.size(96.dp), contentScale = ContentScale.Fit)
+            BoarMark(null, Modifier.size(96.dp), contentScale = ContentScale.Fit)
         }
         Text("BoarLite", style = MaterialTheme.typography.headlineSmall, color = scheme.onSurface, modifier = Modifier.padding(top = 6.dp))
         Text(t("native.about.tagline"), style = MaterialTheme.typography.titleMedium, color = scheme.primary, textAlign = TextAlign.Center)

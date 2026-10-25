@@ -14,7 +14,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -62,7 +61,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -74,7 +72,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import team.sopa.boar.R
+import team.sopa.boar.ui.components.BoarMark
 import team.sopa.boar.chat.Source
 import team.sopa.boar.engine.answer.AnswerNote
 import team.sopa.boar.engine.answer.HealthGate
@@ -155,7 +153,7 @@ private fun Question(text: String) {
 @Composable
 private fun Byline() {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Image(painterResource(R.drawable.mascot), null, Modifier.size(IconSize.Standard), contentScale = ContentScale.Fit)
+        BoarMark(null, Modifier.size(IconSize.Standard), contentScale = ContentScale.Fit)
         Text(t("chatScreen.roleAssistant"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -463,7 +461,7 @@ internal fun PrivateScene(count: Int, play: Boolean, motion: Boolean, modifier: 
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Box(Modifier.size(150.dp)) {
                 Reveal(step >= 1) { Box(Modifier.size(150.dp).clip(CircleShape).background(cs.primaryContainer)) }
-                Image(painterResource(R.drawable.mascot), t("clean.onboarding.welcome.mascotA11y"),
+                BoarMark(t("clean.onboarding.welcome.mascotA11y"),
                     Modifier.align(Alignment.Center).size(118.dp).graphicsLayer { translationY = -bob.value * 6.dp.toPx() },
                     contentScale = ContentScale.Fit)
                 Reveal(step >= 2, Modifier.align(Alignment.BottomEnd)) {

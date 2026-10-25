@@ -11,7 +11,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -76,6 +75,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.LineHeightStyle
+import team.sopa.boar.ui.components.BoarMark
 import team.sopa.boar.ui.theme.IconSize
 import team.sopa.boar.ui.theme.onTextLine
 import team.sopa.boar.ui.theme.textOnRowCenter
@@ -103,7 +103,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -115,7 +114,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-import team.sopa.boar.R
 import team.sopa.boar.chat.Activity
 import team.sopa.boar.chat.ChatState
 import team.sopa.boar.chat.Receipt
@@ -400,7 +398,7 @@ private fun EmptyState(suggestions: List<String>, onAsk: (String) -> Unit, onFil
                 verticalArrangement = Arrangement.SpaceBetween) {
                 Spacer(Modifier.height(0.dp))
                 Column(Modifier.fillMaxWidth().padding(vertical = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(painterResource(R.drawable.mascot), null, Modifier.size(88.dp), contentScale = ContentScale.Fit)
+                    BoarMark(null, Modifier.size(88.dp), contentScale = ContentScale.Fit)
                     Spacer(Modifier.height(16.dp))
                     Text(t("design.chat.emptyTitle"), style = type.headlineSmall, color = scheme.onSurface, textAlign = TextAlign.Center)
                     Spacer(Modifier.height(8.dp))
@@ -479,7 +477,7 @@ private fun Bubble(
             Row(Modifier.padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // One 24 dp slot for both marks, so the label starts at the same x in every answer.
                 if (researched) Icon(BoarIcons.Science, null, tint = scheme.tertiary, modifier = Modifier.size(IconSize.Standard))
-                else Image(painterResource(R.drawable.mascot), null, Modifier.size(IconSize.Standard), contentScale = ContentScale.Fit)
+                else BoarMark(null, Modifier.size(IconSize.Standard), contentScale = ContentScale.Fit)
                 Text(if (researched) t("native.chat.roleDeepResearch") else t("chatScreen.roleAssistant"), style = type.labelLarge,
                     color = if (researched) scheme.tertiary else scheme.onSurfaceVariant)
             }

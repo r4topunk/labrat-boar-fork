@@ -1,6 +1,5 @@
 package team.sopa.boar.ui.setup
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,13 +24,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import team.sopa.boar.R
+import team.sopa.boar.ui.components.BoarMark
 import team.sopa.boar.setup.SetupPhase
 import team.sopa.boar.setup.SetupState
 import team.sopa.boar.setup.SetupViewModel
@@ -56,7 +54,7 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, onSkip: (() -> Unit)?) {
         verticalArrangement = Arrangement.spacedBy(Gap), horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(Modifier.height(24.dp))
-        Image(painterResource(R.drawable.mascot), contentDescription = t("clean.onboarding.welcome.mascotA11y"), modifier = Modifier.size(128.dp))
+        BoarMark(contentDescription = t("clean.onboarding.welcome.mascotA11y"), modifier = Modifier.size(128.dp))
         val title = when (state.phase) {
             SetupPhase.NO_DATA -> t("clean.setup.noDataTitle")
             SetupPhase.NO_SPACE -> t("clean.setup.noSpaceTitle")

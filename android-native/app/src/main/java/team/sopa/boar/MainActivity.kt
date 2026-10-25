@@ -384,10 +384,11 @@ private fun ChatDrawer(
                 // ChatScreen.tsx's items. Evaluation stands in for Execution Telemetry and shows only with developer
                 // options; Models is reached from Settings, and About from there too.
                 items = buildList {
-                    add(DrawerItem("knowledge", t("nav.knowledge"), BoarIcons.LibraryBooks) { go { onNavigate("documents") } })
+                    add(DrawerItem("knowledge", t("nav.knowledge"), BoarIcons.LibraryBooks, t("native.drawer.knowledgeNote")) { go { onNavigate("documents") } })
                     if (devOptions) add(DrawerItem("evaluation", t("evaluation.title"), BoarIcons.Science) { go { onNavigate("evaluation") } })
-                    add(DrawerItem("settings", t("chatScreen.drawerItems.settings"), Icons.Outlined.Settings) { go { onNavigate("settings") } })
+                    add(DrawerItem("settings", t("chatScreen.drawerItems.settings"), Icons.Outlined.Settings, t("native.drawer.settingsNote")) { go { onNavigate("settings") } })
                 },
+                brandNote = t("native.drawer.brandNote", "count" to remember { services.catalog.corpusCatalog.count { services.fileOf(it).isFile } }),
                 lastTokPerSec = lastTokPerSec,
                 storageUsed = { services.storageUsedBytes() },
                 storageBudgetBytes = services.catalog.storageBudgetBytes,

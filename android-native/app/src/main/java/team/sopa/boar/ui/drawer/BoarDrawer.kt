@@ -1,5 +1,6 @@
 package team.sopa.boar.ui.drawer
 
+import team.sopa.boar.ui.components.BoarMark
 import team.sopa.boar.ui.theme.IconSize
 import team.sopa.boar.ui.theme.onTextLine
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -13,7 +14,6 @@ import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.DpOffset
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +36,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.HorizontalDivider
@@ -58,7 +58,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -66,14 +65,13 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import team.sopa.boar.R
 import team.sopa.boar.engine.chat.ChatSession
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import java.util.Locale
 
-/** A destination under "New chat"; [icon] leads the label (the Material drawer spec: every destination has one). */
-class DrawerItem(val key: String, val label: String, val icon: ImageVector? = null, val onClick: () -> Unit)
+/** A destination under "New chat"; [icon] leads the label (the Material drawer spec: every destination has one), [note] goes under it. */
+class DrawerItem(val key: String, val label: String, val icon: ImageVector? = null, val note: String? = null, val onClick: () -> Unit)
 
 /**
  * Drawer.tsx as a standard Material 3 navigation drawer: the brand, a new chat, the screens, recent sessions (open,
@@ -95,6 +93,8 @@ fun BoarDrawer(
     showStats: Boolean,
     /** BOAR is answering: chats can't be switched, opened or deleted until it ends (the list is dimmed, with a hint). */
     answering: Boolean = false,
+    /** The line under the name in the brand card ("13 packs · works offline"). */
+    brandNote: String = "",
     onNewChat: () -> Unit,
     onSelect: (String) -> Unit,
     /** The caller removes the row right away and offers an undo; the chat is erased only when that lapses. */
@@ -107,20 +107,26 @@ fun BoarDrawer(
         // Fixed parts at the top and bottom; the chat history takes the height left under them and scrolls inside
         // it, so the menu doesn't move when the sessions load.
         Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)) {
-                // The mark in the destinations' 24 dp icon column, so "BOAR" starts on their label column.
-                Image(painterResource(R.drawable.mascot), null, Modifier.size(IconSize.Standard))
-                Column {
-                    Text("BoarLite", style = type.titleMedium, color = scheme.onSurface)
-                    // The same line the setup welcome carries: one product, one tagline.
-                    Text(t("flows.onboarding.brandSub"), style = type.bodySmall, color = scheme.onSurfaceVariant)
+            // The brand card (r4to 2026-10-24, proposal C): the mark on a light tile, the name and what is inside, then
+            // New chat as the card's one filled action.
+            Column(
+                Modifier.fillMaxWidth().padding(bottom = 8.dp).clip(RoundedCornerShape(24.dp)).background(scheme.primaryContainer).padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(Modifier.size(52.dp).clip(RoundedCornerShape(16.dp)).background(scheme.surface), contentAlignment = Alignment.Center) {
+                        BoarMark(null, Modifier.size(34.dp))
+                    }
+                    Column {
+                        Text("BoarLite", style = Boar.type.title, fontWeight = FontWeight.ExtraBold, color = scheme.onPrimaryContainer)
+                        if (brandNote.isNotEmpty()) Text(brandNote, style = type.bodySmall, color = scheme.onPrimaryContainer)
+                    }
                 }
-            }
-            // The button's edge on the same 16 dp inset as the header and the destinations' icons.
-            FilledTonalButton(onClick = onNewChat, enabled = !answering, modifier = Modifier.padding(start = 16.dp, bottom = 8.dp).height(48.dp)) {
-                Icon(Icons.Filled.Add, null, Modifier.size(ButtonDefaults.IconSize).onTextLine(MaterialTheme.typography.labelLarge))
-                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                Text(t("clean.drawer.newChat"))
+                Button(onClick = onNewChat, enabled = !answering, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                    Icon(Icons.Filled.Add, null, Modifier.size(ButtonDefaults.IconSize).onTextLine(MaterialTheme.typography.labelLarge))
+                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                    Text(t("clean.drawer.newChat"))
+                }
             }
             // The destinations sit right under the button, so a short history leaves the empty space at the bottom
             // instead of a gap in the middle of the sheet.
@@ -128,7 +134,12 @@ fun BoarDrawer(
                 val icon = item.icon
                 NavigationDrawerItem(
                     icon = if (icon != null) ({ Icon(icon, null, Modifier.onTextLine(type.labelLarge)) }) else null,
-                    label = { Text(item.label, style = type.labelLarge) },
+                    label = {
+                        Column {
+                            Text(item.label, style = type.labelLarge)
+                            item.note?.let { Text(it, style = type.bodySmall, color = scheme.onSurfaceVariant) }
+                        }
+                    },
                     selected = false,
                     onClick = item.onClick,
                 )

@@ -88,6 +88,9 @@
     <string name="native_about_addressesTitle" formatted="false">Official addresses</string>
     <string name="native_about_siteLabel" formatted="false">Website</string>
     <string name="native_about_creditsTitle" formatted="false">Credits</string>
+    <string name="native_drawer_brandNote" formatted="false">{{count}} packs · works offline</string>
+    <string name="native_drawer_knowledgeNote" formatted="false">What BoarLite can read</string>
+    <string name="native_drawer_settingsNote" formatted="false">Theme, text size, chats</string>
     <string name="native_drawer_evaluation" formatted="false">🧪 Evaluation</string>
     <string name="native_eval_modelsTitle" formatted="false">Models ({{chosen}} of {{count}} chosen)</string>
     <string name="native_eval_answersTitle" formatted="false">Answers ({{count}})</string>
