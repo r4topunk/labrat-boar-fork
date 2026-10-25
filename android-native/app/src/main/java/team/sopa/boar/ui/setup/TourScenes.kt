@@ -81,7 +81,6 @@ import team.sopa.boar.ui.chat.MarkdownMessage
 import team.sopa.boar.ui.chat.SourceFootnotes
 import team.sopa.boar.ui.icons.BoarIcons
 import team.sopa.boar.ui.t
-import team.sopa.boar.ui.theme.IconSize
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
@@ -149,14 +148,10 @@ private fun Question(text: String) {
     }
 }
 
-/** The answer's byline: the boar and "BoarLite". */
+/** The answer's byline as the chat draws it: the label alone ("Boar"). */
 @Composable
-private fun Byline() {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        BoarMark(null, Modifier.size(IconSize.Standard), contentScale = ContentScale.Fit)
-        Text(t("chatScreen.roleAssistant"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
+private fun Byline() =
+    Text(t("chatScreen.roleAssistant"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
 /** The input bar as the chat draws it, with the question being typed; the send button fills once there is text. */
 @Composable
