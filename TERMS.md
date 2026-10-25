@@ -25,7 +25,7 @@ The APK bundles third-party content that keeps its own license:
   and emergency content (CC BY-SA 4.0 and US public domain); MedlinePlus (public domain, National
   Library of Medicine); and a crypto and Ethereum reference under mixed licenses. Each pack's license
   and credits are in the app.
-- **Libraries:** llama.cpp (MIT), SQLite (public domain), Zstandard (BSD), PdfBox-Android (Apache 2.0).
+- **Libraries:** llama.cpp (MIT), SQLite (public domain), Zstandard (BSD), PdfBox-Android (Apache 2.0), and the knowledge-pack search design from AndroidLM (Apache 2.0).
 - **Fonts:** Baloo 2 and Lexend, under the SIL Open Font License 1.1.
 
 ## 2. What BoarLite is, and what it isn't
@@ -34,7 +34,7 @@ BoarLite runs a small AI model on your phone and answers in English, in a short 
 from a local library that is built into the app.
 
 - **Answers can be wrong.** A small model writes them, and they can be incomplete, outdated or simply
-  mistaken, even with a source shown. Every answer ends with "May contain errors; check the source."
+  mistaken, even with a source shown. Every answer the model writes ends with "May contain errors; check the source."
   Check anything important.
 - **Not professional advice.** BoarLite doesn't give medical, legal, financial or safety advice and
   doesn't replace a doctor, lawyer or other professional. Health content is AI-reviewed, not clinically
@@ -50,7 +50,7 @@ You are responsible for how you use BoarLite's answers and for the decisions you
 BoarLite keeps your data on your phone (Privacy Notice), so protecting it is in your hands:
 
 - **Keep your phone secure:** a screen lock and system updates. BoarLite does not add encryption
-  beyond the optional PIN for your chats.
+  of its own.
 - **What you import is up to you.** Only import documents you have the right to use.
 - **What you export leaves the app.** Files you export through the share sheet can be copied by anyone
   who gets them.

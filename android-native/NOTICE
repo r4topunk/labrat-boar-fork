@@ -31,11 +31,18 @@ Baloo 2 and Lexend fonts — https://github.com/EkType/Baloo2, https://github.co
 PdfBox-Android — https://github.com/TomRoush/PdfBox-Android
   Apache License 2.0. Extracts the text of PDFs the user imports (a port of Apache PDFBox).
 
-Models and data (downloaded by the user at setup or from the Model Catalog and Knowledge, never bundled in the APK;
-each keeps its own license, shown in the app's catalog and in About):
-  Qwen3-4B-Instruct-2507, Qwen2.5-1.5B / 7B-Instruct (Alibaba Qwen) — Apache License 2.0
-  LFM2.5-8B-A1B (Liquid AI) — LFM Open License v1.0
-  Gemma 4 E4B (Google) — as listed in the catalog
+Models and data (bundled in the APK and unpacked on first launch; each keeps its own license, shown in the app's
+Credits and in the catalog, app/src/main/assets/boar-data/catalog.json):
+  Qwen3-1.7B (Alibaba Qwen) — Apache License 2.0
   bge-small-en-v1.5 (BAAI) — MIT License
-  Wikipedia text in the knowledge base and packs — CC BY-SA 4.0
-
+  The K13 knowledge packs, with the licenses catalog.json lists:
+    Wikipedia Vital Articles, Wikipedia essentials collections and the prebuilt search index — CC BY-SA 4.0 (Wikipedia)
+    Simple English Wikipedia — CC BY-SA 4.0
+    Wikivoyage travel guides — CC BY-SA 4.0
+    Visa requirements — CC BY-SA 4.0 (Wikipedia)
+    CIA World Factbook archive — CC0
+    First aid and emergency — CC BY-SA 4.0; US public domain (ATP 4-02.11, FM 21-76, federal works)
+    MedlinePlus health topics — public domain (NLM)
+    Crypto and Ethereum reference — mixed: CC0, public domain, BSD, MIT, FSFAP, CC BY 4.0, CC BY-SA 4.0 (per-source map in pack meta)
+    Stack Exchange Q&A: Medical Sciences, Outdoors, Travel — CC BY-SA 3.0/4.0 per post; Cooking, Personal finance —
+      CC BY-SA 2.5/3.0/4.0 per post (attribution per row)

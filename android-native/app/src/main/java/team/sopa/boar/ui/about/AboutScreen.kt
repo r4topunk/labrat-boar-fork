@@ -92,7 +92,7 @@ fun AboutScreen(onClose: () -> Unit) {
                     IconRow(TourIcons.Device, t("native.about.how.budget"), t("native.about.post.budget"))
                 }
                 Section("Based on BOAR") {
-                    Note("BoarLite is a fork of BOAR, the open-source offline research app (MIT). The BoarLite repository is private; the BOAR code and the knowledge packs it builds on are public:")
+                    Note("BoarLite is a fork of BOAR, the open-source offline research app (MIT). The BoarLite repository is private; the BOAR code and BOAR's published knowledge packs are public:")
                     CopyRow("BOAR code (MIT)", "github.com/rferrari/boar-app")
                     CopyRow(t("native.about.packsTitle"), "huggingface.co/datasets/r4topunk/boar-packs")
                 }

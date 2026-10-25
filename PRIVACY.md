@@ -13,8 +13,8 @@ not cover those.
 ## In short
 
 - **BoarLite has no network access.** Its manifest removes the `INTERNET` permission (and the
-  network-state permission), so the app cannot send anything anywhere, and there is no server behind it.
-- **Your questions, answers, chats and documents never leave your phone.** The model that answers runs
+  network-state permission), so the app cannot send anything over a network, and there is no server behind it.
+- **Your questions, answers, chats and documents stay on your phone unless you export them yourself (section 2).** The model that answers runs
   on the phone.
 - **No accounts, no advertising, no analytics, no crash reporting, no result sharing.** There is nothing
   to sign in to and nothing that reports back to us.
@@ -26,8 +26,8 @@ not cover those.
 
 BoarLite processes these only on your device:
 
-- your questions and its answers, and your chats (the last three exchanges of a chat are used as context
-  for follow-ups; there is no long-chat summary). If you set a PIN, your chats are stored sealed behind it;
+- your questions and its answers, and your chats (up to the last three exchanges of a chat are used as context
+  for follow-ups; there is no long-chat summary);
 - documents you import (`.txt`, `.md`, `.csv`, `.json`, `.pdf`) and the collections made from them;
 - the knowledge packs and the searches over them;
 - BoarLite's per-answer performance record (model load time, speed, memory, which sources were used) and
@@ -37,7 +37,8 @@ BoarLite processes these only on your device:
 
 BoarLite does not read your location, use the microphone or the camera, or read your contacts.
 Its only permissions are vibration (haptic feedback) and a foreground-service notification that shows
-"BoarLite is answering…" while an answer is being written.
+"BoarLite is answering…" while an answer is being written (on Android 13 and later the app asks once for
+permission to show it; saying no doesn't stop answers).
 
 ## 2. Leaving the phone only when you choose
 
@@ -60,8 +61,7 @@ the data extraction rules exclude every domain). It lives only on this phone.
 
 ## 5. Security, and what is up to you
 
-Apart from your chats when you set the optional PIN, BoarLite does not encrypt your data beyond what
-Android does for every app. Anyone who can unlock or take over your phone can read what BoarLite stored. Keeping
+BoarLite does not encrypt your data beyond what Android does for every app. Anyone who can unlock or take over your phone can read what BoarLite stored. Keeping
 the phone, its lock screen and anything you export safe is up to you. Install BoarLite only from the
 team that distributed it: a modified copy is not covered by this notice.
 

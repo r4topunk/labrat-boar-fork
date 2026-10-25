@@ -45,23 +45,18 @@
     <string name="native_settings_standard" formatted="false">Standard</string>
     <string name="native_settings_large" formatted="false">Large</string>
     <string name="native_drawer_settings" formatted="false">Settings</string>
-    <string name="native_about_airGappedBody" formatted="false">BoarLite is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It runs local LLM inference with llama.cpp, built into the app, and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
     <string name="native_about_siteTitle" formatted="false">Official website</string>
-    <string name="native_about_siteBody" formatted="false">News and updates are posted on our official website. Don\'t fall for scams: check the address before you download anything that says it is BoarLite.</string>
-    <string name="native_about_verify" formatted="false">Don\'t trust, verify.</string>
     <string name="native_about_copied" formatted="false">Copied</string>
     <string name="native_about_holdToCopy" formatted="false">Press and hold an address to copy it.</string>
     <string name="native_receipt_mode" formatted="false">Mode</string>
     <string name="native_receipt_style_succinct" formatted="false">Succinct &amp; Direct</string>
     <string name="native_receipt_path_chat" formatted="false">From this chat</string>
     <string name="native_about_tagline" formatted="false">Your questions.\nYour phone. Your AI.</string>
-    <string name="native_about_bio" formatted="false">Offline AI research on your phone. Answers with sources, no signal needed. Open source (MIT).</string>
+    <string name="native_about_bio" formatted="false">Offline AI research on your phone. Answers with sources, no signal needed. Based on BOAR (MIT).</string>
     <string name="native_about_post_why" formatted="false">When AI lives only on someone else\'s server, whoever runs it holds a switch.\n\nWe\'d rather no one did. So the model lives on your phone, and no server receives your questions.</string>
     <string name="native_about_post_offline" formatted="false">BoarLite has no internet access at all, so airplane mode is fine: it answers from the library on your phone and shows the articles it used.</string>
-    <string name="native_about_post_receipt" formatted="false">Every answer shows how long it took and which articles it used.</string>
+    <string name="native_about_post_receipt" formatted="false">Every answer the model writes shows how long it took and which articles it used.</string>
     <string name="native_about_post_budget" formatted="false">Before a model loads, BoarLite checks that it fits your phone\'s memory.</string>
-    <string name="native_about_post_open" formatted="false">Open source, MIT. The code, the model list and the scripts that build the knowledge packs:</string>
-    <string name="native_about_post_verify" formatted="false">News comes only from these addresses. Check the address before you download anything that says it is BoarLite.</string>
     <string name="native_about_post_packs" formatted="false">Knowledge packs from R4to\'s R&amp;D Lab:</string>
     <string name="native_about_post_team" formatted="false">Core team, on X:</string>
     <string name="native_about_post_credits" formatted="false">Standing on open work, each under its own license:</string>
@@ -215,7 +210,6 @@
     <string name="native_chat_suggestions_b21" formatted="false">Is dengue worse the second time?</string>
     <string name="native_chat_suggestionTopics_b21" formatted="false">Health</string>
     <string name="native_tweaks_moeWhenNeeded" formatted="false">When it doesn\'t fit</string>
-    <string name="native_aboutScreen_benchmarkBody" formatted="false">BoarLite measures every answer on your own phone: model load time, time to the first word, tokens per second, peak memory and which sources were used. Run the built-in evaluation from the menu, Evaluation, to compare installed models on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>
     <string name="native_tweaks_runWarning" formatted="false">Fastest answers. The phone gets warmer and uses more battery, and answers have no time limit (use Stop). Best while charging.</string>
     <string name="native_tweaks_runWarningLowRam" formatted="false">This phone has less than 8 GB of RAM: large models may run out of memory.</string>
     <string name="native_tweaks_runWarningGo" formatted="false">Run</string>

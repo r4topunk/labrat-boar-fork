@@ -1,3 +1,6 @@
+> Inherited from BOAR. BoarLite removed downloads, model choice, Deep Research beyond the recap, adaptive routing and Portuguese.
+> Where this document differs from the code, the code wins.
+
 # BOAR — Adaptive Local Intelligence (Android)
 
 An offline-first mobile AI system for Android exploring local

@@ -32,7 +32,7 @@ trail, a border crossing, a blackout. BoarLite answers in airplane mode, with no
 account, no server and no Google Play Services.
 
 BoarLite is a **closed offline build** (package `team.sopa.boar.lite`): the APK declares no
-`INTERNET` permission, so nothing you ask, read or import can be sent anywhere. Everything
+`INTERNET` permission, so the app itself cannot send anything you ask, read or import over a network. Everything
 the app needs is built into the APK (about 3.0 GB) and unpacked on first launch:
 
 - the answer model, **Qwen3 1.7B** (Q4_K_M), the only one: there is no model choice;
@@ -46,17 +46,18 @@ no length setting.
 
 - **Retrieval is local and hybrid:** SQLite FTS5 keyword search plus on-device embeddings, over
   the packs and over any documents you imported. Inference is `llama.cpp` through JNI.
-- **Every answer shows its sources** and the time it took, and ends with a fixed line:
+- **Every answer the model writes shows its sources** and the time it took, and ends with a fixed line:
   *May contain errors; check the source.*
 - **Health questions go through a lexical gate** (a word and phrase check, not a model
   judgment). If the search kept no passage from a health pack (first aid, MedlinePlus, Medical
   Sciences Q&A), the app gives a fixed safe text and the emergency number instead of an answer
-  from the model's memory; with a health passage kept, the model answers from it. Health search
+  from the model's memory; with a health passage kept, the model answers with that passage in its context. Health search
   runs without the extra search port (mode `ON_NO_HEALTH`). Health content is AI-reviewed, not
   clinically reviewed: general information, not medical advice.
-- **Follow-ups are free** and keep the last three exchanges. There is no long-chat summary.
+- **Follow-ups are free** and keep up to the last three exchanges. There is no long-chat summary.
 - **Quick math** (a unit conversion, a percentage or plain arithmetic) is computed directly,
-  with no model and no source list; a health-looking question never takes this path.
+  with no model and no source list. A health question goes through the health gate first; a cold-or-heat
+  exposure question that also asks for a conversion gets the computed line with a health passage or the fixed safe text.
 - **A short tour** runs while the bundle unpacks on first launch.
 
 ## What it can cite
@@ -83,7 +84,7 @@ adb install -r boarlite-release.apk   # or open the file on the phone
 ```
 
 On first launch the app unpacks the bundle (model, packs, index) behind a short tour; that
-needs about 3 GB of free space and no connection.
+needs about 6 GB of free space (the 3 GB APK plus the unpacked copy) and no connection.
 
 **Build from source** (for people with access to the repository): see
 [android-native/docs/BUILDING-RELEASE.md](android-native/docs/BUILDING-RELEASE.md) and
