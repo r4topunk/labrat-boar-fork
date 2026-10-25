@@ -55,10 +55,6 @@
     <string name="native_about_holdToCopy" formatted="false">Press and hold an address to copy it.</string>
     <string name="native_receipt_mode" formatted="false">Mode</string>
     <string name="native_receipt_style_succinct" formatted="false">Succinct &amp; Direct</string>
-    <string name="native_receipt_style_detailed" formatted="false">Thorough &amp; Detailed</string>
-    <string name="native_receipt_style_summary" formatted="false">Executive Summary</string>
-    <string name="native_receipt_style_custom" formatted="false">Custom</string>
-    <string name="native_receipt_path_deep" formatted="false">Deep Research</string>
     <string name="native_receipt_path_chat" formatted="false">From this chat</string>
     <string name="native_receipt_path_adaptive" formatted="false">Adaptive routing</string>
     <string name="native_receipt_checked" formatted="false">checked</string>
@@ -189,12 +185,9 @@
     <string name="native_common_somethingWrong" formatted="false">Something went wrong. Try again.</string>
     <string name="native_chat_dbFailed" formatted="false">Couldn\'t do that. Try again.</string>
     <string name="native_chat_ratingNote" formatted="false">Saved on this phone only. Nothing is sent. BoarLite doesn\'t learn from it yet.</string>
-    <string name="native_chat_styleNote_health" formatted="false">Short answer: health questions are kept brief.</string>
-    <string name="native_chat_styleNote_seed" formatted="false">Short answer: seed-phrase questions are kept brief, for your safety.</string>
     <string name="native_chat_errorGeneric" formatted="false">Something went wrong while answering. Try again.</string>
     <string name="native_chat_errorEmpty" formatted="false">The model stopped without writing an answer.</string>
     <string name="native_chat_errorInterrupted" formatted="false">Interrupted: BoarLite was closed while answering.</string>
-    <string name="native_chat_roleDeepResearch" formatted="false">BoarLite · Deep Research</string>
     <string name="native_answering_channel" formatted="false">Answering</string>
     <string name="native_answering_title" formatted="false">BoarLite is answering…</string>
     <string name="native_answering_text" formatted="false">The answer keeps going while you use other apps.</string>
@@ -208,7 +201,6 @@
     <string name="native_settings_resetConfirmButton" formatted="false">Reset</string>
     <string name="native_chat_foundBeforeStop" formatted="false">Found before stopping</string>
     <string name="native_chat_cutAtLimit" formatted="false">Stopped at the length limit</string>
-    <string name="native_chat_allowMore" formatted="false">Allow {{limit}} and redo</string>
     <string name="native_chat_suggestions_b1" formatted="false">Who came up with natural selection?</string>
     <string name="native_chat_suggestionTopics_b1" formatted="false">History of science</string>
     <string name="native_chat_suggestions_b2" formatted="false">How do vaccines work?</string>
@@ -259,11 +251,8 @@
     <string name="native_tweaks_runWarningKeepPath" formatted="false">Keep BoarLite\'s Path</string>
     <string name="native_personalDocumentsManager_hint" formatted="false">Import your own .txt, .md, .csv, .json or .pdf notes. They are indexed on this device only and never uploaded. PDFs need selectable text: scanned or image-only pages can\'t be read (there\'s no OCR), and password-protected PDFs aren\'t supported.</string>
     <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">This deletes \"{{name}}\" ({{count}} chunks) from your local knowledge base. This can\'t be undone. Export it first if you want to keep a copy.</string>
-    <string name="native_voiceSettings_unavailableNote" formatted="false">No speech recognition service was found on this phone. This is common on GrapheneOS and other builds without Google. Typing works as usual.</string>
     <string name="native_interfaceSettings_hapticFeedbackValue" formatted="false">Vibrate when you send a question and when its answer finishes.</string>
     <string name="native_evaluation_stoppedEarly" formatted="false">Stopped early. Partial results saved.</string>
-    <string name="native_flows_onboarding_currentItem" formatted="false">Item {{n}} of {{total}}: {{name}}</string>
-    <string name="native_sourceFootnotes_localIndex" formatted="false">FROM</string>
     <string name="native_sourceFootnotes_yourDocuments" formatted="false">Your documents</string>
     <string name="native_drawer_answeringHint" formatted="false">Answering… stop it to switch chats.</string>
     <string name="native_documents_tooLarge" formatted="false">Too large: {{name}} (over {{mb}} MB).</string>
@@ -277,23 +266,14 @@
     <string name="native_common_ok" formatted="false">OK</string>
     <string name="native_settings_freeMemory" formatted="false">Free memory when I leave BoarLite</string>
     <string name="native_settings_freeMemoryNote" formatted="false">Frees memory a few seconds after you leave. The next answer starts a little slower.</string>
-    <string name="native_tweaks_freeMemoryAfter" formatted="false">Free memory after</string>
-    <string name="native_tweaks_freeMemoryAfterNote" formatted="false">How long BoarLite waits in the background before it unloads the model, when Free memory when I leave BoarLite is on. Auto unloads it as soon as you leave, after an answer still being written; the next question loads it again.</string>
-    <string name="native_tweaks_immediately" formatted="false">Immediately</string>
-    <string name="native_drawer_closeStillSaving" formatted="false">Still saving the answer. Try again in a moment.</string>
-    <string name="native_drawer_close" formatted="false">Close BoarLite (frees memory)</string>
-    <string name="native_drawer_closeConfirm" formatted="false">An answer is still being written. Close anyway?</string>
-    <string name="native_drawer_closeButton" formatted="false">Close</string>
     <string name="native_modelSetupScreen_sections_telemetry" formatted="false">This phone</string>
     <string name="native_modelSetupScreen_sections_memory" formatted="false">Chats &amp; history</string>
     <string name="native_modelSetupScreen_sections_models" formatted="false">Models</string>
     <string name="native_modelSetupScreen_sections_knowledgeBase" formatted="false">Knowledge</string>
     <string name="native_modelSetupScreen_sections_voice" formatted="false">Voice input</string>
     <string name="native_modelSetupScreen_sections_recovery" formatted="false">Start over</string>
-    <string name="native_modelSetupScreen_recovery_wizardTitle" formatted="false">First-time setup</string>
     <string name="native_modelSetupScreen_recovery_wizardDesc" formatted="false">Run the first-time setup again to pick another model.</string>
     <string name="native_modelSetupScreen_recovery_wizardButton" formatted="false">Run setup again</string>
-    <string name="native_modelSetupScreen_recovery_dangerBadge" formatted="false">Erase everything</string>
     <string name="native_modelSetupScreen_recovery_dangerDesc" formatted="false">Deletes every model and pack, your documents and all chats from this phone. It can\'t be undone.</string>
     <string name="native_modelSetupScreen_recovery_dangerButton" formatted="false">Erase everything</string>
     <string name="native_modelSetupScreen_dangerModal_title" formatted="false">Erase everything?</string>
@@ -303,6 +283,5 @@
     <string name="native_memorySettings_clearAllConfirmTitle" formatted="false">Clear chat history?</string>
     <string name="native_memorySettings_clearAllButton" formatted="false">Clear</string>
     <string name="native_modelSetupScreen_sections_displayTheme" formatted="false">Display &amp; theme</string>
-    <string name="native_voiceSettings_unavailable" formatted="false">Not available on this phone</string>
     <string name="native_documents_unsupported" formatted="false">BoarLite can\'t read {{name}}: it imports .txt, .md, .csv, .json and .pdf. Save the page as one of those (a browser can save it as PDF) and import it again.</string>
 </resources>

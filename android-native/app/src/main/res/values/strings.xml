@@ -58,14 +58,8 @@
     <string name="modelSetupScreen_installedModels" formatted="false">Installed models</string>
     <string name="modelSetupScreen_discoverHfModels" formatted="false">Discover Hugging Face GGUF models</string>
     <string name="modelSetupScreen_toasts_indexed" formatted="false">Indexed \"{{name}}\" in offline knowledge base</string>
-    <string name="modelSetupScreen_toasts_removed" formatted="false">Removed \"{{name}}\"</string>
-    <string name="modelSetupScreen_toasts_activeSet" formatted="false">Active {{kind}} model set to \"{{name}}\"</string>
-    <string name="modelSetupScreen_toasts_loadFailed" formatted="false">Couldn\'t load \"{{name}}\": {{error}}</string>
-    <string name="modelSetupScreen_toasts_resetFailed" formatted="false">Reset failed: {{error}}</string>
-    <string name="modelSetupScreen_recovery_wizardTitle" formatted="false">Setup wizard</string>
     <string name="modelSetupScreen_recovery_wizardDesc" formatted="false">Re-run the initial 3-step onboarding flow to re-scan device hardware or switch your base model tier.</string>
     <string name="modelSetupScreen_recovery_wizardButton" formatted="false">Relaunch Setup Wizard ➔</string>
-    <string name="modelSetupScreen_recovery_dangerBadge" formatted="false">CRITICAL DANGER ZONE</string>
     <string name="modelSetupScreen_recovery_dangerDesc" formatted="false">Permanently wipes the GGUF weights, offline SQLite database indices, and conversation logs from this device.</string>
     <string name="modelSetupScreen_recovery_dangerButton" formatted="false">🚨 Purge All Data &amp; Reset App</string>
     <string name="modelSetupScreen_dangerModal_title" formatted="false">Confirm destructive reset</string>
@@ -75,151 +69,66 @@
     <string name="modelSetupScreen_dangerModal_consequenceEmbeddings" formatted="false">All offline SQLite document collections &amp; embeddings</string>
     <string name="modelSetupScreen_dangerModal_consequenceHistory" formatted="false">All chat session history and generated summaries</string>
     <string name="modelSetupScreen_dangerModal_confirmButton" formatted="false">Purge All Data</string>
-    <string name="personalitySettings_adaptiveRoutingTitle" formatted="false">Adaptive Routing</string>
-    <string name="personalitySettings_adaptiveRoutingNote" formatted="false">Classifies each message and picks which downloaded model answers it (e.g. a lightweight model for small talk, a stronger one for research/comparison questions), switching between them as needed. On by default and independent from Deep Research — if it fails for any reason, chat falls back to your normal active model automatically, it never leaves you without a response.</string>
-    <string name="corpusSettingsTab_downloadablePacks" formatted="false">Downloadable knowledge packs</string>
-    <string name="corpusSettingsTab_yourDocuments" formatted="false">Your documents</string>
-    <string name="personalDocumentsManager_hint" formatted="false">Import your own .txt, .md, .csv, .json, or .pdf notes — indexed on this device only, never uploaded anywhere. PDFs need selectable text (scanned/image-only pages won\'t extract — there\'s no OCR), and password-protected PDFs aren\'t supported.</string>
-    <string name="personalDocumentsManager_nameRequiredTitle" formatted="false">Name required</string>
-    <string name="personalDocumentsManager_nameRequiredMessage" formatted="false">Give this collection a name before importing.</string>
     <string name="personalDocumentsManager_importFailedTitle" formatted="false">Import failed</string>
     <string name="personalDocumentsManager_exportFailedTitle" formatted="false">Export failed</string>
     <string name="personalDocumentsManager_removeConfirmTitle" formatted="false">Remove this collection?</string>
     <string name="personalDocumentsManager_removeConfirmMessage" formatted="false">This deletes \"{{name}}\" ({{count}} chunks) from your local knowledge base. This can\'t be undone — export it first if you want to keep a copy.</string>
-    <string name="personalDocumentsManager_namePlaceholder" formatted="false">Collection name (e.g. Project Specs)</string>
-    <string name="personalDocumentsManager_pickButton" formatted="false">Pick Files &amp; Import</string>
     <string name="personalDocumentsManager_stageReading" formatted="false">Reading files…</string>
     <string name="personalDocumentsManager_stageChunking" formatted="false">Splitting into chunks…</string>
     <string name="personalDocumentsManager_stageEmbedding" formatted="false">Embedding {{current}}/{{total}}…</string>
-    <string name="personalDocumentsManager_empty" formatted="false">No custom collections yet.</string>
     <string name="personalDocumentsManager_docCount_one" formatted="false">{{count}} doc</string>
     <string name="personalDocumentsManager_docCount_other" formatted="false">{{count}} docs</string>
-    <string name="personalDocumentsManager_chunkCount_one" formatted="false">{{count}} chunk</string>
-    <string name="personalDocumentsManager_chunkCount_other" formatted="false">{{count}} chunks</string>
     <string name="personalDocumentsManager_exportButton" formatted="false">Export / Share</string>
-    <string name="personalDocumentsManager_exporting" formatted="false">Exporting…</string>
-    <string name="memorySettings_title" formatted="false">Chat history &amp; memory</string>
-    <string name="memorySettings_autoSummarizeLabel" formatted="false">Background context summarization</string>
-    <string name="memorySettings_autoSummarizeValue" formatted="false">Condenses older turns so long chats don\'t lose context</string>
     <string name="memorySettings_turnsBeforeSummarizing" formatted="false">Recent turns before summarizing</string>
     <string name="memorySettings_maxSavedSessions" formatted="false">Max saved chat sessions</string>
-    <string name="memorySettings_unlimited" formatted="false">Unlimited</string>
     <string name="memorySettings_autoTitlesLabel" formatted="false">Auto-generate chat titles</string>
     <string name="memorySettings_autoTitlesValue" formatted="false">Names new chats from your first message</string>
     <string name="memorySettings_clearAllConfirmTitle" formatted="false">Clear all chat history?</string>
-    <string name="memorySettings_clearAllConfirmMessage" formatted="false">This permanently deletes every saved chat session and message on this device. This can\'t be undone.</string>
     <string name="memorySettings_clearAllButton" formatted="false">Clear All</string>
     <string name="memorySettings_clearAllChatHistory" formatted="false">Clear All Chat History</string>
-    <string name="voiceSettings_title" formatted="false">Voice Input</string>
-    <string name="voiceSettings_enabledLabel" formatted="false">Voice input</string>
-    <string name="voiceSettings_enabledValue" formatted="false">Show the microphone button in the chat to dictate messages.</string>
-    <string name="voiceSettings_speechEngineLabel" formatted="false">Speech-to-text engine</string>
-    <string name="voiceSettings_checking" formatted="false">Checking…</string>
-    <string name="voiceSettings_available" formatted="false">Android SpeechRecognizer (offline)</string>
-    <string name="voiceSettings_unavailable" formatted="false">Unavailable on this device</string>
-    <string name="voiceSettings_unavailableNote" formatted="false">No system speech-recognition service was found — common on GrapheneOS / de-Googled builds. An embedded whisper.cpp model would remove this dependency but is a separate project on the scale of the llama.rn integration itself; not implemented in this version.</string>
     <string name="interfaceSettings_hapticFeedbackLabel" formatted="false">Haptic feedback</string>
     <string name="interfaceSettings_hapticFeedbackValue" formatted="false">Vibrate on taps, sends, and responses finishing — app-wide, not just voice input.</string>
-    <string name="knowledgeBaseScreen_title" formatted="false">My Documents</string>
     <string name="chatHeader_openDrawer" formatted="false">Open Navigation Drawer</string>
-    <string name="chatHeader_offline" formatted="false">OFFLINE</string>
     <string name="chatHeader_localLlmCore" formatted="false">No model yet</string>
-    <string name="chatHeader_newChatSession" formatted="false">New Chat Session</string>
     <string name="chatHeader_offlineTitle" formatted="false">You\'re offline</string>
     <string name="chatHeader_offlineBody" formatted="false">BoarLite has no internet access at all. Everything works: answers, search and your library are all on this phone.</string>
-    <string name="chatScreen_initializingCore" formatted="false">Initializing local offline core…</string>
     <string name="chatScreen_mountingWeights" formatted="false">Getting BoarLite ready…</string>
-    <string name="chatScreen_indexingKnowledgeBase" formatted="false">Indexing offline knowledge base…</string>
     <string name="chatScreen_reasoningElapsed" formatted="false">💭 Reasoning… {{seconds}}s</string>
     <string name="chatScreen_reasoningUnfinished" formatted="false">Reasoning didn\'t finish before the reply ended (stopped or out of tokens). Tap the reasoning button to read it.</string>
     <string name="chatScreen_showReasoning" formatted="false">Show reasoning</string>
     <string name="chatScreen_hideReasoning" formatted="false">Hide reasoning</string>
     <string name="chatScreen_messageReused" formatted="false">Message copied to the input</string>
-    <string name="chatScreen_stopping" formatted="false">Stopping… (finishing the current step)</string>
-    <string name="chatScreen_modelDownloadComplete" formatted="false">✅ \"{{label}}\" download complete</string>
-    <string name="chatScreen_drawerItems_prompts" formatted="false">Prompt Ideas</string>
-    <string name="chatScreen_drawerItems_myDocuments" formatted="false">My Documents</string>
     <string name="chatScreen_drawerItems_settings" formatted="false">Settings</string>
-    <string name="chatScreen_drawerItems_telemetry" formatted="false">Execution Telemetry</string>
-    <string name="chatScreen_drawerItems_about" formatted="false">About &amp; Info</string>
     <string name="chatScreen_inputPlaceholder" formatted="false">Ask a question</string>
     <string name="chatScreen_stopGeneration" formatted="false">Stop generation</string>
     <string name="chatScreen_sendMessage" formatted="false">Send message</string>
-    <string name="chatScreen_research_decomposing" formatted="false">Breaking the question into smaller ones…</string>
-    <string name="chatScreen_research_researching" formatted="false">Researching part {{index}} of {{count}}…</string>
-    <string name="chatScreen_research_synthesizing" formatted="false">Putting the findings together…</string>
     <string name="chatScreen_roleYou" formatted="false">You</string>
     <string name="chatScreen_roleAssistant" formatted="false">BoarLite</string>
     <string name="chatScreen_stoppedByUser" formatted="false">Stopped by user</string>
     <string name="chatScreen_copyResponse" formatted="false">Copy response</string>
-    <string name="chatScreen_copied" formatted="false">Copied</string>
-    <string name="chatScreen_rateUp" formatted="false">Good response</string>
-    <string name="chatScreen_rateDown" formatted="false">Bad response</string>
-    <string name="chatScreen_rateHelpful" formatted="false">Helpful</string>
-    <string name="chatScreen_rateUnhelpful" formatted="false">Unhelpful</string>
     <string name="chatScreen_stageTimedOut" formatted="false">A research step took too long and was cut short</string>
-    <string name="chatScreen_interruptedByBackground" formatted="false">Paused — app was backgrounded. Ask again to continue.</string>
     <string name="aboutScreen_title" formatted="false">About BoarLite</string>
-    <string name="aboutScreen_heroSubtitle" formatted="false">Adaptive local intelligence</string>
     <string name="aboutScreen_versionBadge" formatted="false">v{{version}} • {{build}}</string>
     <string name="aboutScreen_buildDevelopment" formatted="false">Development build</string>
     <string name="aboutScreen_buildRelease" formatted="false">Release build</string>
-    <string name="aboutScreen_airGappedTitle" formatted="false">Air-gapped sovereign AI</string>
-    <string name="aboutScreen_airGappedBody" formatted="false">BoarLite is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It performs local LLM inference via llama.rn / llama.cpp and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
-    <string name="aboutScreen_hardwareTitle" formatted="false">Hardware architecture &amp; budget</string>
-    <string name="aboutScreen_hardwareBody" formatted="false">Complies with strict mobile field constraints: resident memory remains capped under 12GB RAM using memory-mapped weights (mmap), and total storage is audited against a 50GB storage envelope.</string>
-    <string name="aboutScreen_benchmarkTitle" formatted="false">Benchmark it yourself</string>
-    <string name="aboutScreen_benchmarkBody" formatted="false">BoarLite measures every answer on your own phone: model load time, time to first token, tokens/sec, peak memory and which sources were used. Run the built-in evaluation from Execution Telemetry → 🧪 Evaluate to compare any installed model on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>
-    <string name="aboutScreen_repoTitle" formatted="false">Open source repository</string>
-    <string name="aboutScreen_repoBody" formatted="false">Source code, quantized model manifests, and offline indexing scripts are available at:</string>
     <string name="sourceFootnotes_title" formatted="false">Sources</string>
-    <string name="sourceFootnotes_localIndex" formatted="false">LOCAL INDEX</string>
-    <string name="promptIdeasCarousel_title" formatted="false">Research prompt benchmarks</string>
-    <string name="promptIdeasCarousel_prev" formatted="false">Prev</string>
-    <string name="promptIdeasCarousel_usePrompt" formatted="false">Use This Research Prompt</string>
-    <string name="promptIdeasCarousel_next" formatted="false">Next</string>
     <string name="processingIndicator_retrieving" formatted="false">Searching the library…</string>
     <string name="processingIndicator_thinking" formatted="false">Reading the sources…</string>
     <string name="processingIndicator_generating" formatted="false">Writing the answer…</string>
-    <string name="executionTelemetry_title" formatted="false">Execution Telemetry</string>
-    <string name="executionTelemetry_subtitle" formatted="false">{{count}} recent runs</string>
-    <string name="executionTelemetry_exportJson" formatted="false">⬇ JSON</string>
-    <string name="executionTelemetry_exportCsv" formatted="false">⬇ CSV</string>
-    <string name="executionTelemetry_clear" formatted="false">🗑 Clear</string>
-    <string name="executionTelemetry_clearTitle" formatted="false">Clear execution telemetry?</string>
-    <string name="executionTelemetry_clearMessage" formatted="false">Deletes all persisted execution records on this device. This cannot be undone.</string>
-    <string name="executionTelemetry_clearConfirm" formatted="false">Clear</string>
-    <string name="executionTelemetry_exportFailedTitle" formatted="false">Export failed</string>
-    <string name="executionTelemetry_empty" formatted="false">No executions recorded yet. Send a message to record your first run.</string>
-    <string name="executionTelemetry_noModel" formatted="false">no model</string>
-    <string name="executionTelemetry_tokPerSec" formatted="false">Speed</string>
-    <string name="executionTelemetry_loadTime" formatted="false">Load</string>
-    <string name="executionTelemetry_ttft" formatted="false">TTFT</string>
-    <string name="executionTelemetry_totalTime" formatted="false">Total</string>
-    <string name="executionTelemetry_memory" formatted="false">Peak Mem</string>
-    <string name="executionTelemetry_tokens" formatted="false">Tokens</string>
-    <string name="executionTelemetry_runEvaluation" formatted="false">🧪 Evaluate</string>
     <string name="evaluation_title" formatted="false">Evaluation</string>
     <string name="evaluation_subtitle" formatted="false">Set v{{version}} · {{count}} queries</string>
-    <string name="evaluation_configsTitle" formatted="false">Configurations</string>
-    <string name="evaluation_adaptiveConfig" formatted="false">Adaptive routing (preset: {{preset}})</string>
     <string name="evaluation_noModels" formatted="false">No language models installed.</string>
     <string name="evaluation_summary" formatted="false">{{queries}} queries × {{configs}} configs = {{total}} answers</string>
-    <string name="evaluation_keepScreenOn" formatted="false">Keep the screen on and the app open while it runs. Each answer is also printed to the Metro terminal as an [EVAL] line.</string>
     <string name="evaluation_chatBusy" formatted="false">Wait for the current chat reply to finish before running an evaluation.</string>
     <string name="evaluation_run" formatted="false">▶ Run</string>
     <string name="evaluation_stop" formatted="false">■ Stop</string>
     <string name="evaluation_stopping" formatted="false">Stopping…</string>
-    <string name="evaluation_progress" formatted="false">Config {{config}}/{{configs}} · Query {{query}}/{{queries}}</string>
     <string name="evaluation_savedTo" formatted="false">Saved to {{path}}</string>
     <string name="evaluation_stoppedEarly" formatted="false">Stopped early — partial results saved.</string>
     <string name="evaluation_exportJsonl" formatted="false">⬇ JSONL</string>
     <string name="evaluation_exportCsv" formatted="false">⬇ CSV</string>
-    <string name="evaluation_exportFailedTitle" formatted="false">Export failed</string>
     <string name="evaluation_runFailedTitle" formatted="false">Evaluation failed</string>
-    <string name="evaluation_deviceRequest" formatted="false">Started from a connected computer (request {{id}}).</string>
     <string name="evaluation_noRetrieval" formatted="false">no retrieval</string>
-    <string name="evaluation_sharing" formatted="false">Sharing…</string>
     <string name="chat_suggestions_q1" formatted="false">Why do we have seasons on Earth?</string>
     <string name="chat_suggestions_q2" formatted="false">What makes an epidemic a pandemic?</string>
     <string name="chat_suggestions_q3" formatted="false">What is 30 °C in Fahrenheit?</string>
@@ -227,124 +136,23 @@
     <string name="chat_suggestions_q7" formatted="false">What causes the greenhouse effect?</string>
     <string name="chat_suggestions_q8" formatted="false">What is a monsoon?</string>
     <string name="chat_suggestions_q9" formatted="false">What is plate tectonics?</string>
-    <string name="chat_suggestionTopics_q1" formatted="false">Science</string>
-    <string name="chat_suggestionTopics_q2" formatted="false">Health</string>
-    <string name="chat_suggestionTopics_q3" formatted="false">Quick math</string>
-    <string name="chat_suggestionTopics_q4" formatted="false">First aid</string>
-    <string name="chat_suggestionTopics_q7" formatted="false">Climate</string>
-    <string name="chat_suggestionTopics_q8" formatted="false">Weather</string>
-    <string name="chat_suggestionTopics_q9" formatted="false">Earth science</string>
     <string name="chat_empty_suggestionsLabel" formatted="false">Try asking</string>
     <string name="chat_empty_tagline" formatted="false">Answers from this phone, with sources</string>
     <string name="chat_empty_fill" formatted="false">Put in the input to edit</string>
     <string name="chat_empty_ask" formatted="false">Ask: {{question}}</string>
-    <string name="chat_receipt_sourcePassage" formatted="false">Source passage</string>
-    <string name="chat_receipt_localModel" formatted="false">Local model</string>
-    <string name="chat_receipt_noOfflineSource" formatted="false">No offline source</string>
-    <string name="chat_receipt_calculator" formatted="false">Calculation</string>
-    <string name="chat_receipt_started" formatted="false">started in {{time}}</string>
-    <string name="chat_receipt_offline" formatted="false">offline</string>
     <string name="chat_receipt_speed" formatted="false">{{rate}} tok/s</string>
     <string name="chat_receipt_details" formatted="false">Performance details</string>
-    <string name="chat_receipt_load" formatted="false">Model load</string>
     <string name="chat_receipt_search" formatted="false">Search</string>
     <string name="chat_receipt_prefill" formatted="false">Reading sources</string>
     <string name="chat_receipt_context" formatted="false">Context</string>
     <string name="chat_receipt_start" formatted="false">Start</string>
     <string name="chat_receipt_words" formatted="false">Generated</string>
-    <string name="chat_receipt_wordCount" formatted="false">~{{words}} words</string>
     <string name="chat_receipt_total" formatted="false">Total</string>
-    <string name="chat_receipt_verification" formatted="false">Verification</string>
-    <string name="chat_receipt_copy" formatted="false">Copy receipt</string>
-    <string name="chat_receipt_copied" formatted="false">Receipt copied</string>
-    <string name="chat_receipt_verified_passed" formatted="false">passed</string>
-    <string name="chat_receipt_verified_failed" formatted="false">failed</string>
-    <string name="chat_receipt_verified_uncertain" formatted="false">uncertain</string>
-    <string name="chat_receipt_answeredIn" formatted="false">Answered in {{time}}</string>
-    <string name="chat_receipt_offlineMap" formatted="false">Offline map</string>
     <string name="chat_receipt_speedLabel" formatted="false">Speed</string>
     <string name="chat_receipt_speedBoth" formatted="false">{{rate}} tok/s (~{{words}} words/s)</string>
     <string name="chat_receipt_model" formatted="false">Model</string>
     <string name="chat_receipt_tokenCount" formatted="false">{{tokens}} tokens (~{{words}} words)</string>
     <string name="flows_onboarding_brandSub" formatted="false">Offline research assistant</string>
     <string name="flows_onboarding_backToApp" formatted="false">Back to the app</string>
-    <string name="flows_row_copying" formatted="false">Copying</string>
-    <string name="flows_row_downloading" formatted="false">Downloading</string>
-    <string name="flows_row_verifying" formatted="false">Checking</string>
-    <string name="flows_row_loading" formatted="false">Loading</string>
-    <string name="flows_row_failed" formatted="false">Failed</string>
-    <string name="flows_row_failedAnnounce" formatted="false">{{name}} failed. Retry is available.</string>
-    <string name="flows_row_verified" formatted="false">Checked</string>
-    <string name="flows_row_importChecking" formatted="false">Checking {{name}}</string>
-    <string name="flows_row_importOther" formatted="false">{{name}} is a different item, not this one. Choose this item\'s file.</string>
-    <string name="flows_row_unverified" formatted="false">Not checked</string>
-    <string name="flows_row_active" formatted="false">In use</string>
-    <string name="flows_row_usedFor" formatted="false">Used for: {{roles}}</string>
-    <string name="flows_row_role_answer" formatted="false">Answers</string>
-    <string name="flows_row_role_deep" formatted="false">Deep answers</string>
-    <string name="flows_row_role_search" formatted="false">Search</string>
-    <string name="flows_row_kind_llm" formatted="false">AI model</string>
-    <string name="flows_row_kind_embedding" formatted="false">Search model</string>
-    <string name="flows_row_kind_corpus" formatted="false">Knowledge</string>
-    <string name="flows_row_progressLabel" formatted="false">{{name}} progress</string>
-    <string name="flows_row_fit_streaming" formatted="false">Bigger than this phone\'s memory, so it runs slower.</string>
-    <string name="flows_row_fit_thrashing" formatted="false">May be slow on this phone: it needs most of its memory.</string>
-    <string name="flows_row_fit_insufficient" formatted="false">Won\'t fit: this phone doesn\'t have enough free memory to run it.</string>
-    <string name="flows_row_error_network" formatted="false">No connection. Connect and try again.</string>
-    <string name="flows_row_error_stalled" formatted="false">The download stopped making progress.</string>
-    <string name="flows_row_error_storage" formatted="false">Not enough free space on the phone.</string>
-    <string name="flows_row_error_hash__mismatch" formatted="false">The file doesn\'t match the expected one. Get a fresh copy of the file and try again.</string>
-    <string name="flows_row_error_empty__file" formatted="false">The file is empty (0 bytes). Copy it to the phone again.</string>
-    <string name="flows_row_error_unreadable__file" formatted="false">BoarLite couldn\'t read this file.</string>
-    <string name="flows_row_error_corrupt" formatted="false">The file looks damaged. Copy it again or choose another.</string>
-    <string name="flows_row_error_size__mismatch" formatted="false">The file is incomplete. Get a fresh copy of the file and try again.</string>
-    <string name="flows_row_error_offline__variant" formatted="false">This version has no internet access. Import the file instead.</string>
-    <string name="flows_row_error_load" formatted="false">Couldn\'t load this model.</string>
-    <string name="flows_row_error_unknown" formatted="false">Something went wrong.</string>
-    <string name="flows_row_error_unknown__file" formatted="false">This file isn\'t one BoarLite knows. Choose the file listed for this item.</string>
-    <string name="flows_row_error_too__large" formatted="false">This file is larger than BoarLite accepts for this kind of item.</string>
-    <string name="flows_row_error_no__source" formatted="false">This item isn\'t published for download yet. Import its file instead.</string>
-    <string name="flows_row_errorDetail_interrupted" formatted="false">Stopped at {{done}} of {{total}}. Try again to continue from there.</string>
-    <string name="flows_row_errorDetail_paused" formatted="false">No progress for {{seconds}} s. Tap Try again to continue.</string>
-    <string name="flows_row_download" formatted="false">Download {{size}}</string>
-    <string name="flows_row_retry" formatted="false">Try again</string>
-    <string name="flows_row_use" formatted="false">Use for answers</string>
-    <string name="flows_row_remove" formatted="false">Remove</string>
-    <string name="flows_row_inUseHint" formatted="false">In use. Choose another model before removing this one.</string>
-    <string name="flows_row_removeTitle" formatted="false">Remove {{name}}?</string>
-    <string name="flows_row_removeBody" formatted="false">Frees {{size}} on this phone. You can add it again later.</string>
-    <string name="flows_row_removed" formatted="false">{{name}} removed</string>
-    <string name="flows_row_wontFitTitle" formatted="false">{{name}} won\'t fit on this phone</string>
-    <string name="flows_row_downloadAnyway" formatted="false">Download</string>
-    <string name="flows_row_fitDetail" formatted="false">It needs about {{need}} of working memory that can\'t be read from storage; about {{free}} is free of {{total}}. Estimate.</string>
-    <string name="flows_row_importFile" formatted="false">Import {{size}}</string>
-    <string name="flows_row_importAnyway" formatted="false">Import</string>
-    <string name="flows_row_anywayHint" formatted="false">{{size}} · may not open on this phone</string>
-    <string name="flows_row_notOnDisk" formatted="false">Not on disk</string>
-    <string name="flows_row_fitShort_resident" formatted="false">Fits in memory</string>
-    <string name="flows_row_fitShort_streaming" formatted="false">Slower here</string>
-    <string name="flows_row_fitShort_thrashing" formatted="false">May be slow</string>
-    <string name="flows_row_fitShort_insufficient" formatted="false">Won\'t fit</string>
-    <string name="flows_row_mayClose" formatted="false">May close the app</string>
-    <string name="flows_row_mayCloseWhy" formatted="false">Too big for this phone\'s memory</string>
-    <string name="flows_row_didNotOpen" formatted="false">Didn\'t open here</string>
-    <string name="flows_row_wontFitHere" formatted="false">Too big</string>
-    <string name="flows_row_wontFitWhy" formatted="false">Needs more memory than this phone has</string>
-    <string name="flows_row_wontFitNumbers" formatted="false">Needs ~{{need}} of memory · this phone has {{total}}</string>
-    <string name="flows_row_didNotOpenBefore" formatted="false">BoarLite closed the last time it loaded </string>
-    <string name="flows_row_mayCloseTitle" formatted="false">Use this model?</string>
-    <string name="flows_row_mayCloseBefore" formatted="false">BoarLite may close when it loads </string>
-    <string name="flows_row_mayCloseAfter" formatted="false">. Fast is the recommended one here.</string>
-    <string name="flows_row_showAll" formatted="false">Show all</string>
-    <string name="flows_row_showLess" formatted="false">Show less</string>
-    <string name="flows_row_keepCompact" formatted="false">Keep Fast</string>
-    <string name="flows_row_useAnyway" formatted="false">Use anyway</string>
-    <string name="flows_row_fitWhy_streaming" formatted="false">Larger than this phone\'s memory</string>
-    <string name="flows_row_fitWhy_thrashing" formatted="false">Needs most of this phone\'s memory</string>
-    <string name="flows_row_fitWhy_insufficient" formatted="false">Not enough free memory on this phone</string>
-    <string name="flows_assistant_sub_compact" formatted="false">Quicker answers, less memory</string>
-    <string name="flows_assistant_sub_default" formatted="false">Better answers, a bit slower</string>
-    <string name="flows_knowledge_topicPacksTitle" formatted="false">Topic packs</string>
-    <string name="flows_knowledge_topicPacksFooter" formatted="false">Collections on one subject, readable without internet. Each file is checked before use.</string>
     <string name="nav_knowledge" formatted="false">Knowledge</string>
 </resources>

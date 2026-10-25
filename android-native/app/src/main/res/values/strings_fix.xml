@@ -24,16 +24,12 @@
     <string name="clean_settings_about_copyAddress" formatted="false">Copy address</string>
     <string name="clean_library_yourDocs" formatted="false">Your documents</string>
     <string name="clean_library_docsHint" formatted="false">Text, Markdown, CSV, JSON or PDF. Stays on this phone.</string>
-    <string name="clean_library_collectionName" formatted="false">Collection name (optional)</string>
-    <string name="clean_library_collectionHelp" formatted="false">Leave empty to use the first file\'s name.</string>
     <string name="clean_library_addDocs" formatted="false">Add documents</string>
     <string name="clean_library_defaultName" formatted="false">My documents</string>
     <string name="clean_library_pdfNote" formatted="false">PDFs need selectable text: scanned or password-protected PDFs can\'t be read.</string>
     <string name="clean_library_emptyTitle" formatted="false">No documents yet</string>
     <string name="clean_library_emptyBody" formatted="false">Add notes or PDFs to search them offline alongside the built-in knowledge.</string>
     <string name="clean_library_more" formatted="false">More options</string>
-    <string name="clean_library_expanded" formatted="false">Expanded</string>
-    <string name="clean_library_collapsed" formatted="false">Collapsed</string>
     <string name="clean_onboarding_section_encyclopedia" formatted="false">Encyclopedia</string>
     <string name="clean_onboarding_section_health" formatted="false">Health</string>
     <string name="clean_onboarding_section_travel" formatted="false">Travel</string>
@@ -69,18 +65,12 @@
     <string name="clean_onboarding_pack_factbook_desc" formatted="false">Country facts: population, capitals, economy, government.</string>
     <string name="clean_onboarding_pack_crypto_name" formatted="false">Crypto &amp; Ethereum reference</string>
     <string name="clean_onboarding_pack_crypto_desc" formatted="false">EIPs, BIPs, Ethereum specs and ethereum.org docs.</string>
-    <string name="clean_onboarding_pack_ethereumQa_name" formatted="false">Ethereum Q&amp;A</string>
-    <string name="clean_onboarding_pack_ethereumQa_desc" formatted="false">Ethereum developer questions with answers.</string>
-    <string name="clean_onboarding_pack_bitcoinQa_name" formatted="false">Bitcoin Q&amp;A</string>
-    <string name="clean_onboarding_pack_bitcoinQa_desc" formatted="false">Bitcoin questions with community answers.</string>
-    <string name="clean_onboarding_back" formatted="false">Back</string>
     <string name="clean_onboarding_progressA11y" formatted="false">Setup {{pct}}% done</string>
     <string name="clean_onboarding_welcome_mascotA11y" formatted="false">BoarLite mascot</string>
     <string name="clean_onboarding_articles_one" formatted="false">{{value}} article</string>
     <string name="clean_onboarding_articles_other" formatted="false">{{value}} articles</string>
     <string name="clean_chat_loadNote_crashedTitle" formatted="false">{{model}} closed while loading</string>
     <string name="clean_chat_loadNote_crashedBody" formatted="false">The phone ran out of memory. Try again with less memory.</string>
-    <string name="clean_chat_loadNote_crashedFallback" formatted="false">The phone ran out of memory. BoarLite is answering with {{fallback}} for now.</string>
     <string name="clean_chat_loadNote_riskyTitle" formatted="false">{{model}} may not fit</string>
     <string name="clean_chat_loadNote_riskyBody" formatted="false">It needs most of this phone\'s memory, so it may answer slowly or close the app.</string>
     <string name="clean_chat_loadNote_lessMemory" formatted="false">Use less memory</string>
@@ -89,12 +79,10 @@
     <string name="design_options_buttonChanged" formatted="false">Answer options, changed</string>
     <string name="design_options_model" formatted="false">Model</string>
     <string name="design_options_sources" formatted="false">Sources</string>
-    <string name="design_options_noModel" formatted="false">No model yet</string>
     <string name="design_options_sourcesAll" formatted="false">Everything</string>
     <string name="design_options_sourcesAllNote" formatted="false">Every library and your files</string>
     <string name="design_options_sourcesOwn" formatted="false">Only my files</string>
     <string name="design_options_sourcesOwnNote" formatted="false">Only the documents you added</string>
-    <string name="design_options_recommended" formatted="false">Recommended for this phone</string>
     <string name="design_options_reset" formatted="false">Reset to defaults</string>
     <string name="design_options_back" formatted="false">Back to options</string>
     <string name="design_options_placeholderOwn" formatted="false">Ask about your files</string>
