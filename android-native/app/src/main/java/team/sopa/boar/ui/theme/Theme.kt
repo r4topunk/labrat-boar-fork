@@ -42,9 +42,6 @@ object BrandType {
     private val lexend600 = FontFamily(Font(R.font.lexend_600semibold, FontWeight.SemiBold))
     private val lexend700 = FontFamily(Font(R.font.lexend_700bold, FontWeight.Bold))
 
-    /** Body size for text that sets none. */
-    const val BODY = 16
-
     /** familyFor: the bundled face for a style's family and weight, and whether digits are fixed-width. */
     fun familyFor(family: String?, weight: Int): Pair<FontFamily, Boolean> {
         if (family == "code") return FontFamily.Monospace to false

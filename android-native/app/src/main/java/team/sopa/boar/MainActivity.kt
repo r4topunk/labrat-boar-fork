@@ -115,9 +115,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/** Where setup leads: straight to the chat (BoarLite has no PIN lock, r4to 2026-10-24). */
-internal fun afterSetup() = "chat"
-
 /** How deep a screen sits, so a screen switch slides forward into a deeper one and back out of it. */
 private fun screenDepth(screen: String) = when (screen.substringBefore(':')) {
     "setup" -> 0
@@ -268,7 +265,7 @@ private fun SetupHost(setup: SetupViewModel, vm: ChatViewModel, prefs: DisplayPr
     val back: (() -> Unit)? = if (wasReady) ({ vm.refreshSettings(); goTo("chat") }) else null
     androidx.compose.animation.Crossfade(touring, label = "setupTour") { tour ->
         // Settings too: after "Reset settings" the chat must show the default options.
-        if (tour) team.sopa.boar.ui.setup.SetupTour(setupState, onExit = back) { vm.refreshSettings(); vm.refreshModel(); goTo(afterSetup()) }
+        if (tour) team.sopa.boar.ui.setup.SetupTour(setupState, onExit = back) { vm.refreshSettings(); vm.refreshModel(); goTo("chat") }
         else SetupScreen(setupState, setup, onSkip = back)
     }
 }

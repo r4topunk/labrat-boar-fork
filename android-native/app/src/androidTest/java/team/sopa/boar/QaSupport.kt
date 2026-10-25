@@ -146,12 +146,6 @@ internal fun ComposeTestRule.pressNear(label: String, action: SemanticsMatcher) 
     waitForIdle()
 }
 
-/** The vertical position of the first node showing [text]; used to read the order cards are listed in. */
-internal fun ComposeTestRule.topOf(text: String): Float = onAllNodesWithText(text)[0].fetchSemanticsNode().boundsInRoot.top
-
-/** Titles in the order they are listed on screen. */
-internal fun ComposeTestRule.orderOf(vararg titles: String): List<String> = titles.sortedBy { topOf(it) }
-
 /** Polls [condition] every [stepMs] without keeping Compose busy (long waits: imports). */
 internal fun waitSlowly(timeoutMs: Long, what: String, stepMs: Long = 500, condition: () -> Boolean) {
     val end = android.os.SystemClock.uptimeMillis() + timeoutMs

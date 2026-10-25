@@ -96,7 +96,6 @@ data class ChatState(
     val modelLabel: String? = null,
     /** The model writing the answer in progress when it isn't [modelLabel] (adaptive routing sent it elsewhere). */
     val answeringModel: String? = null,
-    val noModel: Boolean = false,
     /** Advanced tweaks → Show technical details (AppSettings.showLiveStats). */
     val technicalDetails: Boolean = false,
     val error: String? = null,
@@ -400,7 +399,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val tested = suggestionData.forModel((m ?: services.catalog.answerModel).id, "en", installed)
         // Plus the short questions of BOAR's own 17-question evaluation, so each new chat shows a different few.
         ideaPool = (tested + BENCH_IDEAS).distinct()
-        _state.update { it.copy(modelLabel = label, noModel = m == null, suggestions = pickIdeas()) }
+        _state.update { it.copy(modelLabel = label, suggestions = pickIdeas()) }
         // A note that no longer holds (the model was loaded, unblocked or replaced) goes away.
         val note = _state.value.loadNote
         val holds = when (note) {
@@ -683,7 +682,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 if (stopRequested) {
                     // Stop pressed while the model loaded: the load can't be interrupted, the answer can be skipped.
                 } else if (session == null) {
-                    _state.update { it.copy(noModel = true, error = team.sopa.boar.engine.UserErrors.NO_MODEL) }
+                    _state.update { it.copy(error = team.sopa.boar.engine.UserErrors.NO_MODEL) }
                 } else if (way == team.sopa.boar.engine.routing.AnswerPath.RECAP) {
                     path = "chat"
                     val r = DeepResearch(SessionEngine(session, settings.engineTweaks.thinkingEnabled), settings.engineTweaks::stageTimeoutMs, settings.engineTweaks::writeUpTimeoutMs).run(

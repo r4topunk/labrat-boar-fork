@@ -201,30 +201,6 @@ object ThemeTokens {
     fun byId(id: String?) = all.firstOrNull { it.id == id } ?: moonlight
 }
 
-/** spacing.ts */
-object Spacing {
-    const val xxs = 2
-    const val xs = 4
-    const val sm = 8
-    const val md = 12
-    const val base = 16
-    const val lg = 20
-    const val xl = 24
-    const val xxl = 32
-    const val xxxl = 40
-}
-
-/** spacing.ts radii */
-object Radii {
-    const val xs = 4
-    const val sm = 6
-    const val md = 8
-    const val lg = 12
-    const val xl = 16
-    const val xxl = 24
-    const val full = 9999
-}
-
 /** typography.ts: size, line height and weight per text style, per text-size setting (font family resolved in Type.kt). */
 data class TextSpec(val family: String, val size: Float, val lineHeight: Float?, val weight: Int, val letterSpacing: Float?)
 

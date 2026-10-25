@@ -46,11 +46,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
  * | ↻            | try again / restart                  | Icons.Filled.Refresh                                         |
  * | ⧉            | copy (Check once copied)             | BoarIcons.ContentCopy, then Icons.Filled.Check               |
  * | 💭           | thinking / reasoning                 | BoarIcons.Psychology                                         |
- * | 📚 ▤         | sources, knowledge, library          | BoarIcons.LibraryBooks (BoarIcons.MenuBook in onboarding)    |
- * | (none yet)   | the Detailed answer style            | BoarIcons.Book                                               |
- * | 🔬           | deep research (off / on)             | BoarIcons.Science / BoarIcons.ScienceFilled (on state only)  |
- * | ⚡           | fast / quick answer                  | BoarIcons.Bolt                                               |
- * | ◆            | the answer model (setup category)    | BoarIcons.AutoAwesome                                        |
+ * | 📚 ▤         | sources, knowledge, library          | BoarIcons.LibraryBooks                                       |
+ * | 🔬           | evaluation (developer menu)          | BoarIcons.Science                                            |
  * | ⌕ 🔍         | search                               | Icons.Outlined.Search                                        |
  * | 🗑           | delete                               | Icons.Outlined.Delete                                        |
  * | ✓            | selected / done                      | Icons.Filled.Check                                           |
@@ -60,11 +57,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
  * | !            | error / failed                       | BoarIcons.ErrorOutline                                       |
  * | ▾ ▼ / ▴ ▲    | expand / collapse                    | BoarIcons.ExpandMore / BoarIcons.ExpandLess                  |
  * | ▸            | disclosure (row opens a screen)      | Icons.AutoMirrored.Filled.KeyboardArrowRight                 |
- * | ⌫            | PIN pad backspace                    | BoarIcons.Backspace                                          |
- * | ◷            | waiting / indexing                   | BoarIcons.Schedule                                           |
- * | ☑ / ☐        | checked / unchecked                  | prefer the M3 Checkbox; else BoarIcons.CheckBox / CheckBoxOutlineBlank |
  * | 🟢 🟡 🔴     | fits / may be slow / won't fit       | Icons.Filled.CheckCircle (primary) / Icons.Outlined.Warning (tertiary) / BoarIcons.ErrorOutline (error) |
- * | (none yet)   | download / downloaded                | BoarIcons.Download / BoarIcons.CloudDone                     |
  * | (none yet)   | import a document / a document       | BoarIcons.UploadFile / BoarIcons.Description                 |
  * | (none yet)   | memory (RAM)                         | BoarIcons.Memory                                             |
  *
@@ -72,26 +65,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
  * header subtitle, and the ✓/✗ feature list in the developer telemetry.
  */
 object BoarIcons {
-    /** Material Icons AutoMirrored.Outlined.ShortText (material-icons-extended): the Succinct answer style. */
-    val ShortText: ImageVector by lazy {
-        materialIcon(name = "Boar.ShortText", autoMirror = true) {
-            materialPath {
-                moveTo(4.0f, 9.0f)
-                horizontalLineToRelative(16.0f)
-                verticalLineToRelative(2.0f)
-                lineTo(4.0f, 11.0f)
-                lineTo(4.0f, 9.0f)
-                close()
-                moveTo(4.0f, 13.0f)
-                horizontalLineToRelative(10.0f)
-                verticalLineToRelative(2.0f)
-                lineTo(4.0f, 15.0f)
-                verticalLineToRelative(-2.0f)
-                close()
-            }
-        }
-    }
-
     /** Material Icons Outlined.Tune (material-icons-extended outlined/Tune.kt): the chat's answer options. */
     val Tune: ImageVector by lazy {
         materialIcon(name = "Boar.Tune") {
@@ -205,28 +178,6 @@ object BoarIcons {
                 lineToRelative(1.35f, -1.69f)
                 curveTo(16.61f, 4.48f, 16.38f, 4.0f, 15.96f, 4.0f)
                 lineTo(15.96f, 4.0f)
-                close()
-            }
-        }
-    }
-
-    /** Material Icons Filled.Science (material-icons-extended filled/Science.kt). */
-    val ScienceFilled: ImageVector by lazy {
-        materialIcon(name = "Boar.ScienceFilled") {
-            materialPath {
-                moveTo(19.8f, 18.4f)
-                lineTo(14.0f, 10.67f)
-                verticalLineTo(6.5f)
-                lineToRelative(1.35f, -1.69f)
-                curveTo(15.61f, 4.48f, 15.38f, 4.0f, 14.96f, 4.0f)
-                horizontalLineTo(9.04f)
-                curveTo(8.62f, 4.0f, 8.39f, 4.48f, 8.65f, 4.81f)
-                lineTo(10.0f, 6.5f)
-                verticalLineToRelative(4.17f)
-                lineTo(4.2f, 18.4f)
-                curveTo(3.71f, 19.06f, 4.18f, 20.0f, 5.0f, 20.0f)
-                horizontalLineToRelative(14.0f)
-                curveTo(19.82f, 20.0f, 20.29f, 19.06f, 19.8f, 18.4f)
                 close()
             }
         }
@@ -359,69 +310,6 @@ object BoarIcons {
         }
     }
 
-    /** Material Icons AutoMirrored.Outlined.MenuBook (material-icons-extended automirrored/outlined/MenuBook.kt). */
-    val MenuBook: ImageVector by lazy {
-        materialIcon(name = "Boar.MenuBook", autoMirror = true) {
-            materialPath {
-                moveTo(21.0f, 5.0f)
-                curveToRelative(-1.11f, -0.35f, -2.33f, -0.5f, -3.5f, -0.5f)
-                curveToRelative(-1.95f, 0.0f, -4.05f, 0.4f, -5.5f, 1.5f)
-                curveToRelative(-1.45f, -1.1f, -3.55f, -1.5f, -5.5f, -1.5f)
-                reflectiveCurveTo(2.45f, 4.9f, 1.0f, 6.0f)
-                verticalLineToRelative(14.65f)
-                curveToRelative(0.0f, 0.25f, 0.25f, 0.5f, 0.5f, 0.5f)
-                curveToRelative(0.1f, 0.0f, 0.15f, -0.05f, 0.25f, -0.05f)
-                curveTo(3.1f, 20.45f, 5.05f, 20.0f, 6.5f, 20.0f)
-                curveToRelative(1.95f, 0.0f, 4.05f, 0.4f, 5.5f, 1.5f)
-                curveToRelative(1.35f, -0.85f, 3.8f, -1.5f, 5.5f, -1.5f)
-                curveToRelative(1.65f, 0.0f, 3.35f, 0.3f, 4.75f, 1.05f)
-                curveToRelative(0.1f, 0.05f, 0.15f, 0.05f, 0.25f, 0.05f)
-                curveToRelative(0.25f, 0.0f, 0.5f, -0.25f, 0.5f, -0.5f)
-                verticalLineTo(6.0f)
-                curveTo(22.4f, 5.55f, 21.75f, 5.25f, 21.0f, 5.0f)
-                close()
-                moveTo(21.0f, 18.5f)
-                curveToRelative(-1.1f, -0.35f, -2.3f, -0.5f, -3.5f, -0.5f)
-                curveToRelative(-1.7f, 0.0f, -4.15f, 0.65f, -5.5f, 1.5f)
-                verticalLineTo(8.0f)
-                curveToRelative(1.35f, -0.85f, 3.8f, -1.5f, 5.5f, -1.5f)
-                curveToRelative(1.2f, 0.0f, 2.4f, 0.15f, 3.5f, 0.5f)
-                verticalLineTo(18.5f)
-                close()
-            }
-            materialPath {
-                moveTo(17.5f, 10.5f)
-                curveToRelative(0.88f, 0.0f, 1.73f, 0.09f, 2.5f, 0.26f)
-                verticalLineTo(9.24f)
-                curveTo(19.21f, 9.09f, 18.36f, 9.0f, 17.5f, 9.0f)
-                curveToRelative(-1.7f, 0.0f, -3.24f, 0.29f, -4.5f, 0.83f)
-                verticalLineToRelative(1.66f)
-                curveTo(14.13f, 10.85f, 15.7f, 10.5f, 17.5f, 10.5f)
-                close()
-            }
-            materialPath {
-                moveTo(13.0f, 12.49f)
-                verticalLineToRelative(1.66f)
-                curveToRelative(1.13f, -0.64f, 2.7f, -0.99f, 4.5f, -0.99f)
-                curveToRelative(0.88f, 0.0f, 1.73f, 0.09f, 2.5f, 0.26f)
-                verticalLineTo(11.9f)
-                curveToRelative(-0.79f, -0.15f, -1.64f, -0.24f, -2.5f, -0.24f)
-                curveTo(15.8f, 11.66f, 14.26f, 11.96f, 13.0f, 12.49f)
-                close()
-            }
-            materialPath {
-                moveTo(17.5f, 14.33f)
-                curveToRelative(-1.7f, 0.0f, -3.24f, 0.29f, -4.5f, 0.83f)
-                verticalLineToRelative(1.66f)
-                curveToRelative(1.13f, -0.64f, 2.7f, -0.99f, 4.5f, -0.99f)
-                curveToRelative(0.88f, 0.0f, 1.73f, 0.09f, 2.5f, 0.26f)
-                verticalLineToRelative(-1.52f)
-                curveTo(19.21f, 14.41f, 18.36f, 14.33f, 17.5f, 14.33f)
-                close()
-            }
-        }
-    }
-
     /** Material Icons Outlined.Psychology (material-icons-extended outlined/Psychology.kt). */
     val Psychology: ImageVector by lazy {
         materialIcon(name = "Boar.Psychology") {
@@ -536,121 +424,6 @@ object BoarIcons {
         }
     }
 
-    /** Material Icons AutoMirrored.Outlined.Backspace (material-icons-extended automirrored/outlined/Backspace.kt). */
-    val Backspace: ImageVector by lazy {
-        materialIcon(name = "Boar.Backspace", autoMirror = true) {
-            materialPath {
-                moveTo(22.0f, 3.0f)
-                lineTo(7.0f, 3.0f)
-                curveToRelative(-0.69f, 0.0f, -1.23f, 0.35f, -1.59f, 0.88f)
-                lineTo(0.0f, 12.0f)
-                lineToRelative(5.41f, 8.11f)
-                curveToRelative(0.36f, 0.53f, 0.9f, 0.89f, 1.59f, 0.89f)
-                horizontalLineToRelative(15.0f)
-                curveToRelative(1.1f, 0.0f, 2.0f, -0.9f, 2.0f, -2.0f)
-                lineTo(24.0f, 5.0f)
-                curveToRelative(0.0f, -1.1f, -0.9f, -2.0f, -2.0f, -2.0f)
-                close()
-                moveTo(22.0f, 19.0f)
-                lineTo(7.07f, 19.0f)
-                lineTo(2.4f, 12.0f)
-                lineToRelative(4.66f, -7.0f)
-                lineTo(22.0f, 5.0f)
-                verticalLineToRelative(14.0f)
-                close()
-                moveTo(10.41f, 17.0f)
-                lineTo(14.0f, 13.41f)
-                lineTo(17.59f, 17.0f)
-                lineTo(19.0f, 15.59f)
-                lineTo(15.41f, 12.0f)
-                lineTo(19.0f, 8.41f)
-                lineTo(17.59f, 7.0f)
-                lineTo(14.0f, 10.59f)
-                lineTo(10.41f, 7.0f)
-                lineTo(9.0f, 8.41f)
-                lineTo(12.59f, 12.0f)
-                lineTo(9.0f, 15.59f)
-                close()
-            }
-        }
-    }
-
-    /** Material Icons Outlined.Schedule (material-icons-extended outlined/Schedule.kt). */
-    val Schedule: ImageVector by lazy {
-        materialIcon(name = "Boar.Schedule") {
-            materialPath {
-                moveTo(11.99f, 2.0f)
-                curveTo(6.47f, 2.0f, 2.0f, 6.48f, 2.0f, 12.0f)
-                reflectiveCurveToRelative(4.47f, 10.0f, 9.99f, 10.0f)
-                curveTo(17.52f, 22.0f, 22.0f, 17.52f, 22.0f, 12.0f)
-                reflectiveCurveTo(17.52f, 2.0f, 11.99f, 2.0f)
-                close()
-                moveTo(12.0f, 20.0f)
-                curveToRelative(-4.42f, 0.0f, -8.0f, -3.58f, -8.0f, -8.0f)
-                reflectiveCurveToRelative(3.58f, -8.0f, 8.0f, -8.0f)
-                reflectiveCurveToRelative(8.0f, 3.58f, 8.0f, 8.0f)
-                reflectiveCurveToRelative(-3.58f, 8.0f, -8.0f, 8.0f)
-                close()
-                moveTo(12.5f, 7.0f)
-                lineTo(11.0f, 7.0f)
-                verticalLineToRelative(6.0f)
-                lineToRelative(5.25f, 3.15f)
-                lineToRelative(0.75f, -1.23f)
-                lineToRelative(-4.5f, -2.67f)
-                close()
-            }
-        }
-    }
-
-    /** Material Icons Filled.CheckBox (material-icons-extended filled/CheckBox.kt). */
-    val CheckBox: ImageVector by lazy {
-        materialIcon(name = "Boar.CheckBox") {
-            materialPath {
-                moveTo(19.0f, 3.0f)
-                lineTo(5.0f, 3.0f)
-                curveToRelative(-1.11f, 0.0f, -2.0f, 0.9f, -2.0f, 2.0f)
-                verticalLineToRelative(14.0f)
-                curveToRelative(0.0f, 1.1f, 0.89f, 2.0f, 2.0f, 2.0f)
-                horizontalLineToRelative(14.0f)
-                curveToRelative(1.11f, 0.0f, 2.0f, -0.9f, 2.0f, -2.0f)
-                lineTo(21.0f, 5.0f)
-                curveToRelative(0.0f, -1.1f, -0.89f, -2.0f, -2.0f, -2.0f)
-                close()
-                moveTo(10.0f, 17.0f)
-                lineToRelative(-5.0f, -5.0f)
-                lineToRelative(1.41f, -1.41f)
-                lineTo(10.0f, 14.17f)
-                lineToRelative(7.59f, -7.59f)
-                lineTo(19.0f, 8.0f)
-                lineToRelative(-9.0f, 9.0f)
-                close()
-            }
-        }
-    }
-
-    /** Material Icons Filled.CheckBoxOutlineBlank (material-icons-extended filled/CheckBoxOutlineBlank.kt). */
-    val CheckBoxOutlineBlank: ImageVector by lazy {
-        materialIcon(name = "Boar.CheckBoxOutlineBlank") {
-            materialPath {
-                moveTo(19.0f, 5.0f)
-                verticalLineToRelative(14.0f)
-                horizontalLineTo(5.0f)
-                verticalLineTo(5.0f)
-                horizontalLineToRelative(14.0f)
-                moveToRelative(0.0f, -2.0f)
-                horizontalLineTo(5.0f)
-                curveToRelative(-1.1f, 0.0f, -2.0f, 0.9f, -2.0f, 2.0f)
-                verticalLineToRelative(14.0f)
-                curveToRelative(0.0f, 1.1f, 0.9f, 2.0f, 2.0f, 2.0f)
-                horizontalLineToRelative(14.0f)
-                curveToRelative(1.1f, 0.0f, 2.0f, -0.9f, 2.0f, -2.0f)
-                verticalLineTo(5.0f)
-                curveToRelative(0.0f, -1.1f, -0.9f, -2.0f, -2.0f, -2.0f)
-                close()
-            }
-        }
-    }
-
     /** Material Icons Filled.ErrorOutline (material-icons-extended filled/ErrorOutline.kt). */
     val ErrorOutline: ImageVector by lazy {
         materialIcon(name = "Boar.ErrorOutline") {
@@ -676,57 +449,6 @@ object BoarIcons {
                 reflectiveCurveToRelative(3.58f, -8.0f, 8.0f, -8.0f)
                 reflectiveCurveToRelative(8.0f, 3.58f, 8.0f, 8.0f)
                 reflectiveCurveToRelative(-3.58f, 8.0f, -8.0f, 8.0f)
-                close()
-            }
-        }
-    }
-
-    /** Material Icons Outlined.Download (material-icons-extended outlined/Download.kt). */
-    val Download: ImageVector by lazy {
-        materialIcon(name = "Boar.Download") {
-            materialPath {
-                moveTo(19.0f, 9.0f)
-                horizontalLineToRelative(-4.0f)
-                lineTo(15.0f, 3.0f)
-                lineTo(9.0f, 3.0f)
-                verticalLineToRelative(6.0f)
-                lineTo(5.0f, 9.0f)
-                lineToRelative(7.0f, 7.0f)
-                lineToRelative(7.0f, -7.0f)
-                close()
-                moveTo(11.0f, 11.0f)
-                lineTo(11.0f, 5.0f)
-                horizontalLineToRelative(2.0f)
-                verticalLineToRelative(6.0f)
-                horizontalLineToRelative(1.17f)
-                lineTo(12.0f, 13.17f)
-                lineTo(9.83f, 11.0f)
-                lineTo(11.0f, 11.0f)
-                close()
-                moveTo(5.0f, 18.0f)
-                horizontalLineToRelative(14.0f)
-                verticalLineToRelative(2.0f)
-                lineTo(5.0f, 20.0f)
-                close()
-            }
-        }
-    }
-
-    /** Material Icons Outlined.Bolt (material-icons-extended outlined/Bolt.kt): the Succinct style. */
-    val Bolt: ImageVector by lazy {
-        materialIcon(name = "Boar.Bolt") {
-            materialPath {
-                moveTo(11.0f, 21.0f)
-                horizontalLineToRelative(-1.0f)
-                lineToRelative(1.0f, -7.0f)
-                horizontalLineTo(7.5f)
-                curveToRelative(-0.88f, 0.0f, -0.33f, -0.75f, -0.31f, -0.78f)
-                curveTo(8.48f, 10.94f, 10.42f, 7.54f, 13.01f, 3.0f)
-                horizontalLineToRelative(1.0f)
-                lineToRelative(-1.0f, 7.0f)
-                horizontalLineToRelative(3.51f)
-                curveToRelative(0.4f, 0.0f, 0.62f, 0.19f, 0.4f, 0.66f)
-                curveTo(12.97f, 17.55f, 11.0f, 21.0f, 11.0f, 21.0f)
                 close()
             }
         }
@@ -775,42 +497,6 @@ object BoarIcons {
                 horizontalLineToRelative(8.0f)
                 verticalLineToRelative(2.0f)
                 horizontalLineToRelative(-8.0f)
-                close()
-            }
-        }
-    }
-
-    /** Material Icons Outlined.Book (material-icons-extended outlined/Book.kt): the Detailed style. */
-    val Book: ImageVector by lazy {
-        materialIcon(name = "Boar.Book") {
-            materialPath {
-                moveTo(18.0f, 2.0f)
-                lineTo(6.0f, 2.0f)
-                curveToRelative(-1.1f, 0.0f, -2.0f, 0.9f, -2.0f, 2.0f)
-                verticalLineToRelative(16.0f)
-                curveToRelative(0.0f, 1.1f, 0.9f, 2.0f, 2.0f, 2.0f)
-                horizontalLineToRelative(12.0f)
-                curveToRelative(1.1f, 0.0f, 2.0f, -0.9f, 2.0f, -2.0f)
-                lineTo(20.0f, 4.0f)
-                curveToRelative(0.0f, -1.1f, -0.9f, -2.0f, -2.0f, -2.0f)
-                close()
-                moveTo(9.0f, 4.0f)
-                horizontalLineToRelative(2.0f)
-                verticalLineToRelative(5.0f)
-                lineToRelative(-1.0f, -0.75f)
-                lineTo(9.0f, 9.0f)
-                lineTo(9.0f, 4.0f)
-                close()
-                moveTo(18.0f, 20.0f)
-                lineTo(6.0f, 20.0f)
-                lineTo(6.0f, 4.0f)
-                horizontalLineToRelative(1.0f)
-                verticalLineToRelative(9.0f)
-                lineToRelative(3.0f, -2.25f)
-                lineTo(13.0f, 13.0f)
-                lineTo(13.0f, 4.0f)
-                horizontalLineToRelative(5.0f)
-                verticalLineToRelative(16.0f)
                 close()
             }
         }
@@ -884,43 +570,6 @@ object BoarIcons {
         }
     }
 
-    /** Material Icons Outlined.CloudDone (material-icons-extended outlined/CloudDone.kt). */
-    val CloudDone: ImageVector by lazy {
-        materialIcon(name = "Boar.CloudDone") {
-            materialPath {
-                moveTo(19.35f, 10.04f)
-                curveTo(18.67f, 6.59f, 15.64f, 4.0f, 12.0f, 4.0f)
-                curveTo(9.11f, 4.0f, 6.6f, 5.64f, 5.35f, 8.04f)
-                curveTo(2.34f, 8.36f, 0.0f, 10.91f, 0.0f, 14.0f)
-                curveToRelative(0.0f, 3.31f, 2.69f, 6.0f, 6.0f, 6.0f)
-                horizontalLineToRelative(13.0f)
-                curveToRelative(2.76f, 0.0f, 5.0f, -2.24f, 5.0f, -5.0f)
-                curveToRelative(0.0f, -2.64f, -2.05f, -4.78f, -4.65f, -4.96f)
-                close()
-                moveTo(19.0f, 18.0f)
-                lineTo(6.0f, 18.0f)
-                curveToRelative(-2.21f, 0.0f, -4.0f, -1.79f, -4.0f, -4.0f)
-                curveToRelative(0.0f, -2.05f, 1.53f, -3.76f, 3.56f, -3.97f)
-                lineToRelative(1.07f, -0.11f)
-                lineToRelative(0.5f, -0.95f)
-                curveTo(8.08f, 7.14f, 9.94f, 6.0f, 12.0f, 6.0f)
-                curveToRelative(2.62f, 0.0f, 4.88f, 1.86f, 5.39f, 4.43f)
-                lineToRelative(0.3f, 1.5f)
-                lineToRelative(1.53f, 0.11f)
-                curveToRelative(1.56f, 0.1f, 2.78f, 1.41f, 2.78f, 2.96f)
-                curveToRelative(0.0f, 1.65f, -1.35f, 3.0f, -3.0f, 3.0f)
-                close()
-                moveTo(10.0f, 14.18f)
-                lineToRelative(-2.09f, -2.09f)
-                lineTo(6.5f, 13.5f)
-                lineTo(10.0f, 17.0f)
-                lineToRelative(6.01f, -6.01f)
-                lineToRelative(-1.41f, -1.41f)
-                close()
-            }
-        }
-    }
-
     /** Material Icons Outlined.UploadFile (material-icons-extended outlined/UploadFile.kt). */
     val UploadFile: ImageVector by lazy {
         materialIcon(name = "Boar.UploadFile") {
@@ -953,56 +602,6 @@ object BoarIcons {
                 lineTo(16.0f, 15.01f)
                 lineTo(12.01f, 11.0f)
                 lineTo(8.0f, 15.01f)
-                close()
-            }
-        }
-    }
-
-    /** Material Icons Outlined.AutoAwesome (material-icons-extended outlined/AutoAwesome.kt). */
-    val AutoAwesome: ImageVector by lazy {
-        materialIcon(name = "Boar.AutoAwesome") {
-            materialPath {
-                moveTo(19.0f, 9.0f)
-                lineToRelative(1.25f, -2.75f)
-                lineToRelative(2.75f, -1.25f)
-                lineToRelative(-2.75f, -1.25f)
-                lineToRelative(-1.25f, -2.75f)
-                lineToRelative(-1.25f, 2.75f)
-                lineToRelative(-2.75f, 1.25f)
-                lineToRelative(2.75f, 1.25f)
-                close()
-            }
-            materialPath {
-                moveTo(19.0f, 15.0f)
-                lineToRelative(-1.25f, 2.75f)
-                lineToRelative(-2.75f, 1.25f)
-                lineToRelative(2.75f, 1.25f)
-                lineToRelative(1.25f, 2.75f)
-                lineToRelative(1.25f, -2.75f)
-                lineToRelative(2.75f, -1.25f)
-                lineToRelative(-2.75f, -1.25f)
-                close()
-            }
-            materialPath {
-                moveTo(11.5f, 9.5f)
-                lineTo(9.0f, 4.0f)
-                lineTo(6.5f, 9.5f)
-                lineTo(1.0f, 12.0f)
-                lineToRelative(5.5f, 2.5f)
-                lineTo(9.0f, 20.0f)
-                lineToRelative(2.5f, -5.5f)
-                lineTo(17.0f, 12.0f)
-                lineTo(11.5f, 9.5f)
-                close()
-                moveTo(9.99f, 12.99f)
-                lineTo(9.0f, 15.17f)
-                lineToRelative(-0.99f, -2.18f)
-                lineTo(5.83f, 12.0f)
-                lineToRelative(2.18f, -0.99f)
-                lineTo(9.0f, 8.83f)
-                lineToRelative(0.99f, 2.18f)
-                lineTo(12.17f, 12.0f)
-                lineTo(9.99f, 12.99f)
                 close()
             }
         }

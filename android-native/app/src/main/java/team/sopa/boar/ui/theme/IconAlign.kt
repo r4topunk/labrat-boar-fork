@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.dp
  */
 object IconSize {
     val Standard: Dp = 24.dp
-    val InButton: Dp = 18.dp
     val Meta: Dp = 16.dp
     val InlineAction: Dp = 20.dp
     /** The status check before "Works offline": a filled circle, so 14 dp reads as heavy as a 16 dp outline. */

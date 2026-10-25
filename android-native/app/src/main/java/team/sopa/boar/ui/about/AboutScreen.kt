@@ -192,7 +192,7 @@ private fun Credits() {
             .map { it.label to it.license }
             .distinct()
     }
-    val all = AboutCredits.libraries + AboutCredits.extra() + models
+    val all = AboutCredits.libraries + models
     val shown = if (open) all else all.take(4)
     Column(Modifier.animateContentSize()) {
         shown.forEach { (name, license) ->
