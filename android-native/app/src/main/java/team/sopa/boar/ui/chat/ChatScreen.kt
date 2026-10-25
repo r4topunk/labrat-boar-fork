@@ -528,7 +528,7 @@ private fun Bubble(
                     if (reasoningShown && split.thinking != null) Text(split.thinking!!, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = scheme.onSurfaceVariant, modifier = reasoningStyle)
                     MarkdownMessage(shown, streaming)
                     // Every answer the model wrote ends with one quiet line (AnswerNote), under it, once it is whole: read after
-                    // the answer and just above its sources. Small secondary text, not a banner; not part of the saved text.
+                    // the answer and above its time, speed and sources. Small secondary text, not a banner; not part of the saved text.
                     if (!streaming && m.receipt?.note == true) Text(AnswerNote.LINE, style = type.bodySmall, color = scheme.onSurfaceVariant)
                 }
             }
@@ -546,7 +546,6 @@ private fun Bubble(
             // Stopped before writing anything: these are what the search found, not what the answer cites.
             // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
             if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = type.bodySmall, color = scheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp)) }
-            if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, technicalDetails)
             if (m.stopped) NoteBadge(BoarIcons.StopCircle, t("chatScreen.stoppedByUser"))
             if (m.timedOut) NoteBadge(BoarIcons.Timer, t("chatScreen.stageTimedOut"))
             m.cutAt?.let { limit ->
@@ -581,6 +580,8 @@ private fun Bubble(
                 }
                 if (receiptOpen && technicalDetails) m.receipt?.let { r -> ReceiptDetails(r) }
             }
+            // The sources last, under the time and speed (r4to 2026-10-24: the receipt reads with the answer, above its sources).
+            if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, technicalDetails)
         }
     }
 }

@@ -40,7 +40,7 @@ class AboutDeviceTest {
     private var wasDev = false
 
     @Before fun needsTheChat() {
-        assumeTrue("needs the chat screen (a model, no PIN)", BoarServices.get(ctx).activeModel() != null && !BoarServices.get(ctx).pinLock.isSet)
+        assumeTrue("needs the chat screen (a model)", BoarServices.get(ctx).activeModel() != null)
         wasDev = DevOptions.enabled(ctx)
         InstrumentationRegistry.getInstrumentation().runOnMainSync { DevOptions.setEnabled(ctx, false) }
     }
@@ -113,9 +113,9 @@ class AboutDeviceTest {
         compose.scrollTo(hasText("boarapp.com"))
         compose.pressNear("boarapp.com", copy)
         assertEquals("boarapp.com", clipboard())
-        // A team member reads as a name and copies as the X address.
-        compose.scrollTo(hasText("r4to · @r4topunk"))
-        compose.pressNear("r4to · @r4topunk", copy)
+        // A team member reads as a name over the handle and copies as the X address.
+        compose.scrollTo(hasText("@r4topunk"))
+        compose.pressNear("@r4topunk", copy)
         assertEquals("x.com/r4topunk", clipboard())
     }
 

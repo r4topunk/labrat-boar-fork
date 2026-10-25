@@ -46,7 +46,6 @@ class SettingsDeviceTest {
         override fun setTheme(id: String) { themes += id }
         override fun setFontScale(scale: String) { scales += scale }
     }
-    private var pinFlow by mutableStateOf<String?>(null)
     private var opened by mutableStateOf<String?>(null)
     private var setupAgain = false
 
@@ -64,7 +63,7 @@ class SettingsDeviceTest {
     }
 
     private fun show() {
-        compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = { pinFlow = it }, onSetup = { setupAgain = true }, onOpen = { opened = it }) {} } }
+        compose.setContent { BoarTheme { SettingsScreen(services, prefs, onSetup = { setupAgain = true }, onOpen = { opened = it }) {} } }
         compose.waitForIdle()
     }
 
@@ -114,15 +113,9 @@ class SettingsDeviceTest {
         assertFalse("no model row: BoarLite has one model", compose.shows(tr("clean.settings.model.title")))
         compose.scrollAndPress(tr("clean.settings.knowledge.title")); assertEquals("documents", opened)
         compose.scrollAndPress(tr("aboutScreen.title")); assertEquals("about", opened)
-        // No PIN on this install: the switch offers one.
-        if (!services.pinLock.isSet) {
-            visible(tr("native.settings.pinOff"))
-            compose.scrollAndPress(tr("native.settings.security"))
-            assertEquals("NEW", pinFlow)
-        }
         compose.scrollAndPress(tr("modelSetupScreen.recovery.wizardButton"))
         assertTrue(setupAgain)
-        for (section in listOf("modelSetupScreen.sections.models", "modelSetupScreen.sections.knowledgeBase", "modelSetupScreen.sections.memory",
+        for (section in listOf("modelSetupScreen.sections.knowledgeBase", "modelSetupScreen.sections.memory",
             "modelSetupScreen.sections.displayTheme", "design.settings.about", "modelSetupScreen.sections.recovery")) visible(tr(section))
     }
 

@@ -4,12 +4,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -60,7 +59,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -97,8 +95,8 @@ import kotlin.math.sin
  * phone's animations off ([motion] false) every scene shows its last frame at once.
  */
 
-/** The overshoot that lifts things in (the design's cubic-bezier(.2, .9, .3, 1.15)). */
-private val Rise = CubicBezierEasing(0.2f, 0.9f, 0.3f, 1.15f)
+/** The ease-out that lifts things in, with no overshoot (cubic-bezier(.2, .9, .3, 1)). */
+private val Rise = CubicBezierEasing(0.2f, 0.9f, 0.3f, 1f)
 
 /** A one-shot sequence: 0 until [play], then 1, 2, … after each delay; the last step at once without [motion]. */
 @Composable
@@ -199,27 +197,22 @@ private fun FollowingColumn(modifier: Modifier, content: @Composable () -> Unit)
 // --- 1. Welcome --------------------------------------------------------------------------------------------------------
 
 /**
- * The pack count in a breathing disc inside two counter-turning rings, with the knowledge themes' icons orbiting it
- * (popping in one by one). The loops run only while the card is shown.
+ * The pack count in a disc whose ring fills once, with the knowledge themes' icons set around it (fading in one by
+ * one). Nothing loops: the scene plays once when the card is shown and then holds still.
  */
 @Composable
 internal fun WelcomeScene(groups: List<TourGroup>, count: Int, play: Boolean, motion: Boolean, modifier: Modifier) {
     val cs = MaterialTheme.colorScheme
-    val looping = play && motion
-    val angle: State<Float> = if (looping) {
-        rememberInfiniteTransition(label = "orbit").animateFloat(0f, 360f, infiniteRepeatable(tween(40_000, easing = LinearEasing)), label = "angle")
-    } else remember { mutableFloatStateOf(0f) }
-    val breathe: State<Float> = if (looping) {
-        rememberInfiniteTransition(label = "breathe").animateFloat(1f, 1.04f, infiniteRepeatable(tween(1600), RepeatMode.Reverse), label = "scale")
-    } else remember { mutableFloatStateOf(1f) }
     val icons = remember(groups) { groups.take(6).map { TourIcons.forGroup(it.titleKey) to (it.titleKey == "clean.tour.group.health") } }
+    val fill = remember { Animatable(0f) }
     val pops = remember(icons.size) { List(icons.size) { Animatable(0f) } }
     LaunchedEffect(play, motion) {
-        pops.forEachIndexed { i, a ->
-            when {
-                !motion -> a.snapTo(1f)
-                !play -> a.snapTo(0f)
-                else -> launch { delay(200L + i * 150L); a.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = 300f)) }
+        when {
+            !motion -> { fill.snapTo(1f); pops.forEach { it.snapTo(1f) } }
+            !play -> { fill.snapTo(0f); pops.forEach { it.snapTo(0f) } }
+            else -> {
+                launch { delay(200); fill.animateTo(1f, tween(1200, easing = FastOutSlowInEasing)) }
+                pops.forEachIndexed { i, a -> launch { delay(200L + i * 150L); a.animateTo(1f, tween(320, easing = Rise)) } }
             }
         }
     }
@@ -230,21 +223,14 @@ internal fun WelcomeScene(groups: List<TourGroup>, count: Int, play: Boolean, mo
                 val track = cs.outlineVariant
                 val accent = cs.primary
                 Canvas(Modifier.size(240.dp)) {
-                    val a = angle.value
-                    val w = 10.dp.toPx()
+                    val w = 6.dp.toPx()
                     val r = 110.dp.toPx()
                     val tl = Offset(center.x - r, center.y - r)
-                    rotate(a * 4.4f) {
-                        drawCircle(track, r, style = Stroke(w, cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(0.1f, 16.dp.toPx()))))
-                        drawArc(accent, -90f, 85f, false, tl, Size(2 * r, 2 * r), style = Stroke(w, cap = StrokeCap.Round))
-                    }
-                    rotate(-a * 2.9f) {
-                        drawCircle(accent.copy(alpha = 0.35f), 93.dp.toPx(),
-                            style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(40.dp.toPx(), 24.dp.toPx()))))
-                    }
+                    drawCircle(track, r, style = Stroke(w))
+                    drawArc(accent, -90f, 360f * fill.value, false, tl, Size(2 * r, 2 * r), style = Stroke(w, cap = StrokeCap.Round))
                 }
-                Box(Modifier.size(160.dp).graphicsLayer { scaleX = breathe.value; scaleY = breathe.value }
-                    .shadow(10.dp, CircleShape).clip(CircleShape).background(cs.surfaceContainerLowest), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(160.dp).shadow(4.dp, CircleShape).clip(CircleShape).background(cs.surfaceContainerLowest),
+                    contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("$count", style = displayStyle(1.5f), color = cs.primary)
                         Text(t("clean.tour.welcome.packs"), style = MaterialTheme.typography.labelLarge, color = cs.onSurfaceVariant)
@@ -253,13 +239,13 @@ internal fun WelcomeScene(groups: List<TourGroup>, count: Int, play: Boolean, mo
                 icons.forEachIndexed { k, (icon, health) ->
                     Box(Modifier.align(Alignment.TopStart)
                         .offset {
-                            val th = Math.toRadians((angle.value + k * 60f - 90f).toDouble())
+                            val th = Math.toRadians((k * 60f - 90f).toDouble())
                             val c = 165.dp.toPx()
                             val r = 140.dp.toPx()
                             val half = 22.dp.toPx()
                             IntOffset((c + r * cos(th) - half).roundToInt(), (c + r * sin(th) - half).roundToInt())
                         }
-                        .graphicsLayer { val p = pops[k].value; scaleX = p; scaleY = p; alpha = p.coerceIn(0f, 1f) }
+                        .graphicsLayer { val p = pops[k].value; alpha = p; translationY = (1f - p) * 8.dp.toPx() }
                         .size(44.dp).shadow(4.dp, CircleShape).clip(CircleShape).background(cs.surfaceContainerLowest),
                         contentAlignment = Alignment.Center) {
                         Icon(icon, null, tint = if (health) cs.error else cs.primary, modifier = Modifier.size(20.dp))

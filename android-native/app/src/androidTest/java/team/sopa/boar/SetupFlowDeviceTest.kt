@@ -37,7 +37,7 @@ class SetupFlowDeviceTest {
 
     private fun needsAWorkingInstall() {
         assumeTrue("only on the throwaway devtest install", ctx.packageName.endsWith(".devtest"))
-        assumeTrue("needs the answer model and no PIN (setup reopened from Settings)", services.activeModel() != null && !services.pinLock.isSet)
+        assumeTrue("needs the answer model (setup reopened from Settings)", services.activeModel() != null)
         assumeTrue("needs a finished bundle install", java.io.File(ctx.filesDir, BundleInstaller.MARKER).isFile)
     }
 

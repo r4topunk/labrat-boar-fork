@@ -30,7 +30,7 @@ import team.sopa.boar.app.BoarServices
 /**
  * The chat on the real MainActivity: the empty state, the Answer options sheet (style, sources, Deep Research, reset), and a question
  * sent and answered by the installed model (bounded waits) with its numbered sources opening and closing. Needs an
- * installed model and no PIN (the devtest install after setup or a seed).
+ * installed model (the devtest install after setup or a seed).
  */
 @RunWith(AndroidJUnit4::class)
 class ChatFlowDeviceTest {
@@ -76,7 +76,7 @@ class ChatFlowDeviceTest {
     }
 
     @Test fun theEmptyChatOffersSuggestionsAndAnswerOptionsChangeSourcesAndReset() {
-        assumeTrue("needs a model and no PIN", services.activeModel() != null && !services.pinLock.isSet)
+        assumeTrue("needs a model", services.activeModel() != null)
         val prefs = ctx.getSharedPreferences("answer_options", Context.MODE_PRIVATE)
         prefs.edit().clear().commit()
         try {
@@ -143,7 +143,7 @@ class ChatFlowDeviceTest {
      * sources"; the last ticked row can't be unticked; Only my files gives the files placeholder; Everything resets.
      */
     @Test fun theSourcesChecklistFiltersPacksAndItsQuickChoicesReset() {
-        assumeTrue("needs a model and no PIN", services.activeModel() != null && !services.pinLock.isSet)
+        assumeTrue("needs a model", services.activeModel() != null)
         assumeTrue("needs an installed pack", services.packs.isNotEmpty())
         val prefs = ctx.getSharedPreferences("answer_options", Context.MODE_PRIVATE)
         prefs.edit().clear().commit()
@@ -212,7 +212,7 @@ class ChatFlowDeviceTest {
     }
 
     @Test fun aSentQuestionIsAnsweredOnScreenWithSourcesThatOpenAndClose() {
-        assumeTrue("needs a model and no PIN", services.activeModel() != null && !services.pinLock.isSet)
+        assumeTrue("needs a model", services.activeModel() != null)
         launchApp(opened)
         compose.waitForChat()
         compose.pressIcon(tr("clean.drawer.newChat"))
@@ -253,7 +253,7 @@ class ChatFlowDeviceTest {
      * from memory), and no sources under it.
      */
     @Test fun withMyFilesAQuestionNotInTheFilesGetsTheNotFoundLineAndNoSources() {
-        assumeTrue("needs a model and no PIN", services.activeModel() != null && !services.pinLock.isSet)
+        assumeTrue("needs a model", services.activeModel() != null)
         val prefs = ctx.getSharedPreferences("answer_options", Context.MODE_PRIVATE)
         val wasOwn = prefs.getBoolean("sourcesOwnOnly", false)
         prefs.edit().putBoolean("sourcesOwnOnly", true).commit()
@@ -274,29 +274,6 @@ class ChatFlowDeviceTest {
             assertFalse("no answer from memory", screenText().contains("Thimphu"))
         } finally {
             prefs.edit().putBoolean("sourcesOwnOnly", wasOwn).commit()
-        }
-    }
-
-    /** With a PIN: unlock on the lock screen first, then an answer must still show. The PIN is removed after. */
-    @Test fun withAPinTheChatOpensAfterTheLockScreenAndAnswers() {
-        assumeTrue("needs a model and no PIN yet", services.activeModel() != null && !services.pinLock.isSet)
-        services.pinLock.enable("2580")
-        try {
-            services.chats.cipher = team.sopa.boar.engine.security.PlainCipher // as a fresh process: locked until the PIN
-            launchApp(opened)
-            compose.waitForText(tr("native.pin.enterTitle"), 60_000)
-            "2580".forEach { d -> compose.press(d.toString()) }
-            compose.press("✓")
-            compose.waitForChat(30_000)
-            compose.pressIcon(tr("clean.drawer.newChat"))
-            val before = screenText()
-            ask("What is a monsoon?")
-            val after = screenText()
-            assertTrue("no answer text appeared on screen with a PIN", newAnswerLine(before, after, "What is a monsoon?") > 40)
-            // Sealed on disk: the stored text is readable only through the unlocked cipher.
-            assertTrue(services.chats.cipher is team.sopa.boar.engine.security.AesTextCipher)
-        } finally {
-            runCatching { services.pinLock.disable("2580") }
         }
     }
 

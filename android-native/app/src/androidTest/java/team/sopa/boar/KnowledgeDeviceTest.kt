@@ -38,7 +38,7 @@ import java.io.File
  * The Knowledge screen (drawer → Knowledge): the built-in libraries by theme, as setup names them (installed ones with
  * their ⋮ menu, missing ones with no Download), then "Your documents". Files are staged in the cache folder and imported
  * through [DocumentsViewModel.import] (the system file picker can't be driven), then the screen is used like a person
- * would: the row's switch, its ⋮ menu (Export, Remove) and Remove's confirmation. Needs the embedding model, no PIN.
+ * would: the row's switch, its ⋮ menu (Export, Remove) and Remove's confirmation. Needs the embedding model.
  */
 @RunWith(AndroidJUnit4::class)
 class KnowledgeDeviceTest {
@@ -54,8 +54,8 @@ class KnowledgeDeviceTest {
 
     @Before fun needsATestInstall() {
         assumeTrue("only on the throwaway devtest install", ctx.packageName.endsWith(".devtest"))
-        assumeTrue("needs a model, the embedding model and no PIN",
-            services.activeModel() != null && services.installed(AssetKind.EMBEDDING).isNotEmpty() && !services.pinLock.isSet)
+        assumeTrue("needs a model and the embedding model",
+            services.activeModel() != null && services.installed(AssetKind.EMBEDDING).isNotEmpty())
     }
 
     @After fun cleanUp() {
