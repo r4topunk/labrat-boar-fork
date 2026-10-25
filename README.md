@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/boar.png" width="112" alt="BOAR mascot" />
+  <img src="./assets/brand/boarlite-mark.svg" width="112" alt="BoarLite logo" />
 </p>
 
 <h1 align="center">BOAR</h1>
