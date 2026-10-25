@@ -4,7 +4,7 @@ import team.sopa.boar.engine.routing.QueryContext
 import kotlin.math.ln
 
 /**
- * BoarLite's search port (SEARCHPORT, 2026-10-24): the bench search stack measured on the TS engine (SEFIX-124 delivery:
+ * BoarLite's search port (SEARCHPORT, 2026-10-24): the bench search stack measured on the bench engine (SEFIX-124 delivery:
  * H4-MERGE gidf + SEFIX F1/F2 + HEADPASS a2 + HEADPASS-X2b append-budget) carried into the native engine, behind one switch
  * ([Retriever]'s `port`, off in the engine; the app reads [BOARLITE_DEFAULT], off since the P1 gate failed on safety). With
  * the switch off every search and every prompt is what it was before the port.
@@ -18,7 +18,7 @@ import kotlin.math.ln
  *   from a non-kit format-2 pack, then the Stack Exchange thread answers, then up to [DENSE_D] dense chunks; at most
  *   [MAX_APPEND] in all, while the prompt would grow by at most [BUDGET_TOKENS]. Health questions get none (the native engine
  *   has no health-topic filter for them). [fit] then compresses the retrieved passages and the appends together within
- *   [READ_GROWTH] times the plain compression's size (the TS appends whole chunks; that doubled the native prompt).
+ *   [READ_GROWTH] times the plain compression's size (the bench appended whole chunks; that doubled the native prompt).
  */
 object SearchPort {
     /**

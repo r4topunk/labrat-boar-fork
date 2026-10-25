@@ -31,13 +31,13 @@ data class ConversationTurn(val role: String, val text: String)
 data class ConversationHistory(val turns: List<ConversationTurn> = emptyList())
 data class PromptMessage(val role: String, val content: String)
 
-/** Pure retrieval and prompt helpers (port of src/rag/pure.ts). Outputs match the TS byte for byte (golden tests). */
+/** Pure retrieval and prompt helpers. Outputs are pinned byte for byte by golden tests. */
 object RagPure {
-    /** bge-small cosine floor for a semantic hit to count (measured 2026-09-26; see pure.ts). */
+    /** bge-small cosine floor for a semantic hit to count (measured 2026-09-26). */
     const val MIN_SEMANTIC_SIMILARITY = 0.55
     const val ANSWER_CONTEXT_CHUNKS = 4
     const val MAX_CHUNKS_PER_ARTICLE = 2
-    /** Nothing below this real similarity is sent to the model (pure.ts ANSWER_MIN_SIMILARITY). */
+    /** Nothing below this real similarity is sent to the model (ANSWER_MIN_SIMILARITY). */
     const val ANSWER_MIN_SIMILARITY = 0.7
     private const val MAX_LEXICAL_TERMS = 12
 

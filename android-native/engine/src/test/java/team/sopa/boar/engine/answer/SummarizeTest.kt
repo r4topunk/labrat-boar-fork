@@ -20,7 +20,7 @@ class SummarizeTest {
     @Test fun `the title prompt and settings`() = runBlocking {
         val calls = ArrayList<List<Any?>>()
         val gen = StageGenerator { system, user, n, temp, _, _ -> calls += listOf(system, user, n, temp); GenResult("\"Seasons on Earth\"\nmore") }
-        // As the TS: edge quotes come off the whole reply before the first line is taken, so this one keeps its closing quote.
+        // As the original: edge quotes come off the whole reply before the first line is taken, so this one keeps its closing quote.
         assertEquals("Seasons on Earth\"", Summarize.title(gen, "Why do we have seasons?"))
         assertEquals("\"Why do we have seasons?\"", calls[0][1])
         assertEquals(listOf(16, 0.3f), calls[0].subList(2, 4))

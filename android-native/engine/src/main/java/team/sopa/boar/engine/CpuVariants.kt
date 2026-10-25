@@ -8,7 +8,7 @@ import java.io.File
  *
  * Auto: ggml ranks the SVE build (armv9.0) highest on phones without SME, but on the X6 Pro (Dimensity 8300) its
  * prompt processing for Q4_K weights was 15–45% slower than the dotprod+i8mm build without SVE (armv8.6), with the
- * same generation speed; llama.rn, which the Expo app uses, ships only non-SVE builds. So Auto takes armv8.6 on
+ * same generation speed. So Auto takes armv8.6 on
  * phones with i8mm and no SME, and leaves every other phone (SME, or no i8mm) to ggml's own choice, which nothing
  * measured contradicts yet.
  */

@@ -9,11 +9,11 @@ import java.security.MessageDigest
 import kotlin.math.abs
 
 /**
- * Installed assets on disk: status and sha256 verification (port of src/models/ModelManager.ts, without its
- * downloads: BoarLite has no network permission, so files only arrive from the app's own bundle).
+ * Installed assets on disk: status and sha256 verification (BoarLite has no network permission, so files only
+ * arrive from the app's own bundle).
  *
- * Same layout and records as the Expo app: assets live at `<filesDir>/<asset.filename>` and verified files are listed in
- * `<filesDir>/integrity.json` as `{filename: {size, mtime (seconds, as Expo reported it), sha256}}`.
+ * Layout: assets live at `<filesDir>/<asset.filename>` and verified files are listed in
+ * `<filesDir>/integrity.json` as `{filename: {size, mtime (seconds), sha256}}`.
  */
 class AssetStore(
     private val filesDir: File,
@@ -79,7 +79,7 @@ class AssetStore(
         forgetVerified(asset)
     }
 
-    // integrity.json, shared with the Expo app's format.
+    // integrity.json, in the format earlier builds wrote.
     @Serializable
     private data class VerifiedRecord(val size: Long, val mtime: Double, val sha256: String)
 

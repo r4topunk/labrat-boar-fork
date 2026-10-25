@@ -27,7 +27,7 @@ data class DocumentsState(
     val imported: String? = null,
 )
 
-/** My Documents (port of PersonalDocumentsManager.tsx): import files into a collection, switch it on or off, remove it. */
+/** My Documents: import files into a collection, switch it on or off, remove it. */
 class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
     private val services = BoarServices.get(app)
     private val _state = MutableStateFlow(DocumentsState())
@@ -103,7 +103,7 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
         team.sopa.boar.ui.I18n.t(getApplication(), "native.documents.tooLarge", "name" to fileName, "mb" to DocumentImport.READ_LIMIT / 1_000_000)
 
     /**
-     * The PDF's selectable text (no OCR); password-protected PDFs aren't supported, as in the Expo app. PDFBox keeps the
+     * The PDF's selectable text (no OCR); password-protected PDFs aren't supported. PDFBox keeps the
      * file in a temp file in the cache, not on the heap, and writes the text in one pass, so a large PDF doesn't fill
      * the memory a loaded model needs. Both the file and its text stop at [DocumentImport.READ_LIMIT], also when the
      * picker didn't say how big the file is.

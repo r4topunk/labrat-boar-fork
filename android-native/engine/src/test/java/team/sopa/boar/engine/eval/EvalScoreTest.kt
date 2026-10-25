@@ -7,7 +7,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import team.sopa.boar.engine.eval.EvalScore.Row
 
-/** The cases of src/eval/score.test.ts, so the phone's score matches the Expo app's and the server's. */
+/** The score's reference cases, so the phone's score matches the server's. */
 class EvalScoreTest {
     private fun row(
         configId: String = "model:a", tokPerSec: Double? = 10.0, tokensGenerated: Double? = 100.0, outcome: String = "success",

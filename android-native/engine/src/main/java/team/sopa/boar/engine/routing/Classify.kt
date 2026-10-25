@@ -2,7 +2,7 @@ package team.sopa.boar.engine.routing
 
 import team.sopa.boar.engine.rag.Js
 
-/** The task a query asks for (src/routing/types.ts TaskType); [value] is the TypeScript string. */
+/** The task a query asks for; [value] is its recorded string. */
 enum class TaskType(val value: String) {
     GREETING("greeting"),
 
@@ -26,7 +26,7 @@ enum class TaskType(val value: String) {
 }
 
 /**
- * Deterministic, rule-based task classification (port of src/routing/classify.ts), explicitly NOT an LLM call.
+ * Deterministic, rule-based task classification, explicitly NOT an LLM call.
  * Heuristic keyword/shape matching, but deterministic and testable: the same input always gives the same plan.
  */
 object Classify {

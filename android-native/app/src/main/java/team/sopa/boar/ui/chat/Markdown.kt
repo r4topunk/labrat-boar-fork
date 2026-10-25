@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.dp
 
 /**
- * An answer's text as the Expo app shows it (port of components/MarkdownMessage.tsx): ``` code blocks, # / ## / ###
+ * An answer's text: ``` code blocks, # / ## / ###
  * headings, "- " and "* " bullets, `inline code` and **bold**; a blinking-free cursor while it streams.
  */
 private sealed interface MdBlock {

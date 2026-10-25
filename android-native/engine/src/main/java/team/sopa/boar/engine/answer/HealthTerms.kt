@@ -6,8 +6,8 @@ import team.sopa.boar.engine.routing.QueryContext
 /**
  * The widened lexical health rules (r4to's "B+FU", Oct 24): 11 whole-word rules (plus the exposure rule, an addition not in the prototype) for health questions that
  * [team.sopa.boar.engine.routing.QueryContext.isHealthQuestion] misses (a drug name, a dose, a vital sign, a lay symptom,
- * a poisoning, pregnancy, a fall...), and the follow-up rule. The regex sources are the JS prototype's (det.mjs B_RULES,
- * FU CONTINUES) verbatim, through [JsRegex]; HealthTermsParityTest pins the verdicts to the prototype's.
+ * a poisoning, pregnancy, a fall...), and the follow-up rule. The regex sources are the original JS detector's (B_RULES,
+ * FU CONTINUES) verbatim, through [JsRegex]; HealthTermsParityTest pins the verdicts to the original's.
  */
 object HealthTerms {
     /** The named rules, in the prototype's order (the name is only for tracing a fire). */

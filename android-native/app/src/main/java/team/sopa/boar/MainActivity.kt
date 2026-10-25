@@ -377,7 +377,7 @@ private fun ChatDrawer(
             BoarDrawer(
                 sessions = sessions,
                 activeSessionId = activeSessionId,
-                // ChatScreen.tsx's items. Evaluation stands in for Execution Telemetry and shows only with developer
+                // The drawer's items. Evaluation stands in for Execution Telemetry and shows only with developer
                 // options; Models is reached from Settings, and About from there too.
                 items = buildList {
                     add(DrawerItem("knowledge", t("nav.knowledge"), BoarIcons.LibraryBooks, t("native.drawer.knowledgeNote")) { go { onNavigate("documents") } })

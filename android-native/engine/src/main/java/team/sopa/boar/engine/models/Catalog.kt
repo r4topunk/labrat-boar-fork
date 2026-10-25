@@ -56,7 +56,7 @@ data class CatalogAsset(
     val bundled: Boolean = false,
     val format: String? = null,
     val requires: List<String> = emptyList(),
-    /** Curated capabilities (manifest.ts); null = not yet assessed, never an assumed capability set. */
+    /** Curated capabilities; null = not yet assessed, never an assumed capability set. */
     val capabilities: ModelCapabilities? = null,
     /** For an [AssetKind.INDEX]: the search model its vectors came from; any other search model must not use them. */
     val embeddingModelSha256: String? = null,
@@ -66,7 +66,7 @@ data class CatalogAsset(
 }
 
 /**
- * What a model is good for (src/routing/types.ts ModelCapabilities): explicit, curated data, never inferred from the
+ * What a model is good for: explicit, curated data, never inferred from the
  * filename. [roles] holds ModelRole strings ("fast", "general", ...); empty = not yet assessed, not "no roles".
  */
 @Serializable

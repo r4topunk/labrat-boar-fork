@@ -1,7 +1,7 @@
 package team.sopa.boar.engine.rag
 
 /**
- * The golden exporter's stand-in embedding (scripts/export-native-golden-packs.mjs): content words hashed (FNV-1a over
+ * The golden exporter's stand-in embedding: content words hashed (FNV-1a over
  * code points) into 384 floats, as a Float32Array.
  */
 object GoldenEmbedding {

@@ -74,7 +74,7 @@ class BenchActivity : ComponentActivity() {
             window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             // Over the lock screen too (never unlocking it): behind the keyguard the activity isn't resumed either.
             if (android.os.Build.VERSION.SDK_INT >= 27) { setShowWhenLocked(true); setTurnScreenOn(true) }
-            // scripts/eval-device.mjs --package team.sopa.boar.lite.debug --no-reload: wait for its request, answer it.
+            // The device eval driver (adb) writes a request: wait for it, answer it.
             val runner = team.sopa.boar.eval.DeviceEvalRunner(
                 this,
                 classify = { q -> Classify.classifyTask(q).value },

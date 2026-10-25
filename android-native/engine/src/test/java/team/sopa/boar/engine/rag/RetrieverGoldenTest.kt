@@ -13,7 +13,7 @@ import java.io.File
 import java.nio.file.Files
 
 /**
- * Full retrieval must match src/rag/retrieve.ts: a knowledge base seeded with the bundled corpus, one format-1 and three
+ * Full retrieval must match the recorded golden cases: a knowledge base seeded with the bundled corpus, one format-1 and three
  * format-2 packs, English questions, the same chunks in the same order with the same
  * scores.
  */

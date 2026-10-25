@@ -60,7 +60,7 @@ private fun JsonObject.num(k: String) = (this[k] as? JsonPrimitive)?.doubleOrNul
 private fun JsonObject.bool(k: String) = (this[k] as? JsonPrimitive)?.booleanOrNull == true
 private fun JsonObject.list(k: String) = (this[k] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.orEmpty()
 
-/** Runs the fixed evaluation set against the chosen models (EvaluationScreen.tsx). Results save as they come. */
+/** Runs the fixed evaluation set against the chosen models. Results save as they come. */
 @Composable
 fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: Boolean, onClose: () -> Unit) {
     val c = Boar.colors

@@ -12,7 +12,7 @@ import org.junit.Test
 import team.sopa.boar.engine.rag.ConversationTurn
 import java.io.File
 
-/** The history budget must match src/routing/historyBudget.ts exactly (scripts/export-native-golden-history.mjs). */
+/** The history budget must match the recorded golden cases exactly. */
 class HistoryBudgetGoldenTest {
     private val g = Json.parseToJsonElement(File("src/test/resources/golden/history-budget.json").readText()).jsonObject
     private fun turns(a: kotlinx.serialization.json.JsonElement) =

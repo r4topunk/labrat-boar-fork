@@ -1,8 +1,8 @@
 package team.sopa.boar.engine.routing
 
 /**
- * Ported from src/routing/context.ts as of r4to's PR #85 (BOAR R&D, MIT): only the question predicates NumGuard needs
- * (health, Portuguese, Spanish). The regexes are the TypeScript ones verbatim, through JsRegex.
+ * From r4to's PR #85 (BOAR R&D, MIT): only the question predicates NumGuard needs (health, Portuguese, Spanish). The
+ * regexes are the original JavaScript ones verbatim, through JsRegex.
  */
 object QueryContext {
     private fun re(source: String, flags: String) = JsRegex.re(source, flags)

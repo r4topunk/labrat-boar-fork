@@ -2,10 +2,10 @@ package team.sopa.boar.engine.answer
 
 import team.sopa.boar.engine.rag.Js
 
-/** A reasoning model's answer split from its thinking (port of src/services/thinking.ts). */
+/** A reasoning model's answer split from its thinking. */
 data class SplitThinking(val answer: String, val thinking: String?, val thinkingInProgress: Boolean)
 
-/** Text helpers of the answer path; each a port of the TS function named in its comment, matched by golden tests. */
+/** Text helpers of the answer path, matched by golden tests. */
 object AnswerText {
     private val MARKERS = listOf("<think>" to "</think>", "<|channel>thought" to "<channel|>")
 
@@ -43,7 +43,7 @@ object AnswerText {
     private val NUMBERED = Regex("([.!?:])[ \\t]+(\\d{1,2})\\.[ \\t]+(?=$NOT_SPACE)")
     private val NUMBERED_BULLET = Regex("^- (\\d{1,2})\\. ")
 
-    /** splitInlineBullets (src/services/answerFormat.ts): "Takeaway. - One. - Two." on separate lines. Display only. */
+    /** splitInlineBullets: "Takeaway. - One. - Two." on separate lines. Display only. */
     fun splitInlineBullets(text: String): String {
         val lines = text.split("\n")
             .map { if (INLINE.findAll(it).count() >= 2) it.replace(INLINE, "$1\n- ") else it }
@@ -66,7 +66,7 @@ object AnswerText {
     private val SPACES = Regex("[ \\t]{2,}")
 
     /**
-     * cleanCitations (src/services/citations.ts): drops invented citations ("[n]", numbers past the sources, a trailing
+     * cleanCitations: drops invented citations ("[n]", numbers past the sources, a trailing
      * "References:" list). [sourceCount] null (unknown) leaves numbered citations alone. Display only.
      */
     fun cleanCitations(text: String, sourceCount: Int?): String {

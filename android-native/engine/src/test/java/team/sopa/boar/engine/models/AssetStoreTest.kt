@@ -80,7 +80,7 @@ class AssetStoreTest {
         assertFalse(File(dir, "integrity.json").readText().contains("models/m.gguf"))
     }
 
-    @Test fun `reads integrity records written by the Expo app (mtime in seconds)`() {
+    @Test fun `reads integrity records written by an earlier build (mtime in seconds)`() {
         val a = asset()
         val s = store(a)
         val f = s.write(a)

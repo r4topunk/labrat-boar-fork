@@ -6,7 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * The Expo app's i18next texts (res/values/strings.xml, from scripts/export-native-strings.mjs), by their TS keys:
+ * The app's texts (res/values/strings.xml), by their i18next-style keys:
  * t("chatScreen.roleYou"), t("chatScreen.reasoningElapsed", "seconds" to 4). "{{var}}" placeholders are filled here,
  * and count-based keys pick key_one / key_other by the English rule, as i18next does. BOAR is English only: there is
  * no translation, whatever language the phone is set to.
@@ -33,7 +33,7 @@ object I18n {
             val plural = "${key}_${pluralCategory(count)}"
             if (id(context, plural) != 0) resolved = plural else if (id(context, "${key}_other") != 0) resolved = "${key}_other"
         }
-        // Native wording wins where it differs from the Expo app's (strings.xml is generated from the shared locales):
+        // Native wording wins where it differs from strings.xml's:
         // "native.interfaceSettings.hapticFeedbackValue" over "interfaceSettings.hapticFeedbackValue".
         if (!resolved.startsWith("native.") && id(context, "native.$resolved") != 0) resolved = "native.$resolved"
         val rid = id(context, resolved)

@@ -65,7 +65,7 @@ android {
         ndk { abiFilters += listOf("arm64-v8a") }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    // BoarLite's own upload key (D9), named in ~/.gradle/gradle.properties and never in the repo. It is not the Expo app's key,
+    // BoarLite's own upload key (D9), named in ~/.gradle/gradle.properties and never in the repo. It is not any earlier app's key,
     // so BoarLite never updates a BOAR install. Without it the release is debug-signed.
     val storeFile = providers.gradleProperty("BOARLITE_UPLOAD_STORE_FILE").orNull
     signingConfigs {

@@ -8,7 +8,7 @@ import team.sopa.boar.engine.rag.Js
 
 /**
  * One instruction-style generation: system + user in the model's chat template, or a plain prompt ending in "Answer:"
- * for a model without one (src/inference/format.ts taskRequest). Returns the text; [onToken] streams it.
+ * for a model without one. Returns the text; [onToken] streams it.
  */
 fun interface StageGenerator {
     /** Generates within [timeoutMs] (null: no limit); on timeout it returns what was written and reports it through [GenResult.timedOut]. */
@@ -32,7 +32,7 @@ data class ResearchResult(
 )
 
 /**
- * What is left of Deep Research (port of src/services/orchestrator.ts) in BoarLite: the answers written from the chat
+ * What is left of Deep Research in BoarLite: the answers written from the chat
  * itself, with no search. A recap of the whole conversation, or a summary/conclusion of the last answer. The
  * sub-question research is not offered, so it is gone.
  */

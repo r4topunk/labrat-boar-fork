@@ -349,7 +349,7 @@ private fun LoadNoteBanner(
     }
 }
 
-/** Toast.tsx: below the header, fades in, gone after 1.8 s. */
+/** A toast: below the header, fades in, gone after 1.8 s. */
 @Composable
 internal fun Toast(message: String, onHide: () -> Unit) {
     val alpha = remember(message) { androidx.compose.animation.core.Animatable(0f) }
@@ -378,7 +378,7 @@ private fun LoadingBanner(text: String) {
 }
 
 /**
- * components/ChatEmptyState.tsx: one focal point (the boar and one question) in the middle of the free space, and the
+ * The empty chat: one focal point (the boar and one question) in the middle of the free space, and the
  * suggested questions as a grouped tonal list at the bottom, next to the thumb and the input (tap asks, long-press
  * fills). The topic labels over each question are gone: the questions read on their own.
  */
@@ -429,7 +429,7 @@ private fun activityLabel(a: Activity?): String = when (a) {
     null -> ""
 }
 
-/** A message bubble (ChatScreen.tsx styles.bubble / userBubble / assistantBubble). */
+/** A message bubble. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Bubble(
@@ -499,7 +499,6 @@ private fun Bubble(
                 // Holding a question already copies it back to the input (onReuse); say so where it helps.
                 Text(t("native.chat.holdToReuse"), style = type.bodySmall, color = scheme.onSurface, modifier = Modifier.padding(top = 2.dp))
             }
-            // Stopped before writing anything: these are what the search found, not what the answer cites.
             if (m.stopped) NoteBadge(BoarIcons.StopCircle, t("chatScreen.stoppedByUser"))
             if (m.timedOut) NoteBadge(BoarIcons.Timer, t("chatScreen.stageTimedOut"))
             m.cutAt?.let { limit ->
@@ -616,7 +615,7 @@ private fun ThinkingTail(thinking: String, modifier: Modifier) {
     }
 }
 
-/** ProcessingIndicator.tsx: the stage line while nothing has streamed yet. */
+/** The stage line while nothing has streamed yet. */
 @Composable
 private fun ProcessingIndicator(label: String) {
     val scheme = MaterialTheme.colorScheme

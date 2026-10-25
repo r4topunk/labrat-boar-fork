@@ -1,7 +1,7 @@
 package team.sopa.boar.engine.routing
 
 /**
- * National emergency numbers from a small fixed table (port of src/routing/emergencyNumbers.ts). "What emergency
+ * National emergency numbers from a small fixed table. "What emergency
  * numbers do I need in Thailand?" found nothing in the library, and the no-source health answer gave other countries'
  * numbers: the table answers exactly for the countries it lists (from Wikipedia's "List of emergency telephone
  * numbers", checked 2026-09). Pure.

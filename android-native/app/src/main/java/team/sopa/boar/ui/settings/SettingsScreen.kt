@@ -147,7 +147,7 @@ private fun ModelsSection(services: BoarServices) {
     }
 }
 
-/** CorpusSettingsTab.tsx in one row: the knowledge packs on the phone and your documents. */
+/** The knowledge packs on the phone and your documents. */
 @Composable
 private fun KnowledgeSection(services: BoarServices, onOpen: (String) -> Unit) {
     Section(t("modelSetupScreen.sections.knowledgeBase")) {
@@ -231,7 +231,7 @@ private fun TelemetrySection(services: BoarServices) {
 }
 
 
-/** MemorySettings.tsx: Clear All Chat History, after a confirmation. */
+/** Clear all chat history, after a confirmation. */
 @Composable
 private fun ClearChats(services: BoarServices) {
     var asking by remember { mutableStateOf(false) }
@@ -244,7 +244,7 @@ private fun ClearChats(services: BoarServices) {
         dismissButton = { TextButton({ asking = false }) { Text(t("common.cancel")) } })
 }
 
-/** ModelSetupScreen.tsx's System Recovery & Danger Zone: run setup again, reset settings, or wipe everything and start over. */
+/** System Recovery & Danger Zone: run setup again, reset settings, or wipe everything and start over. */
 @Composable
 private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup: () -> Unit) {
     val ctx = LocalContext.current

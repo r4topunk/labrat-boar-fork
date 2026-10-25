@@ -8,6 +8,6 @@ package team.sopa.boar.engine.answer
  */
 object AnswerNote {
     const val LINE = "May contain errors; check the source."
-    /** isCompactModel's size bar (answer.ts): a model this size or smaller gets CT-1 and attribution; Qwen3 1.7B Q4_K_M is 1.11e9 B. */
+    /** The compact-model size bar: a model this size or smaller gets CT-1 and attribution; Qwen3 1.7B Q4_K_M is 1.11e9 B. */
     const val COMPACT_MODEL_BYTES = 1_600_000_000L
 }

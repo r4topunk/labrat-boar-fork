@@ -13,7 +13,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.File
 
-/** Context compression and sentence splitting must match the TypeScript engine on real corpus passages. */
+/** Context compression and sentence splitting must match the recorded golden outputs on real corpus passages. */
 class CompressGoldenTest {
     private val g = Json.parseToJsonElement(File("src/test/resources/golden/rag-pure.json").readText()).jsonObject
     private val JsonElement.str get() = if (this is JsonNull) null else jsonPrimitive.content

@@ -16,7 +16,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.File
 
-/** The device evaluation protocol must answer scripts/eval-device.mjs as the Expo app does (device-eval.json). */
+/** The device evaluation protocol must answer the eval driver as recorded (device-eval.json). */
 class DeviceEvalGoldenTest {
     private val g = Json.parseToJsonElement(File("src/test/resources/golden/device-eval.json").readText()).jsonObject
     private val sets = EvalSets.parse(File("../app/src/main/assets/boar-data/eval-set.json").readText())

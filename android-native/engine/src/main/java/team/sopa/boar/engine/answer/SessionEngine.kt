@@ -42,7 +42,7 @@ class SessionEngine(private val session: LlamaSession, private val enableThinkin
         GenResult(text.toString(), metrics, timedOut)
     }
 
-    /** taskRequest: system + user messages with a template, else "instruction\n\ninput\n\nAnswer:" (src/inference/format.ts). */
+    /** taskRequest: system + user messages with a template, else "instruction\n\ninput\n\nAnswer:". */
     override suspend fun generate(system: String, user: String, nPredict: Int, temperature: Float, timeoutMs: Long?, onToken: ((String) -> Unit)?): GenResult =
         if (hasChatTemplate) {
             generate(GenRequest(listOf(PromptMessage("system", system), PromptMessage("user", user)), null, nPredict, temperature, emptyList(), timeoutMs), onToken)

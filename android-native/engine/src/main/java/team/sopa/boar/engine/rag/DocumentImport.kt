@@ -6,17 +6,17 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
 /**
- * The user's own documents as a searchable collection (port of src/services/documentImporter.ts): text, Markdown, CSV
+ * The user's own documents as a searchable collection: text, Markdown, CSV
  * and JSON (a list of { title, body } documents, or any JSON as text) cut into overlapping ~500-token chunks and embedded
- * into the knowledge base; Markdown is cut at its headings first. Same ids, titles and chunks as the TS for everything
- * but Markdown (golden test). PDF text is extracted by the caller.
+ * into the knowledge base; Markdown is cut at its headings first. Same ids, titles and chunks as the recorded
+ * golden cases for everything but Markdown. PDF text is extracted by the caller.
  */
 object DocumentImport {
     private const val CHARS_PER_TOKEN = 4
     const val CHUNK_CHARS = 500 * CHARS_PER_TOKEN
     const val OVERLAP_CHARS = 50 * CHARS_PER_TOKEN
 
-    /** importLimits.ts: the largest file of each kind, in bytes. */
+    /** The largest file of each kind, in bytes. */
     const val TEXT_LIMIT = 25_000_000L
     const val PDF_LIMIT = 100_000_000L
 

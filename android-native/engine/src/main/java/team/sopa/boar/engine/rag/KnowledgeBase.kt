@@ -5,9 +5,9 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * The on-phone knowledge base (port of src/rag/db.ts + the searches of src/rag/retrieve.ts): an FTS5 table for
+ * The on-phone knowledge base: an FTS5 table for
  * keyword search and float32 embeddings for semantic search, plus chat history, feedback, telemetry and user
- * collections. Same file and schema as the Expo app (files/SQLite/aoair_knowledge.db), so an upgrade keeps them.
+ * collections. Same file and schema as earlier builds (files/SQLite/aoair_knowledge.db), so an upgrade keeps them.
  */
 data class CollectionDoc(val title: String, val source: String, val body: String)
 

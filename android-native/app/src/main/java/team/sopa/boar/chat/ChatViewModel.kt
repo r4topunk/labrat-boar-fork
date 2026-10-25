@@ -93,14 +93,14 @@ data class ChatState(
     val error: String? = null,
     /** The answer model's memory note (StartLoad): it closed the app last time, or may not fit; with its actions. */
     val loadNote: LoadNote? = null,
-    /** While the model loads or the corpus indexes: the line the Expo app shows under the header (chatScreen.*). */
+    /** While the model loads or the corpus indexes: the line shown under the header (chatScreen.*). */
     val loadingKey: String? = null,
     /**
      * The answer model is loading (BoarServices.modelState): after the first-run tour's Skip the chat opens while the
      * install's background load runs, and says so until it ends; a question sent meanwhile waits for it.
      */
     val modelLoading: Boolean = false,
-    /** A short message over the chat for about 2 s (Toast.tsx): a reused question. */
+    /** A short message over the chat for about 2 s: a reused question. */
     val toast: String? = null,
     /** Stop was tapped and the answer hasn't ended yet (a step in progress finishes first). */
     val stopping: Boolean = false,
@@ -148,7 +148,7 @@ internal fun provisionalTitle(q: String): String {
 }
 
 /**
- * The chat (port of ChatScreen.tsx's send flow): a recap of the chat when asked for, the
+ * The chat: a recap of the chat when asked for, the
  * default answer path otherwise; the answer streams into its message, and both turns are saved with the answer's
  * sources. Stop cancels the generation in flight and the stages after it.
  */
@@ -222,7 +222,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * Loads the model when the chat opens, as the Expo app does, so the first answer doesn't wait for it. Not a model
+     * Loads the model when the chat opens, so the first answer doesn't wait for it. Not a model
      * whose last load closed the app, nor one that may not fit this phone's memory: the chat asks first (StartLoad).
      */
     private fun preload() {
@@ -862,7 +862,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         const val SOURCES_OWN = "sourcesOwnOnly"
         /** Answer options → Sources: the ids left out (SourceRow ids), a string set; absent or empty = Everything. */
         const val SOURCES_OFF = "sourcesOff"
-        /** Messages sent verbatim as history (ChatScreen.tsx VERBATIM_MESSAGE_COUNT). */
+        /** Messages sent verbatim as history. */
         const val VERBATIM_MESSAGE_COUNT = 6
         /** How often an answer being written is saved (savePartial). */
         const val PARTIAL_SAVE_NS = 3_000_000_000L

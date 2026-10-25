@@ -17,7 +17,7 @@ class DeviceEvalQuestionsTest {
         assertTrue(ok.queries.all { it.setVersion == "dataset-bench-v0.1-72" })
     }
 
-    @Test fun `without the legacy pipeline the TypeScript error stays`() {
+    @Test fun `without the legacy pipeline the original error stays`() {
         val e = runCatching { DeviceEval.parseRequest(request.replace("\"pipeline\":\"legacy\",", "")) }.exceptionOrNull()
         assertTrue(e?.message.orEmpty().contains("need \"pipeline\": \"answer\""))
     }

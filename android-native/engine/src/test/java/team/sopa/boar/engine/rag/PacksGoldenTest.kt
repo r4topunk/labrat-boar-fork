@@ -20,7 +20,7 @@ import team.sopa.boar.engine.db.JdbcSqlite
 import java.io.File
 import java.nio.file.Files
 
-/** Format-1 pack search, source URLs and format-2 hits as chunks must match src/rag/packs.ts. */
+/** Format-1 pack search, source URLs and format-2 hits as chunks must match the recorded golden outputs. */
 class PacksGoldenTest {
     private val dir = File("src/test/resources/golden/packs")
     private val g = Json.parseToJsonElement(File(dir, "format1.json").readText()).jsonObject

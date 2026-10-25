@@ -36,7 +36,7 @@ data class EvaluationState(
     val error: String? = null,
 )
 
-/** The Evaluation screen (EvaluationScreen.tsx): the fixed set against the chosen models, saved and exportable. */
+/** The Evaluation screen: the fixed set against the chosen models, saved and exportable. */
 class EvaluationViewModel(app: Application) : AndroidViewModel(app) {
     private val services = BoarServices.get(app)
     private val runner = DeviceEvalRunner(app, { q -> Classify.classifyTask(q).value }, { t -> Classify.isRetrievalIrrelevant(TaskType.of(t)) })

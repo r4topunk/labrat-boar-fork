@@ -16,7 +16,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.File
 
-/** The Kotlin port must reproduce the TypeScript engine's outputs (scripts/export-native-golden.mjs). */
+/** The engine must reproduce the recorded golden outputs. */
 class RagPureGoldenTest {
     private val g = Json.parseToJsonElement(File("src/test/resources/golden/rag-pure.json").readText()).jsonObject
 

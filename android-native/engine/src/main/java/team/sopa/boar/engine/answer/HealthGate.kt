@@ -8,8 +8,7 @@ import team.sopa.boar.engine.routing.QueryContext
 /**
  * The minimal health path (r4to, Oct 24 18:0x): a health or dose question for which the search kept no passage from a
  * health pack gets a fixed safe text and the emergency number, never an answer from the model's memory. With a health
- * passage kept, the model answers as before. The text is ENGINE-RC's no-source health answer (src/routing/context.ts
- * noHealthSourceAnswer, English), and a country the question names adds its numbers from [EmergencyNumbers]. The health
+ * passage kept, the model answers as before. The text is ENGINE-RC's no-source health answer (English), and a country the question names adds its numbers from [EmergencyNumbers]. The health
  * test is the engine's own ([QueryContext.isHealthQuestion]) widened by [HealthTerms] (drug names, doses, vital signs, lay
  * symptoms, poisoning, pregnancy, falls) and by one follow-up rule: a short turn that continues a health question.
  */

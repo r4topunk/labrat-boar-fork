@@ -13,8 +13,8 @@ import org.junit.Test
 import java.io.File
 
 /**
- * The answer path's text helpers must match the TypeScript on the modules' test strings and on real model answers
- * from eval runs (scripts/export-native-golden-answer.mjs).
+ * The answer path's text helpers must match the recorded golden outputs on the modules' test strings and on real model answers
+ * from eval runs.
  */
 class AnswerTextGoldenTest {
     private val g = Json.parseToJsonElement(File("src/test/resources/golden/answer-text.json").readText()).jsonObject

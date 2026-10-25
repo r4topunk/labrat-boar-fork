@@ -6,14 +6,14 @@ This directory includes or is derived from the following third-party work, each 
 AndroidLM — https://github.com/Phineas1500/AndroidLM
   Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
   The format-2 knowledge-pack retrieval in engine/src/main/java/team/sopa/boar/engine/rag/WikiPack.kt is a port
-  of src/rag/wikiPack.ts, whose design is derived from AndroidLM's Corpus.kt and rag.py: rarest-first query stems
+  of an earlier TypeScript implementation, whose design is derived from AndroidLM's Corpus.kt and rag.py: rarest-first query stems
   with a document-frequency cut, whole-index BM25 with a title-column weight and a popularity prior, titles
   resolved through redirects, and per-article passages. BOAR's changes and additions are described in that file.
 
 BOAR R&D (r4to) — https://github.com/r4topunk
   MIT License. The health and first-aid question detector in
-  engine/src/main/java/team/sopa/boar/engine/routing/QueryContext.kt is ported from src/routing/context.ts
-  (PR #85); health questions answer in Succinct because of it.
+  engine/src/main/java/team/sopa/boar/engine/routing/QueryContext.kt is ported from BOAR R&D's routing
+  code (PR #85); health questions answer in Succinct because of it.
 
 llama.cpp / ggml — https://github.com/ggml-org/llama.cpp
   MIT License, Copyright (c) 2023-2026 The ggml authors. Git submodule under engine/src/main/cpp/llama.cpp.
@@ -26,7 +26,7 @@ Zstandard — https://github.com/facebook/zstd
   engine/src/main/cpp/zstd.
 
 Baloo 2 and Lexend fonts — https://github.com/EkType/Baloo2, https://github.com/googlefonts/lexend
-  SIL Open Font License 1.1. Copied from the @expo-google-fonts packages into app/src/main/res/font.
+  SIL Open Font License 1.1. Copied from the Google Fonts packages into app/src/main/res/font.
 
 PdfBox-Android — https://github.com/TomRoush/PdfBox-Android
   Apache License 2.0. Extracts the text of PDFs the user imports (a port of Apache PDFBox).

@@ -10,14 +10,14 @@ import team.sopa.boar.engine.KvType
 import java.nio.file.Files
 
 class AppSettingsTest {
-    /** A settings.json as the Expo app writes it, with keys this build doesn't use. */
-    private val expo = """{"activeModelId":{"llm":"qwen3-4b-instruct-2507-q4km","embedding":"bge-small-en-v1.5-q8"},"personalityId":"detailed","maxTokens":1024,
+    /** A settings.json as an earlier build wrote it, with keys this build doesn't use. */
+    private val earlierBuild = """{"activeModelId":{"llm":"qwen3-4b-instruct-2507-q4km","embedding":"bge-small-en-v1.5-q8"},"personalityId":"detailed","maxTokens":1024,
         |"themeId":"moonlight","fontScale":"large","deepResearchMode":true,"adaptiveRoutingEnabled":true,"routingPreset":"research","modelRoleAssignments":{"fast":"x"},"autoSummarize":true,"historyTurnThreshold":8,"placeTileNames":{"a":"b"},"installId":"abc-123","largeModelConfirmedIds":["x"]}""".trimMargin()
 
     private fun file(text: String?) = Files.createTempDirectory("boar-settings").toFile().resolve("settings.json").also { f -> text?.let { f.writeText(it) } }
 
-    @Test fun `reads the Expo app's settings, with its stored style, length and Deep Research ignored`() {
-        val s = AppSettings(file(expo))
+    @Test fun `reads an earlier build's settings, with its stored style, length and Deep Research ignored`() {
+        val s = AppSettings(file(earlierBuild))
         assertEquals("qwen3-4b-instruct-2507-q4km", s.activeModelId("llm"))
         // Stored "detailed", "maxTokens": 1024 and Deep Research on: the app answers in Succinct at its length anyway.
         assertEquals("succinct", s.personalityId)
@@ -28,7 +28,7 @@ class AppSettingsTest {
     }
 
     @Test fun `a style, length, Deep Research or routing option stored by an earlier build is rewritten to Succinct and dropped`() {
-        val f = file(expo)
+        val f = file(earlierBuild)
         AppSettings(f).retireRemovedOptions()
         val again = AppSettings(f)
         assertEquals("\"succinct\"", again.raw()["personalityId"].toString())
@@ -46,7 +46,7 @@ class AppSettingsTest {
     }
 
     @Test fun `keeps keys it doesn't know when it writes`() {
-        val f = file(expo)
+        val f = file(earlierBuild)
         val s = AppSettings(f)
         s.engineTweaks = EngineTweaks(threads = 6, kvCache = KvType.Q8_0, stageTimeoutSeconds = 0)
         s.setActiveModelId("llm", "qwen2.5-1.5b-instruct-q4km")
@@ -61,7 +61,7 @@ class AppSettingsTest {
     }
 
     @Test fun `reset settings clears preferences, keeps Succinct, models and the PIN`() {
-        val f = file(expo)
+        val f = file(earlierBuild)
         val s = AppSettings(f)
         s.setActiveModelId("llm", "qwen3-4b")
         s.pinSalt = "salt"; s.pinWrapped = "wrapped"

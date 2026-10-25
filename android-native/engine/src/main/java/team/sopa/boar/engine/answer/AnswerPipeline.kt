@@ -37,7 +37,7 @@ data class AnswerRequest(
     /** Sampling seed; -1 (the app) = random. A fixed seed makes an answer repeatable (the device eval's speed runs). */
     val seed: Int = -1,
     /**
-     * The answering model is compact (answer.ts isCompactModel: [AnswerNote.COMPACT_MODEL_BYTES] or smaller): its
+     * The answering model is compact ([AnswerNote.COMPACT_MODEL_BYTES] or smaller): its
      * answers go through CT-1 and attribution ([Citations]). BoarLite's one model, Qwen3 1.7B, is.
      */
     val compactModel: Boolean = true,
@@ -51,7 +51,7 @@ sealed interface AnswerEvent {
     data class Sources(val chunks: List<Chunk>, val retrievalMs: Double, val tokensBefore: Int, val tokensAfter: Int) : AnswerEvent
     data class Piece(val text: String) : AnswerEvent
     data class Done(
-        /** The model's full text (thinking included, as the TS stores it), or the fixed text no model wrote. */
+        /** The model's full text (thinking included, as stored), or the fixed text no model wrote. */
         val text: String,
         val sources: List<Chunk>,
         val taskType: String,
@@ -76,7 +76,7 @@ sealed interface AnswerEvent {
  * The answer path the Android app runs for every question except a recap of the chat, and the one the device eval
  * runs: classify; retrieve
  * and keep the answering sentences unless the task needs no documents; then generate with the model's own chat
- * template (a hand-built prompt with stop words only for a model without one). Same prompts as the TS (golden tests).
+ * template (a hand-built prompt with stop words only for a model without one). Prompts pinned by golden tests.
  */
 class AnswerPipeline(
     /** The open model, asked for only when the answer is generated (My files' not-found line needs none). */
@@ -206,7 +206,7 @@ class AnswerPipeline(
                 is GenerationEvent.Done -> metrics = e.metrics
             }
         }
-        // CT-1 and attribution once the answer is whole (answer.ts): a [n] its passage doesn't support goes, a sentence a
+        // CT-1 and attribution once the answer is whole: a [n] its passage doesn't support goes, a sentence a
         // passage supports at the 0.75 bar gets its [n]. A stopped answer is left as written.
         val stopped = shouldStop()
         var shown = text.toString()
@@ -224,13 +224,13 @@ class AnswerPipeline(
     companion object {
         /** The smallest context BOAR opens (EngineTweaks.contextSizeForRam), for a model that doesn't say its own. */
         const val FALLBACK_CONTEXT = 2048
-        /** Passages retrieved per answer (src/rag/pure.ts ANSWER_CONTEXT_CHUNKS). */
+        /** Passages retrieved per answer. */
         const val ANSWER_CONTEXT_CHUNKS = 4
         /** How often Stop is checked while the search runs; a search that ends sooner is read at once. */
         private const val STOP_POLL_MS = 25L
         /** The answer's search runs here, so a stopped answer needn't wait for it. */
         private val SEARCH_SCOPE = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        /** Turn ends for the hand-built prompt only (src/inference/LlamaEngine.ts DEFAULT_STOP_SEQUENCES). */
+        /** Turn ends for the hand-built prompt only. */
         val DEFAULT_STOP_SEQUENCES = listOf("\nUser:", "\n\nUser:", "\nQuestion:", "\n\nQuestion:")
     }
 }

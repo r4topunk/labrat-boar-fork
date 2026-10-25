@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Texts of the native app's own screens (not in the Expo app's locales), written by hand. Keys: native.* -->
+<!-- Texts of the native app's own screens (not in strings.xml), written by hand. Keys: native.* -->
 <resources>
     <string name="native_tweaks_title" formatted="false">Advanced tweaks</string>
     <string name="native_tweaks_intro" formatted="false">Every engine setting, for people who want to try them. Auto is what we measured best on real phones; anything you set here wins. A value your phone can\'t run is adjusted, never fatal.</string>

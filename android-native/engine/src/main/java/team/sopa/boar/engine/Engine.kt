@@ -24,7 +24,7 @@ enum class FlashAttn(val code: Int) { AUTO(-1), OFF(0), ON(1) }
 enum class LoadMode(val code: Int) { MMAP(1), MMAP_MLOCK(3), NONE(0) }
 enum class LazyMode(val code: Int) { OFF(0), AUTO(1), ON(2) }
 
-/** Everything the Benchmark Sandbox can change. Defaults match what the Expo app ran with (llama.rn, 4 threads). */
+/** Everything the Benchmark Sandbox can change. Defaults are the engine's own (4 threads). */
 data class EngineParams(
     val nCtx: Int = 4096,
     val nBatch: Int = 512,

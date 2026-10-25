@@ -40,8 +40,7 @@ import team.sopa.boar.engine.rag.WikiPack
 import java.io.File
 
 /**
- * The native app's side of scripts/eval-device.mjs, byte-compatible with the Expo app's (src/eval/deviceEvalRequest.ts):
- * takes files/eval/requests/pending.json, reports in <requestId>.status.json, writes eval/<runId>.jsonl and
+ * The device eval protocol (driven over adb): takes files/eval/requests/pending.json, reports in <requestId>.status.json, writes eval/<runId>.jsonl and
  * .run.json. Runs the legacy pipeline (the fixed-model answer path); an "adaptive" config and the "answer" pipeline
  * are reported as not supported. Request polling is for debug builds only (the caller checks); [runConfigs]
  * also backs the Evaluation screen.
@@ -236,7 +235,7 @@ class DeviceEvalRunner(
         }
     }
 
-    /** The knowledge base, embedder and packs at the Expo app's paths; null when the knowledge base is missing. */
+    /** The knowledge base, embedder and packs at the app's own paths; null when the knowledge base is missing. */
     private class Retrieval(val retriever: Retriever, val embedder: LlamaSession, val closeables: List<AutoCloseable>, val kb: KnowledgeBase, val packs: List<OpenPack>) : AutoCloseable {
         override fun close() { closeables.forEach { runCatching { it.close() } }; embedder.close() }
     }

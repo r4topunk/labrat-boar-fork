@@ -8,7 +8,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 
-/** One evaluation question (src/eval/evalSet.ts), with the set version its rows record. */
+/** One evaluation question, with the set version its rows record. */
 @Serializable
 data class EvalQuery(
     val id: String,
@@ -27,7 +27,7 @@ data class EvalSets(val evalSet: List<EvalQuery>, val extraSets: List<EvalQuery>
     }
 }
 
-/** A request from scripts/eval-device.mjs (src/eval/deviceEvalRequest.pure.ts EvalRequest). */
+/** A request from the device eval driver. */
 data class EvalRequest(
     val requestId: String,
     val models: List<String>? = null,
@@ -61,7 +61,7 @@ sealed interface Resolved {
 
 class EvalRequestException(message: String) : IllegalArgumentException(message)
 
-/** The device evaluation protocol's logic, ported from deviceEvalRequest.pure.ts and evalHarness.pure.ts (golden tests). */
+/** The device evaluation protocol's logic, pinned by golden tests. */
 object DeviceEval {
     private val REQUEST_ID = Regex("^[a-z0-9][a-z0-9-]{0,63}\\z")
     private val SET_VERSION = Regex("^[A-Za-z0-9_.-]{1,64}\\z")
@@ -76,7 +76,7 @@ object DeviceEval {
 
     private fun JsonElement?.isBool() = this is JsonPrimitive && !isString && booleanOrNull != null
 
-    /** parseEvalRequest; throws [EvalRequestException] with the TS message. Answer-pipeline fields are checked lightly. */
+    /** parseEvalRequest; throws [EvalRequestException] with the recorded message. Answer-pipeline fields are checked lightly. */
     fun parseRequest(text: String): EvalRequest {
         val raw = runCatching { Json.parseToJsonElement(text) }.getOrElse { throw EvalRequestException("invalid JSON") }
         // typeof [] is "object" in JavaScript: an array passes this check and fails on its missing requestId.
@@ -89,7 +89,7 @@ object DeviceEval {
         val pipe = (pipeline as? JsonPrimitive)?.takeIf { it.isString }?.content
         if (pipeline != null && pipe != "legacy" && pipe != "answer") throw EvalRequestException("\"pipeline\" must be \"legacy\" or \"answer\"")
         // A question set of its own is fine on the legacy pipeline too (native); the other answer-pipeline fields aren't.
-        val ownSet = raw["questions"] != null && pipe == "legacy" // only when asked for: a request without a pipeline keeps the TS errors
+        val ownSet = raw["questions"] != null && pipe == "legacy" // only when asked for: a request without a pipeline keeps the original errors
         val answerOnly = ANSWER_ONLY.filter { raw[it] != null && !(ownSet && (it == "questions" || it == "evalSetVersion")) }
         if (raw["confirmLargeModels"] != null && !raw["confirmLargeModels"].isBool()) throw EvalRequestException("\"confirmLargeModels\" must be a boolean")
         if (pipe != "answer" && answerOnly.isNotEmpty()) throw EvalRequestException("${answerOnly.joinToString(", ")} need \"pipeline\": \"answer\"")

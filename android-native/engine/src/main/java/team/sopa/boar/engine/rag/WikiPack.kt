@@ -7,9 +7,9 @@ import kotlin.math.ln
 import kotlin.math.log10
 
 /**
- * Search over a large knowledge pack (format 2, built by scripts/build-wiki-pack.mjs): Wikipedia, Wikivoyage and
- * other sources' text in zstd blocks, a contentless FTS5 index, redirects and per-article popularity. Port of
- * src/rag/wikiPack.ts; outputs match it (golden tests).
+ * Search over a large knowledge pack (format 2): Wikipedia, Wikivoyage and
+ * other sources' text in zstd blocks, a contentless FTS5 index, redirects and per-article popularity. Outputs are
+ * pinned by golden tests.
  *
  * The retrieval design is derived from AndroidLM's Corpus.kt / rag.py (https://github.com/Phineas1500/AndroidLM,
  * Apache-2.0; see android-native/NOTICE): rarest-first query stems with a df cut, whole-index BM25 with a title-column
@@ -18,7 +18,7 @@ import kotlin.math.log10
  */
 
 enum class PackSource { ENWIKI, ENWIKIVOYAGE, ENWIKIBOOKS, APPROPEDIA, USGOV, EIPS, ETHSPECS, ETHEREUMORG, BIPS, STACKEXCHANGE, MEDLINEPLUS, FACTBOOK, SIMPLEWIKI;
-    /** The id the TS uses ("enwiki", "enwikivoyage", …). */
+    /** The id the pack builder uses ("enwiki", "enwikivoyage", …). */
     val key: String get() = name.lowercase()
 }
 
@@ -77,7 +77,7 @@ data class PackTuning(
     val semanticWeight: Double = 0.0,
 )
 
-/** The pure helpers of wikiPack.ts. */
+/** The pure helpers of the pack search. */
 object WikiPackText {
     const val NAMED_MIN_SHARE = 0.5
     const val SEMANTIC_KEEP = 0.7
@@ -818,7 +818,7 @@ class WikiPack private constructor(
     fun close() = db.close()
 
     companion object {
-        /** Index = articles.source code written by scripts/build-wiki-pack.mjs. */
+        /** Index = articles.source code written by the pack builder. */
         val SOURCES = listOf(
             PackSource.ENWIKI, PackSource.ENWIKIVOYAGE, PackSource.ENWIKIBOOKS, PackSource.APPROPEDIA, PackSource.USGOV,
             PackSource.EIPS, PackSource.ETHSPECS, PackSource.ETHEREUMORG, PackSource.BIPS,

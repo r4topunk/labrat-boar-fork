@@ -16,7 +16,7 @@ import java.io.File
 import java.nio.file.Files
 import kotlin.math.ln
 
-/** BoarLite's search port ([SearchPort]): the switch off changes nothing; on, the bench search stack's pieces behave as in the TS. */
+/** BoarLite's search port ([SearchPort]): the switch off changes nothing; on, the bench search stack's pieces behave as measured on the bench. */
 class SearchPortTest {
     private val dir = File("src/test/resources/golden/packs")
 

@@ -15,7 +15,7 @@ import team.sopa.boar.engine.EngineTweaks
 import java.io.File
 
 /**
- * The app's settings in files/settings.json, the Expo app's own file (src/models/settings.ts), read and written in
+ * The app's settings in files/settings.json, the file earlier builds wrote too, read and written in
  * place so an upgrade keeps every setting. Keys this build doesn't know are kept as they are on every write. The
  * native-only Advanced tweaks live under "engineTweaks". Writes go to a temporary file renamed over the old one.
  */
@@ -112,7 +112,7 @@ class AppSettings(private val file: File) {
     var fontScale: String get() = str("fontScale") ?: "standard"; set(v) = set("fontScale", JsonPrimitive(v))
     var hapticsEnabled: Boolean get() = bool("hapticsEnabled") ?: false; set(v) = set("hapticsEnabled", JsonPrimitive(v))
     /**
-     * Advanced tweaks → Show technical details (the Expo app's live-stats key): off, the chat shows the short receipt
+     * Advanced tweaks → Show technical details (the key earlier builds used): off, the chat shows the short receipt
      * only; on, the receipt's details, live tok/s in the header, the menu's memory and storage bars, Hardware telemetry.
      */
     // On by default: the bounty's judges and early users want the numbers (time to first word, speed, memory).
@@ -136,7 +136,7 @@ class AppSettings(private val file: File) {
     private fun strings(key: String): List<String> = (data[key] as? kotlinx.serialization.json.JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.takeIf { p -> p.isString }?.content }.orEmpty()
     private fun setStrings(key: String, v: List<String>) = set(key, if (v.isEmpty()) null else kotlinx.serialization.json.JsonArray(v.map(::JsonPrimitive)))
 
-    /** CR-2's bookkeeping, under the Expo app's keys (loadCrashedIds, pendingLoadCrash) plus #73's loadMappedIds. */
+    /** CR-2's bookkeeping, under earlier builds' keys (loadCrashedIds, pendingLoadCrash) plus #73's loadMappedIds. */
     val loadLedger = object : team.sopa.boar.engine.models.LoadGuard.Ledger {
         override var crashedIds: List<String> get() = strings("loadCrashedIds"); set(v) = setStrings("loadCrashedIds", v)
         override var mappedIds: List<String> get() = strings("loadMappedIds"); set(v) = setStrings("loadMappedIds", v)

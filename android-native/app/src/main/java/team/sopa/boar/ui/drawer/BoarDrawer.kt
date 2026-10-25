@@ -74,7 +74,7 @@ import java.util.Locale
 class DrawerItem(val key: String, val label: String, val icon: ImageVector? = null, val note: String? = null, val onClick: () -> Unit)
 
 /**
- * Drawer.tsx as a standard Material 3 navigation drawer: the brand, a new chat, the screens, recent sessions (open,
+ * A standard Material 3 navigation drawer: the brand, a new chat, the screens, recent sessions (open,
  * delete), and (developer options only) the RAM/disk footer. Colors come from the Material theme, so it follows
  * Material You and the light/dark choice. Everything lines up at 28 dp: the sheet's 12 dp item padding plus the 16 dp
  * inset the item text, the header and the section label share.
@@ -218,7 +218,7 @@ internal fun usage(used: Long, total: Long): String {
 }
 
 /**
- * DrawerFooterStats.tsx, with real numbers: the phone's memory in use (BOAR's part highlighted) against the phone's
+ * The footer stats, with real numbers: the phone's memory in use (BOAR's part highlighted) against the phone's
  * total, and BOAR's disk use plus what running downloads still fetch against BOAR's own storage limit, which the
  * caption names so it isn't read as the phone's space. Then the last answer's speed.
  */

@@ -5,10 +5,10 @@ import kotlin.math.ceil
 import kotlin.math.ln
 
 /**
- * Sends the model only the sentences that answer the question (port of src/rag/compress.ts): every sentence of
+ * Sends the model only the sentences that answer the question: every sentence of
  * the retrieved passages is scored against the question (IDF-weighted term coverage), the best are kept up to a
  * token budget, each kept passage opens with its first sentence, and passages far less relevant than the best
- * are dropped. Regexes spell out JavaScript's semantics (Unicode \s, ASCII \b) so the output matches the TS.
+ * are dropped. Regexes spell out JavaScript's semantics (Unicode \s, ASCII \b) so the output matches the recorded golden data.
  */
 object Compress {
     data class ScoredSentence(val chunkIndex: Int, val position: Int, val text: String, val score: Double)
@@ -115,8 +115,8 @@ object Compress {
 
     /**
      * [openingMustFitWithMatch]: a new passage is opened only when its first sentence fits together with the one that
-     * matched (src/rag/compress.ts); false keeps src/routing/context.ts's older check (title and match only).
-     * [withRelevance]: set [Chunk.relevance] as context.ts's compressContext does.
+     * matched ; false keeps the older check (title and match only).
+     * [withRelevance]: set [Chunk.relevance] as the older compression did.
      */
     fun compress(
         query: String, chunks: List<Chunk>, tokenBudget: Int = 1200, maxSentencesPerChunk: Int = 4, pinned: Set<String> = emptySet(),
@@ -178,7 +178,7 @@ object Compress {
             compareByDescending<Int> { if (it in pinnedIdx) 1 else 0 }.thenByDescending { chunkBest[it] }.thenBy { it },
         )
         val qTerms = tokenizeTerms(query).distinct()
-        // The article the question names never reads as weak (context.ts NAMED_ARTICLE_RELEVANCE).
+        // The article the question names never reads as weak (NAMED_ARTICLE_RELEVANCE).
         fun shownRelevance(ci: Int): Double {
             val best = scored.filter { it.chunkIndex == ci }.sortedByDescending { it.score }.firstOrNull()
             val have = (tokenizeTerms(chunks[ci].title) + tokenizeTerms(best?.text ?: "")).toSet()

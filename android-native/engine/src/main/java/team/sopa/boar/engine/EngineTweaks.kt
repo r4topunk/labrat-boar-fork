@@ -107,11 +107,11 @@ data class EngineTweaks(
 
     companion object {
         /**
-         * Auto time limit: 2 minutes (the TS app's fixed STEP_TIMEOUT_MS) plus half a second per token allowed, i.e. room
+         * Auto time limit: 2 minutes (the fixed step timeout of earlier builds) plus half a second per token allowed, i.e. room
          * for a phone generating at 2 tok/s. 512 tokens: about 6 minutes; 2048: about 19.
          */
         /**
-         * memoryFit.ts contextSizeForRam: a smaller KV cache on small phones (about 140 MB less for a 4B at 3072),
+         * A smaller KV cache on small phones (about 140 MB less for a 4B at 3072),
          * so the model load is less likely to be killed by the low-memory killer.
          */
         fun contextSizeForRam(totalRamBytes: Long): Int = when {

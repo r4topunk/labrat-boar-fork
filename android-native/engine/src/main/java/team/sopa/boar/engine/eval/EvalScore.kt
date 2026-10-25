@@ -10,7 +10,7 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 
 /**
- * Score v1 for one model's answers in an evaluation run (port of src/eval/score.pure.ts; docs/RESULTS_SCORE.md):
+ * Score v1 for one model's answers in an evaluation run:
  * speed 60 %, reliability 25 %, sources found 15 %. It measures speed and reliability on this phone, not whether the
  * answers are right. Computed on the phone from the run's rows; nothing is sent.
  */

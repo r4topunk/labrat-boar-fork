@@ -21,8 +21,7 @@ import java.io.File
 import java.nio.file.Files
 
 /**
- * Format-2 pack search must match src/rag/wikiPack.ts on the vitest fixture packs, built by the real builder
- * (scripts/export-native-golden-packs.mjs): stems, named articles, BM25 terms and every hit field, in order.
+ * Format-2 pack search must match the recorded golden hits on the fixture packs, built by the real builder: stems, named articles, BM25 terms and every hit field, in order.
  */
 class WikiPackGoldenTest {
     private val dir = File("src/test/resources/golden/packs")

@@ -6,7 +6,7 @@ import java.math.MathContext
 import java.math.RoundingMode
 
 /**
- * JavaScript regular expressions on java.util.regex: the routing modules keep their TypeScript sources verbatim and
+ * JavaScript regular expressions on java.util.regex: the routing modules keep their original JavaScript sources verbatim and
  * this translates the parts whose meaning differs. JS `\b`/`\w` are ASCII (even with /u), `\s` is Unicode whitespace,
  * `.` stops only at \n \r    , `$` without /m is the end of input, and /i is Unicode-aware for non-ASCII
  * letters. Not handled (throws): the m/s/y flags, `[]` and `[^]`, `\S` inside a class.

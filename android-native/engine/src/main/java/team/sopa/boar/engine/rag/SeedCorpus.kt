@@ -6,9 +6,9 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 /**
- * Indexes the bundled corpus and downloaded corpus packs into the knowledge base (port of src/rag/seedCorpus.ts):
+ * Indexes the bundled corpus and downloaded corpus packs into the knowledge base:
  * one chunk per document, id "wiki-<collection>-<slug of the title>" (the first document with a slug wins), embedded
- * as "title\nbody". Chunk ids match the Expo app's, so an upgraded install finds its index complete and skips it.
+ * as "title\nbody". Chunk ids match earlier builds', so an upgraded install finds its index complete and skips it.
  *
  * Speed (first-run setup indexes ~5,300 articles): rows are committed every [commitEvery] articles under a lighter fsync
  * setting, and the existing ids are read once. A stop or a cancel commits what was embedded; a killed process loses at

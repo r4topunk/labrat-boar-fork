@@ -13,7 +13,7 @@ import team.sopa.boar.engine.rag.ConversationHistory
 import team.sopa.boar.engine.rag.ConversationTurn
 import java.io.File
 
-/** The follow-up search rule must match src/routing/followUp.ts exactly (scripts/export-native-golden-followup.mjs). */
+/** The follow-up search rule must match the recorded golden cases exactly. */
 class FollowUpGoldenTest {
     private val g = Json.parseToJsonElement(File("src/test/resources/golden/followup.json").readText()).jsonObject
     private val JsonElement.str get() = if (this is JsonNull) null else jsonPrimitive.content

@@ -1,7 +1,7 @@
 package team.sopa.boar.engine.models
 
 /**
- * Rough RAM-fit estimate for a GGUF model on this device (port of src/models/compatibility.ts), used by the catalog
+ * Rough RAM-fit estimate for a GGUF model on this device, used by the catalog
  * UI and the start-up memory check. Heuristic, not a measurement: a quantized model's resident working set tracks its file
  * size plus context/KV overhead, approximated as 1.15x.
  */

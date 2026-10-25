@@ -13,7 +13,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.File
 
-/** "Why" reordering and duplicate removal must match the TypeScript engine. */
+/** "Why" reordering and duplicate removal must match the recorded golden outputs. */
 class RagTextGoldenTest {
     private val g = Json.parseToJsonElement(File("src/test/resources/golden/rag-pure.json").readText()).jsonObject
     private val JsonElement.str get() = if (this is JsonNull) null else jsonPrimitive.content

@@ -6,7 +6,7 @@ import java.io.File
 
 /** forModel on every model and installed set (golden/suggestions.txt; the middle column is the old language, always English now). */
 class SuggestionsTest {
-    @Test fun `same suggestions as the TS`() {
+    @Test fun `same suggestions as recorded`() {
         val s = Suggestions.parse(File("../app/src/main/assets/boar-data/suggestions.json").readText())
         val lines = File("src/test/resources/golden/suggestions.txt").readLines().filter { it.isNotBlank() }
         for (line in lines) {

@@ -47,7 +47,7 @@ import team.sopa.boar.ui.setup.sizeText
 import team.sopa.boar.ui.t
 
 /**
- * Knowledge (KnowledgeScreen.tsx): what BOAR searches offline, by theme, as the setup step names and counts it (one
+ * Knowledge: what BOAR searches offline, by theme, as the setup step names and counts it (one
  * catalog: KnowledgeCatalog), then the user's own documents. Grouped tonal lists, no outlines; a row says its status only
  * when it isn't ready, and removing or exporting sits behind the row's ⋮ menu.
  */

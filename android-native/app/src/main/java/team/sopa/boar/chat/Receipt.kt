@@ -7,8 +7,8 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * The measured facts of one answer, shown beside it once it finishes (main's AnswerReceipt and receiptShort /
- * receiptDetails, src/ui/chat/presentation.ts). Kept in the message's meta, so a reopened chat still shows it.
+ * The measured facts of one answer, shown beside it once it finishes. Kept in the message's meta, so a reopened chat
+ * still shows it.
  */
 data class Receipt(
     /** From the question being sent to the last token. */

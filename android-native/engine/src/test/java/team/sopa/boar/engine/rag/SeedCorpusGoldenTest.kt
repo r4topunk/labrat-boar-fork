@@ -13,11 +13,11 @@ import team.sopa.boar.engine.db.JdbcSqlite
 import java.io.File
 
 /**
- * Seeding must index exactly what src/rag/seedCorpus.ts does (scripts/export-native-golden-seed.mjs): same chunk ids,
+ * Seeding must index exactly what was recorded: same chunk ids,
  * rows, order and embedding inputs, the retired chunk removed, and nothing re-embedded on a second run.
  */
 class SeedCorpusGoldenTest {
-    @Test fun `same chunks as the Expo app, and a second run embeds nothing`() = runBlocking {
+    @Test fun `same chunks as recorded, and a second run embeds nothing`() = runBlocking {
         val g = Json.parseToJsonElement(File("src/test/resources/golden/seed.json").readText()).jsonObject
         val db = JdbcSqlite()
         val kb = KnowledgeBase(db)

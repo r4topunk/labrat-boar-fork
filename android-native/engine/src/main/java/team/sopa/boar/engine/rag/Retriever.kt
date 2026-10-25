@@ -9,7 +9,7 @@ sealed class OpenPack(val id: String) {
 }
 
 /**
- * Hybrid retrieval over the knowledge base and the installed packs (port of src/rag/retrieve.ts): lexical and
+ * Hybrid retrieval over the knowledge base and the installed packs: lexical and
  * semantic results fused after the relevance gate, articles the question names first, what-to-do sections and lay
  * sources kept for action questions. Nothing here touches the network. Synchronous; run it off the main thread.
  */

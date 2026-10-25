@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * CR-2 (src/inference/loadMarker.ts) plus #73's mapped retry. A model load that gets the app killed (low memory) leaves
+ * CR-2 plus #73's mapped retry. A model load that gets the app killed (low memory) leaves
  * no error behind, so a marker is written right before the load and cleared after it returns. A marker found on the
  * next start means that load killed the app, with repacked weights or the mapped file alike: the model isn't loaded
  * again on its own ([isBlocked]), so a model too big for the phone closes the app once, not on every start. The chat
@@ -39,7 +39,7 @@ class LoadGuard(private val store: MarkerStore, private val ledger: Ledger, priv
         fun clear()
     }
 
-    /** Where the outcome is remembered (settings.json, the Expo app's keys plus loadMappedIds). */
+    /** Where the outcome is remembered (settings.json, earlier builds' keys plus loadMappedIds). */
     interface Ledger {
         var crashedIds: List<String>
         var mappedIds: List<String>
@@ -133,7 +133,7 @@ class LoadGuard(private val store: MarkerStore, private val ledger: Ledger, priv
         const val STALL_MIN_MS = 10_000.0
 
         /**
-         * memoryFit.ts isDecodeStall (#73): repacked weights pushed to swap make every token wait for them to be
+         * #73: repacked weights pushed to swap make every token wait for them to be
          * decompressed (0.1 tok/s on a Pixel 6a with the 4B, about 1 answer in 6 in long conversations).
          */
         /** A generation that wrote at least one token and ended without an error (a stop word or the limit). */

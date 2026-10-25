@@ -21,8 +21,8 @@ data class ChatMessageRecord(
 )
 
 /**
- * Chat sessions and messages in the knowledge base's own tables (port of src/services/chatHistory.ts), so chats made
- * in the Expo app reopen after an upgrade. The schema is created by KnowledgeBase; chat_message_meta here.
+ * Chat sessions and messages in the knowledge base's own tables, so chats made
+ * by earlier builds reopen after an upgrade. The schema is created by KnowledgeBase; chat_message_meta here.
  *
  * With a PIN, [cipher] seals every text a chat stores (titles, messages, their sources) before it reaches
  * the database, and opens it on the way out; ids, times and ratings stay plain.
@@ -35,7 +35,7 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
         db.exec("CREATE TABLE IF NOT EXISTS chat_message_meta (message_id TEXT PRIMARY KEY REFERENCES chat_messages(id), meta TEXT NOT NULL)")
     }
 
-    /** Same shape as the TS: "<ms>-<6 base-36 chars>". */
+    /** "<ms>-<6 base-36 chars>". */
     fun newId(): String = "${now()}-" + (1..6).map { "0123456789abcdefghijklmnopqrstuvwxyz"[Random.nextInt(36)] }.joinToString("")
 
     fun createSession(title: String = "New chat"): ChatSession {

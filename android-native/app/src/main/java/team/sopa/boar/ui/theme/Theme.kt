@@ -30,7 +30,7 @@ import team.sopa.boar.R
 import kotlin.math.roundToInt
 
 /**
- * Brand type (port of src/ui-android/theme/fonts.ts and components/AppText.tsx): Baloo 2 for titles and weight 800+,
+ * Brand type: Baloo 2 for titles and weight 800+,
  * Lexend at the nearest weight for everything read, the platform monospace only for code. Android doesn't synthesize
  * weights for custom fonts, so each weight is its own file.
  */
@@ -83,7 +83,7 @@ object BrandType {
     }
 }
 
-/** The text styles of one text-size setting, by the TS names ("ui.body", "mono.sm"). */
+/** The text styles of one text-size setting, by their token names ("ui.body", "mono.sm"). */
 class BoarType(val scale: String) {
     private val specs = when (scale) { "compact" -> TypeTokens.compact; "large" -> TypeTokens.large; else -> TypeTokens.standard }
     private val cache = HashMap<String, TextStyle>()

@@ -3,8 +3,8 @@ package team.sopa.boar.engine.routing
 import team.sopa.boar.engine.rag.Js
 
 /**
- * Arithmetic questions answered exactly, with the formula, instead of by a model (port of src/routing/calculators.ts;
- * the compact model got fuel economy, Naismith's rule, currency with a given rate, a battery's watt-hours for a flight
+ * Arithmetic questions answered exactly, with the formula, instead of by a model (the
+ * compact model got fuel economy, Naismith's rule, currency with a given rate, a battery's watt-hours for a flight
  * and a heat warning wrong). Pure: the question in, the answer text out (or null). Numbers are printed as JavaScript's
  * toLocaleString does for en-US.
  */
@@ -162,13 +162,11 @@ object Calculators {
         return "${fmt(p, 0)} people × ${fmt(d, 0)} days × ${fmt(l)} L = ${fmt(total)} liters of water, weighing about ${fmt(total)} kg (1 L of water ≈ 1 kg)."
     }
 
-    // from context.ts; replace with the shared port when context.ts lands
     private val TEMPERATURE = JsRegex.re(
         """(-?\d+(?:[.,]\d+)?)\s*(?:°|º|degrees?|graus?)?\s*(c|celsius|centigrade|f|fahrenheit)\b[^?]*?\b(?:in|to|into|em|para)\s+(?:degrees?\s+|graus?\s+)?(celsius|centigrade|fahrenheit|c|f)\b""",
         "i",
     )
 
-    // from context.ts; replace with the shared port when context.ts lands
     /** "What is 30 °C in Fahrenheit?": the conversion with its formula, or null. */
     private fun temperatureConversion(query: String): String? {
         val m = TEMPERATURE.find(query) ?: return null

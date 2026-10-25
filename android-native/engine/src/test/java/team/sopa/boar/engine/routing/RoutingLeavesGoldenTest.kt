@@ -16,7 +16,7 @@ import java.io.File
 
 /**
  * The routing leaves (emergency numbers line, task classification, calculators) must
- * match the TypeScript engine on every golden case (scripts/export-native-golden-routing.mjs).
+ * match the recorded golden outputs on every case.
  */
 class RoutingLeavesGoldenTest {
     private val g = Json.parseToJsonElement(File("src/test/resources/golden/routing-leaves.json").readText()).jsonObject
@@ -44,7 +44,7 @@ class RoutingLeavesGoldenTest {
         Triple("classifyTask(${it.q})", it["type"]!!.str to it["irrelevant"]!!.jsonPrimitive.boolean, t.value to Classify.isRetrievalIrrelevant(t))
     }
 
-    @Test fun `parse numbers like the TypeScript Number()`() = check("parseNumber") {
+    @Test fun `parse numbers like JavaScript Number()`() = check("parseNumber") {
         val raw = it["raw"]!!.str!!
         val n = Calculators.parseNumber(raw)
         Triple("parseNumber($raw)", it["out"]!!.str, if (n == 0.0 && 1.0 / n < 0) "-0" else JsNumber.toString(n))
@@ -56,7 +56,7 @@ class RoutingLeavesGoldenTest {
         Triple("calculate(${it.q})", want, Calculators.calculate(it.q))
     }
 
-    @Test fun `task types serialize to the TypeScript strings`() {
+    @Test fun `task types serialize to their recorded strings`() {
         for (t in TaskType.entries) assertEquals(t, TaskType.of(t.value))
         assertEquals("conversation", TaskType.CONVERSATION.value)
     }

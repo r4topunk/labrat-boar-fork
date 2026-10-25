@@ -4,10 +4,10 @@ import team.sopa.boar.engine.rag.Chunk
 import team.sopa.boar.engine.rag.Compress
 
 /**
- * The port of src/routing/citations.ts. CT-1 (checkCitations): a [n] stays only when source n contains at least half of
+ * CT-1 (checkCitations): a [n] stays only when source n contains at least half of
  * its sentence's key words, and one pointing past the sources always goes. Attribution (attributeCitations): a sentence
  * without [n] gets the [n] of the source that supports it at a higher bar, never without support. Both run before the
- * warning line is chosen (answer.ts does the same), so the line fires on the answers the validated TS fired on.
+ * warning line is chosen (the answer path does the same), so the line fires on the answers it fired on when it was validated.
  */
 object Citations {
     /** Share of a cited sentence's key words the source must contain. */
@@ -145,7 +145,7 @@ object Citations {
     /** What [apply] did to an answer. */
     data class Result(val text: String, val removed: List<Int>, val added: List<Int>)
 
-    /** CT-1, then attribution (answer.ts order). [sources] are the passages in full, numbered [1]..[n]. */
+    /** CT-1, then attribution. [sources] are the passages in full, numbered [1]..[n]. */
     fun apply(answer: String, sources: List<Chunk>): Result {
         var text = answer
         var removed = emptyList<Int>()

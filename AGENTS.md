@@ -12,7 +12,7 @@ BoarLite is a native Kotlin + Compose app. The APK is built by Gradle from
 `android-native/` only: module `:app` (UI, setup, eval hooks) and module
 `:engine` (answer pipeline, retrieval, llama.cpp JNI), with the `llama.cpp`
 and `zstd` submodules under `android-native/engine/src/main/cpp/`. There is no
-JavaScript, Expo or Metro layer.
+JavaScript layer.
 
 ## Prerequisites
 

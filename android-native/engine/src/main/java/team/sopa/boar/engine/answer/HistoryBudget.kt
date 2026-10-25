@@ -5,11 +5,10 @@ import team.sopa.boar.engine.rag.ConversationTurn
 import team.sopa.boar.engine.rag.Js
 
 /**
- * Conversation history that fits a token budget, for the answer prompt (port of src/routing/historyBudget.ts; golden
- * test: scripts/export-native-golden-history.mjs).
+ * Conversation history that fits a token budget, for the answer prompt.
  *
  * The chat sent the last 6 messages verbatim. With long answers (~500 tokens each) history alone grew to ~1,700
- * tokens, all read again for every question, and the first word of a follow-up took 20-48 s on a Pixel 6a (1.5B, Expo
+ * tokens, all read again for every question, and the first word of a follow-up took 20-48 s on a Pixel 6a (1.5B,
  * app, 2026-10-03). Newest turns first, within [BUDGET_TOKENS]: a question is kept whole, an earlier answer is cut to
  * its opening sentences ([ANSWER_TOKENS]), and the latest exchange always goes in, even over budget.
  */

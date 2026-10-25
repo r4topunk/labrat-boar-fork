@@ -3,7 +3,7 @@ package team.sopa.boar.engine.rag
 import team.sopa.boar.engine.db.SqlDatabase
 
 /**
- * Knowledge packs as the chat's retrieval sees them (port of the pure parts of src/rag/packs.ts): format-1 search
+ * Knowledge packs as the chat's retrieval sees them: format-1 search
  * (FTS5 candidates, then int8 cosine), the meta check, source URLs and format-2 hits as chunks.
  */
 object Packs {

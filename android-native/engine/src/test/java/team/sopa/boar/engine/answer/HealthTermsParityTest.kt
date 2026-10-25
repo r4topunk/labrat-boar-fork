@@ -15,8 +15,8 @@ import team.sopa.boar.engine.routing.QueryContext
 import java.io.File
 
 /**
- * The Kotlin predicate against the JS prototype (health detector det.mjs, B+FU). The fixture holds (question, earlier user
- * turns, verdicts) dumped from the prototype for the 65 F3-SAFETY probes, 40 hand-written adversarial non-health
+ * The Kotlin predicate against the original JS health detector (B+FU). The fixture holds (question, earlier user
+ * turns, verdicts) dumped from that detector for the 65 F3-SAFETY probes, 40 hand-written adversarial non-health
  * questions, 60 non-health dev questions, conversion cases and follow-ups. Agreement is 100 %, except the rows flagged "extra" (the exposure rule, an addition) and
  * "exempt": the Kotlin deliberately says "not health" on a plain temperature conversion (HealthTerms.isPlainConversion).
  */
@@ -45,7 +45,7 @@ class HealthTermsParityTest {
             assertFalse(r.q, HealthGate.isHealth(r.q, history(r.h)))
         }
         assertEquals(6, rows.count { it.exempt })
-        // Intentional addition vs det.mjs: the exposure rule fires where the prototype did not.
+        // Intentional addition: the exposure rule fires where the original detector did not.
         for (r in rows.filter { it.extra }) {
             assertFalse("prototype fires on ${r.q}", r.js)
             assertTrue(r.q, HealthGate.isHealth(r.q, history(r.h)))

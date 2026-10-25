@@ -11,7 +11,7 @@ internal object Js {
     fun trim(s: String) = s.trim(::isSpace)
 }
 
-/** "Why"/"what causes" questions: the passage with the question's other words first (port of src/rag/explain.ts). */
+/** "Why"/"what causes" questions: the passage with the question's other words first. */
 object Explain {
     val EXPLAIN_INTENT = Regex(
         "(?i)${Js.B0}(why|what (?:causes?|makes|drives|triggers|produces)|how (?:does|do|did|is|are|can)|reason)${Js.B1}",
@@ -36,7 +36,7 @@ object Explain {
     }
 }
 
-/** One copy of an article's passage per answer (port of src/rag/dedupe.ts). */
+/** One copy of an article's passage per answer. */
 object Dedupe {
     const val COPY_MIN_SHARE = 0.6
     private val WORD = Regex("[\\p{L}\\p{N}]+")

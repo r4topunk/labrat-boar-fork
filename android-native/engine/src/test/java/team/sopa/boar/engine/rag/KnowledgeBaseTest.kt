@@ -17,7 +17,7 @@ class KnowledgeBaseTest {
         insertChunk(Chunk("wiki-3", "black-sea", "Black Sea", "The Black Sea is a sea between Europe and Asia."), vec(0f, 0f, 1f))
     }
 
-    @Test fun `float32 embeddings round-trip little-endian, as the Expo app stored them`() {
+    @Test fun `float32 embeddings round-trip little-endian, as earlier builds stored them`() {
         val v = floatArrayOf(0.25f, -1.5f, 3.0f)
         val blob = KnowledgeBase.toBlob(v)
         assertEquals(listOf<Byte>(0, 0, 0x80.toByte(), 0x3e), blob.take(4)) // 0.25f little-endian

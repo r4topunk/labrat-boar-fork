@@ -5,11 +5,10 @@ import team.sopa.boar.engine.rag.ConversationHistory
 import team.sopa.boar.engine.rag.Js
 
 /**
- * What to search the library for when the question is a follow-up (port of src/routing/followUp.ts; golden test:
- * scripts/export-native-golden-followup.mjs).
+ * What to search the library for when the question is a follow-up.
  *
  * Retrieval saw only the question's own words, so a follow-up found nothing: "What did he publish?" after a Darwin
- * answer, "What are the side effects?" after a vaccines answer (Pixel 6a, Expo app, 2026-10-04). The model resolved "he"
+ * answer, "What are the side effects?" after a vaccines answer (Pixel 6a, 2026-10-04). The model resolved "he"
  * from the history and answered from memory, uncited: the weaker case for the bounty (Qwen3-4B 0.49 from memory vs 0.61
  * with passages). From the conversation's previous question:
  * - a question that points back ("he", "it", "isso"…) is searched together with the previous question, and with the
