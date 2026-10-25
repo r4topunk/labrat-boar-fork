@@ -13,4 +13,7 @@ object AboutCredits {
         "AndroidLM (knowledge-pack search design)" to "Apache-2.0",
         "Baloo 2 and Lexend fonts" to "SIL OFL 1.1",
     )
+
+    /** The license texts in assets/licenses: BoarLite's own (MIT) and llama.cpp / ggml's (MIT). */
+    val licenseFiles: List<String> = listOf("boarlite-LICENSE.txt", "llama-cpp-ggml-LICENSE.txt")
 }

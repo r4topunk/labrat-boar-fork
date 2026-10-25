@@ -105,6 +105,17 @@ class AboutDeviceTest {
         compose.waitForTextGone(beyond)
     }
 
+    @Test fun theLicenseTextsOpenFromTheCredits() {
+        openAbout()
+        val row = tr("native.about.licenseTexts")
+        compose.scrollTo(hasText(row))
+        compose.press(row)
+        compose.waitForText("Permission is hereby granted", substring = true)
+        assertTrue("BoarLite's copyright line", compose.shows("BOAR contributors", substring = true))
+        compose.pressInDialog(tr("common.close"))
+        compose.waitForTextGone("Permission is hereby granted", substring = true)
+    }
+
     @Test fun eachAddressHasACopyButtonThatCopiesIt() {
         openAbout()
         val links = listOf("github.com/rferrari/boar-app", "boarapp.com", "x.com/boar_app", "farcaster.xyz/boarapp", "huggingface.co/datasets/r4topunk/boar-packs")

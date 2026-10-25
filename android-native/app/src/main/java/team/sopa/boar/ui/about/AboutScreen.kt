@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -203,6 +204,36 @@ private fun Credits() {
         TextButton({ open = !open }, Modifier.padding(horizontal = 8.dp)) {
             Text(if (open) t("native.about.creditsLess") else t("native.about.creditsAll", "n" to all.size))
         }
+        LicenseTexts()
+    }
+}
+
+/**
+ * The MIT license texts the APK ships (assets/licenses: BoarLite's and llama.cpp / ggml's, as MIT asks of every copy), behind
+ * a row that opens them in a scrollable dialog. The files sit outside boar-data, which the build checks against the catalog.
+ */
+@Composable
+private fun LicenseTexts() {
+    val ctx = LocalContext.current
+    var shown by remember { mutableStateOf(false) }
+    ListItem(
+        headlineContent = { Text(t("native.about.licenseTexts"), style = MaterialTheme.typography.bodyMedium) },
+        supportingContent = { Text(t("native.about.licenseTextsNote")) },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent, supportingColor = MaterialTheme.colorScheme.onSurfaceVariant),
+        modifier = Modifier.clickable(role = Role.Button) { shown = true },
+    )
+    if (shown) {
+        val text = remember {
+            AboutCredits.licenseFiles.joinToString("\n\n----\n\n") { f ->
+                runCatching { ctx.assets.open("licenses/$f").bufferedReader().use { it.readText() }.trim() }.getOrDefault("")
+            }
+        }
+        AlertDialog(
+            onDismissRequest = { shown = false },
+            confirmButton = { TextButton({ shown = false }) { Text(t("common.close")) } },
+            title = { Text(t("native.about.licenseTexts")) },
+            text = { Text(text, Modifier.verticalScroll(rememberScrollState()), style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace) },
+        )
     }
 }
 

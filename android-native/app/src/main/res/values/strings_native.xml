@@ -62,6 +62,8 @@
     <string name="native_about_post_credits" formatted="false">Standing on open work, each under its own license:</string>
     <string name="native_about_creditsAll" formatted="false">Show all {{n}}</string>
     <string name="native_about_creditsLess" formatted="false">Show fewer</string>
+    <string name="native_about_licenseTexts" formatted="false">License texts</string>
+    <string name="native_about_licenseTextsNote" formatted="false">The MIT licenses of BoarLite and of llama.cpp / ggml</string>
     <string name="native_about_packsTitle" formatted="false">Knowledge packs</string>
     <string name="native_about_packsBody" formatted="false">Packs from R4to\'s R&amp;D Lab.</string>
     <string name="native_about_teamTitle" formatted="false">Core team</string>
