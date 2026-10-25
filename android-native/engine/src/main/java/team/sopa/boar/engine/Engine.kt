@@ -42,11 +42,6 @@ data class EngineParams(
     /** Repack weights for the fast ARM kernels (in app memory); false reads them from the mapped file, about 2x slower prompts. */
     val repack: Boolean = true,
     val embeddings: Boolean = false,
-    /**
-     * Sequences one call may hold ([LlamaSession.embedBatch] packs several texts per llama_decode). Above 1 the context
-     * gets a unified buffer, so each sequence can still use the whole [nCtx].
-     */
-    val nSeqMax: Int = 1,
     /** Override the GGUF's chat template (empty = the model's own). */
     val chatTemplate: String = "",
 ) {
@@ -56,7 +51,7 @@ data class EngineParams(
         .put("cpus", cpus).put("strictCpu", strictCpu)
         .put("typeK", typeK.ggml).put("typeV", typeV.ggml).put("flashAttn", flashAttn.code)
         .put("loadMode", loadMode.code).put("lazyMode", lazyMode.code).put("repack", repack)
-        .put("embeddings", embeddings).put("nSeqMax", nSeqMax).put("chatTemplate", chatTemplate)
+        .put("embeddings", embeddings).put("chatTemplate", chatTemplate)
         .toString()
 }
 
@@ -181,20 +176,6 @@ class LlamaSession private constructor(@Volatile private var handle: Long, val p
     suspend fun embed(text: String, normalize: Boolean = true): FloatArray = lock.withLock {
         val h = live()
         withContext(Dispatchers.Default) { BoarNative.embed(h, text.toByteArray(Charsets.UTF_8), normalize) }
-    }
-
-    /**
-     * Several texts in as few native calls as fit (each its own sequence, packed up to the micro-batch and [EngineParams.nSeqMax]),
-     * in input order. Null when the native batch failed, so the caller falls back to [embed] one text at a time.
-     */
-    suspend fun embedBatch(texts: List<String>, normalize: Boolean = true): List<FloatArray>? = lock.withLock {
-        if (texts.isEmpty()) return@withLock emptyList()
-        val h = live()
-        withContext(Dispatchers.Default) {
-            val flat = BoarNative.embedBatch(h, Array(texts.size) { texts[it].toByteArray(Charsets.UTF_8) }, normalize)
-            if (flat.isEmpty() || flat.size % texts.size != 0) null
-            else (flat.size / texts.size).let { d -> List(texts.size) { i -> flat.copyOfRange(i * d, (i + 1) * d) } }
-        }
     }
 
     suspend fun bench(nPp: Int = 512, nTg: Int = 128, reps: Int = 3): BenchResult = lock.withLock {

@@ -10,15 +10,12 @@ import kotlinx.serialization.json.jsonPrimitive
  * one chunk per document, id "wiki-<collection>-<slug of the title>" (the first document with a slug wins), embedded
  * as "title\nbody". Chunk ids match the Expo app's, so an upgraded install finds its index complete and skips it.
  *
- * Speed (first-run setup indexes ~5,300 articles): [embedMany] embeds up to [batchSize] articles per native call, rows are
- * committed every [commitEvery] articles under a lighter fsync setting, and the existing ids are read once. A stop or a
- * cancel commits what was embedded; a killed process loses at most [commitEvery] articles, and the next run skips the rest.
+ * Speed (first-run setup indexes ~5,300 articles): rows are committed every [commitEvery] articles under a lighter fsync
+ * setting, and the existing ids are read once. A stop or a cancel commits what was embedded; a killed process loses at
+ * most [commitEvery] articles, and the next run skips the rest.
  */
 class SeedCorpus(
     private val kb: KnowledgeBase,
-    /** Several texts per call, in order; null (or a failed batch) embeds them one at a time with [embed]. */
-    private val embedMany: (suspend (List<String>) -> List<FloatArray>?)? = null,
-    private val batchSize: Int = 1,
     private val commitEvery: Int = COMMIT_EVERY,
     private val embed: suspend (String) -> FloatArray,
 ) {
@@ -35,7 +32,6 @@ class SeedCorpus(
         val count = kb.seedChunkCount()
         if (count == total.toLong()) return 0
         val have = HashSet(kb.chunkIds())
-        val group = ArrayList<Doc>(batchSize)
         val rows = ArrayList<Pair<Chunk, FloatArray>>(commitEvery)
         var done = 0
         var embedded = 0
@@ -46,13 +42,9 @@ class SeedCorpus(
             rows.clear()
         }
 
-        suspend fun embedGroup() {
-            if (group.isEmpty()) return
-            val texts = group.map { "${it.title}\n${it.body}" }
-            val vectors = (if (texts.size > 1) embedMany?.invoke(texts)?.takeIf { it.size == texts.size } else null) ?: texts.map { embed(it) }
-            group.forEachIndexed { k, doc -> rows += Chunk(doc.id, doc.id, doc.title, doc.body, source = doc.source) to vectors[k] }
-            embedded += group.size
-            group.clear()
+        suspend fun embedDoc(doc: Doc) {
+            rows += Chunk(doc.id, doc.id, doc.title, doc.body, source = doc.source) to embed("${doc.title}\n${doc.body}")
+            embedded++
             if (rows.size >= commitEvery) flush()
         }
 
@@ -69,11 +61,9 @@ class SeedCorpus(
                             onProgress(Progress(done, total, doc.title, c.id, i + 1, c.docs.size))
                         }
                         if (!have.add(doc.id)) continue
-                        group += doc
-                        if (group.size >= batchSize) embedGroup()
+                        embedDoc(doc)
                     }
                 }
-                embedGroup()
             } finally {
                 // Also on a stop or a cancel: what was embedded is kept, so the next run starts after it.
                 if (rows.isNotEmpty()) runCatching { flush() }

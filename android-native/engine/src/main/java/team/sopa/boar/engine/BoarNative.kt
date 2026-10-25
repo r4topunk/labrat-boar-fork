@@ -20,7 +20,5 @@ internal object BoarNative {
     external fun formatChat(handle: Long, messagesJson: String, enableThinking: Boolean): ByteArray
     external fun generate(handle: Long, prompt: ByteArray, samplingJson: String, callback: PieceCallback): ByteArray
     external fun embed(handle: Long, text: ByteArray, normalize: Boolean): FloatArray
-    /** texts.size * n_embd floats in input order, or an empty array when any decode failed. */
-    external fun embedBatch(handle: Long, texts: Array<ByteArray>, normalize: Boolean): FloatArray
     external fun bench(handle: Long, nPp: Int, nTg: Int, reps: Int): String
 }
