@@ -285,15 +285,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * The prefix a question in the user's chosen style gets (send's own choice, before any short-answer rule), with the
-     * current Sources choice: My files' instruction differs from the first words after the style's.
+     * The prefix a question gets, with the current Sources choice: My files' instruction differs from the first words
+     * after the style's.
      */
-    private fun chatWarmKey(): team.sopa.boar.engine.answer.WarmPrefix.Key {
-        val settings = services.settings
-        val style = settings.personalityId
-        val smallModel = (services.answerModel()?.sizeBytes ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
-        return team.sopa.boar.engine.answer.WarmPrefix.forChat(services.personalities, style, null, smallModel, _state.value.sourcesOwn)
-    }
+    private fun chatWarmKey(): team.sopa.boar.engine.answer.WarmPrefix.Key =
+        team.sopa.boar.engine.answer.WarmPrefix.forChat(services.personalities, services.settings.personalityId, _state.value.sourcesOwn)
 
     /**
      * Stops the preload's warm prefill (the coroutine, and the native prefill in progress) and waits for it to end.
@@ -584,9 +580,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
             val settings = services.settings
             val style = settings.personalityId
-            // A small answer model (the 1.5B) gets Detailed without D4's "Always do what the user asks" (r4to, Oct 18).
-            val smallModel = (services.answerModel()?.sizeBytes ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
-            val (systemPrompt, styleReminder) = services.personalities.promptFor(style, null, smallModel)
+            val (systemPrompt, styleReminder) = services.personalities.promptFor(style)
             val history = ConversationHistory(
                 summary = runCatching { chats.listSessions().firstOrNull { it.id == sessionId }?.summary }.getOrNull(),
                 // Within a token budget: earlier answers cut to their opening sentences (HistoryBudget).
@@ -789,7 +783,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val previous = services.chats.listSessions().firstOrNull { it.id == sessionId }?.summary
             background = safeScope.launch(Dispatchers.Default) {
                 runCatching {
-                    // Bounded like the answer's history: a whole detailed chat (thousands of tokens) took tens of seconds to read.
+                    // Bounded like the answer's history: a whole long chat (thousands of tokens) took tens of seconds to read.
                     val turns = HistoryBudget.budget(older.map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) })
                     services.chats.setSummary(sessionId, Summarize.summary(gen, turns, previous))
                 }

@@ -12,10 +12,10 @@ class WarmPrefixTest {
     private val p = Personalities.parse(File("../app/src/main/assets/boar-data/personalities.json").readText())
     private val chunks = listOf(Chunk("c", "d", "budget", "Rent: 1,250 EUR."))
 
-    private fun warmed(style: String, filesOnly: Boolean) = WarmPrefix.forChat(p, style, null, smallModel = false, filesOnly = filesOnly)
+    private fun warmed(style: String, filesOnly: Boolean) = WarmPrefix.forChat(p, style, filesOnly)
 
     /** The prefix a question is answered with: the chat's key for the style and the Sources choice at that moment. */
-    private fun asked(style: String, filesOnly: Boolean) = WarmPrefix.forChat(p, style, null, smallModel = false, filesOnly = filesOnly)
+    private fun asked(style: String, filesOnly: Boolean) = WarmPrefix.forChat(p, style, filesOnly)
 
     @Test fun `a plain question reuses the warm prefix, with all sources or My files alike`() {
         for (files in listOf(false, true)) {
@@ -33,7 +33,7 @@ class WarmPrefixTest {
         for (files in listOf(false, true)) {
             val key = warmed("succinct", files)
             val (head, plain) = RagPure.answerPromptPrefix(key.systemPrompt, withContext = true, filesOnly = key.filesOnly)
-            val sys = p.promptFor("succinct", null).first
+            val sys = p.promptFor("succinct").first
             assertTrue(RagPure.assemblePrompt("What is my rent?", chunks, sys, filesOnly = files).startsWith(plain))
             assertTrue(RagPure.assembleChatMessages("What is my rent?", chunks, sys, filesOnly = files).first().content.startsWith(head))
             // And not the other Sources choice's prompt: that is why the key carries it.

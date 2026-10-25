@@ -50,15 +50,15 @@ class AppSettings(private val file: File) {
 
     /**
      * Always Succinct: the app has one answer style and no picker (r4to, Oct 24): in the Oct 23 UX tests 35 % of answers
-     * were right with Succinct against 28 % with it off, and an audit of Detailed answers (Oct 17) found 20 % of claims wrong. A style stored by an earlier build (Detailed,
-     * Summary, Custom) is ignored here and rewritten by [retireRemovedOptions].
+     * were right with Succinct against 28 % with it off. A style stored by an earlier build is ignored here and
+     * rewritten by [retireRemovedOptions].
      */
     val personalityId: String get() = ANSWER_STYLE
     /** The answer's token limit: Succinct's Auto length. There is no length setting; a stored "maxTokens" is ignored. */
-    val maxTokens: Int get() = autoMaxTokens(personalityId)
+    val maxTokens: Int get() = AUTO_MAX_TOKENS
 
     /** The limit for an answer now: Succinct's Auto length fitted to the context the model was opened with. */
-    fun answerTokens(openedContext: Int?): Int = fitToContext(autoMaxTokens(personalityId), openedContext)
+    fun answerTokens(openedContext: Int?): Int = fitToContext(AUTO_MAX_TOKENS, openedContext)
 
     /**
      * Writes over what an earlier build let the user choose: the style becomes Succinct, and a picked answer length, the
@@ -92,8 +92,6 @@ class AppSettings(private val file: File) {
         /** The one answer style (personalities.json's "succinct"). */
         const val ANSWER_STYLE = "succinct"
         const val AUTO_MAX_TOKENS = 512
-        /** Detailed answers ran past 512 tokens and stopped mid-sentence (X6, Oct 11). */
-        const val AUTO_MAX_TOKENS_DETAILED = 1024
 
         /** Context kept for the prompt (instructions, sources, history) when Auto sizes the answer. */
         const val PROMPT_RESERVE = 1500
@@ -106,16 +104,6 @@ class AppSettings(private val file: File) {
          */
         fun fitToContext(cap: Int, openedContext: Int?): Int =
             if (openedContext == null) cap else minOf(cap, maxOf(MIN_AUTO_TOKENS, openedContext - PROMPT_RESERVE))
-
-        /**
-         * Only Detailed gets the longer cap. No style set is Succinct, the app's one style ([ANSWER_STYLE], personalities.json's
-         * defaultId): reading it as Detailed gave a fresh install 1024 tokens while it answered
-         * in Succinct.
-         */
-        fun autoMaxTokens(personalityId: String?): Int = when {
-            personalityId == "detailed" -> AUTO_MAX_TOKENS_DETAILED
-            else -> AUTO_MAX_TOKENS
-        }
     }
     /** "campfire" or "moonlight"; the theme's default when unset. */
     var themeId: String? get() = str("themeId"); set(v) = set("themeId", v?.let(::JsonPrimitive))

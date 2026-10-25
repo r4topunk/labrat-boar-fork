@@ -39,8 +39,8 @@ class BoarServices private constructor(private val context: Context) {
     /** Qwen3 1.7B, the search model and the knowledge packs: everything BoarLite can use is listed here, nothing is added later. */
     val catalog: Catalog = Catalog.parse(asset("boar-data/catalog.json"))
     /**
-     * The answer styles' prompts. The app answers in Succinct only (AppSettings.personalityId); the others stay in
-     * personalities.json for the benchmark runner.
+     * The answer style's prompt: the app answers in Succinct only (AppSettings.personalityId), and the device eval
+     * sends the same one.
      */
     val personalities: Personalities = Personalities.parse(asset("boar-data/personalities.json"))
     init { applyDefaults() }

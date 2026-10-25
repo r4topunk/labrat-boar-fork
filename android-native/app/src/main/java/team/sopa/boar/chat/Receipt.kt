@@ -22,7 +22,7 @@ data class Receipt(
     val retrievalMs: Double? = null,
     val prefillMs: Double? = null,
     val contextTokens: Int? = null,
-    /** The answer style's id ("succinct", "detailed", "summary", "custom"); null on answers saved before it was kept. */
+    /** The answer style's id ("succinct"; older chats may hold another); null on answers saved before it was kept. */
     val style: String? = null,
     /** How it was answered: null (the normal answer) or "chat" (written from this chat). */
     val path: String? = null,

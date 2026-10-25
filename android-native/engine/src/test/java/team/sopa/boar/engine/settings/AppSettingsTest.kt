@@ -104,11 +104,7 @@ class AppSettingsTest {
         assertEquals(256, s.answerTokens(1024))
     }
 
-    @Test fun `no stored style gets the Succinct cap, not Detailed's`() {
-        assertEquals(AppSettings.AUTO_MAX_TOKENS, AppSettings.autoMaxTokens(null))
-        assertEquals(AppSettings.AUTO_MAX_TOKENS, AppSettings.autoMaxTokens("succinct"))
-        // The benchmark runner still sizes the other styles through the same function.
-        assertEquals(AppSettings.AUTO_MAX_TOKENS_DETAILED, AppSettings.autoMaxTokens("detailed"))
+    @Test fun `no stored style gets the Succinct cap`() {
         val s = AppSettings(file(null))
         assertEquals(512, s.maxTokens)
     }

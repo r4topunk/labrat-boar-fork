@@ -167,9 +167,8 @@ class DeviceEvalRunner(
         val rows = ArrayList<JsonObject>()
         val installed = installedModels()
         val personalities = Personalities.parse(asset("personalities.json"))
-        // As the chat answers by default: the default style's prompt and reminder (the small-model variant below 2 GB),
-        // at that style's Auto length (Detailed 1,024).
-        val maxTokens = team.sopa.boar.engine.settings.AppSettings.autoMaxTokens(personalities.defaultId)
+        // As the chat answers: Succinct's prompt and reminder, at its Auto length.
+        val maxTokens = team.sopa.boar.engine.settings.AppSettings.AUTO_MAX_TOKENS
         val topology = CpuTopology.read()
         // The same Auto context as the chat (contextSizeForRam).
         val totalRam = runCatching {
@@ -201,7 +200,7 @@ class DeviceEvalRunner(
                                     session = file?.let { LlamaSession.load(it.absolutePath, params) }
                                     loadMs = (System.nanoTime() - t0) / 1e6
                                     // As the chat's preload: the default answer's instructions read in before the first question.
-                                    if (overrides["warm"] == "1") session?.let { warm(it, personalities, installed, config) }
+                                    if (overrides["warm"] == "1") session?.let { warm(it, personalities) }
                                 } else {
                                     residency = "resident"
                                     loadMs = 0.0
@@ -210,16 +209,12 @@ class DeviceEvalRunner(
                                 if (s == null) failureRow(runId, config, q, personalities.defaultId, maxTokens, "model failed to load")
                                 else {
                                     running = s
-                                    val small = (installed.firstOrNull { it.first.id == config.modelId }?.second?.length() ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
-                                    // The chat's short-answer rules too: small talk, health and seed-phrase questions answer in
-                                    // Succinct, and small talk at Succinct's length (ShortAnswer, ChatViewModel).
-                                    val style = if (team.sopa.boar.engine.routing.ShortAnswer.reason(personalities.defaultId, q.query, null) != null) "succinct" else personalities.defaultId
-                                    val (systemPrompt, styleReminder) = personalities.promptFor(style, null, small)
-                                    val limit = if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q.query)) minOf(maxTokens, team.sopa.boar.engine.settings.AppSettings.AUTO_MAX_TOKENS) else maxTokens
-                                    val r = answerRow(s, retrieval, runId, config, q, style, systemPrompt, styleReminder, limit, residency, loadMs)
+                                    val style = team.sopa.boar.engine.settings.AppSettings.ANSWER_STYLE
+                                    val (systemPrompt, styleReminder) = personalities.promptFor(style)
+                                    val r = answerRow(s, retrieval, runId, config, q, style, systemPrompt, styleReminder, maxTokens, residency, loadMs)
                                     running = null
                                     // As the chat after an answer without sources: the sourced instructions read back in.
-                                    if (overrides["rewarm"] == "1" && r["retrievalUsed"]?.jsonPrimitive?.content != "true") warm(s, personalities, installed, config)
+                                    if (overrides["rewarm"] == "1" && r["retrievalUsed"]?.jsonPrimitive?.content != "true") warm(s, personalities)
                                     if (stopRequested) JsonObject(r + ("outcome" to JsonPrimitive("cancelled"))) else r
                                 }
                             }
@@ -279,9 +274,8 @@ class DeviceEvalRunner(
     }
 
     /** ChatViewModel.warmPrefix for the default style with sources; logs how long it took. */
-    private suspend fun warm(s: LlamaSession, personalities: Personalities, installed: List<Pair<ModelRef, File>>, config: EvalConfig.Model) {
-        val small = (installed.firstOrNull { it.first.id == config.modelId }?.second?.length() ?: Long.MAX_VALUE) < Personalities.SMALL_MODEL_BYTES
-        val (head, _) = team.sopa.boar.engine.rag.RagPure.answerPromptPrefix(personalities.promptFor(personalities.defaultId, null, small).first, true)
+    private suspend fun warm(s: LlamaSession, personalities: Personalities) {
+        val (head, _) = team.sopa.boar.engine.rag.RagPure.answerPromptPrefix(personalities.promptFor().first, true)
         val t0 = System.nanoTime()
         val prompt = s.formatChat(listOf(team.sopa.boar.engine.ChatMessage("system", head))).prompt
         s.generate(prompt, team.sopa.boar.engine.Sampling(nPredict = 0)).collect {}

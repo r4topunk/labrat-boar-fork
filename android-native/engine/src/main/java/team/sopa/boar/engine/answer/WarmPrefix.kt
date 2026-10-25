@@ -9,9 +9,8 @@ package team.sopa.boar.engine.answer
 object WarmPrefix {
     data class Key(val systemPrompt: String?, val filesOnly: Boolean)
 
-    /** What the preload warms before any question: the user's style, with the current Sources choice. */
-    fun forChat(p: Personalities, chosenStyle: String, customPrompt: String?, smallModel: Boolean, filesOnly: Boolean): Key =
-        Key(p.promptFor(chosenStyle, customPrompt, smallModel).first, filesOnly)
+    /** What the preload warms before any question: the answer style, with the current Sources choice. */
+    fun forChat(p: Personalities, style: String, filesOnly: Boolean): Key = Key(p.promptFor(style).first, filesOnly)
 
     /**
      * A warm-up still running is worth waiting for only when it fills the prefix the question will use; otherwise the

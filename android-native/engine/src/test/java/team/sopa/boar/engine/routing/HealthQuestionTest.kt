@@ -4,7 +4,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Health questions answer in Succinct even when Detailed is picked: which questions count (QueryContext, r4to's list). */
+/** Which questions count as health questions (QueryContext, r4to's list). */
 class HealthQuestionTest {
     @Test fun firstAidAndInjuriesAreHealth() {
         listOf(
