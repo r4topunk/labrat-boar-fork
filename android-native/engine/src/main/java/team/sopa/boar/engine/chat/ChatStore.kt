@@ -80,11 +80,6 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
         db.execute("UPDATE chat_sessions SET updated_at = ? WHERE id = ?", listOf(t, sessionId))
     }
 
-    fun setFeedback(messageId: String, rating: String?) {
-        if (rating == null) db.execute("DELETE FROM answer_feedback WHERE message_id = ?", listOf(messageId))
-        else db.execute("INSERT OR REPLACE INTO answer_feedback (message_id, rating, created_at) VALUES (?, ?, ?)", listOf(messageId, rating, now()))
-    }
-
     fun setTitle(sessionId: String, title: String) { db.execute("UPDATE chat_sessions SET title = ? WHERE id = ?", listOf(seal(title), sessionId)) }
     /**
      * Titles a reasoning model wrote as "<think>…" before titles skipped the thinking (fixed Oct 15): the thinking is

@@ -59,12 +59,6 @@ JNIEXPORT jint JNICALL FN(exec)(JNIEnv * env, jobject, jlong h, jbyteArray jsql)
 
 JNIEXPORT jlong JNICALL FN(changes)(JNIEnv *, jobject, jlong h) { return sqlite3_changes64(DB(h)); }
 JNIEXPORT jlong JNICALL FN(lastInsertRowid)(JNIEnv *, jobject, jlong h) { return sqlite3_last_insert_rowid(DB(h)); }
-JNIEXPORT void JNICALL FN(interrupt)(JNIEnv *, jobject, jlong h) { sqlite3_interrupt(DB(h)); }
-
-JNIEXPORT jbyteArray JNICALL FN(version)(JNIEnv * env, jobject) {
-    const char * v = sqlite3_libversion();
-    return bytes(env, v, (int) strlen(v));
-}
 
 JNIEXPORT jlong JNICALL FN(prepare)(JNIEnv * env, jobject, jlong h, jbyteArray jsql) {
     std::string sql = utf8(env, jsql);

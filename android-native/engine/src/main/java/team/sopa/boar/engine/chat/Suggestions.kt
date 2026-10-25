@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
  * correctly and safely in that language, and whose source is installed. Data from assets/boar-data/suggestions.json.
  */
 @Serializable
-data class Suggestions(val validation: Validation, val sources: List<Source>, val minSuggestions: Int) {
+data class Suggestions(val validation: Validation, val sources: List<Source>) {
     @Serializable data class Validation(val version: Int, val byModel: Map<String, Map<String, List<String>>>)
     @Serializable data class Source(val key: String, val corpus: List<String>, val expect: List<String>, val langs: List<String>)
 
@@ -25,9 +25,6 @@ data class Suggestions(val validation: Validation, val sources: List<Source>, va
         val lang = if (language?.startsWith("pt") == true) "pt" else "en"
         return covered(byLang[lang].orEmpty(), installed, lang)
     }
-
-    /** Fewer than this: the empty chat suggests adding a knowledge pack. */
-    fun showsKnowledgeHint(count: Int) = count < minSuggestions
 
     companion object {
         private val json = Json { ignoreUnknownKeys = true }

@@ -26,7 +26,7 @@ object AdaptivePlan {
     }
 
     /**
-     * [statuses]: every catalog asset with whether it is on disk (ModelManager.statusAll); only LLMs are used.
+     * [statuses]: every catalog asset with whether it is on disk (the whole catalog); only LLMs are used.
      * [overrides]: the user's role assignments. [activeModelId]: the model the user picked ("Use"); it fills the fast
      * and general roles unless the user assigned those explicitly (without this, balanced routing ignored the user's
      * choice). [deviceRamBytes]: total RAM, 0 when unreadable (compatibility becomes "unknown").

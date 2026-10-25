@@ -10,8 +10,6 @@ internal object SqliteNative {
     external fun exec(db: Long, sql: ByteArray): Int
     external fun changes(db: Long): Long
     external fun lastInsertRowid(db: Long): Long
-    external fun interrupt(db: Long)
-    external fun version(): ByteArray
     external fun prepare(db: Long, sql: ByteArray): Long
     external fun bindNull(st: Long, i: Int): Int
     external fun bindLong(st: Long, i: Int, v: Long): Int
@@ -94,8 +92,6 @@ class NativeSqlite private constructor(private var db: Long) : SqlDatabase {
         }
     }
 
-    fun interrupt() = SqliteNative.interrupt(db)
-
     override fun close() = lock.withLock {
         if (db != 0L) { SqliteNative.close(db); db = 0L }
     }
@@ -162,7 +158,6 @@ class NativeSqlite private constructor(private var db: Long) : SqlDatabase {
             return NativeSqlite(h)
         }
 
-        val version: String get() = String(SqliteNative.version())
         val zstd = Zstd { src -> SqliteNative.zstdDecompress(src) ?: throw IllegalStateException("zstd: corrupt block") }
     }
 }

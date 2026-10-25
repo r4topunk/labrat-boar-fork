@@ -111,30 +111,4 @@ object QueryContext {
 
     fun isSeedPhraseQuestion(query: String): Boolean =
         SEED_PHRASE.containsMatchIn(query) || (SEED_WORDS.containsMatchIn(query) && CRYPTO_CONTEXT.containsMatchIn(query))
-
-    private val PT_QUESTION = re("""\b(como|o que|quando|onde|qual|quais|por que|porque|devo|fazer|posso|existe|quem|quanto)\b""", "i")
-    private val PT_ONLY = re(
-        """(?<![\p{L}])(é|são|não|em|uma|umas|dos|das|nos|nas|pelo|pela|com|sem|isso|isto|está|estão|também|você|vocês|meu|minha|seus|suas|dar|fazer|que|para|da|lá|alguns|algumas)(?![\p{L}])""",
-        "giu",
-    )
-    private val PT_ACCENT = re("""(^|[^\p{L}])[a-zà-ÿ]*[ãõçâêôáéíóú]""", "u")
-
-    /** Its interrogatives or, failing those, two words English doesn't use (or one plus an accent in a lowercase word). */
-    fun isPortugueseQuestion(query: String): Boolean {
-        if (PT_QUESTION.containsMatchIn(query)) return true
-        val strong = PT_ONLY.findAll(query).count()
-        return strong >= 2 || (strong >= 1 && PT_ACCENT.containsMatchIn(query))
-    }
-
-    private val INVERTED = re("[¿¡]", "")
-    private val ES_ONLY = re(
-        """(?<![\p{L}])(qué|cómo|cuándo|dónde|hago|hijo|hija|niño|niña|niños|bebé|mi|una|tragó|picó|mordió|ayuda|ayudarlo|ayudarla|pila|alacrán|peligroso|es|muy|tiene|puedo|debo|hacer)(?![\p{L}])""",
-        "giu",
-    )
-
-    /** Inverted marks, or three distinct words Portuguese and English don't use. */
-    fun isSpanishQuestion(query: String): Boolean {
-        if (INVERTED.containsMatchIn(query)) return true
-        return ES_ONLY.findAll(query).map { it.value.lowercase() }.toSet().size >= 3
-    }
 }

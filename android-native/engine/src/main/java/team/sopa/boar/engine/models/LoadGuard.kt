@@ -8,10 +8,9 @@ import kotlinx.serialization.json.Json
  * no error behind, so a marker is written right before the load and cleared after it returns. A marker found on the
  * next start means that load killed the app, with repacked weights or the mapped file alike: the model isn't loaded
  * again on its own ([isBlocked]), so a model too big for the phone closes the app once, not on every start. The chat
- * says so once ([consume]) and lets the user choose:
- * - "Try again with less memory" ([retryMapped]): unblocked, and loaded keeping the mapped file instead of repacking
- *   it (llama.cpp copies repacked weights into app memory for its fast ARM kernels, which Android can only swap);
- * - picking it again in the Model Catalog ([confirm]).
+ * says so once ([consume]) and lets the user choose "Try again with less memory" ([retryMapped]): unblocked, and
+ * loaded keeping the mapped file instead of repacking it (llama.cpp copies repacked weights into app memory for its
+ * fast ARM kernels, which Android can only swap).
  * A mapped load that works stays mapped ([mappedNext]), so it doesn't go back to the repacked load that closed the app
  * (Advanced tweaks → Repacked weights still decides when the user sets it).
  */
@@ -119,12 +118,6 @@ class LoadGuard(private val store: MarkerStore, private val ledger: Ledger, priv
         ensureChecked()
         if (modelId in ledger.crashedIds) ledger.crashedIds = ledger.crashedIds - modelId
         if (modelId !in ledger.mappedIds) ledger.mappedIds = ledger.mappedIds + modelId
-    }
-
-    /** The user picked the model again in the Model Catalog: let it load (CR-2's confirmation). */
-    fun confirm(modelId: String) {
-        ensureChecked()
-        if (modelId in ledger.crashedIds) ledger.crashedIds = ledger.crashedIds - modelId
     }
 
     /** The last crash, once. */

@@ -36,24 +36,6 @@ object EmergencyNumbers {
         Country("""\b(turkey|t[üu]rkiye|turquia)\b""", "Turkey: 112 (all emergencies).", "Turquia: 112 (todas as emergências)."),
     )
 
-    private val ASKS_NUMBERS = JsRegex.re(
-        """\b(emergency (phone |telephone )?numbers?|numbers? (to call|for emergenc\w*)|who (do|should) i call)\b|n[úu]meros? de emerg[êe]ncia|telefones? de emerg[êe]ncia|para quem (eu )?ligo""",
-        "i",
-    )
-
-    /** The emergency numbers of the countries the question names, or null (no such question, or no listed country). */
-    fun emergencyNumbersAnswer(query: String, pt: Boolean): String? {
-        if (!ASKS_NUMBERS.containsMatchIn(query)) return null
-        val hits = COUNTRIES.filter { it.names.containsMatchIn(query) }
-        if (hits.isEmpty()) return null
-        val lines = hits.joinToString(" ") { if (pt) it.pt else it.en }
-        return if (pt) {
-            "Números de emergência (tabela offline do app): $lines Em caso de risco à vida, ligue imediatamente."
-        } else {
-            "Emergency numbers (the app's offline table): $lines If a life is at risk, call right away."
-        }
-    }
-
     /** The emergency numbers line of the first listed country the text names, or null. */
     fun emergencyNumbersLine(text: String, pt: Boolean): String? {
         val hit = COUNTRIES.firstOrNull { it.names.containsMatchIn(text) } ?: return null

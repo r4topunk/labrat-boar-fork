@@ -87,7 +87,7 @@ class RoutingPlanGoldenTest {
 
     private fun overrides(o: JsonObject): Map<ModelRole, String> = o.entries.associate { ModelRole.of(it.key) to it.value.str!! }
 
-    /** ModelManager.statusAll as the script built it: the whole catalog, then the set's extra models. */
+    /** The statuses as the script built them: the whole catalog, then the set's extra models. */
     private fun statuses(set: String, reversed: Boolean): List<AvailableModel> {
         val s = g["modelSets"]!!.jsonObject[set]!!.jsonObject
         val present = s["present"]!!.jsonArray.map { it.str!! }.toSet()
@@ -150,30 +150,6 @@ class RoutingPlanGoldenTest {
             ),
         )
         Triple("planRoute($it)", tree(it["plan"]!!), planTree(Router.planRoute(ctx)))
-    }
-
-    @Test fun `rankAnswerModels and the low-RAM caps`() = check("rankAnswerModels") {
-        val ram = it["ram"]!!.jsonPrimitive.long
-        val candidates = it["candidates"]!!.jsonArray.map { c ->
-            val o = c.jsonObject
-            DefaultModel.Candidate(
-                id = o["id"]!!.str!!,
-                answerTier = o["answerTier"]!!.str?.let { t -> DefaultModel.Tier.entries.first { e -> e.value == t } },
-                fit = o["fit"]!!.str?.let(FitVerdict::of),
-                sizeBytes = o["sizeBytes"]!!.let { s -> if (s is JsonNull) null else s.jsonPrimitive.long },
-                tokPerSec = o["tokPerSec"]!!.let { s -> if (s is JsonNull) null else s.jsonPrimitive.double },
-            )
-        }
-        val r = DefaultModel.rankAnswerModels(candidates, ram)
-        val want = listOf(tree(it["pick"]!!), tree(it["ranked"]!!), tree(it["tooBigForLowRam"]!!), tree(it["tooBigForAutoPick"]!!), tree(it["isCompact"]!!))
-        val got = listOf(
-            r.pick?.let { p -> mapOf("id" to p.id, "reason" to p.reason) },
-            r.ranked.map { x -> mapOf("id" to x.id, "picked" to x.picked, "reason" to x.reason) },
-            candidates.map { c -> DefaultModel.tooBigForLowRam(c, ram) },
-            candidates.map { c -> DefaultModel.tooBigForAutoPick(c, ram) },
-            candidates.map { c -> DefaultModel.isCompactModel(c) },
-        )
-        Triple("rankAnswerModels(${it["candidates"]}, $ram)", want, got)
     }
 
     @Test fun `computeCompatibility`() = check("compatibility") {

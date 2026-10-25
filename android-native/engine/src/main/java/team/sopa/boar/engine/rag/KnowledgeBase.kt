@@ -244,7 +244,6 @@ class KnowledgeBase(private val db: SqlDatabase) {
     companion object {
         /** Extra BM25 candidates so the coverage gate has something to choose from. */
         const val LEXICAL_CANDIDATE_MULTIPLIER = 4
-        const val FILE = "SQLite/aoair_knowledge.db"
         /** Keeps a search to the user's own collections (the active ones, as the rest of the WHERE says) or to the seed rows. */
         private fun scope(seed: Boolean, own: Boolean) = when {
             seed && own -> ""

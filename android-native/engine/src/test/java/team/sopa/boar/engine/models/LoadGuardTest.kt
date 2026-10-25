@@ -112,24 +112,13 @@ class LoadGuardTest {
         assertEquals(stored, LoadGuard.crashFromJson(LoadGuard.crashToJson(stored)))
     }
 
-    @Test fun `the user picking the model again, or a load that works, unblocks it`() {
+    @Test fun `a load that works unblocks it`() {
         val store = Mem(); val ledger = L()
         val g = killedDuring(store, ledger, big, repacked = false)
         assertTrue(g.isBlocked("qwen3-4b"))
-        g.confirm("qwen3-4b")
-        assertFalse(g.isBlocked("qwen3-4b"))
         ledger.crashedIds = listOf("qwen3-4b")
         g.begin(big, null, repacked = true); g.end(big, loaded = true); g.settled("qwen3-4b")
         assertFalse(g.isBlocked("qwen3-4b"))
-    }
-
-    @Test fun `picking it again in the Model Catalog unblocks it after a repacked kill`() {
-        val store = Mem(); val ledger = L()
-        val g = killedDuring(store, ledger, big, repacked = true)
-        assertTrue(g.isBlocked("qwen3-4b"))
-        g.confirm("qwen3-4b")
-        assertFalse(g.isBlocked("qwen3-4b"))
-        assertFalse(LoadGuard(store, ledger).isBlocked("qwen3-4b"))
     }
 
     @Test fun `a failed load (returned, not killed) is neither a crash nor a mapped retry`() {

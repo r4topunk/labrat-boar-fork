@@ -57,8 +57,6 @@ object RagPure {
         return if (nq == 0.0 || nv == 0.0) 0.0 else dot / (sqrt(nq) * sqrt(nv))
     }
 
-    fun <T> filterByMinScore(chunks: List<T>, minScore: Double, score: (T) -> Double): List<T> = chunks.filter { score(it) >= minScore }
-
     private val STOPWORDS = setOf(
         "a", "about", "after", "all", "also", "am", "an", "and", "any", "are", "as", "at",
         "be", "because", "been", "before", "being", "best", "better", "between", "both", "but", "by",

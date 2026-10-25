@@ -53,8 +53,6 @@ class AssetStore(
         return Status(asset, true, size, if (verified) true else null)
     }
 
-    fun statusAll(): List<Status> = catalog.models.map(::status)
-
     /** Setup is complete: every required asset (the search model and the answer model) is on disk with the right size. */
     fun requiredPresent(): Boolean = catalog.requiredModels.all { status(it).present }
 
@@ -80,9 +78,6 @@ class AssetStore(
         fileOf(asset).delete()
         forgetVerified(asset)
     }
-
-    /** Bytes BoarLite stores on disk: everything in its files folder, the same total as the menu's disk bar. */
-    fun usedBytes(): Long = filesDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
 
     // integrity.json, shared with the Expo app's format.
     @Serializable

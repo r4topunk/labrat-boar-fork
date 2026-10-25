@@ -11,8 +11,6 @@ object FreeMemory {
      * a frozen app can't run a timer, so the model goes at once. An answer still being written finishes first.
      */
     const val AUTO_SECONDS = 0
-    /** Advanced tweaks → "Free memory after": 5 min, 30 min (Auto is null and immediate; a saved 0 works the same). */
-    val CHOICES_MINUTES = listOf(5, 30)
     /** How often a timer that fired during an answer looks again: well under MIUI's freeze about 8 s after Home. */
     const val BUSY_POLL_MS = 500L
 
