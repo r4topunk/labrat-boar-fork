@@ -52,11 +52,18 @@ class BoarServices private constructor(private val context: Context) {
     /**
      * At start and after "Reset settings". The style is written down as Succinct and an older build's length pick and
      * Deep Research switch are dropped (AppSettings.retireRemovedOptions), so settings.json matches what the app does;
-     * technical details only show while developer options are on, since their switch lives there.
+     * technical details only show while developer options are on, since their switch lives there. Haptics start on in
+     * BoarLite (r4to 2026-10-24) while AppSettings keeps its off default: switched on once per install and again after a
+     * reset ([afterReset]), so turning them off in Settings holds.
      */
-    fun applyDefaults() {
+    fun applyDefaults(afterReset: Boolean = false) {
         settings.retireRemovedOptions()
         if (settings.showLiveStats && !DevOptions.enabled(context)) settings.showLiveStats = false
+        val lite = context.getSharedPreferences("boarlite", Context.MODE_PRIVATE)
+        if (afterReset || !lite.getBoolean("hapticsDefaultApplied", false)) {
+            settings.hapticsEnabled = true
+            lite.edit().putBoolean("hapticsDefaultApplied", true).apply()
+        }
     }
     val topology: CpuTopology = CpuTopology.read()
     /** Total RAM, for the Auto context size; 0 when Android doesn't say. */
@@ -80,8 +87,6 @@ class BoarServices private constructor(private val context: Context) {
         })
     }
     val chats = ChatStore(kbDb)
-    /** The PIN that opens the app and seals the chats (none until the user sets one). */
-    val pinLock = team.sopa.boar.security.PinLock(settings, chats)
 
     private fun asset(path: String) = context.assets.open(path).bufferedReader().use { it.readText() }
 

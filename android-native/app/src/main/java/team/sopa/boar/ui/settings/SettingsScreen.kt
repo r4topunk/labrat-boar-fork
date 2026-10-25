@@ -28,11 +28,8 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -83,14 +80,14 @@ interface DisplayPrefs {
 }
 
 /**
- * Settings as a Material grouped list: the model, knowledge, chats (with the PIN lock), display, About, then
+ * Settings as a Material grouped list: the model, knowledge, chats, display, About, then
  * Start over. No answer style, answer length or Deep Research: the app answers in Succinct at its Auto length (r4to,
  * Oct 24). The measurement knobs (technical details, adaptive routing, memory numbers) live in Developer options, shown only after seven taps on the version in About. The engine's
  * own knobs keep their saved values (Auto by default) and the engine reads them as before.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) -> Unit, onSetup: () -> Unit, onOpen: (String) -> Unit = {}, onBack: () -> Unit) {
+fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onSetup: () -> Unit, onOpen: (String) -> Unit = {}, onBack: () -> Unit) {
     val s = services.settings
     val ctx = LocalContext.current
     var tech by remember { mutableStateOf(s.showLiveStats) }
@@ -110,9 +107,8 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 Section(t("modelSetupScreen.sections.memory")) {
                     var titles by remember { mutableStateOf(s.autoGenerateTitles) }
                     SwitchRow(t("memorySettings.autoTitlesLabel"), t("memorySettings.autoTitlesValue"), titles, icon = Icons.Outlined.Edit) { titles = it; s.autoGenerateTitles = it }
-                    var summarize by remember { mutableStateOf(s.autoSummarize) }
-                    SwitchRow(t("clean.settings.chats.remember"), t("clean.settings.chats.rememberNote"), summarize, icon = BoarIcons.Psychology) { summarize = it; s.autoSummarize = it }
-                    PinRow(services, onPin)
+                    // No switch for the long-chat summary or a PIN (r4to 2026-10-24): the summary stays on (autoSummarize's
+                    // default) and BoarLite has no PIN lock.
                     ClearChats(services)
                 }
                 Section(t("modelSetupScreen.sections.displayTheme")) {
@@ -138,16 +134,17 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
     }
 }
 
-/** The memory switch, and a note when the search model's file is missing. The answer model is not a choice: About names it. */
+/**
+ * Only a note when the search model's file is missing. The answer model is not a choice (About names it), and memory is
+ * always freed when you leave (freeMemoryInBackground stays at its default, on; r4to 2026-10-24: no switch for it).
+ */
 @Composable
 private fun ModelsSection(services: BoarServices) {
-    Section(t("modelSetupScreen.sections.models")) {
-        // The embedding model searches the packs and documents; it isn't a choice, so it shows here only when it's missing
-        // (Developer options has the ok line).
-        val emb = services.catalog.models.firstOrNull { it.kind == AssetKind.EMBEDDING }
-        if (emb != null && !services.fileOf(emb).isFile) Info(t("native.settings.embeddingMissing", "model" to emb.shortName), MaterialTheme.colorScheme.error)
-        var free by remember { mutableStateOf(services.settings.freeMemoryInBackground) }
-        SwitchRow(t("native.settings.freeMemory"), t("native.settings.freeMemoryNote"), free, icon = Icons.AutoMirrored.Outlined.ExitToApp) { free = it; services.settings.freeMemoryInBackground = it }
+    // The embedding model searches the packs and documents; it isn't a choice, so it shows here only when it's missing
+    // (Developer options has the ok line).
+    val emb = services.catalog.models.firstOrNull { it.kind == AssetKind.EMBEDDING }
+    if (emb != null && !services.fileOf(emb).isFile) Section(t("modelSetupScreen.sections.models")) {
+        Info(t("native.settings.embeddingMissing", "model" to emb.shortName), MaterialTheme.colorScheme.error)
     }
 }
 
@@ -235,14 +232,6 @@ private fun TelemetrySection(services: BoarServices) {
 }
 
 
-/** The PIN lock as one switch row: on opens the PIN flow to set it, off the flow that removes it; Change shows while it's on. */
-@Composable
-private fun PinRow(services: BoarServices, onPin: (String) -> Unit) {
-    val on = services.pinLock.isSet
-    SwitchRow(t("native.settings.security"), t(if (on) "native.settings.pinOn" else "native.settings.pinOff"), on, icon = Icons.Outlined.Lock) { turnOn -> onPin(if (turnOn) "NEW" else "REMOVE") }
-    if (on) ActionRow(t("native.settings.pinChange"), icon = Icons.Outlined.Create) { onPin("CHANGE") }
-}
-
 /** MemorySettings.tsx: Clear All Chat History, after a confirmation. */
 @Composable
 private fun ClearChats(services: BoarServices) {
@@ -275,7 +264,7 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
         confirmButton = { TextButton({
             resetting = false
             services.settings.resetPreferences()
-            services.applyDefaults()
+            services.applyDefaults(afterReset = true)
             prefs.setTheme(ThemeMode.DEFAULT_ID)
             prefs.setFontScale("standard")
             onSetup()
@@ -333,7 +322,7 @@ private fun SectionHeader(title: String) = Text(title, style = MaterialTheme.typ
 
 /** A Material settings group: the title in the primary color over its rows on one rounded container ([title] null: no header). */
 @Composable
-private fun Section(title: String?, content: @Composable ColumnScope.() -> Unit) {
+internal fun Section(title: String?, content: @Composable ColumnScope.() -> Unit) {
     val scheme = MaterialTheme.colorScheme
     Column(Modifier.fillMaxWidth().padding(top = if (title == null) 24.dp else 0.dp)) {
         if (title != null) SectionHeader(title)

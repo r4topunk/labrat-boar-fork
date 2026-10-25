@@ -39,7 +39,7 @@ class EvaluationDeviceTest {
     @Before fun needsATestInstall() {
         val services = BoarServices.get(ctx)
         assumeTrue("only on the throwaway devtest install", ctx.packageName.endsWith(".devtest"))
-        assumeTrue("needs an active model and no PIN", services.activeModel() != null && !services.pinLock.isSet)
+        assumeTrue("needs an active model", services.activeModel() != null)
         wasDev = DevOptions.enabled(ctx)
         InstrumentationRegistry.getInstrumentation().runOnMainSync { DevOptions.setEnabled(ctx, true) }
     }

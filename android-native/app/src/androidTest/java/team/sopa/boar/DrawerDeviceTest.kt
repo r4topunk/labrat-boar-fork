@@ -38,7 +38,7 @@ class DrawerDeviceTest {
 
     @Before fun needsTheChat() {
         assumeTrue("only on the throwaway devtest install", ctx.packageName.endsWith(".devtest"))
-        assumeTrue("needs the chat screen (a model, no PIN)", services.activeModel() != null && !services.pinLock.isSet)
+        assumeTrue("needs the chat screen (a model)", services.activeModel() != null)
         wasDev = DevOptions.enabled(ctx)
     }
 

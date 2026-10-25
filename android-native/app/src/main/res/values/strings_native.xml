@@ -79,6 +79,15 @@
     <string name="native_about_packsBody" formatted="false">Packs from R4to\'s R&amp;D Lab.</string>
     <string name="native_about_teamTitle" formatted="false">Core team</string>
     <string name="native_about_teamBody" formatted="false">On X:</string>
+    <string name="native_about_howTitle" formatted="false">How it works</string>
+    <string name="native_about_how_offline" formatted="false">No internet access</string>
+    <string name="native_about_how_receipt" formatted="false">Sources and time on every answer</string>
+    <string name="native_about_how_budget" formatted="false">Sized to your phone</string>
+    <string name="native_about_openTitle" formatted="false">Open source</string>
+    <string name="native_about_codeLabel" formatted="false">Code (MIT)</string>
+    <string name="native_about_addressesTitle" formatted="false">Official addresses</string>
+    <string name="native_about_siteLabel" formatted="false">Website</string>
+    <string name="native_about_creditsTitle" formatted="false">Credits</string>
     <string name="native_drawer_evaluation" formatted="false">🧪 Evaluation</string>
     <string name="native_eval_modelsTitle" formatted="false">Models ({{chosen}} of {{count}} chosen)</string>
     <string name="native_eval_answersTitle" formatted="false">Answers ({{count}})</string>

@@ -88,51 +88,21 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(base.createConfigurationContext(config))
     }
 
-    /** With a PIN: locked at start (the chats' key isn't in memory yet) and after a minute in the background. */
-    private val locked = mutableStateOf(false)
-    private var stoppedAt = 0L
-
-    /**
-     * With a PIN, the screen is secure: blank in recent apps, screenshots and screen recordings, so chats can't be seen
-     * there without the PIN. Without one, screenshots work as usual. Checked on every resume and pause, so a PIN set or
-     * removed in Settings applies before the recent-apps picture is taken.
-     */
-    private fun applySecure() {
-        val flag = android.view.WindowManager.LayoutParams.FLAG_SECURE
-        if (BoarServices.get(this).pinLock.isSet) window.addFlags(flag) else window.clearFlags(flag)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        applySecure()
-    }
-
-    override fun onPause() {
-        applySecure()
-        super.onPause()
-    }
-
     override fun onStop() {
         super.onStop()
         // A rotation or font change stops and starts the activity: that isn't leaving BOAR.
         if (!isChangingConfigurations) BoarServices.get(this).onBackground()
-        stoppedAt = android.os.SystemClock.elapsedRealtime() // not the wall clock: changing the time can't skip the lock
     }
 
     override fun onStart() {
         super.onStart()
         BoarServices.get(this).onForeground()
-        if (stoppedAt > 0 && BoarServices.get(this).pinLock.isSet && android.os.SystemClock.elapsedRealtime() - stoppedAt > RELOCK_AFTER_MS) locked.value = true
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         val services = BoarServices.get(this)
-        // A PIN set or removed in Settings protects the screen now, not only after BOAR next pauses.
-        services.pinLock.onChange = { runOnUiThread { applySecure() } }
-        // A new process has no chat key yet; a recreated activity (rotation, font size) in the same process keeps it.
-        if (services.pinLock.isSet && services.chats.cipher == team.sopa.boar.engine.security.PlainCipher) locked.value = true
         setContent {
             var theme by remember { mutableStateOf(services.settings.themeId) }
             var fontScale by remember { mutableStateOf(services.settings.fontScale) }
@@ -140,26 +110,20 @@ class MainActivity : ComponentActivity() {
                 override fun setTheme(id: String) { theme = id }
                 override fun setFontScale(scale: String) { fontScale = scale }
             }
-            BoarTheme(theme, fontScale) {
-                if (locked.value) team.sopa.boar.ui.security.LockScreen(services.pinLock) { locked.value = false }
-                else App(services, prefs)
-            }
+            BoarTheme(theme, fontScale) { App(services, prefs) }
         }
     }
-
-    private companion object { const val RELOCK_AFTER_MS = 60_000L }
 }
 
-/** Where setup leads: straight to the chat. A PIN is set in Settings only, never offered here; [pinSet] is kept for old callers. */
-@Suppress("UNUSED_PARAMETER")
-internal fun afterSetup(pinSet: Boolean = false) = "chat"
+/** Where setup leads: straight to the chat (BoarLite has no PIN lock, r4to 2026-10-24). */
+internal fun afterSetup() = "chat"
 
 /** How deep a screen sits, so a screen switch slides forward into a deeper one and back out of it. */
 private fun screenDepth(screen: String) = when (screen.substringBefore(':')) {
     "setup" -> 0
     "chat" -> 1
     "settings" -> 2
-    else -> 3 // documents, evaluation, about, pin:*
+    else -> 3 // documents, evaluation, about
 }
 
 /** M3 emphasized: the easing of the shared-axis and fade-through transitions. */
@@ -238,20 +202,11 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     AnimatedContent(
         targetState = screen,
         transitionSpec = { screenTransition() },
-        // The three pin flows are one screen, not a switch between screens.
         contentKey = { it.substringBefore(':') },
         label = "screen",
     ) { current ->
         when {
             current == "setup" -> SetupHost(setup, vm, prefs) { screen = it }
-            current.startsWith("pin:") -> {
-                // pin:<flow>:<screen to return to>
-                val (_, flow, back) = current.split(":")
-                PredictiveBackScreen(onBack = { screen = back }) {
-                    team.sopa.boar.ui.security.PinSetup(services.pinLock, team.sopa.boar.ui.security.PinFlow.valueOf(flow),
-                        onDone = { vm.refreshSettings(); screen = back }, onCancel = { screen = back })
-                }
-            }
             current == "documents" -> {
                 val docs: DocumentsViewModel = viewModel()
                 val docsState by docs.state.collectAsState()
@@ -277,7 +232,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             }
             current == "about" -> PredictiveBackScreen(onBack = { screen = backTo }) { AboutScreen { screen = backTo } }
             current == "settings" -> PredictiveBackScreen(onBack = { vm.refreshSettings(); screen = "chat" }) {
-                SettingsScreen(services, prefs, onPin = { flow -> screen = "pin:$flow:settings" }, onSetup = { setup.restart(); screen = "setup" }, onOpen = { backTo = "settings"; screen = it }) { vm.refreshSettings(); screen = "chat" }
+                SettingsScreen(services, prefs, onSetup = { setup.restart(); screen = "setup" }, onOpen = { backTo = "settings"; screen = it }) { vm.refreshSettings(); screen = "chat" }
             }
             else -> ChatHost(services, vm, onNavigate = { backTo = "chat"; screen = it })
         }
