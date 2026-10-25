@@ -28,8 +28,8 @@ JavaScript layer.
 ## Compile from source and install
 
 ```bash
-git clone <repo-url>
-cd <repo>
+git clone https://github.com/r4topunk/labrat-boar-fork.git
+cd labrat-boar-fork
 git submodule update --init --recursive
 cd android-native
 ./gradlew :app:assembleDebug
@@ -39,10 +39,11 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ## Release APK
 
 ```bash
+bash scripts/fetch-bundle-inputs.sh <inputs>    # from the repo root: models, index and 13 packs (~3.0 GB), sha256-checked
 cd android-native
-bash scripts/stage-bundle.sh <out> --model <Qwen3-1.7B-Q4_K_M.gguf> --embedding <bge-small-en-v1.5-q8_0.gguf>
+bash scripts/stage-bundle.sh <out> --inputs <inputs>
 ./gradlew :app:assembleRelease -Pboar.bundleDir=<out>
-../scripts/check-release-apk.sh app/build/outputs/apk/release/app-release.apk
+../scripts/check-release-apk.sh app/build/outputs/apk/release/app-release.apk   # add --any-signer without LabRat's key
 ```
 
 Signing uses `BOARLITE_UPLOAD_STORE_FILE`, `BOARLITE_UPLOAD_STORE_PASSWORD`,
@@ -76,26 +77,6 @@ they only prove the Kotlin layer is internally consistent. There is no way to
 verify a real device install without a real device; don't claim success from
 the unit tests alone if the task was specifically about building/installing.
 
-## Before pushing: CodeRabbit review
-
-Run a local CodeRabbit review before every `git push`, in addition to
-the Gradle checks:
-
-```bash
-cr doctor                          # once: CLI installed and signed in
-cr review --agent --base main      # this branch against main, structured findings
-cr review --agent --uncommitted    # or only what isn't committed yet
-```
-
-A review can take
-several minutes, so run it in the background. Check each finding against the
-current code before acting on it: fix the ones that hold up, and note in one
-line why you skipped the others. Re-run once after fixing, not in a loop.
-
-If `cr doctor` says you are signed out, ask the person you're working with to
-run `cr auth login` (a browser sign-in) before you push. If they choose to push
-without the review, say so in the PR.
-
 ## Benchmarking on a connected phone
 
 With a phone on USB, an agent can run an evaluation without anyone tapping the
@@ -113,7 +94,7 @@ can read them (a release build can't be reached with `run-as`).
 
 Before and during a run:
 
-- **Check the phone isn't busy.** The phone's owner may be using it: ask first.
+- **Check the phone isn't busy.** Make sure the phone is free for the length of the run.
 - **Keep the screen on.** Locking the phone backgrounds the app. If the phone
   won't accept `settings put global stay_on_while_plugged_in`, send
   `adb shell input keyevent KEYCODE_WAKEUP` every 30 seconds for the length of

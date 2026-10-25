@@ -4,14 +4,17 @@
 # - versionCode equals the one android-native/app/build.gradle.kts declares (a stale APK, or one with the same or a lower
 #   code, won't install over the previous release),
 # - the APK is signed with LabRat's own release key (D9): a different signer can't update an installed LabRat,
-# - the manifest asks for no INTERNET permission (D1: the app is closed, it has no network).
+# - the manifest asks for no INTERNET permission (D1: the app has no network).
 #
 #   scripts/check-release-apk.sh android-native/app/build/outputs/apk/release/app-release.apk
+#   scripts/check-release-apk.sh --any-signer <apk>   # your own build: report the signer instead of requiring LabRat's key
 #
 # Needs the Android SDK build-tools (aapt2, apksigner) and a Java runtime for apksigner.
 set -euo pipefail
 
-apk=${1:?usage: $0 <release.apk>}
+any_signer=0
+if [[ "${1:-}" == "--any-signer" ]]; then any_signer=1; shift; fi
+apk=${1:?usage: $0 [--any-signer] <release.apk>}
 [[ -f "$apk" ]] || { echo "not found: $apk" >&2; exit 2; }
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -38,13 +41,21 @@ name=$(sed -n "s/.*versionName='\([^']*\)'.*/\1/p" <<<"$badging")
 
 signers=$("$tools/apksigner" verify --print-certs "$apk" 2>&1) || bad "apksigner verify failed: $signers"
 signer=$(grep -m1 "certificate SHA-256 digest" <<<"$signers" | awk '{print $NF}' || true)
-[[ "$signer" == "$RELEASE_SIGNER" ]] || bad "signer is '${signer:-none}', expected LabRat's $RELEASE_SIGNER"
+if [[ $any_signer == 1 ]]; then
+  echo "signer: ${signer:-none}$([[ "$signer" == "$RELEASE_SIGNER" ]] && echo " (LabRat's release key)")"
+else
+  [[ "$signer" == "$RELEASE_SIGNER" ]] || bad "signer is '${signer:-none}', expected LabRat's $RELEASE_SIGNER"
+fi
 
 if "$tools/aapt2" dump permissions "$apk" | grep -q "android.permission.INTERNET"; then
   bad "the APK asks for android.permission.INTERNET"
 fi
 
 if [[ $fail == 0 ]]; then
-  echo "OK: $apk ($package $name, versionCode $code, signed with LabRat's release key, no INTERNET)"
+  if [[ $any_signer == 1 ]]; then
+    echo "OK: $apk ($package $name, versionCode $code, no INTERNET)"
+  else
+    echo "OK: $apk ($package $name, versionCode $code, signed with LabRat's release key, no INTERNET)"
+  fi
 fi
 exit $fail

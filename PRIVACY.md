@@ -5,7 +5,7 @@
 
 Version 1.0 (preview) · 24 October 2026
 
-LabRat is a closed, offline Android research assistant (package `team.sopa.boar.lite`). It is a fork
+LabRat is a no-network, offline Android research assistant (package `team.sopa.boar.lite`). It is a fork
 of [BOAR](https://github.com/rferrari/boar-app) (MIT) and is not the BOAR app, the BOAR website
 (boarapp.com) or any BOAR service: the BOAR privacy policy does not apply to it, and this notice does
 not cover those.
@@ -63,7 +63,7 @@ the data extraction rules exclude every domain). It lives only on this phone.
 
 LabRat does not encrypt your data beyond what Android does for every app. Anyone who can unlock or take over your phone can read what LabRat stored. Keeping
 the phone, its lock screen and anything you export safe is up to you. Install LabRat only from the
-team that distributed it: a modified copy is not covered by this notice.
+APK linked in its GitHub repository, and check its sha256: a modified copy is not covered by this notice.
 
 ## 6. Children
 
@@ -73,5 +73,5 @@ personal data from anyone.
 ## 7. Changes and questions
 
 When this notice changes we update the version and date above. Because LabRat has no network, it
-cannot tell you itself: check the notice that comes with the build you installed. For questions, ask
-the LabRat team that gave you the APK.
+cannot tell you itself: check the notice that comes with the build you installed. For questions, open
+an issue at [github.com/r4topunk/labrat-boar-fork](https://github.com/r4topunk/labrat-boar-fork/issues).

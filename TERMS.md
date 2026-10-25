@@ -4,7 +4,7 @@
 
 Version 1.0 (preview) · 24 October 2026
 
-These terms apply to LabRat, a closed offline Android build (package `team.sopa.boar.lite`). LabRat
+These terms apply to LabRat, a no-network offline Android build (package `team.sopa.boar.lite`). LabRat
 is a fork of [BOAR](https://github.com/rferrari/boar-app) (MIT); it is not the BOAR app, website or any
 of its services, and BOAR's terms do not apply to it. By installing or using LabRat you accept these
 terms and the [Privacy Notice](PRIVACY.md).
@@ -13,8 +13,9 @@ terms and the [Privacy Notice](PRIVACY.md).
 
 LabRat's code derives from BOAR, whose source is free software under the [MIT License](LICENSE)
 (Copyright (c) 2026 BOAR contributors); that license keeps applying to the code it covers, and it
-provides the software "as is", without warranty. The LabRat source repository is private. These terms
-do not restrict the MIT License.
+provides the software "as is", without warranty. LabRat's source is public at
+[github.com/r4topunk/labrat-boar-fork](https://github.com/r4topunk/labrat-boar-fork) under the same MIT
+License. These terms do not restrict the MIT License.
 
 The APK bundles third-party content that keeps its own license:
 
@@ -56,8 +57,8 @@ LabRat keeps your data on your phone (Privacy Notice), so protecting it is in yo
   who gets them.
 - **Keep your own backups** of anything that matters. Uninstalling, "Erase everything", or a lost phone
   deletes LabRat's data and it cannot be recovered. LabRat is excluded from Android backup.
-- **Install LabRat only from the team that distributed it.** A modified copy is not covered by these
-  terms.
+- **Install LabRat only from the APK linked in its GitHub repository, and check its sha256.** A
+  modified copy is not covered by these terms.
 
 ## 4. No network, no online service
 
@@ -92,4 +93,5 @@ negligence or wilful misconduct.
 
 We may update these terms and will change the version and date above. You can stop using LabRat at
 any time by uninstalling it. If a part of these terms can't be enforced, the rest still applies.
-Questions: ask the LabRat team that gave you the APK.
+Questions: open an issue at
+[github.com/r4topunk/labrat-boar-fork](https://github.com/r4topunk/labrat-boar-fork/issues).

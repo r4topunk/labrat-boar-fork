@@ -32,7 +32,7 @@ constraints this design targets:
 
 ## First-run data setup
 
-LabRat is a closed app (the manifest removes the `INTERNET` permission), so nothing is downloaded. Its
+LabRat has no network permission (the manifest removes `INTERNET`), so nothing is downloaded. Its
 models, knowledge packs and search index come in a data bundle (about 3.0 GB) that the build adds to the
 APK (`-Pboar.bundleDir`, see `android-native/docs/BUILDING-RELEASE.md`):
 
@@ -81,7 +81,7 @@ boar-lite/
 - [x] Chat UI: streaming tokens, sources, free follow-ups, onboarding card tour
 - [x] Device QA on real Android hardware through the `BenchActivity` eval hook
 - [x] Engine unit tests with golden data (`./gradlew :engine:testDebugUnitTest`) + CI
-- [ ] Benchmark chosen models on real hardware (tokens/sec, RSS) — not yet measured
+- [x] Benchmark on real hardware (tokens/sec, RSS, judged quality): see [RESULTS.md](RESULTS.md)
 - [ ] whisper.cpp binding for voice input on devices with no system speech
       service (GrapheneOS) — documented as future work, not attempted
 - [ ] Public demo post (X/Farcaster) + poidh submission

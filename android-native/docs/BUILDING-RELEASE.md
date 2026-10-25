@@ -1,9 +1,19 @@
 # Building the LabRat release
 
-LabRat is a closed offline app: it has no network permission, so everything it uses (Qwen3 1.7B, the BGE search
+LabRat is an offline app with no network permission, so everything it uses (Qwen3 1.7B, the BGE search
 model, the 13 knowledge packs of the K13 kit and the prebuilt search index, about 3.0 GB) comes in its data bundle.
 On first launch the "Unpacking LabRat" screen copies the bundle into the app's files folder. Each file is checked
 against its sha256 in `catalog.json` while it is copied. If the copy stops, it resumes at the file it stopped in.
+
+## 0. Download the inputs
+
+From the repository root. The script downloads the two models, the index and the 13 packs (about 3.0 GB) from
+commit-pinned Hugging Face URLs and checks each file's size and sha256 against `catalog.json`. It skips files already
+downloaded and resumes an interrupted download. Sources and licences: `docs/PACKS.md`.
+
+```bash
+bash scripts/fetch-bundle-inputs.sh ../labrat-inputs            # --verify: hash local files only, no network
+```
 
 ## 1. Stage the bundle
 
@@ -13,11 +23,12 @@ sha256 differs from `app/src/main/assets/boar-data/catalog.json`.
 
 ```bash
 cd android-native
-bash scripts/stage-bundle.sh ../../bundle-out \
-  --model /path/to/Qwen3-1.7B-Q4_K_M.gguf \
-  --embedding /path/to/bge-small-en-v1.5-q8_0.gguf
-# optional: --root <BOAR workspace> (default: two folders above the repo), --kb-index <kb-index-research.db>
+bash scripts/stage-bundle.sh ../../bundle-out --inputs ../../labrat-inputs
+# optional: --model <gguf> / --embedding <gguf> override the two models
 ```
+
+The maintainers' workspace layout still works without `--inputs`: `--model <gguf> --embedding <gguf>
+[--root <BOAR workspace>] [--kb-index <db>]`.
 
 This writes `<outDir>/bundle/` (files at their installed paths) and `<outDir>/bundle/manifest.json`. The JSON Wikipedia
 corpora are not part of the bundle because they already ship as APK assets (`corpus/`).
@@ -25,7 +36,8 @@ corpora are not part of the bundle because they already ship as APK assets (`cor
 ## 2. Build the APK with the bundle
 
 ```bash
-export JAVA_HOME=/opt/homebrew/opt/openjdk@17 ANDROID_HOME=$HOME/Library/Android/sdk
+export JAVA_HOME=<your JDK 17> ANDROID_HOME=<your Android SDK>
+# e.g. macOS + Homebrew: /opt/homebrew/opt/openjdk@17 and $HOME/Library/Android/sdk; Linux: /usr/lib/jvm/java-17-openjdk-amd64 and $HOME/Android/Sdk
 ./gradlew :app:assembleRelease -Pboar.bundleDir=$PWD/../../bundle-out
 ```
 

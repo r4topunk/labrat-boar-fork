@@ -3,6 +3,9 @@
 # build output (scripts/offline-proof.sh writes dist/offline-proof)
 dist/
 
+# local agent worktrees
+.claude/
+
 # Native
 .kotlin/
 *.orig.*
