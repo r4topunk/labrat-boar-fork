@@ -200,7 +200,7 @@
     <string name="native_settings_resetTitle" formatted="false">Reset settings</string>
     <string name="native_settings_resetButton" formatted="false">Reset settings</string>
     <string name="native_settings_resetConfirmTitle" formatted="false">Reset all settings?</string>
-    <string name="native_settings_resetConfirmBody" formatted="false">Settings go back to their defaults and setup opens again. Models and packs, your chats and your PIN are kept.</string>
+    <string name="native_settings_resetConfirmBody" formatted="false">Settings go back to their defaults and setup opens again. Your models, packs and chats are kept.</string>
     <string name="native_settings_resetConfirmButton" formatted="false">Reset</string>
     <string name="native_chat_foundBeforeStop" formatted="false">Found before stopping</string>
     <string name="native_chat_cutAtLimit" formatted="false">Stopped at the length limit</string>
