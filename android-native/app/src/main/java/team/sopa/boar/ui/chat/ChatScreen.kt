@@ -114,12 +114,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -346,9 +344,6 @@ private fun Header(
     }
 }
 
-/** The answer footer's pull-back: the 48 dp copy button's padding (14 dp around a 20 dp icon) plus ContentCopy's ink inset. */
-private val FooterPullBack = (-15.5).dp
-
 private fun Modifier.describe(text: String): Modifier = semantics { contentDescription = text }
 
 /**
@@ -497,7 +492,6 @@ private fun Bubble(
     val type = MaterialTheme.typography
     val user = m.role == "user"
     var reasoningShown by remember { mutableStateOf(false) }
-    val clipboard = LocalClipboardManager.current
     // The settle (r4to 2026-10-25): an answer seen streaming here lets what follows enter instead of popping in. History,
     // or an answer already finished when it composes (opened, scrolled back into view), starts false and shows as is.
     val motion = rememberMotionEnabled()
@@ -570,8 +564,7 @@ private fun Bubble(
             }
             var receiptOpen by remember { mutableStateOf(false) }
             if (m.text.isNotEmpty() && !live) Settle(settles, 1) {
-                // The receipt first, at the text edge; the actions on the right (r4to 2026-10-25). The 48 dp copy button pushes
-                // out by its padding plus the glyph's inset, so the copy ink meets the right text edge.
+                // The receipt at the text edge, no copy button (r4to 2026-10-25): the gap under it to Sources equals the one above it.
                 Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     // Everyone sees time and speed; the measured details open only with technical details on.
                     Box(Modifier.weight(1f)) {
@@ -580,15 +573,6 @@ private fun Bubble(
                     if (split.thinking != null) IconToggleButton(reasoningShown, { reasoningShown = !reasoningShown }) {
                         Icon(BoarIcons.Psychology, contentDescription = t(if (reasoningShown) "chatScreen.hideReasoning" else "chatScreen.showReasoning"),
                             tint = if (reasoningShown) scheme.primary else scheme.onSurfaceVariant, modifier = Modifier.size(IconSize.InlineAction))
-                    }
-                    var copied by remember { mutableStateOf(false) }
-                    LaunchedEffect(copied) { if (copied) { delay(2000); copied = false } }
-                    // With the reasoning open, it is copied too: reviewing a thinking model needs both.
-                    IconButton({
-                        clipboard.setText(AnnotatedString(if (reasoningShown && split.thinking != null) "💭 ${split.thinking}\n\n---\n\n$shown" else shown)); copied = true
-                    }, Modifier.offset(x = -FooterPullBack)) {
-                        Icon(if (copied) Icons.Filled.Check else BoarIcons.ContentCopy, contentDescription = t("chatScreen.copyResponse"),
-                            tint = scheme.onSurfaceVariant, modifier = Modifier.size(IconSize.InlineAction))
                     }
                 }
                 if (receiptOpen && technicalDetails) m.receipt?.let { r -> ReceiptDetails(r) }

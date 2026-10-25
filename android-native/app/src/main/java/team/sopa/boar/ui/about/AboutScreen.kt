@@ -92,16 +92,11 @@ fun AboutScreen(onClose: () -> Unit) {
                     IconRow(TourIcons.Book, t("native.about.how.receipt"), t("native.about.post.receipt"))
                     IconRow(TourIcons.Device, t("native.about.how.budget"), t("native.about.post.budget"))
                 }
-                Section("Based on BOAR") {
-                    Note("LabRat is a fork of BOAR, the open-source offline research app (MIT). The LabRat repository is private; the BOAR code and BOAR's published knowledge packs are public:")
+                Section("Open source") {
+                    Note("LabRat is open source (MIT): a fork of BOAR, the open-source offline research app. The code, the build instructions and the APK are public:")
+                    CopyRow("LabRat code (MIT)", "github.com/r4topunk/labrat-boar-fork")
                     CopyRow("BOAR code (MIT)", "github.com/rferrari/boar-app")
                     CopyRow(t("native.about.packsTitle"), "huggingface.co/datasets/r4topunk/boar-packs")
-                }
-                Section("BOAR project addresses") {
-                    Note("These belong to the BOAR project, not to LabRat, which has no network and sends nothing. LabRat is not published on any store: install it only from the team that gave it to you.")
-                    CopyRow(t("native.about.siteLabel"), "boarapp.com")
-                    CopyRow("X", "x.com/boar_app")
-                    CopyRow("Farcaster", "farcaster.xyz/boarapp")
                 }
                 Section(t("native.about.teamTitle")) {
                     for ((name, handle) in TEAM) CopyRow(name, "@$handle", copy = "x.com/$handle")

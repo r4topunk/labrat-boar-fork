@@ -53,7 +53,7 @@ android {
         versionCode = 4
         // The release name comes from the build (-Pboar.versionName=2.0.0 for a release), the commit and date from git, so
         // About always says exactly which code this APK is.
-        versionName = (findProperty("boar.versionName") as String?)?.takeIf { it.isNotBlank() } ?: "2.0.0-dev"
+        versionName = (findProperty("boar.versionName") as String?)?.takeIf { it.isNotBlank() } ?: "1.0.0"
         val gitSha = runCatching { providers.exec { commandLine("git", "rev-parse", "--short=8", "HEAD"); isIgnoreExitValue = true }.standardOutput.asText.get().trim() }.getOrNull().orEmpty()
         val gitDirty = runCatching { providers.exec { commandLine("git", "status", "--porcelain", "--untracked-files=no", "--ignore-submodules=all"); isIgnoreExitValue = true }.standardOutput.asText.get().isNotBlank() }.getOrDefault(false)
         // A tree synced without .git (a build machine) names its commit with -Pboar.gitSha=<sha>[+].
@@ -177,4 +177,13 @@ tasks.register<JacocoReport>("qaCoverageReport") {
     })
     sourceDirectories.setFrom("src/main/java")
     reports { csv.required.set(true); html.required.set(true); xml.required.set(false) }
+}
+
+// A release APK always carries its data (LabRat never downloads anything): without -Pboar.bundleDir it would open on
+// "LabRat needs its data", so a release build without the bundle fails. -Pboar.allowUnbundled=true for local iteration only.
+gradle.taskGraph.whenReady {
+    val release = allTasks.any { it.project == project && (it.name == "assembleRelease" || it.name == "bundleRelease") }
+    require(!release || bundleDir != null || providers.gradleProperty("boar.allowUnbundled").orNull == "true") {
+        "A release APK needs its data: pass -Pboar.bundleDir=<outDir> (scripts/stage-bundle.sh), or -Pboar.allowUnbundled=true for local iteration"
+    }
 }
