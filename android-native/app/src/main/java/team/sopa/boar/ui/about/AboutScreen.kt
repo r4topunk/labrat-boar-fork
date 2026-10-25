@@ -219,8 +219,8 @@ private fun LicenseTexts() {
     )
     if (shown) {
         val text = remember {
-            AboutCredits.licenseFiles.joinToString("\n\n----\n\n") { f ->
-                runCatching { ctx.assets.open("licenses/$f").bufferedReader().use { it.readText() }.trim() }.getOrDefault("")
+            AboutCredits.licenseFiles.joinToString("\n\n----\n\n") { (title, f) ->
+                "== $title ==\n\n" + runCatching { ctx.assets.open("licenses/$f").bufferedReader().use { it.readText() }.trim() }.getOrDefault("")
             }
         }
         AlertDialog(

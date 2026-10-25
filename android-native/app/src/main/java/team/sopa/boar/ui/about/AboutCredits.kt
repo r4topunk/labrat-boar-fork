@@ -6,14 +6,24 @@ package team.sopa.boar.ui.about
  */
 object AboutCredits {
     val libraries: List<Pair<String, String>> = listOf(
+        "BOAR, the app LabRat is based on (github.com/rferrari/boar-app)" to "MIT",
         "llama.cpp / ggml" to "MIT",
         "SQLite" to "public domain",
         "Zstandard" to "BSD",
         "PdfBox-Android" to "Apache-2.0",
         "AndroidLM (knowledge-pack search design)" to "Apache-2.0",
         "Baloo 2 and Lexend fonts" to "SIL OFL 1.1",
+        "Jetpack Compose, AndroidX and Material icons" to "Apache-2.0",
+        "Kotlin coroutines and serialization" to "Apache-2.0",
     )
 
-    /** The license texts in assets/licenses: LabRat's own (MIT) and llama.cpp / ggml's (MIT). */
-    val licenseFiles: List<String> = listOf("boarlite-LICENSE.txt", "llama-cpp-ggml-LICENSE.txt")
+    /** The license texts in assets/licenses, each under a heading that says what it covers. */
+    val licenseFiles: List<Pair<String, String>> = listOf(
+        "LabRat and BOAR (MIT)" to "labrat-LICENSE.txt",
+        "llama.cpp / ggml (MIT)" to "llama-cpp-ggml-LICENSE.txt",
+        "Apache License 2.0: Qwen3, PdfBox-Android, AndroidLM's search design, Jetpack Compose, AndroidX, Material icons, Kotlin libraries" to "apache-2.0-LICENSE.txt",
+        "SIL Open Font License 1.1: Baloo 2" to "baloo2-OFL.txt",
+        "SIL Open Font License 1.1: Lexend" to "lexend-OFL.txt",
+        "Zstandard (BSD)" to "zstd-LICENSE.txt",
+    )
 }
