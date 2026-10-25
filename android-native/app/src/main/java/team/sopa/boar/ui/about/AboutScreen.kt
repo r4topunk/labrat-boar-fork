@@ -191,8 +191,10 @@ private fun Credits() {
     Column(Modifier.animateContentSize()) {
         shown.forEach { (name, license) ->
             ListItem(
+                // The license under the name, not beside it: a long one ("CC BY-SA 2.5/3.0/4.0 per post…") squeezed the
+                // name into a one-letter column (r4to 2026-10-25).
                 headlineContent = { Text(name, style = MaterialTheme.typography.bodyMedium) },
-                trailingContent = { Text(license, style = MaterialTheme.typography.labelMedium, fontFamily = FontFamily.Monospace, color = scheme.onSurfaceVariant) },
+                supportingContent = { Text(license, style = MaterialTheme.typography.labelMedium, fontFamily = FontFamily.Monospace, color = scheme.onSurfaceVariant) },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent),
             )
         }
