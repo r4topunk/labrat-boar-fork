@@ -5,7 +5,7 @@ and a licence file, in **one commit**. Then set `LABRAT_K13_REV` in `scripts/fet
 check with `bash scripts/fetch-bundle-inputs.sh --check-urls` (expect 16 × `ok`). Until then the fetch script uses
 `main`, and those 7 URLs fail the check.
 
-Status: not uploaded (2026-10-25). Owner: the coordinator. This repo's docs and scripts already point to the target paths.
+Status: uploaded 2026-10-25, boar-packs commit 54d490daddbfa9e1e07470711afaefa660b9fdff; --check-urls 16 x ok.
 
 ## Files
 

@@ -23,7 +23,7 @@ HF="https://huggingface.co"
 PACKS="$HF/datasets/r4topunk/boar-packs/resolve"
 # Revision of r4topunk/boar-packs that holds the labrat-k13/ folder (the 7 packs that LabRat bundles in a newer build
 # than the earlier public release). Set to the upload commit once it exists; until then "main".
-LABRAT_K13_REV="${LABRAT_K13_REV:-main}"
+LABRAT_K13_REV="${LABRAT_K13_REV:-54d490daddbfa9e1e07470711afaefa660b9fdff}"
 
 # Catalog id -> public URL. Every URL except the labrat-k13/ ones is pinned to a commit.
 urls=(
