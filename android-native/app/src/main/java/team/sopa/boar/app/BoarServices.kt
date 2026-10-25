@@ -10,7 +10,6 @@ import team.sopa.boar.engine.CpuTopology
 import team.sopa.boar.engine.EngineParams
 import team.sopa.boar.engine.LlamaSession
 import team.sopa.boar.engine.models.LoadGuard
-import team.sopa.boar.engine.answer.ModelHost
 import team.sopa.boar.engine.answer.Personalities
 import team.sopa.boar.engine.answer.SessionEngine
 import team.sopa.boar.engine.answer.StepEngine
@@ -211,7 +210,7 @@ class BoarServices private constructor(private val context: Context) {
         lifeScope.launch { runCatching { activeSession() } }
     }
 
-    inner class SessionHost : ModelHost {
+    inner class SessionHost {
         private val lock = Mutex()
         @Volatile private var session: LlamaSession? = null
         private var filename: String? = null
@@ -222,10 +221,9 @@ class BoarServices private constructor(private val context: Context) {
         /** Models that stalled with repacked weights in this process: mapped from storage until the app restarts (#73). */
         private val keepMapped = java.util.Collections.synchronizedSet(HashSet<String>())
 
-        override fun residentFilename(): String? = filename
-        override fun filenameOf(modelId: String): String? = catalog.byId(modelId)?.takeIf { fileOf(it).isFile }?.filename
+        fun residentFilename(): String? = filename
 
-        override suspend fun load(modelId: String): StepEngine? = lock.withLock {
+        suspend fun load(modelId: String): StepEngine? = lock.withLock {
             val asset = catalog.byId(modelId)?.takeIf { fileOf(it).isFile } ?: return null
             val tweaks = settings.engineTweaks
             // A stall while repacked: reload as the mapped file before the next generation (the caller waits on the lock).

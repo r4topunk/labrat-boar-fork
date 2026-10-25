@@ -6,25 +6,22 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AnswerPathTest {
-    private fun path(q: String, about: Boolean = false, adaptive: Boolean = false) =
-        AnswerPath.of(about, adaptive, ShortAnswer.isSmallTalk(q))
+    private fun path(q: String, about: Boolean = false) = AnswerPath.of(about, ShortAnswer.isSmallTalk(q))
 
-    @Test fun `small talk never starts a recap or the router`() {
-        for (q in listOf("hi", "oi", "hola", "thanks", "bom dia", "hey, what's up?", "obrigado!", "buenos días")) {
+    @Test fun `small talk never starts a recap`() {
+        for (q in listOf("hi", "hola", "thanks", "hey, what's up?", "buenos días")) {
             assertEquals(q, AnswerPath.PIPELINE, path(q, about = true))
-            assertEquals(q, AnswerPath.PIPELINE, path(q, adaptive = true))
         }
     }
 
-    @Test fun `a real question keeps its path, greeting or not`() {
-        for (q in listOf("Why is Kyoto historically important?", "hi, can you compare Paris and Rome?", "oi, compare X e Y")) {
-            assertEquals(q, AnswerPath.ADAPTIVE, path(q, adaptive = true))
+    @Test fun `a real question takes the plain pipeline, greeting or not`() {
+        for (q in listOf("Why is Kyoto historically important?", "hi, can you compare Paris and Rome?")) {
             assertEquals(q, AnswerPath.PIPELINE, path(q))
         }
     }
 
     @Test fun `a recap still goes to Deep Research's recap`() {
-        assertEquals(AnswerPath.RECAP, path("Summarize what we talked about so far.", about = true, adaptive = true))
+        assertEquals(AnswerPath.RECAP, path("Summarize what we talked about so far.", about = true))
     }
 
     @Test fun `greetings in Portuguese, Spanish, French and German are small talk`() {

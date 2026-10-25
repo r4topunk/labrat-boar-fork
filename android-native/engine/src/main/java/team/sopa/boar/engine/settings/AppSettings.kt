@@ -48,10 +48,6 @@ class AppSettings(private val file: File) {
         put("activeModelId", JsonObject(m))
     }
 
-    /** modelRoleAssignments: role ("fast", "general"…) to model id. */
-    fun modelRoleAssignments(): Map<String, String> =
-        (data["modelRoleAssignments"] as? JsonObject)?.mapNotNull { (k, v) -> (v as? JsonPrimitive)?.contentOrNull?.ifEmpty { null }?.let { k to it } }?.toMap() ?: emptyMap()
-
     /**
      * Always Succinct: the app has one answer style and no picker (r4to, Oct 24): in the Oct 23 UX tests 35 % of answers
      * were right with Succinct against 28 % with it off, and an audit of Detailed answers (Oct 17) found 20 % of claims wrong. A style stored by an earlier build (Detailed,
@@ -65,12 +61,13 @@ class AppSettings(private val file: File) {
     fun answerTokens(openedContext: Int?): Int = fitToContext(autoMaxTokens(personalityId), openedContext)
 
     /**
-     * Writes over what an earlier build let the user choose: the style becomes Succinct, and a picked answer length and the
-     * Deep Research switch are dropped, so settings.json says what the app does. Writes nothing when already clean.
+     * Writes over what an earlier build let the user choose: the style becomes Succinct, and a picked answer length, the
+     * Deep Research switch and the adaptive-routing keys are dropped, so settings.json says what the app does. Writes
+     * nothing when already clean.
      */
     fun retireRemovedOptions() {
-        if (str("personalityId") == ANSWER_STYLE && "maxTokens" !in data && "deepResearchMode" !in data) return
-        update { put("personalityId", JsonPrimitive(ANSWER_STYLE)); remove("maxTokens"); remove("deepResearchMode") }
+        if (str("personalityId") == ANSWER_STYLE && REMOVED_KEYS.none { it in data }) return
+        update { put("personalityId", JsonPrimitive(ANSWER_STYLE)); REMOVED_KEYS.forEach { remove(it) } }
     }
 
     /**
@@ -82,10 +79,13 @@ class AppSettings(private val file: File) {
     fun resetPreferences() = update { PREFERENCE_KEYS.forEach { remove(it) } }
 
     companion object {
+        /** Keys of options an earlier build offered and this one doesn't: [retireRemovedOptions] drops them. */
+        private val REMOVED_KEYS = listOf("maxTokens", "deepResearchMode", "adaptiveRoutingEnabled", "routingPreset", "modelRoleAssignments")
+
         /** What "Reset settings" clears ([resetPreferences]). */
         val PREFERENCE_KEYS = listOf(
             "themeId", "fontScale", "screenOrientation", "personalityId", "maxTokens", "deepResearchMode", "researchBannerHidden",
-            "adaptiveRoutingEnabled", "routingPreset", "engineTweaks", "showLiveStats", "voiceInputEnabled", "hapticsEnabled",
+            "engineTweaks", "showLiveStats", "voiceInputEnabled", "hapticsEnabled",
             "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles",
             "freeMemoryInBackground", "freeMemoryAfterMinutes",
         )
@@ -117,8 +117,6 @@ class AppSettings(private val file: File) {
             else -> AUTO_MAX_TOKENS
         }
     }
-    var adaptiveRoutingEnabled: Boolean get() = bool("adaptiveRoutingEnabled") ?: false; set(v) = set("adaptiveRoutingEnabled", JsonPrimitive(v))
-    var routingPreset: String? get() = str("routingPreset"); set(v) = set("routingPreset", v?.let(::JsonPrimitive))
     /** "campfire" or "moonlight"; the theme's default when unset. */
     var themeId: String? get() = str("themeId"); set(v) = set("themeId", v?.let(::JsonPrimitive))
     var fontScale: String get() = str("fontScale") ?: "standard"; set(v) = set("fontScale", JsonPrimitive(v))

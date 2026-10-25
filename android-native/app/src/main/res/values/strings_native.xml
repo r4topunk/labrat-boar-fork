@@ -44,8 +44,6 @@
     <string name="native_settings_compact" formatted="false">Compact</string>
     <string name="native_settings_standard" formatted="false">Standard</string>
     <string name="native_settings_large" formatted="false">Large</string>
-    <string name="native_settings_adaptiveTitle" formatted="false">Adaptive routing</string>
-    <string name="native_settings_adaptiveNote" formatted="false">Picks a model per question from the ones installed, and can check the answer against its sources.</string>
     <string name="native_drawer_settings" formatted="false">Settings</string>
     <string name="native_about_airGappedBody" formatted="false">BoarLite is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It runs local LLM inference with llama.cpp, built into the app, and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
     <string name="native_about_siteTitle" formatted="false">Official website</string>
@@ -56,8 +54,6 @@
     <string name="native_receipt_mode" formatted="false">Mode</string>
     <string name="native_receipt_style_succinct" formatted="false">Succinct &amp; Direct</string>
     <string name="native_receipt_path_chat" formatted="false">From this chat</string>
-    <string name="native_receipt_path_adaptive" formatted="false">Adaptive routing</string>
-    <string name="native_receipt_checked" formatted="false">checked</string>
     <string name="native_about_tagline" formatted="false">Your questions.\nYour phone. Your AI.</string>
     <string name="native_about_bio" formatted="false">Offline AI research on your phone. Answers with sources, no signal needed. Open source (MIT).</string>
     <string name="native_about_post_why" formatted="false">When AI lives only on someone else\'s server, whoever runs it holds a switch.\n\nWe\'d rather no one did. So the model lives on your phone, and no server receives your questions.</string>

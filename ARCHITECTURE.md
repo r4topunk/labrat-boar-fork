@@ -1,7 +1,7 @@
 # BOAR — Adaptive Local Intelligence (Android)
 
-An offline-first mobile AI system for Android exploring adaptive model routing, local
-retrieval, selective verification, and resource-aware inference. Originally built for
+An offline-first mobile AI system for Android exploring local
+retrieval and resource-aware inference. Originally built for
 the "Best Offline AI Research App" bounty (inspired by @VitalikButerin's post). Hard
 constraints this design targets:
 

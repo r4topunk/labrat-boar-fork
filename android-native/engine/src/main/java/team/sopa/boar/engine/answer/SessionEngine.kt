@@ -11,7 +11,7 @@ import team.sopa.boar.engine.Sampling
 import team.sopa.boar.engine.rag.PromptMessage
 
 /**
- * A loaded model as the executor and Deep Research use it: role messages through the model's own chat template (or a
+ * A loaded model as the recap (DeepResearch) uses it: role messages through the model's own chat template (or a
  * plain prompt with stop words), and a time limit that stops the native generation and keeps what it wrote.
  */
 class SessionEngine(private val session: LlamaSession, private val enableThinking: Boolean = false) : StepEngine, StageGenerator {

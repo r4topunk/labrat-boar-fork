@@ -73,8 +73,8 @@ sealed interface AnswerEvent {
 }
 
 /**
- * The default answer path, the one the Android app runs when neither Deep Research nor adaptive routing is on
- * (ChatScreen's runFixedModelChat, and the eval's fixed-model plan in src/routing/executor.ts): classify; retrieve
+ * The answer path the Android app runs for every question except a recap of the chat, and the one the device eval
+ * runs: classify; retrieve
  * and keep the answering sentences unless the task needs no documents; then generate with the model's own chat
  * template (a hand-built prompt with stop words only for a model without one). Same prompts as the TS (golden tests).
  */

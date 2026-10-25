@@ -573,13 +573,12 @@ private fun ReceiptDetails(r: Receipt) {
 private fun receiptRows(r: Receipt): List<Pair<String, String>> {
     val ctx = LocalContext.current
     fun count(tokens: Int) = I18n.t(ctx, "chat.receipt.tokenCount", "tokens" to "$tokens", "words" to "${ReceiptFormat.words(tokens.toDouble())}")
-    // Mode first: the answer style, then how it was written (from this chat, adaptive routing and its plan).
+    // Mode first: the answer style, then how it was written (from this chat).
     val mode = r.style?.let { style ->
         listOfNotNull(
             t("native.receipt.style.$style").takeUnless { it == "native.receipt.style.$style" } ?: style,  // an unknown style shows its id
             when (r.path) {
                 "chat" -> t("native.receipt.path.chat")
-                "adaptive" -> listOfNotNull(t("native.receipt.path.adaptive"), r.task, if (r.checked) t("native.receipt.checked") else null).joinToString(" · ")
                 else -> null
             },
         ).joinToString(" · ")

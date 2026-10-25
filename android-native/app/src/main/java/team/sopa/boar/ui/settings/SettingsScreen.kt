@@ -82,7 +82,7 @@ interface DisplayPrefs {
 /**
  * Settings as a Material grouped list: the model, knowledge, chats, display, About, then
  * Start over. No answer style, answer length or Deep Research: the app answers in Succinct at its Auto length (r4to,
- * Oct 24). The measurement knobs (technical details, adaptive routing, memory numbers) live in Developer options, shown only after seven taps on the version in About. The engine's
+ * Oct 24). The measurement knobs (technical details, memory numbers) live in Developer options, shown only after seven taps on the version in About. The engine's
  * own knobs keep their saved values (Auto by default) and the engine reads them as before.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -288,7 +288,7 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
 }
 
 /**
- * Developer options (DevOptions, seven taps on the version in About): the technical details switch, adaptive routing,
+ * Developer options (DevOptions, seven taps on the version in About): the technical details switch,
  * the memory numbers, and a switch that hides it all again. Turning it off also
  * turns technical details off ([onDisable] hides the section), since its switch would no longer be anywhere to find.
  */
@@ -300,9 +300,6 @@ private fun DeveloperSection(services: BoarServices, technical: Boolean, onTechn
         Note(t("clean.settings.dev.intro"))
         // One switch for everything technical in the chat and the menu (the receipt's time and speed stay for everyone).
         SwitchRow(t("native.tweaks.technicalDetails"), t("native.tweaks.technicalDetailsNote"), technical) { s.showLiveStats = it; onTechnical(it) }
-        // An engine knob, off by default: it changes how the answer is produced even with a single model installed.
-        var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }
-        SwitchRow(t("native.settings.adaptiveTitle"), t("native.settings.adaptiveNote"), adaptive) { adaptive = it; s.adaptiveRoutingEnabled = it }
         val emb = services.catalog.models.firstOrNull { it.kind == AssetKind.EMBEDDING }
         if (emb != null && services.fileOf(emb).isFile) Note(t("native.settings.embeddingOk", "model" to emb.shortName))
         var turns by remember { mutableStateOf(s.historyTurnThreshold) }

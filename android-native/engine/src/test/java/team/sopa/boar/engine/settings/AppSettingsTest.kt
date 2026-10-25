@@ -12,7 +12,7 @@ import java.nio.file.Files
 class AppSettingsTest {
     /** A settings.json as the Expo app writes it, with keys this build doesn't use. */
     private val expo = """{"activeModelId":{"llm":"qwen3-4b-instruct-2507-q4km","embedding":"bge-small-en-v1.5-q8"},"personalityId":"detailed","maxTokens":1024,
-        |"themeId":"moonlight","fontScale":"large","deepResearchMode":true,"placeTileNames":{"a":"b"},"installId":"abc-123","largeModelConfirmedIds":["x"]}""".trimMargin()
+        |"themeId":"moonlight","fontScale":"large","deepResearchMode":true,"adaptiveRoutingEnabled":true,"routingPreset":"research","modelRoleAssignments":{"fast":"x"},"placeTileNames":{"a":"b"},"installId":"abc-123","largeModelConfirmedIds":["x"]}""".trimMargin()
 
     private fun file(text: String?) = Files.createTempDirectory("boar-settings").toFile().resolve("settings.json").also { f -> text?.let { f.writeText(it) } }
 
@@ -24,17 +24,17 @@ class AppSettingsTest {
         assertEquals(AppSettings.AUTO_MAX_TOKENS, s.maxTokens)
         assertEquals("moonlight", s.themeId)
         assertEquals("large", s.fontScale)
-        assertFalse(s.adaptiveRoutingEnabled)
         assertEquals(EngineTweaks(), s.engineTweaks)
     }
 
-    @Test fun `a style, length or Deep Research stored by an earlier build is rewritten to Succinct and dropped`() {
+    @Test fun `a style, length, Deep Research or routing option stored by an earlier build is rewritten to Succinct and dropped`() {
         val f = file(expo)
         AppSettings(f).retireRemovedOptions()
         val again = AppSettings(f)
         assertEquals("\"succinct\"", again.raw()["personalityId"].toString())
         assertFalse("maxTokens" in again.raw())
         assertFalse("deepResearchMode" in again.raw())
+        for (k in listOf("adaptiveRoutingEnabled", "routingPreset", "modelRoleAssignments")) assertFalse(k, k in again.raw())
         // Everything else is kept.
         assertEquals("moonlight", again.themeId)
         assertEquals("abc-123", again.raw()["installId"].toString().trim('"'))

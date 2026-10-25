@@ -30,8 +30,6 @@ import team.sopa.boar.engine.answer.SourceGroups
 import team.sopa.boar.engine.answer.DeepResearch
 import team.sopa.boar.engine.answer.HistoryBudget
 import team.sopa.boar.engine.answer.PersonalFiles
-import team.sopa.boar.engine.answer.PipelineInput
-import team.sopa.boar.engine.answer.PlanExecutor
 import team.sopa.boar.engine.answer.SessionEngine
 import team.sopa.boar.engine.answer.Summarize
 import team.sopa.boar.engine.models.AssetKind
@@ -39,11 +37,7 @@ import team.sopa.boar.engine.models.StartLoad
 import team.sopa.boar.engine.rag.Chunk
 import team.sopa.boar.engine.rag.ConversationHistory
 import team.sopa.boar.engine.rag.ConversationTurn
-import team.sopa.boar.engine.routing.AdaptivePlan
 import team.sopa.boar.engine.routing.Classify
-import team.sopa.boar.engine.routing.ModelRole
-import team.sopa.boar.engine.routing.Profiles
-import team.sopa.boar.engine.routing.RoutingPreset
 import team.sopa.boar.engine.routing.TaskType
 import team.sopa.boar.engine.settings.AnswerLimit
 
@@ -94,8 +88,6 @@ data class ChatState(
     val activity: Activity? = null,
     val liveTokPerSec: Double? = null,
     val modelLabel: String? = null,
-    /** The model writing the answer in progress when it isn't [modelLabel] (adaptive routing sent it elsewhere). */
-    val answeringModel: String? = null,
     /** Advanced tweaks → Show technical details (AppSettings.showLiveStats). */
     val technicalDetails: Boolean = false,
     val error: String? = null,
@@ -156,7 +148,7 @@ internal fun provisionalTitle(q: String): String {
 }
 
 /**
- * The chat (port of ChatScreen.tsx's send flow): Deep Research when it's on, adaptive routing when that's on, the
+ * The chat (port of ChatScreen.tsx's send flow): a recap of the chat when asked for, the
  * default answer path otherwise; the answer streams into its message, and both turns are saved with the answer's
  * sources. Stop cancels the generation in flight and the stages after it.
  */
@@ -167,7 +159,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      * answer it cut short is closed with the generic error line (layer 1 of the error handler, [team.sopa.boar.app.Safe]).
      */
     private val safeScope = viewModelScope + team.sopa.boar.app.Safe.handler(app) { _ ->
-        _state.update { it.copy(answeringId = null, answeringModel = null, activity = null, stopping = false, error = "generic") }
+        _state.update { it.copy(answeringId = null, activity = null, stopping = false, error = "generic") }
     }
     private val _state = MutableStateFlow(ChatState(technicalDetails = services.settings.showLiveStats,
         sourcesOwn = app.getSharedPreferences("answer_options", android.content.Context.MODE_PRIVATE).getBoolean(SOURCES_OWN, false),
@@ -567,7 +559,6 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         }
         team.sopa.boar.app.Haptics.sent(getApplication())
         stopRequested = false
-        routedModelId = null
         // Started while BOAR is on screen (Android allows it only then); keeps BOAR alive if the user leaves mid-answer.
         team.sopa.boar.app.AnswerService.start(getApplication())
         job = safeScope.launch(Dispatchers.Default) {
@@ -628,7 +619,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             var exposureComputed = false
             var firstAt = 0L
             var tokens = 0
-            // The limit the answer could hit, set once the model is loaded; the adaptive router picks its own.
+            // The limit the answer could hit, set once the model is loaded.
             var limited: Int? = null
             // Saved as it's written, marked interrupted until it ends: if Android closes BOAR mid-answer (Xiaomi did 10-35 s
             // after leaving, Oct 19), the chat reopens with what was written and the note, not an empty bubble.
@@ -660,21 +651,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 qaMark("answer.loaded")
                 // Read after the load: Auto fits the length to the context the model was opened with.
                 val budget = settings.answerTokens(services.host.openedContext).let {
-                    // A thank-you or greeting: Succinct's length in any style. Not the router's 128: a model that thinks first
-                    // (LFM2.5) would spend it all on reasoning.
+                    // A thank-you or greeting: Succinct's length.
                     if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)) minOf(it, team.sopa.boar.engine.settings.AppSettings.AUTO_MAX_TOKENS) else it
                 }
                 limited = budget
-                // Small talk never starts a recap or the router (AnswerPath): "hi" took minutes on a big model.
-                // My files answers through the plain pipeline only: the router's write-ups have no files-only prompt
-                // or not-found line, so they could answer from memory. A recap of this chat still runs.
+                // Small talk never starts a recap (AnswerPath).
                 val way = team.sopa.boar.engine.routing.AnswerPath.of(aboutConversation(q, history, conversation),
-                    settings.adaptiveRoutingEnabled, team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)).let {
-                        // A health question too: only the plain pipeline has the health gate (HealthGate).
-                        if ((filesOnly || team.sopa.boar.engine.routing.QueryContext.isHealthQuestion(q)) &&
-                            it == team.sopa.boar.engine.routing.AnswerPath.ADAPTIVE)
-                            team.sopa.boar.engine.routing.AnswerPath.PIPELINE else it
-                    }
+                    team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q))
                 // The preload's warm prefill holds the model's lock: waited for only when it fills this question's prefix
                 // (the plain path, same style and Sources), else stopped now instead of making the question wait for it.
                 if (way != team.sopa.boar.engine.routing.AnswerPath.PIPELINE ||
@@ -697,19 +680,6 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     if (r.fromPreviousAnswer) reusedSources = lastAnswer?.sources
                     timedOut = r.timedOut
                     metrics = r.metrics
-                } else if (way == team.sopa.boar.engine.routing.AnswerPath.ADAPTIVE) {
-                    // The router answers within the same budget, so a cut answer gets its note and "Allow more".
-                    path = "adaptive"
-                    val r = adaptive(q, systemPrompt, styleReminder, history, budget, ::onPiece)
-                    sources = r.first
-                    timedOut = r.second
-                    metrics = r.third
-                    // The router's answer comes from the same compact model, so it gets the same check as the plain path
-                    // (CT-1 and attribution).
-                    if (!stopRequested && compactAnswerModel()) {
-                        val revised = team.sopa.boar.engine.answer.Citations.applyShown(text.toString(), sources).first
-                        if (revised != text.toString()) { text.setLength(0); text.append(revised) }
-                    }
                 } else {
                     val pipeline = AnswerPipeline(session, retrieve, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) },
                         headPass = services.retriever::headPass,
@@ -752,8 +722,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             // The failure line goes with this answer, so it's still there after the next question and when the chat opens again.
             val errorKey = _state.value.error?.takeIf { !stopped }?.let(team.sopa.boar.engine.UserErrors::chatKey)
             val receipt = receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)?.takeIf { !notFound && !healthFixed && !calculated && !exposureComputed }?.let { r ->
-                val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
-                r.copy(style = style, path = path, task = task, checked = checked,
+                r.copy(style = style, path = path,
                     // AnswerNote's line under every answer the model wrote, never under small talk.
                     note = !team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q))
             }
@@ -772,7 +741,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             qaMark("answer.done tokens=$tokens stopped=$stopped chars=${text.length}")
             if (!stopped && text.isNotEmpty()) team.sopa.boar.app.Haptics.finished(getApplication())
             _state.update { s ->
-                s.copy(answeringId = null, answeringModel = null, activity = null, stopping = false,
+                s.copy(answeringId = null, activity = null, stopping = false,
                     messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt, cutAt = cutAt, error = errorKey) else it })
             }
         }
@@ -863,45 +832,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** The warm prefill holds the model's lock (set from its first shouldStop check, cleared when it ends). */
     @Volatile private var warmInside = false
 
-    /** runAdaptiveChat: plan with the installed models and the user's routing settings, then execute. */
     /** A model of unknown size counts as compact: BoarLite ships one model, Qwen3 1.7B, and it is. */
     private fun compactAnswerModel(): Boolean =
         services.answerModel()?.sizeBytes?.let { it <= team.sopa.boar.engine.answer.AnswerNote.COMPACT_MODEL_BYTES } ?: true
 
-    /** The last adaptive plan's task type and whether it had a verify step, for the receipt. */
-    @Volatile private var lastAdaptive: Pair<String, Boolean>? = null
-    /** The model the adaptive plan's generate step runs, for the header and the receipt; null on the other paths. */
-    @Volatile private var routedModelId: String? = null
-
-    private suspend fun adaptive(q: String, systemPrompt: String, styleReminder: String?, history: ConversationHistory, budget: Int, onPiece: (String) -> Unit): Triple<List<Chunk>, Boolean, GenerationMetrics?> {
-        lastAdaptive = null  // a plan that fails mustn't leave the previous answer's task on this receipt
-        val s = services.settings
-        val statuses = services.catalog.models.filter { it.kind == AssetKind.LLM }.map { Profiles.AvailableModel(it, services.fileOf(it).isFile) }
-        val preset = s.routingPreset?.let { runCatching { RoutingPreset.of(it) }.getOrNull() } ?: RoutingPreset.DEFAULT
-        val overrides = s.modelRoleAssignments().mapNotNull { (k, v) -> runCatching { ModelRole.of(k) to v }.getOrNull() }.toMap()
-        val plan = AdaptivePlan.plan(q, statuses, preset, overrides, services.answerModel()?.id ?: s.activeModelId("llm"), totalRamBytes(), budget)
-        lastAdaptive = plan.taskType.value to plan.plan.steps.any { it.type == team.sopa.boar.engine.routing.RoutingStepType.VERIFY }
-        val r = PlanExecutor(services.host, retrieve, { Classify.classifyTask(it).value }, timeoutFor = s.engineTweaks::stageTimeoutMs)
-            .execute(plan.plan, PipelineInput(q, systemPrompt, styleReminder, history), onToken = onPiece, onStepStart = { step ->
-                if (step.type == team.sopa.boar.engine.routing.RoutingStepType.GENERATE && step.modelId != null) {
-                    routedModelId = step.modelId
-                    val other = step.modelId.takeIf { it != services.answerModel()?.id }?.let(services.catalog::byId)?.let { shortLabel(it.label) }
-                    _state.update { it.copy(answeringModel = other) }
-                }
-                _state.update { it.copy(activity = if (step.type.value == "retrieve") Activity.Retrieving else Activity.Thinking) }
-            }, shouldStop = { stopRequested })
-        if (r.answer.isBlank() && !stopRequested) error("adaptive routing produced no answer: ${r.warnings.joinToString()}")
-        return Triple(r.citations, r.timedOut, r.metrics)
-    }
-
-    /** The phone's RAM (ram-monitor's getDeviceTotalRamBytes); 0 when unreadable. */
-    private fun totalRamBytes(): Long = runCatching {
-        val am = getApplication<Application>().getSystemService(android.app.ActivityManager::class.java)
-        android.app.ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }.totalMem
-    }.getOrDefault(0L)
-
     /**
-     * The answer's receipt, from the engine's own numbers (for Deep Research and adaptive routing, those of the step that
+     * The answer's receipt, from the engine's own numbers (for a recap, those of the step that
      * wrote the answer), else from the tokens as they streamed. None when nothing was generated.
      */
     private fun receiptOf(startAt: Long, firstAt: Long, streamed: Int, m: GenerationMetrics?, retrievalMs: Double?): Receipt? {
@@ -911,8 +847,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         return Receipt(
             totalMs = (end - startAt) / 1e6, ttftMs = (firstAt - startAt) / 1e6,
             tokPerSec = m?.decodeTokPerSec?.takeIf { it > 0 } ?: wallRate, tokens = m?.generatedTokens?.takeIf { it > 0 } ?: streamed,
-            // The model that wrote it: the one adaptive routing picked, else the active one.
-            model = (routedModelId?.let(services.catalog::byId) ?: services.activeModel())?.shortName, retrievalMs = retrievalMs, prefillMs = m?.prefillMs, contextTokens = m?.promptTokens,
+            model = services.activeModel()?.shortName, retrievalMs = retrievalMs, prefillMs = m?.prefillMs, contextTokens = m?.promptTokens,
         )
     }
 
