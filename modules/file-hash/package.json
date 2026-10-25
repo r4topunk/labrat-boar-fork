@@ -1,7 +1,0 @@
-{
-  "name": "file-hash",
-  "version": "0.1.0",
-  "description": "Local Expo module: streaming SHA-256 of large files (and copy+hash in one pass) without loading them into JS memory.",
-  "main": "index.ts",
-  "license": "MIT"
-}

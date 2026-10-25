@@ -1,5 +1,0 @@
-project_id = "boar-app"
-
-# The app calls it with the publishable key, which isn't a JWT; the function checks the key itself.
-[functions.submit-results]
-verify_jwt = false

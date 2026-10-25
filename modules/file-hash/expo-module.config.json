@@ -1,9 +1,0 @@
-{
-  "platforms": ["android", "apple"],
-  "android": {
-    "modules": ["expo.modules.filehash.FileHashModule"]
-  },
-  "apple": {
-    "modules": ["FileHashModule"]
-  }
-}

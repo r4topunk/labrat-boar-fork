@@ -1,7 +1,0 @@
-{
-  "name": "device-key",
-  "version": "0.1.0",
-  "description": "Local Expo module: a hardware-backed key that proves a shared evaluation run comes from a real phone running BOAR (Android Keystore attestation, iOS App Attest).",
-  "main": "index.ts",
-  "license": "MIT"
-}

@@ -1,7 +1,0 @@
-{
-  "ios": {
-    "NSLocationWhenInUseUsageDescription": "O BOAR usa a sua localização, lida neste aparelho, para responder perguntas sobre lugares perto de você, como restaurantes na cidade onde você está. Ela nunca é enviada para lugar nenhum.",
-    "NSMicrophoneUsageDescription": "O BOAR usa o microfone só enquanto a entrada por voz está ligada, para transformar a sua pergunta em texto neste aparelho.",
-    "NSSpeechRecognitionUsageDescription": "O BOAR transcreve a sua pergunta por voz neste aparelho. O áudio nunca é enviado a um servidor."
-  }
-}
