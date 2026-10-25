@@ -22,11 +22,9 @@ data class ChatMessageRecord(
  * Chat sessions and messages in the knowledge base's own tables, so chats made
  * by earlier builds reopen after an upgrade. The schema is created by KnowledgeBase; chat_message_meta here.
  *
- * Earlier builds could seal chat text behind a PIN ("enc1:..." values). BoarLite has no PIN lock and no way to enter one,
- * so such text can't be opened: it shows [LOCKED] instead of the stored bytes. Everything is stored as written.
+ * Everything is stored and read as written.
  */
 class ChatStore(private val db: SqlDatabase, private val now: () -> Long = System::currentTimeMillis) {
-    private fun open(s: String) = if (s.startsWith(SEALED_PREFIX)) LOCKED else s
     init {
         db.exec("CREATE TABLE IF NOT EXISTS chat_message_meta (message_id TEXT PRIMARY KEY REFERENCES chat_messages(id), meta TEXT NOT NULL)")
     }
@@ -43,7 +41,7 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
 
     fun listSessions(): List<ChatSession> =
         db.query("SELECT id, title, created_at, updated_at FROM chat_sessions ORDER BY updated_at DESC") {
-            ChatSession(it.string(0)!!, open(it.string(1)!!), it.long(2), it.long(3))
+            ChatSession(it.string(0)!!, it.string(1)!!, it.long(2), it.long(3))
         }
 
     fun messages(sessionId: String): List<ChatMessageRecord> = db.query(
@@ -53,7 +51,7 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
            LEFT JOIN chat_message_meta x ON x.message_id = m.id
            WHERE m.session_id = ? ORDER BY m.created_at ASC""",
         listOf(sessionId),
-    ) { ChatMessageRecord(it.string(0)!!, it.string(1)!!, it.string(2)!!, open(it.string(3)!!), it.long(4), it.string(5), it.string(6)?.let(::open)) }
+    ) { ChatMessageRecord(it.string(0)!!, it.string(1)!!, it.string(2)!!, it.string(3)!!, it.long(4), it.string(5), it.string(6)) }
 
     fun setMessageMeta(messageId: String, meta: String) {
         db.execute("INSERT OR REPLACE INTO chat_message_meta (message_id, meta) VALUES (?, ?)", listOf(messageId, meta))
@@ -105,12 +103,5 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
     fun prune(maxSessions: Int) {
         if (maxSessions <= 0) return
         db.query("SELECT id FROM chat_sessions ORDER BY updated_at DESC LIMIT -1 OFFSET ?", listOf(maxSessions)) { it.string(0)!! }.forEach(::deleteSession)
-    }
-
-    companion object {
-        /** What a PIN-sealed value written by an earlier build starts with. */
-        const val SEALED_PREFIX = "enc1:"
-        /** Shown in place of text that can't be opened. */
-        const val LOCKED = "\uD83D\uDD12"
     }
 }

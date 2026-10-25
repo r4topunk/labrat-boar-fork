@@ -62,7 +62,7 @@ class AppSettings(private val file: File) {
 
     /**
      * Writes over what an earlier build let the user choose: the style becomes Succinct, and a picked answer length, the
-     * Deep Research switch, the adaptive-routing keys and the long-chat summary options are dropped, so settings.json says what the app does. Writes
+     * Deep Research switch, the adaptive-routing keys, the long-chat summary options and the PIN keys are dropped, so settings.json says what the app does. Writes
      * nothing when already clean.
      */
     fun retireRemovedOptions() {
@@ -82,6 +82,8 @@ class AppSettings(private val file: File) {
         /** Keys of options an earlier build offered and this one doesn't: [retireRemovedOptions] drops them. */
         private val REMOVED_KEYS = listOf(
             "maxTokens", "deepResearchMode", "adaptiveRoutingEnabled", "routingPreset", "modelRoleAssignments", "autoSummarize", "historyTurnThreshold",
+            // The PIN lock and its key material (removed; no build with a PIN was ever installed).
+            "pinWrapped", "pinSalt", "pinIterations", "pinFailures", "pinLockedUntil",
         )
 
         /** What "Reset settings" clears ([resetPreferences]). */

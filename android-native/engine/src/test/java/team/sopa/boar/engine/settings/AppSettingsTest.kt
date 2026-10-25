@@ -12,7 +12,7 @@ import java.nio.file.Files
 class AppSettingsTest {
     /** A settings.json as an earlier build wrote it, with keys this build doesn't use. */
     private val earlierBuild = """{"activeModelId":{"llm":"qwen3-4b-instruct-2507-q4km","embedding":"bge-small-en-v1.5-q8"},"personalityId":"detailed","maxTokens":1024,
-        |"themeId":"moonlight","fontScale":"large","deepResearchMode":true,"adaptiveRoutingEnabled":true,"routingPreset":"research","modelRoleAssignments":{"fast":"x"},"autoSummarize":true,"historyTurnThreshold":8,"placeTileNames":{"a":"b"},"installId":"abc-123","largeModelConfirmedIds":["x"]}""".trimMargin()
+        |"themeId":"moonlight","fontScale":"large","deepResearchMode":true,"adaptiveRoutingEnabled":true,"routingPreset":"research","modelRoleAssignments":{"fast":"x"},"autoSummarize":true,"historyTurnThreshold":8,"pinWrapped":"AAAA","pinSalt":"BBBB","pinIterations":210000,"pinFailures":2,"pinLockedUntil":0,"placeTileNames":{"a":"b"},"installId":"abc-123","largeModelConfirmedIds":["x"]}""".trimMargin()
 
     private fun file(text: String?) = Files.createTempDirectory("boar-settings").toFile().resolve("settings.json").also { f -> text?.let { f.writeText(it) } }
 
@@ -34,7 +34,7 @@ class AppSettingsTest {
         assertEquals("\"succinct\"", again.raw()["personalityId"].toString())
         assertFalse("maxTokens" in again.raw())
         assertFalse("deepResearchMode" in again.raw())
-        for (k in listOf("adaptiveRoutingEnabled", "routingPreset", "modelRoleAssignments", "autoSummarize", "historyTurnThreshold")) assertFalse(k, k in again.raw())
+        for (k in listOf("adaptiveRoutingEnabled", "routingPreset", "modelRoleAssignments", "autoSummarize", "historyTurnThreshold", "pinWrapped", "pinSalt", "pinIterations", "pinFailures", "pinLockedUntil")) assertFalse(k, k in again.raw())
         // Everything else is kept.
         assertEquals("moonlight", again.themeId)
         assertEquals("abc-123", again.raw()["installId"].toString().trim('"'))
