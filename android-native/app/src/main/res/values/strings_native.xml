@@ -237,7 +237,7 @@
     <string name="native_modelSetupScreen_sections_models" formatted="false">Models</string>
     <string name="native_modelSetupScreen_sections_voice" formatted="false">Voice input</string>
     <string name="native_modelSetupScreen_sections_recovery" formatted="false">Start over</string>
-    <string name="native_modelSetupScreen_recovery_wizardDesc" formatted="false">Checks BoarLite's files again and restores any pack you removed.</string>
+    <string name="native_modelSetupScreen_recovery_wizardDesc" formatted="false">Checks BoarLite\'s files again and restores any pack you removed.</string>
     <string name="native_modelSetupScreen_recovery_wizardButton" formatted="false">Run setup again</string>
     <string name="native_modelSetupScreen_recovery_dangerDesc" formatted="false">Deletes every model and pack, your documents and all chats from this phone. It can\'t be undone.</string>
     <string name="native_modelSetupScreen_recovery_dangerButton" formatted="false">Erase everything</string>

@@ -56,7 +56,7 @@
     <string name="modelSetupScreen_installedModels" formatted="false">Installed models</string>
     <string name="modelSetupScreen_discoverHfModels" formatted="false">Discover Hugging Face GGUF models</string>
     <string name="modelSetupScreen_toasts_indexed" formatted="false">Indexed \"{{name}}\" in offline knowledge base</string>
-    <string name="modelSetupScreen_recovery_wizardDesc" formatted="false">Checks BoarLite's files again and restores any pack you removed.</string>
+    <string name="modelSetupScreen_recovery_wizardDesc" formatted="false">Checks BoarLite\'s files again and restores any pack you removed.</string>
     <string name="modelSetupScreen_recovery_wizardButton" formatted="false">Relaunch Setup Wizard ➔</string>
     <string name="modelSetupScreen_recovery_dangerDesc" formatted="false">Permanently wipes the GGUF weights, offline SQLite database indices, and conversation logs from this device.</string>
     <string name="modelSetupScreen_recovery_dangerButton" formatted="false">🚨 Purge All Data &amp; Reset App</string>
