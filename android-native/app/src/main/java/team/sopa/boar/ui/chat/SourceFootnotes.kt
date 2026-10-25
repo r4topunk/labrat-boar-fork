@@ -95,7 +95,7 @@ fun SourceFootnotes(sources: List<Source>, title: String? = null, technicalDetai
     val expandedState = t("clean.chat.expanded")
     val collapsedState = t("clean.chat.collapsed")
     val showPassage = t("clean.chat.showPassage")
-    Column(Modifier.fillMaxWidth().padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(Modifier.fillMaxWidth().padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(title ?: t("sourceFootnotes.title"), style = type.labelLarge, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 6.dp))
         sources.forEachIndexed { i, s ->
             val open = expanded == i

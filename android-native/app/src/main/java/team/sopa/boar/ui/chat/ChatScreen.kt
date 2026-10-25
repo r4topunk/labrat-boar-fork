@@ -81,6 +81,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.LineHeightStyle
 import team.sopa.boar.ui.components.BoarMark
@@ -171,11 +175,7 @@ fun ChatScreen(
     val scheme = MaterialTheme.colorScheme
     val list = rememberLazyListState()
     var input by remember { mutableStateOf("") }
-    // Android 13+: "BOAR is answering…" (AnswerService) needs the notification permission, which nothing asked for
-    // (issue #91). Asked once, with the first question; a refusal stands and is never asked again.
-    val notifyCtx = androidx.compose.ui.platform.LocalContext.current
-    val notifyAsk = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) {}
-    val send: (String) -> Unit = { q -> askNotificationsOnce(notifyCtx) { notifyAsk.launch(android.Manifest.permission.POST_NOTIFICATIONS) }; onSend(q) }
+    val send: (String) -> Unit = { q -> onSend(q) }
     var toneSheet by remember { mutableStateOf(false) }
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     val focus = androidx.compose.ui.platform.LocalFocusManager.current
@@ -570,26 +570,25 @@ private fun Bubble(
             }
             var receiptOpen by remember { mutableStateOf(false) }
             if (m.text.isNotEmpty() && !live) Settle(settles, 1) {
-                // The actions first, the icon lined up with the text edge; the receipt after them, quiet, never cut.
-                // The 48 dp button pulls back by its padding plus the glyph's own inset, so the copy ink meets the text edge.
-                Row(Modifier.fillMaxWidth().padding(top = 4.dp).offset(x = FooterPullBack), horizontalArrangement = Arrangement.spacedBy(0.dp), verticalAlignment = Alignment.CenterVertically) {
-                    var copied by remember { mutableStateOf(false) }
-                    LaunchedEffect(copied) { if (copied) { delay(2000); copied = false } }
-                    // With the reasoning open, it is copied too: reviewing a thinking model needs both.
-                    IconButton({
-                        clipboard.setText(AnnotatedString(if (reasoningShown && split.thinking != null) "💭 ${split.thinking}\n\n---\n\n$shown" else shown)); copied = true
-                    }) {
-                        Icon(if (copied) Icons.Filled.Check else BoarIcons.ContentCopy, contentDescription = t("chatScreen.copyResponse"),
-                            tint = scheme.onSurfaceVariant, modifier = Modifier.size(IconSize.InlineAction))
+                // The receipt first, at the text edge; the actions on the right (r4to 2026-10-25). The 48 dp copy button pushes
+                // out by its padding plus the glyph's inset, so the copy ink meets the right text edge.
+                Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // Everyone sees time and speed; the measured details open only with technical details on.
+                    Box(Modifier.weight(1f)) {
+                        m.receipt?.let { r -> if (technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
                     }
                     if (split.thinking != null) IconToggleButton(reasoningShown, { reasoningShown = !reasoningShown }) {
                         Icon(BoarIcons.Psychology, contentDescription = t(if (reasoningShown) "chatScreen.hideReasoning" else "chatScreen.showReasoning"),
                             tint = if (reasoningShown) scheme.primary else scheme.onSurfaceVariant, modifier = Modifier.size(IconSize.InlineAction))
                     }
-                    // Everyone sees time and speed; the measured details open only with technical details on.
-                    // The receipt about 12 dp from the icon's ink (the button's own padding would leave ~18 dp).
-                    Box(Modifier.weight(1f, fill = false).offset(x = (-6).dp)) {
-                        m.receipt?.let { r -> if (technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
+                    var copied by remember { mutableStateOf(false) }
+                    LaunchedEffect(copied) { if (copied) { delay(2000); copied = false } }
+                    // With the reasoning open, it is copied too: reviewing a thinking model needs both.
+                    IconButton({
+                        clipboard.setText(AnnotatedString(if (reasoningShown && split.thinking != null) "💭 ${split.thinking}\n\n---\n\n$shown" else shown)); copied = true
+                    }, Modifier.offset(x = -FooterPullBack)) {
+                        Icon(if (copied) Icons.Filled.Check else BoarIcons.ContentCopy, contentDescription = t("chatScreen.copyResponse"),
+                            tint = scheme.onSurfaceVariant, modifier = Modifier.size(IconSize.InlineAction))
                     }
                 }
                 if (receiptOpen && technicalDetails) m.receipt?.let { r -> ReceiptDetails(r) }
@@ -759,9 +758,17 @@ private fun InputBar(
                 lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None))
             BasicTextField(
                 text, onText,
-                Modifier.weight(1f).describe(hint),
+                // Enter sends (the keyboard's Send key, or Enter on a hardware keyboard; Shift+Enter keeps a new line).
+                Modifier.weight(1f).describe(hint).onPreviewKeyEvent { e ->
+                    if (e.key == androidx.compose.ui.input.key.Key.Enter && !e.isShiftPressed) {
+                        if (e.type == androidx.compose.ui.input.key.KeyEventType.KeyDown && canSend) onSend()
+                        true
+                    } else false
+                },
                 textStyle = bodyLarge.copy(color = scheme.onSurface),
                 maxLines = 6,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Send),
+                keyboardActions = androidx.compose.foundation.text.KeyboardActions(onSend = { if (canSend) onSend() }),
                 cursorBrush = SolidColor(scheme.primary),
                 decorationBox = { inner ->
                     Box(Modifier.heightIn(min = 48.dp).padding(end = 8.dp, top = 12.dp, bottom = 12.dp), contentAlignment = Alignment.CenterStart) {
@@ -788,14 +795,4 @@ private fun InputBar(
             }
         }
     }
-}
-
-/** Runs [ask] once per install on Android 13+, when BOAR may not post notifications yet (issue #91). */
-private fun askNotificationsOnce(ctx: android.content.Context, ask: () -> Unit) {
-    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) return
-    if (androidx.core.content.ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED) return
-    val prefs = ctx.getSharedPreferences("permissions", android.content.Context.MODE_PRIVATE)
-    if (prefs.getBoolean("notificationsAsked", false)) return
-    prefs.edit().putBoolean("notificationsAsked", true).apply()
-    ask()
 }
