@@ -59,6 +59,9 @@ class BoarServices private constructor(private val context: Context) {
     fun applyDefaults(afterReset: Boolean = false) {
         settings.retireRemovedOptions()
         if (settings.showLiveStats && !DevOptions.enabled(context)) settings.showLiveStats = false
+        // No long-chat summary in BoarLite (r4to 2026-10-24): on the Pixel the 1.7B answered from the last three exchanges
+        // only, and the summary is an extra background generation. Follow-ups keep the recent turns (ChatViewModel).
+        settings.autoSummarize = false
         val lite = context.getSharedPreferences("boarlite", Context.MODE_PRIVATE)
         if (afterReset || !lite.getBoolean("hapticsDefaultApplied", false)) {
             settings.hapticsEnabled = true

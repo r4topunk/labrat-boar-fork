@@ -107,8 +107,8 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onSetup: () -> U
                 Section(t("modelSetupScreen.sections.memory")) {
                     var titles by remember { mutableStateOf(s.autoGenerateTitles) }
                     SwitchRow(t("memorySettings.autoTitlesLabel"), t("memorySettings.autoTitlesValue"), titles, icon = Icons.Outlined.Edit) { titles = it; s.autoGenerateTitles = it }
-                    // No switch for the long-chat summary or a PIN (r4to 2026-10-24): the summary stays on (autoSummarize's
-                    // default) and BoarLite has no PIN lock.
+                    // No switch for the long-chat summary or a PIN (r4to 2026-10-24): BoarLite writes no summary
+                    // (BoarServices.applyDefaults) and has no PIN lock.
                     ClearChats(services)
                 }
                 Section(t("modelSetupScreen.sections.displayTheme")) {
