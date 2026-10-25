@@ -73,7 +73,7 @@ class AppSettings(private val file: File) {
     /**
      * Settings → Reset settings: every preference back to its default (theme, Advanced tweaks, display and voice switches,
      * chat history options; an old build's style, length and Deep Research keys too). The style stays Succinct, which
-     * [personalityId] always is. Kept: models and their roles, the PIN and the app's own
+     * [personalityId] always is. Kept: models and their roles and the app's own
      * bookkeeping. Chats live elsewhere and stay too.
      */
     fun resetPreferences() = update { PREFERENCE_KEYS.forEach { remove(it) } }
@@ -153,13 +153,6 @@ class AppSettings(private val file: File) {
 
     /** The last model that loaded: CR-2's fallback after a crash on a cold start. */
     var lastLoadedModelId: String? get() = str("lastLoadedModelId"); set(v) = set("lastLoadedModelId", v?.let(::JsonPrimitive))
-
-    // The PIN lock (native app): the data key sealed with the PIN and the device key, its salt, and the wrong-try count.
-    var pinWrapped: String? get() = str("pinWrapped"); set(v) = set("pinWrapped", v?.let(::JsonPrimitive))
-    var pinSalt: String? get() = str("pinSalt"); set(v) = set("pinSalt", v?.let(::JsonPrimitive))
-    var pinIterations: Int get() = int("pinIterations") ?: team.sopa.boar.engine.security.PinKeys.ITERATIONS; set(v) = set("pinIterations", JsonPrimitive(v))
-    var pinFailures: Int get() = int("pinFailures") ?: 0; set(v) = set("pinFailures", JsonPrimitive(v))
-    var pinLockedUntil: Long get() = (data["pinLockedUntil"] as? JsonPrimitive)?.content?.toLongOrNull() ?: 0L; set(v) = set("pinLockedUntil", JsonPrimitive(v))
 
     fun raw(): JsonObject = data
 }

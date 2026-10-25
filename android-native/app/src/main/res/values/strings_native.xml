@@ -109,31 +109,6 @@
     <string name="native_tweaks_thinkingNote" formatted="false">Lets a thinking model reason first. Auto: off, so the answer\'s token budget isn\'t spent on reasoning.</string>
     <string name="native_tweaks_repack" formatted="false">Repacked weights</string>
     <string name="native_tweaks_repackNote" formatted="false">Auto: on (prompts read about 2x faster on our test phone, Oct 2026). After a load that ran out of memory, Try again with less memory keeps the weights mapped from storage for that model.</string>
-    <string name="native_pin_enterTitle" formatted="false">Enter your PIN</string>
-    <string name="native_pin_enterSubtitle" formatted="false">Your chats are sealed with it.</string>
-    <string name="native_pin_wrong" formatted="false">Wrong PIN.</string>
-    <string name="native_pin_wait" formatted="false">Too many tries. Wait {{seconds}} s.</string>
-    <string name="native_pin_forgot" formatted="false">Forgot the PIN?</string>
-    <string name="native_pin_forgotTitle" formatted="false">Erase your chats?</string>
-    <string name="native_pin_forgotBody" formatted="false">Without the PIN, your chats can\'t be opened, not even by us. Erasing them removes the PIN too. Models, packs and documents stay.</string>
-    <string name="native_pin_forgotConfirm" formatted="false">Erase chats</string>
-    <string name="native_pin_forgotCountdown" formatted="false">Closes in {{seconds}} s</string>
-    <string name="native_pin_currentTitle" formatted="false">Current PIN</string>
-    <string name="native_pin_newTitle" formatted="false">Choose a PIN</string>
-    <string name="native_pin_newSubtitle" formatted="false">4 to 8 digits. You\'ll enter it each time you open BoarLite.</string>
-    <string name="native_pin_confirmTitle" formatted="false">Enter it again</string>
-    <string name="native_pin_saveFailed" formatted="false">Couldn\'t change the PIN. Try again.</string>
-    <string name="native_pin_mismatch" formatted="false">The PINs didn\'t match. Choose it again.</string>
-    <string name="native_pin_offerTitle" formatted="false">Lock BoarLite with a PIN?</string>
-    <string name="native_pin_offerBody" formatted="false">With a PIN, your chats are stored sealed: someone with your phone or its files over USB can\'t read them. You can set it or remove it later in Settings.</string>
-    <string name="native_pin_offerSet" formatted="false">Set a PIN</string>
-    <string name="native_pin_offerSkip" formatted="false">Not now</string>
-    <string name="native_settings_security" formatted="false">PIN lock</string>
-    <string name="native_settings_pinOn" formatted="false">PIN on. Chats are stored sealed with it.</string>
-    <string name="native_settings_pinOff" formatted="false">No PIN. Anyone with the phone unlocked can open your chats.</string>
-    <string name="native_settings_pinSet" formatted="false">Set a PIN</string>
-    <string name="native_settings_pinChange" formatted="false">Change PIN</string>
-    <string name="native_settings_pinRemove" formatted="false">Remove PIN</string>
     <string name="native_settings_clearChatsDone" formatted="false">Chat history cleared.</string>
     <string name="native_settings_openCatalog" formatted="false">Open the model catalog</string>
     <string name="native_settings_openDocuments" formatted="false">Open My Documents</string>

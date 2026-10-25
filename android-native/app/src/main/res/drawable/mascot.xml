@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- BoarLite mark (M2), the in-app identity: chat header, empty state, answer avatar, drawer, PIN, setup and tour.
+<!-- BoarLite mark (M2), the in-app identity: chat header, empty state, answer avatar, drawer, setup and tour.
      Same path as the launcher icon (assets/brand/boarlite-mark.svg), centred in a 140-unit viewport so the ear
-     tips stay inside a circle clip (PIN screens). -->
+     tips stay inside a circle clip. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="140dp"
     android:height="140dp"

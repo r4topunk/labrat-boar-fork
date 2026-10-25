@@ -154,7 +154,7 @@ dependencies {
     implementation(libs.compose.material.icons.core)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
-    // On-device checks (the PIN, its Keystore key, the sealed database, the PIN screens), run with adb am instrument.
+    // On-device checks (chat, setup, settings, knowledge, evaluation), run with adb am instrument.
     androidTestImplementation(libs.androidx.test.ext.junit)
     // Compose ui-test brings espresso-core 3.5.0, which calls InputManager.getInstance (gone on Android 16+): every
     // device test failed on a Pixel 8a on Android 17 (Oct 21). 3.7.0 with androidx.test 1.7.0 does not.

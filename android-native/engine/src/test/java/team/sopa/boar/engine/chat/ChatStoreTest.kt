@@ -28,6 +28,19 @@ class ChatStoreTest {
         assertEquals(0, s.repairThinkingTitles())
     }
 
+    @Test fun `text a PIN-sealed earlier build stored shows the lock, new text is stored as written`() {
+        val db = JdbcSqlite()
+        KnowledgeBase(db)
+        val s = ChatStore(db) { clock++ }
+        val a = s.createSession("enc1:AAAA")
+        s.addMessage(a.id, "user", "enc1:BBBB", "u1")
+        s.setMessageMeta("u1", "enc1:CCCC")
+        s.addMessage(a.id, "assistant", "Plain answer", "a1")
+        assertEquals(ChatStore.LOCKED, s.listSessions().single().title)
+        assertEquals(listOf(ChatStore.LOCKED, "Plain answer"), s.messages(a.id).map { it.text })
+        assertEquals("Plain answer", db.query("SELECT text FROM chat_messages WHERE id = 'a1'") { it.string(0)!! }.single())
+    }
+
     @Test fun `sessions, messages and meta round-trip`() {
         val s = store()
         val a = s.createSession()

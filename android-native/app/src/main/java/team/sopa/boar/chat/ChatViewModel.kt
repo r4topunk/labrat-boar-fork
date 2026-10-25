@@ -369,7 +369,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     fun refreshSettings() {
         refreshModel()
         _state.update { it.copy(technicalDetails = services.settings.showLiveStats) }
-        // The open chat was erased (Clear all chat history, or a forgotten PIN): start a new one.
+        // The open chat was erased (Clear all chat history): start a new one.
         val open = _state.value.sessionId
         if (open != null && services.chats.listSessions().none { it.id == open }) newChat()
     }
