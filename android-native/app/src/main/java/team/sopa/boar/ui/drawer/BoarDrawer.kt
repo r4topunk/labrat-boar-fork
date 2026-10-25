@@ -115,7 +115,7 @@ fun BoarDrawer(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box(Modifier.size(52.dp).clip(RoundedCornerShape(16.dp)).background(scheme.surface), contentAlignment = Alignment.Center) {
-                        BoarMark(null, Modifier.size(34.dp))
+                        BoarMark(null, Modifier.size(44.dp)) // about 34 dp of mark, as in the design
                     }
                     Column {
                         Text("BoarLite", style = Boar.type.title, fontWeight = FontWeight.ExtraBold, color = scheme.onPrimaryContainer)

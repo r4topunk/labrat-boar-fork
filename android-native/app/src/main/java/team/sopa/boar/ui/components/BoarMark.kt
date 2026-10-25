@@ -10,10 +10,10 @@ import androidx.compose.ui.res.painterResource
 import team.sopa.boar.R
 
 /**
- * The BoarLite mark (R.drawable.mascot) in the text color: ink on the light theme, light on the dark one (r4to
- * 2026-10-24: the boar goes in black in the app, as a general rule; the launcher icon keeps its own colors).
+ * The BoarLite mark (R.drawable.mascot) in the accent color, the theme's primary (r4to 2026-10-24, general rule for the
+ * app; the launcher icon keeps its own colors). The vector pads the mark inside its box: it fills about 3/4 of [modifier]'s size.
  */
 @Composable
 fun BoarMark(contentDescription: String?, modifier: Modifier = Modifier, contentScale: ContentScale = ContentScale.Fit) =
     Image(painterResource(R.drawable.mascot), contentDescription, modifier, contentScale = contentScale,
-        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface))
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary))

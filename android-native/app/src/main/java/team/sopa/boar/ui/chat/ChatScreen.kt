@@ -475,9 +475,7 @@ private fun Bubble(
     Box(modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(Modifier.padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // One 24 dp slot for both marks, so the label starts at the same x in every answer.
-                if (researched) Icon(BoarIcons.Science, null, tint = scheme.tertiary, modifier = Modifier.size(IconSize.Standard))
-                else BoarMark(null, Modifier.size(IconSize.Standard), contentScale = ContentScale.Fit)
+                // The label alone, no mark (r4to 2026-10-24); Deep Research tells itself apart by its name and color.
                 Text(if (researched) t("native.chat.roleDeepResearch") else t("chatScreen.roleAssistant"), style = type.labelLarge,
                     color = if (researched) scheme.tertiary else scheme.onSurfaceVariant)
             }
