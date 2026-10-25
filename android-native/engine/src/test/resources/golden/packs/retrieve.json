@@ -541,72 +541,6 @@
    ]
   },
   {
-   "query": "Como parar de sentir a queimadura?",
-   "topK": 6,
-   "chunks": [
-    {
-     "chunkId": "pack:local-dest:23",
-     "docId": "pack:local-dest:a11",
-     "title": "Burn",
-     "body": "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.",
-     "source": "Wikipedia — https://en.wikipedia.org/wiki/Burn",
-     "score": 1,
-     "matchType": "lexical",
-     "action": false
-    },
-    {
-     "chunkId": "pack:local-sources:8",
-     "docId": "pack:local-sources:a8",
-     "title": "Appropedia: Horta comunitária",
-     "body": "Como plantar uma horta de verduras e parar de comprar. Como regar uma horta de manhã. Horta filler sentence number 0 about unrelated matters. Horta filler sentence number 1 about unrelated matters. Horta filler sentence number 2 about unrelated matters. Horta filler sentence number 3 about unrelated matters. Horta filler sentence number 4 about unrelated matters. Horta filler sentence number 5 about unrelated matters.",
-     "source": "Appropedia — https://www.appropedia.org/Horta (CC BY-SA 4.0)",
-     "score": 0.5,
-     "matchType": "lexical",
-     "action": false
-    },
-    {
-     "chunkId": "pack:local-mini:603",
-     "docId": "pack:local-mini:a10",
-     "title": "RSA cryptosystem",
-     "body": "Operation > Verifying: (\n          mod\n          \n          n\n          )\n        \n        .\n      \n    \n    {\\displaystyle s^{e}=(h^{d})^{e}=h^{de}=h^{ed}=(h^{e})^{d}\\equiv h{\\pmod {n}}.}",
-     "source": "Wikipedia — https://en.wikipedia.org/wiki/RSA_cryptosystem",
-     "score": 0.37004175365344466,
-     "matchType": "lexical",
-     "action": false
-    },
-    {
-     "chunkId": "pack:local-mini:510",
-     "docId": "pack:local-mini:a10",
-     "title": "RSA cryptosystem",
-     "body": "History: Kid-RSA (KRSA) is a simplified, insecure public-key cipher published in 1997, designed for educational purposes. Kid-RSA gives insight into RSA and other public-key ciphers, analogous to simplified DES.",
-     "source": "Wikipedia — https://en.wikipedia.org/wiki/RSA_cryptosystem",
-     "score": 0.3173277661795407,
-     "matchType": "lexical",
-     "action": false
-    },
-    {
-     "chunkId": "pack:local-mini:69",
-     "docId": "pack:local-mini:a1",
-     "title": "Post-quantum cryptography",
-     "body": "Comparison > Supersingular elliptic curve isogeny cryptography: For 128 bits of security in the supersingular isogeny Diffie–Hellman (SIDH) method, De Feo, Jao and Plut recommend using a supersingular curve modulo of a 768-bit prime. If one uses elliptic curve point compression, the public key will need to be no more than 8x768 or 6144 bits in length.",
-     "source": "Wikipedia — https://en.wikipedia.org/wiki/Post-quantum_cryptography",
-     "score": 0.24269311064718163,
-     "matchType": "lexical",
-     "action": false
-    },
-    {
-     "chunkId": "pack:local-dest:13",
-     "docId": "pack:local-dest:a5",
-     "title": "Wikivoyage: Como",
-     "body": "Como is a destination. Como filler sentence number 0 about unrelated matters. Como filler sentence number 1 about unrelated matters. Como filler sentence number 2 about unrelated matters. Como filler sentence number 3 about unrelated matters. Como filler sentence number 4 about unrelated matters. Como filler sentence number 5 about unrelated matters.",
-     "source": "Wikivoyage — https://en.wikivoyage.org/wiki/Como",
-     "score": 0.23173277661795408,
-     "matchType": "lexical",
-     "action": false
-    }
-   ]
-  },
-  {
    "query": "My child spilled boiling water. What do I do about the scald?",
    "topK": 6,
    "chunks": [
@@ -1255,11 +1189,6 @@
    ]
   },
   {
-   "query": "Tenho visto Roma no mapa, onde fica?",
-   "topK": 6,
-   "chunks": []
-  },
-  {
    "query": "Where did Charles Darwin travel on the Beagle?",
    "topK": 6,
    "chunks": [
@@ -1438,52 +1367,6 @@
      "body": "Security and practical considerations > Integer factorization and the RSA problem: Its factorization, by a state-of-the-art distributed implementation, took about 2,700 CPU-years. In practice, RSA keys are typically 1024 to 4096 bits long. In 2003, RSA Security estimated that 1024-bit keys were likely to become crackable by 2010.",
      "source": "Wikipedia — https://en.wikipedia.org/wiki/RSA_cryptosystem",
      "score": 0.3380414312617703,
-     "matchType": "lexical",
-     "action": false
-    }
-   ]
-  },
-  {
-   "query": "Preciso de visto para visitar a Argentina no Natal?",
-   "topK": 6,
-   "chunks": [
-    {
-     "chunkId": "pack:local-mini:603",
-     "docId": "pack:local-mini:a10",
-     "title": "RSA cryptosystem",
-     "body": "Operation > Verifying: (\n          mod\n          \n          n\n          )\n        \n        .\n      \n    \n    {\\displaystyle s^{e}=(h^{d})^{e}=h^{de}=h^{ed}=(h^{e})^{d}\\equiv h{\\pmod {n}}.}",
-     "source": "Wikipedia — https://en.wikipedia.org/wiki/RSA_cryptosystem",
-     "score": 0.5,
-     "matchType": "lexical",
-     "action": false
-    },
-    {
-     "chunkId": "pack:local-mini:510",
-     "docId": "pack:local-mini:a10",
-     "title": "RSA cryptosystem",
-     "body": "History: Kid-RSA (KRSA) is a simplified, insecure public-key cipher published in 1997, designed for educational purposes. Kid-RSA gives insight into RSA and other public-key ciphers, analogous to simplified DES.",
-     "source": "Wikipedia — https://en.wikipedia.org/wiki/RSA_cryptosystem",
-     "score": 0.4287729196050776,
-     "matchType": "lexical",
-     "action": false
-    },
-    {
-     "chunkId": "pack:local-mini:69",
-     "docId": "pack:local-mini:a1",
-     "title": "Post-quantum cryptography",
-     "body": "Comparison > Supersingular elliptic curve isogeny cryptography: For 128 bits of security in the supersingular isogeny Diffie–Hellman (SIDH) method, De Feo, Jao and Plut recommend using a supersingular curve modulo of a 768-bit prime. If one uses elliptic curve point compression, the public key will need to be no more than 8x768 or 6144 bits in length.",
-     "source": "Wikipedia — https://en.wikipedia.org/wiki/Post-quantum_cryptography",
-     "score": 0.3279266572637518,
-     "matchType": "lexical",
-     "action": false
-    },
-    {
-     "chunkId": "pack:local-sources:8",
-     "docId": "pack:local-sources:a8",
-     "title": "Appropedia: Horta comunitária",
-     "body": "Como plantar uma horta de verduras e parar de comprar. Como regar uma horta de manhã. Horta filler sentence number 0 about unrelated matters. Horta filler sentence number 1 about unrelated matters. Horta filler sentence number 2 about unrelated matters. Horta filler sentence number 3 about unrelated matters. Horta filler sentence number 4 about unrelated matters. Horta filler sentence number 5 about unrelated matters.",
-     "source": "Appropedia — https://www.appropedia.org/Horta (CC BY-SA 4.0)",
-     "score": 0.27150916784203105,
      "matchType": "lexical",
      "action": false
     }
@@ -2543,62 +2426,6 @@
      "source": "Wikipedia — https://en.wikipedia.org/wiki/French Revolution",
      "score": 0.7902434423008423,
      "matchType": "hybrid"
-    }
-   ]
-  },
-  {
-   "query": "Quem foi Charles Darwin?",
-   "topK": 6,
-   "chunks": [
-    {
-     "chunkId": "pack:local-dest:24",
-     "docId": "pack:local-dest:a12",
-     "title": "Charles Darwin",
-     "body": "Charles Darwin was a naturalist who published On the Origin of Species in 1859. Naturalist filler sentence number 0 about unrelated matters. Naturalist filler sentence number 1 about unrelated matters. Naturalist filler sentence number 2 about unrelated matters. Naturalist filler sentence number 3 about unrelated matters. Naturalist filler sentence number 4 about unrelated matters. Naturalist filler sentence number 5 about unrelated matters.",
-     "source": "Wikipedia — https://en.wikipedia.org/wiki/Charles_Darwin",
-     "score": 1,
-     "matchType": "lexical",
-     "action": false
-    },
-    {
-     "chunkId": "pack:local-dest:16",
-     "docId": "pack:local-dest:a6",
-     "title": "Wikivoyage: Darwin",
-     "body": "Understand: Darwin is the capital of the Northern Territory, named after Charles Darwin. Top End filler sentence number 0 about unrelated matters. Top End filler sentence number 1 about unrelated matters. Top End filler sentence number 2 about unrelated matters. Top End filler sentence number 3 about unrelated matters. Top End filler sentence number 4 about unrelated matters. Top End filler sentence number 5 about unrelated matters.",
-     "source": "Wikivoyage — https://en.wikivoyage.org/wiki/Darwin",
-     "score": 0.5,
-     "matchType": "lexical",
-     "action": false
-    },
-    {
-     "chunkId": "pack:local-mini:931",
-     "docId": "pack:local-mini:a13",
-     "title": "Quantum computing",
-     "body": "History: In a 1984 paper, Charles Bennett and Gilles Brassard applied quantum theory to cryptography protocols and demonstrated that quantum key distribution could enhance information security.",
-     "source": "Wikipedia — https://en.wikipedia.org/wiki/Quantum_computing",
-     "score": 0.4455252918287938,
-     "matchType": "lexical",
-     "action": false
-    },
-    {
-     "chunkId": "pack:local-mini:1776",
-     "docId": "pack:local-mini:a18",
-     "title": "Grover's algorithm",
-     "body": "{\\displaystyle N/2}\n  \n steps).\nCharles H. Bennett, Ethan Bernstein, Gilles Brassard, and Umesh Vazirani proved that any quantum solution to the problem needs to evaluate the function \n  \n    \n      \n        Ω\n        (\n        \n          \n            N\n          \n        \n        )",
-     "source": "Wikipedia — https://en.wikipedia.org/wiki/Grover's_algorithm",
-     "score": 0.4241245136186771,
-     "matchType": "lexical",
-     "action": false
-    },
-    {
-     "chunkId": "pack:local-mini:152",
-     "docId": "pack:local-mini:a2",
-     "title": "NIST Post-Quantum Cryptography Standardization",
-     "body": "Additional Digital Signature Schemes > Round one submissions published attacks: Saarinen (implementation only?)\nBiscuit by Charles Bouillaguet\nMEDS by Markku-Juhani O. Saarinen and Ward Beullens (implementation only)\nFuLeeca by Felicitas Hörmann and Wessel van Woerden\nLESS by the LESS team (implementation only)\nDME-Sign by Markku-Juhani O.",
-     "source": "Wikipedia — https://en.wikipedia.org/wiki/NIST_Post-Quantum_Cryptography_Standardization",
-     "score": 0.33754863813229574,
-     "matchType": "lexical",
-     "action": false
     }
    ]
   },

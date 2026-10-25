@@ -5,7 +5,7 @@ import java.util.Locale
 
 /**
  * BOAR is English only (r4to, Oct 24). The texts live in res/values alone, and this makes the numbers, sizes and dates
- * the app formats with the default locale English too, on a phone set to Portuguese or any other language.
+ * the app formats with the default locale English too, on a phone set to any other language.
  */
 class BoarApp : Application() {
     override fun onCreate() {

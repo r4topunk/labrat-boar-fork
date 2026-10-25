@@ -31,11 +31,11 @@ object Calculators {
     private fun fmt(n: Double, digits: Int = 2) = JsNumber.locale(n, digits)
 
     // (a) Fuel economy: L/100 km <-> miles per gallon (US 235.215, UK 282.481).
-    private val UK = JsRegex.re("""\b(uk|imperial|brit[âa]nic[oa]|ingl[eê]s)\b""", "i")
-    private val L100 = JsRegex.re("""$NUM\s*(?:l|litros?|liters?|litres?)\s*(?:/|a cada|por|per|every|each)\s*100\s*km""", "i")
-    private val ASKS_MPG = JsRegex.re("""\b(mpg|milhas? por gal[ãa]o|miles? per (?:us |uk |imperial )?gallon|mi\/gal)\b""", "i")
-    private val MPG = JsRegex.re("""$NUM\s*(?:mpg|milhas? por gal[ãa]o|miles? per (?:us |uk |imperial )?gallon)""", "i")
-    private val ASKS_L100 = JsRegex.re("""l\s*\/\s*100|litros? (a cada|por) 100|liters? per 100""", "i")
+    private val UK = JsRegex.re("""\b(uk|imperial)\b""", "i")
+    private val L100 = JsRegex.re("""$NUM\s*(?:l|litros?|liters?|litres?)\s*(?:/|por|per|every|each)\s*100\s*km""", "i")
+    private val ASKS_MPG = JsRegex.re("""\b(mpg|miles? per (?:us |uk |imperial )?gallon|mi\/gal)\b""", "i")
+    private val MPG = JsRegex.re("""$NUM\s*(?:mpg|miles? per (?:us |uk |imperial )?gallon)""", "i")
+    private val ASKS_L100 = JsRegex.re("""l\s*\/\s*100|litros? por 100|liters? per 100""", "i")
 
     private fun fuelEconomy(q: String): String? {
         val uk = UK.containsMatchIn(q)
@@ -79,12 +79,12 @@ object Calculators {
 
     // (c) Currency with the rate the question gives, and an optional tip.
     private val RATE = JsRegex.re(
-        """\b1\s*(?:u\.?s\.?\s+)?(d[óo]lar(?:es)?(?: americanos?)?|us\${'$'}|usd|euros?|eur|€|libras?|gbp|reais|real|brl|r\${'$'}|dollars?(?: us)?)\s*(?:vale|valem|=|equals|is worth|is|custa)\s*$NUM\s*([\p{L}${'$'}€£]+(?: [\p{L}]+)?)?""",
+        """\b1\s*(?:u\.?s\.?\s+)?(d[óo]lar(?:es)?(?: americanos?)?|us\${'$'}|usd|euros?|eur|€|libras?|gbp|real|brl|r\${'$'}|dollars?(?: us)?)\s*(?:vale|valem|=|equals|is worth|is)\s*$NUM\s*([\p{L}${'$'}€£]+(?: [\p{L}]+)?)?""",
         "iu",
     )
     private val AMOUNT = JsRegex.re("""$NUM\s*(?!%)(?!\s*%)([\p{L}${'$'}€£]+)?""", "iu")
     private val PERCENT = JsRegex.re("""$NUM\s*%""")
-    private val TIP = JsRegex.re("""gorjeta|tip|servi[çc]o|gratuity""", "i")
+    private val TIP = JsRegex.re("""tip|gratuity""", "i")
     private val ES_END = JsRegex.re("""es$""", "i")
     private val SPACE_DOT = JsRegex.re("""\s+\.""")
     private val SPACES_2 = JsRegex.re("""\s{2,}""")
@@ -114,7 +114,7 @@ object Calculators {
     // with the airline's approval; above 160 Wh not allowed; spare batteries never in checked bags).
     private val MAH = JsRegex.re("""$NUM\s*mah\b""", "i")
     private val VOLTS = JsRegex.re("""$NUM\s*v\b""", "i")
-    private val FLIGHT = JsRegex.re("""avi[ãa]o|voo|voar|bagagem|companhia a[ée]rea|plane|flight|fly|airline|carry[- ]on|luggage""", "i")
+    private val FLIGHT = JsRegex.re("""plane|flight|fly|airline|carry[- ]on|luggage""", "i")
 
     private fun battery(q: String): String? {
         val mah = MAH.find(q) ?: return null
@@ -134,19 +134,18 @@ object Calculators {
     private val WORD_NUMBERS = mapOf(
         "one" to 1, "two" to 2, "three" to 3, "four" to 4, "five" to 5, "six" to 6, "seven" to 7, "eight" to 8, "nine" to 9, "ten" to 10,
         "eleven" to 11, "twelve" to 12,
-        "um" to 1, "uma" to 1, "dois" to 2, "duas" to 2, "três" to 3, "tres" to 3, "quatro" to 4, "cinco" to 5, "seis" to 6, "sete" to 7,
-        "oito" to 8, "nove" to 9, "dez" to 10, "onze" to 11, "doze" to 12,
+        "tres" to 3, "cinco" to 5, "seis" to 6,
     )
     private const val COUNT =
-        """(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|um|uma|dois|duas|três|tres|quatro|cinco|seis|sete|oito|nove|dez|onze|doze)"""
+        """(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|tres|cinco|seis)"""
 
     private fun count(w: String): Double = WORD_NUMBERS[w.lowercase()]?.toDouble() ?: parseNumber(w)
 
     // (f) Water for a trip: people × days × litres per person per day; 1 L of water weighs about 1 kg.
-    private val WATER = JsRegex.re("""(?<![\p{L}])(water|[áa]gua)(?![\p{L}])""", "iu")
-    private val PER_DAY = JsRegex.re("""$NUM\s*(?:l|litros?|liters?|litres?)\b[^.?!]{0,30}?(?:por dia|per day|a day|/dia|/day)""", "i")
-    private val PEOPLE = JsRegex.re("""\b(?:somos|we are|we're)\s+$COUNT\b|\b$COUNT\s+(?:of us|people|persons|pessoas|adultos|adults|hikers)\b""", "i")
-    private val DAYS = JsRegex.re("""\b$COUNT[\s-]+(?:days?|dias?)\b""", "i")
+    private val WATER = JsRegex.re("""(?<![\p{L}])(water|agua)(?![\p{L}])""", "iu")
+    private val PER_DAY = JsRegex.re("""$NUM\s*(?:l|litros?|liters?|litres?)\b[^.?!]{0,30}?(?:per day|a day|/day)""", "i")
+    private val PEOPLE = JsRegex.re("""\b(?:somos|we are|we're)\s+$COUNT\b|\b$COUNT\s+(?:of us|people|persons|adultos|adults|hikers)\b""", "i")
+    private val DAYS = JsRegex.re("""\b$COUNT[\s-]+days?\b""", "i")
 
     private fun water(q: String): String? {
         if (!WATER.containsMatchIn(q)) return null
@@ -163,7 +162,7 @@ object Calculators {
     }
 
     private val TEMPERATURE = JsRegex.re(
-        """(-?\d+(?:[.,]\d+)?)\s*(?:°|º|degrees?|graus?)?\s*(c|celsius|centigrade|f|fahrenheit)\b[^?]*?\b(?:in|to|into|em|para)\s+(?:degrees?\s+|graus?\s+)?(celsius|centigrade|fahrenheit|c|f)\b""",
+        """(-?\d+(?:[.,]\d+)?)\s*(?:°|º|degrees?)?\s*(c|celsius|centigrade|f|fahrenheit)\b[^?]*?\b(?:in|to|into|para)\s+(?:degrees?\s+)?(celsius|centigrade|fahrenheit|c|f)\b""",
         "i",
     )
 
@@ -183,7 +182,7 @@ object Calculators {
     // (e) A temperature, plus the heat warning when the question asks if it's dangerous (or it clearly is).
     private val CELSIUS = JsRegex.re("""(-?[\d.,]+)\s*°C""")
     private val HAS_C = JsRegex.re("°C")
-    private val ASKS_SAFE = JsRegex.re("""perig|segur|caminh|trilha|correr|exerc|danger|safe|hike|hiking|walk|run|exercise""", "i")
+    private val ASKS_SAFE = JsRegex.re("""segur|correr|danger|safe|hike|hiking|walk|run|exercise""", "i")
 
     private fun temperature(q: String): String? {
         val base = temperatureConversion(q) ?: return null

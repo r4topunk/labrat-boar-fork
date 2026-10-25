@@ -13,8 +13,6 @@ class HealthQuestionTest {
             "My hiking partner is shivering, confused and slurring words",
             "I was stung by a box jellyfish while swimming. Should I rinse it?",
             "My child spilled boiling water on their arm. What do I do?",
-            "Meu amigo está tremendo, confuso e com a fala enrolada",
-            "Como estancar um sangramento no nariz?",
         ).forEach { assertTrue(it, QueryContext.isHealthQuestion(it)) }
     }
 

@@ -153,7 +153,7 @@ class SearchPortTest {
         val before = Retriever(kb, { packs }, GoldenEmbedding::hashVec)
         val off = Retriever(kb, { packs }, GoldenEmbedding::hashVec, port = false)
         val on = Retriever(kb, { packs }, GoldenEmbedding::hashVec, port = true)
-        for (query in listOf("history of the roman empire", "what to do in an earthquake", "o que fazer num terremoto", "Paris")) {
+        for (query in listOf("history of the roman empire", "what to do in an earthquake", "Paris")) {
             val a = before.retrieve(query, 4)
             assertEquals(query, a, off.retrieve(query, 4))
             assertFalse(off.retrieve(query, 4) is SearchPort.Retrieved)
@@ -215,7 +215,7 @@ class SearchPortTest {
         )
         val before = Retriever(kb, { packs }, GoldenEmbedding::hashVec)
         val on = Retriever(kb, { packs }, GoldenEmbedding::hashVec, port = true)
-        for (query in listOf("history of the roman empire", "o que fazer num terremoto")) {
+        for (query in listOf("history of the roman empire")) {
             val off = on.retrieve(query, 4, port = false)
             assertEquals(query, before.retrieve(query, 4), off)
             assertFalse(off is SearchPort.Retrieved)

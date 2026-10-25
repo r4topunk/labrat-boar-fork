@@ -84,7 +84,7 @@ object WikiPackText {
     const val LONG_TAIL_VIEWS = 5000
     private const val STEPS_SHARE = 0.35
 
-    // JavaScript /i also folds non-ASCII letters ("Água"), so these use (?iu). JS $ without /m is end of input: \z.
+    // JavaScript /i also folds non-ASCII letters ("Éclair"), so these use (?iu). JS $ without /m is end of input: \z.
     private const val B0 = Js.B0
     private const val B1 = Js.B1
     private const val S = Js.WS
@@ -92,12 +92,11 @@ object WikiPackText {
     val ACTION_INTENT = Regex(
         "(?iu)$B0(what (do|should|can|must) (i|we|you) do|what to do|how (do|can|should) (i|we|you) (treat|stop|help|survive|make|purify|disinfect|respond|care)|" +
             "how to (treat|stop|help|survive|make|purify|disinfect)|treat(ing|ment)?|first aid|stop (a|the)?$S*[A-Za-z0-9_]*$S*(bleed|nosebleed)|" +
-            "o que (eu )?(fa[cç]o|fazer|devo fazer)|como (tratar|parar|socorrer|fa[cç]o|agir|purificar|tornar)|primeiros socorros|socorr|" +
             "$B0(stop|treat|first aid)$S*[?.!]*\\z)",
     )
     val ACTION_SECTION = Regex(
         "(?iu)$B0(treatment|treating|first aid|management|what to do|during|after|immediate|emergency (care|treatment|response)|how to|steps|response|" +
-            "survival|purification|disinfection|rescue|resuscitation|tratamento|primeiros socorros|o que fazer)$B1",
+            "survival|purification|disinfection|rescue|resuscitation)$B1",
     )
     val BACKGROUND_SECTION = Regex(
         "(?iu)$B0(prevent(ion|ing)?|signs?|symptoms?|epidemiology|history|causes?|pathophysiology|diagnosis|society|culture|research|etymology|statistics|" +
@@ -164,8 +163,7 @@ object WikiPackText {
     )
     private val TRAVEL_PRACTICAL = Regex(
         "(?iu)$B0(plugs?|plug types?|voltage|what currency|currency (is )?used|atms?|pay (by|with) (a )?card|tipping|tap water|drinking water|emergency numbers?|" +
-            "visas?|driving licen[cs]e|drive on the (left|right)|ride-?hailing|say .+ in|phrasebook|best time to (visit|go|travel)|tomadas?|voltagem|moeda|" +
-            "pagar com cart[aã]o|gorjetas?|[aá]gua da torneira|preciso de visto|visto de turista|como (se )?diz|melhor [eé]poca para)$B1",
+            "visas?|driving licen[cs]e|drive on the (left|right)|ride-?hailing|say .+ in|phrasebook|best time to (visit|go|travel))$B1",
     )
     private val TRIP_INTENT = Regex(
         "(?iu)$B0(visit|visiting|things to (see|do)|see and do|get (to|there|around)|getting (to|around)|hotels?|hostels?|airports?|tourists?|itinerary|sightseeing)$B1",
@@ -174,19 +172,18 @@ object WikiPackText {
     fun isTravelQuestion(query: String) = TRIP_INTENT.containsMatchIn(query) || TRAVEL_PRACTICAL.containsMatchIn(query)
 
     internal val ORIGIN_CUE = Regex(
-        "(?iu)$B0(from|live in|living in|lives in|resident of|citizens? of|passport holders? of|compared (to|with)|saindo de|vindo de|partindo de|morando em|" +
-            "moro em|cidad[ãa]os? d[aeo]s?|comparad[oa] (a|com))$S+(the$S+|a$S+|an$S+|o$S+|os$S+|as$S+)?\\z",
+        "(?iu)$B0(from|live in|living in|lives in|resident of|citizens? of|passport holders? of|compared (to|with))$S+(the$S+|a$S+|an$S+)?\\z",
     )
     internal val PLACE_CUE = Regex(
-        "(?iu)$B0(in|to|for|at|around|near|into|across|visit|visiting|does|do|is|are|em|para|pra|no|na|nos|nas|[àa]|ao|aos|[àa]s|visitar|conhecer)$S+" +
-            "(the$S+|a$S+|an$S+|o$S+|os$S+|as$S+)?\\z",
+        "(?iu)$B0(in|to|for|at|around|near|into|across|visit|visiting|does|do|is|are|para|no|[àa]|[àa]s)$S+" +
+            "(the$S+|a$S+|an$S+)?\\z",
     )
     internal val QUESTION_WORDS = setOf(
         "what", "when", "where", "why", "how", "who", "which", "whose", "is", "are", "can", "do", "does", "did", "should", "tell",
-        "como", "quando", "onde", "porque", "por", "qual", "quais", "quem", "quanto", "quantos", "o", "a", "os", "as", "é", "existe",
+        "o", "a", "os", "as",
     )
-    internal val FOREIGN_FUNCTION_WORDS = ("o os a as um uma uns umas de do da dos das em no na nos nas num numa por para com sem que como qual quais quando onde " +
-        "porque se ao aos el la los las un una del al en con por para que como cual cuando donde es son y e ou").split(" ").toSet()
+    internal val FOREIGN_FUNCTION_WORDS = ("o os a as um de do da dos das em no na nos nas com se " +
+        "el la los las un una del al en con por para que como cual cuando donde es son y e ou").split(" ").toSet()
     internal val ACTION_WORDS = setOf("stop", "treat", "help", "first", "aid", "handl", "respond", "surviv")
     internal val STOPWORDS = ("a about above after again against all also am an and any are as at be because been before being below " +
         "between both but by can could compare comparison describe did difference differences do does doing down " +

@@ -460,81 +460,6 @@
   },
   {
    "pack": "mini",
-   "query": "O que eu faço?",
-   "stems": [
-    {
-     "stem": "eu",
-     "idf": 6.251903883165888
-    }
-   ],
-   "named": [],
-   "terms": [
-    "eu"
-   ],
-   "hits": [
-    {
-     "articleId": 9,
-     "chunkId": 490,
-     "title": "Digital signature",
-     "section": "Industry standards > Using separate key pairs for signing and encryption",
-     "text": "In several countries, a digital signature has a status somewhat like that of a traditional pen and paper signature, as in the\n1999 EU digital signature directive and 2014 EU follow-on legislation.",
-     "start": 23674,
-     "end": 23871,
-     "score": 7.75,
-     "via": "bm25",
-     "source": "enwiki",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 15,
-     "chunkId": 1530,
-     "title": "Quantum key distribution",
-     "section": "Implementations > Quantum key distribution networks > Eagle-1",
-     "text": "In late 2026 or early 2027, ESA and EU plan to launch the satellite Eagle-1, an experimental space-based quantum key distribution system.",
-     "start": 38715,
-     "end": 38852,
-     "score": 6.15,
-     "via": "bm25",
-     "source": "enwiki",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 15,
-     "chunkId": 1603,
-     "title": "Quantum key distribution",
-     "section": "Future > Deprecation of quantum key distributions from governmental institutions",
-     "text": "USA National Security Agency,\nEuropean Union Agency for Cybersecurity of EU (ENISA),\nUnited Kingdom's National Cyber Security Centre,\nFrench Secretariat for Defense and Security (ANSSI),\nGerman Federal Office for Information Security (BSI)\nAustralia ASD",
-     "start": 55101,
-     "end": 55356,
-     "score": 5.33,
-     "via": "bm25",
-     "source": "enwiki",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
-  },
-  {
-   "pack": "mini",
-   "query": "Como tratar uma queimadura?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "mini",
    "query": "Why do we have seasons?",
    "stems": [],
    "named": [],
@@ -1107,140 +1032,6 @@
    "named": [],
    "terms": [],
    "hits": []
-  },
-  {
-   "pack": "mini",
-   "query": "O que fazer em caso de queimadura?",
-   "stems": [
-    {
-     "stem": "de",
-     "idf": 6.251903883165888
-    }
-   ],
-   "named": [],
-   "terms": [
-    "de"
-   ],
-   "hits": [
-    {
-     "articleId": 10,
-     "chunkId": 603,
-     "title": "RSA cryptosystem",
-     "section": "Operation > Verifying",
-     "text": "(\n          mod\n          \n          n\n          )\n        \n        .\n      \n    \n    {\\displaystyle s^{e}=(h^{d})^{e}=h^{de}=h^{ed}=(h^{e})^{d}\\equiv h{\\pmod {n}}.}",
-     "start": 25818,
-     "end": 26016,
-     "score": 7.09,
-     "via": "bm25",
-     "source": "enwiki",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 10,
-     "chunkId": 510,
-     "title": "RSA cryptosystem",
-     "section": "History",
-     "text": "Kid-RSA (KRSA) is a simplified, insecure public-key cipher published in 1997, designed for educational purposes. Kid-RSA gives insight into RSA and other public-key ciphers, analogous to simplified DES.",
-     "start": 3479,
-     "end": 3681,
-     "score": 6.08,
-     "via": "bm25",
-     "source": "enwiki",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 1,
-     "chunkId": 69,
-     "title": "Post-quantum cryptography",
-     "section": "Comparison > Supersingular elliptic curve isogeny cryptography",
-     "text": "For 128 bits of security in the supersingular isogeny Diffie–Hellman (SIDH) method, De Feo, Jao and Plut recommend using a supersingular curve modulo of a 768-bit prime. If one uses elliptic curve point compression, the public key will need to be no more than 8x768 or 6144 bits in length.",
-     "start": 16962,
-     "end": 17252,
-     "score": 4.65,
-     "via": "bm25",
-     "source": "enwiki",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
-  },
-  {
-   "pack": "mini",
-   "query": "Como parar de sentir a queimadura?",
-   "stems": [
-    {
-     "stem": "de",
-     "idf": 6.251903883165888
-    }
-   ],
-   "named": [],
-   "terms": [
-    "de"
-   ],
-   "hits": [
-    {
-     "articleId": 10,
-     "chunkId": 603,
-     "title": "RSA cryptosystem",
-     "section": "Operation > Verifying",
-     "text": "(\n          mod\n          \n          n\n          )\n        \n        .\n      \n    \n    {\\displaystyle s^{e}=(h^{d})^{e}=h^{de}=h^{ed}=(h^{e})^{d}\\equiv h{\\pmod {n}}.}",
-     "start": 25818,
-     "end": 26016,
-     "score": 7.09,
-     "via": "bm25",
-     "source": "enwiki",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 10,
-     "chunkId": 510,
-     "title": "RSA cryptosystem",
-     "section": "History",
-     "text": "Kid-RSA (KRSA) is a simplified, insecure public-key cipher published in 1997, designed for educational purposes. Kid-RSA gives insight into RSA and other public-key ciphers, analogous to simplified DES.",
-     "start": 3479,
-     "end": 3681,
-     "score": 6.08,
-     "via": "bm25",
-     "source": "enwiki",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 1,
-     "chunkId": 69,
-     "title": "Post-quantum cryptography",
-     "section": "Comparison > Supersingular elliptic curve isogeny cryptography",
-     "text": "For 128 bits of security in the supersingular isogeny Diffie–Hellman (SIDH) method, De Feo, Jao and Plut recommend using a supersingular curve modulo of a 768-bit prime. If one uses elliptic curve point compression, the public key will need to be no more than 8x768 or 6144 bits in length.",
-     "start": 16962,
-     "end": 17252,
-     "score": 4.65,
-     "via": "bm25",
-     "source": "enwiki",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
   },
   {
    "pack": "mini",
@@ -1889,14 +1680,6 @@
   },
   {
    "pack": "mini",
-   "query": "Em que época Roma caiu?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "mini",
    "query": "What is the best time complexity of sorting in Rust?",
    "stems": [
     {
@@ -2216,30 +1999,6 @@
   },
   {
    "pack": "mini",
-   "query": "Tenho visto Roma no mapa, onde fica?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "mini",
-   "query": "Como funciona a fotossíntese?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "mini",
-   "query": "Como pagar com cartão em Lisboa?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "mini",
    "query": "Where did Charles Darwin travel on the Beagle?",
    "stems": [
     {
@@ -2555,73 +2314,6 @@
      "start": 42232,
      "end": 42481,
      "score": 3.59,
-     "via": "bm25",
-     "source": "enwiki",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
-  },
-  {
-   "pack": "mini",
-   "query": "Preciso de visto para visitar a Argentina no Natal?",
-   "stems": [
-    {
-     "stem": "de",
-     "idf": 6.251903883165888
-    }
-   ],
-   "named": [],
-   "terms": [
-    "de"
-   ],
-   "hits": [
-    {
-     "articleId": 10,
-     "chunkId": 603,
-     "title": "RSA cryptosystem",
-     "section": "Operation > Verifying",
-     "text": "(\n          mod\n          \n          n\n          )\n        \n        .\n      \n    \n    {\\displaystyle s^{e}=(h^{d})^{e}=h^{de}=h^{ed}=(h^{e})^{d}\\equiv h{\\pmod {n}}.}",
-     "start": 25818,
-     "end": 26016,
-     "score": 7.09,
-     "via": "bm25",
-     "source": "enwiki",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 10,
-     "chunkId": 510,
-     "title": "RSA cryptosystem",
-     "section": "History",
-     "text": "Kid-RSA (KRSA) is a simplified, insecure public-key cipher published in 1997, designed for educational purposes. Kid-RSA gives insight into RSA and other public-key ciphers, analogous to simplified DES.",
-     "start": 3479,
-     "end": 3681,
-     "score": 6.08,
-     "via": "bm25",
-     "source": "enwiki",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 1,
-     "chunkId": 69,
-     "title": "Post-quantum cryptography",
-     "section": "Comparison > Supersingular elliptic curve isogeny cryptography",
-     "text": "For 128 bits of security in the supersingular isogeny Diffie–Hellman (SIDH) method, De Feo, Jao and Plut recommend using a supersingular curve modulo of a 768-bit prime. If one uses elliptic curve point compression, the public key will need to be no more than 8x768 or 6144 bits in length.",
-     "start": 16962,
-     "end": 17252,
-     "score": 4.65,
      "via": "bm25",
      "source": "enwiki",
      "views": 0,
@@ -3924,22 +3616,6 @@
   },
   {
    "pack": "mini",
-   "query": "O que fazer com uma queimadura?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "mini",
-   "query": "Como tratar queimaduras?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "mini",
    "query": "stop",
    "stems": [
     {
@@ -4220,14 +3896,6 @@
   {
    "pack": "mini",
    "query": "What do I do for a Burn from boiling water?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "mini",
-   "query": "Queimadura: o que fazer?",
    "stems": [],
    "named": [],
    "terms": [],
@@ -4640,74 +4308,6 @@
   },
   {
    "pack": "sources",
-   "query": "O que eu faço?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "sources",
-   "query": "Como tratar uma queimadura?",
-   "stems": [
-    {
-     "stem": "como",
-     "idf": 2.9444389791664403
-    },
-    {
-     "stem": "uma",
-     "idf": 2.9444389791664403
-    }
-   ],
-   "named": [
-    {
-     "id": 7,
-     "share": 1
-    }
-   ],
-   "terms": [
-    "como",
-    "uma"
-   ],
-   "hits": [
-    {
-     "articleId": 7,
-     "chunkId": 7,
-     "title": "Burn",
-     "section": "",
-     "text": "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 434,
-     "score": 1,
-     "via": "title",
-     "source": "enwiki",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 8,
-     "chunkId": 8,
-     "title": "Horta comunitária",
-     "section": "",
-     "text": "Como plantar uma horta de verduras e parar de comprar. Como regar uma horta de manhã. Horta filler sentence number 0 about unrelated matters. Horta filler sentence number 1 about unrelated matters. Horta filler sentence number 2 about unrelated matters. Horta filler sentence number 3 about unrelated matters. Horta filler sentence number 4 about unrelated matters. Horta filler sentence number 5 about unrelated matters.",
-     "start": 21,
-     "end": 442,
-     "score": 6.68,
-     "via": "bm25",
-     "source": "appropedia",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": "https://www.appropedia.org/Horta",
-     "license": "CC BY-SA 4.0"
-    }
-   ]
-  },
-  {
-   "pack": "sources",
    "query": "Why do we have seasons?",
    "stems": [],
    "named": [],
@@ -4884,126 +4484,6 @@
      "action": false,
      "url": "https://eips.ethereum.org/EIPS/eip-20",
      "license": "CC0-1.0"
-    }
-   ]
-  },
-  {
-   "pack": "sources",
-   "query": "O que fazer em caso de queimadura?",
-   "stems": [
-    {
-     "stem": "de",
-     "idf": 2.9444389791664403
-    }
-   ],
-   "named": [
-    {
-     "id": 7,
-     "share": 1
-    }
-   ],
-   "terms": [
-    "de"
-   ],
-   "hits": [
-    {
-     "articleId": 7,
-     "chunkId": 7,
-     "title": "Burn",
-     "section": "",
-     "text": "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 434,
-     "score": 1,
-     "via": "title",
-     "source": "enwiki",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 8,
-     "chunkId": 8,
-     "title": "Horta comunitária",
-     "section": "",
-     "text": "Como plantar uma horta de verduras e parar de comprar. Como regar uma horta de manhã. Horta filler sentence number 0 about unrelated matters. Horta filler sentence number 1 about unrelated matters. Horta filler sentence number 2 about unrelated matters. Horta filler sentence number 3 about unrelated matters. Horta filler sentence number 4 about unrelated matters. Horta filler sentence number 5 about unrelated matters.",
-     "start": 21,
-     "end": 442,
-     "score": 3.85,
-     "via": "bm25",
-     "source": "appropedia",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": "https://www.appropedia.org/Horta",
-     "license": "CC BY-SA 4.0"
-    }
-   ]
-  },
-  {
-   "pack": "sources",
-   "query": "Como parar de sentir a queimadura?",
-   "stems": [
-    {
-     "stem": "como",
-     "idf": 2.9444389791664403
-    },
-    {
-     "stem": "de",
-     "idf": 2.9444389791664403
-    },
-    {
-     "stem": "parar",
-     "idf": 2.9444389791664403
-    }
-   ],
-   "named": [
-    {
-     "id": 7,
-     "share": 1
-    }
-   ],
-   "terms": [
-    "como",
-    "de",
-    "parar"
-   ],
-   "hits": [
-    {
-     "articleId": 7,
-     "chunkId": 7,
-     "title": "Burn",
-     "section": "",
-     "text": "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 434,
-     "score": 1,
-     "via": "title",
-     "source": "enwiki",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 8,
-     "chunkId": 8,
-     "title": "Horta comunitária",
-     "section": "",
-     "text": "Como plantar uma horta de verduras e parar de comprar. Como regar uma horta de manhã. Horta filler sentence number 0 about unrelated matters. Horta filler sentence number 1 about unrelated matters. Horta filler sentence number 2 about unrelated matters. Horta filler sentence number 3 about unrelated matters. Horta filler sentence number 4 about unrelated matters. Horta filler sentence number 5 about unrelated matters.",
-     "start": 21,
-     "end": 442,
-     "score": 9.58,
-     "via": "bm25",
-     "source": "appropedia",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": "https://www.appropedia.org/Horta",
-     "license": "CC BY-SA 4.0"
     }
    ]
   },
@@ -5384,14 +4864,6 @@
   },
   {
    "pack": "sources",
-   "query": "Em que época Roma caiu?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "sources",
    "query": "What is the best time complexity of sorting in Rust?",
    "stems": [],
    "named": [],
@@ -5432,80 +4904,6 @@
   },
   {
    "pack": "sources",
-   "query": "Tenho visto Roma no mapa, onde fica?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "sources",
-   "query": "Como funciona a fotossíntese?",
-   "stems": [
-    {
-     "stem": "como",
-     "idf": 2.9444389791664403
-    }
-   ],
-   "named": [],
-   "terms": [
-    "como"
-   ],
-   "hits": [
-    {
-     "articleId": 8,
-     "chunkId": 8,
-     "title": "Horta comunitária",
-     "section": "",
-     "text": "Como plantar uma horta de verduras e parar de comprar. Como regar uma horta de manhã. Horta filler sentence number 0 about unrelated matters. Horta filler sentence number 1 about unrelated matters. Horta filler sentence number 2 about unrelated matters. Horta filler sentence number 3 about unrelated matters. Horta filler sentence number 4 about unrelated matters. Horta filler sentence number 5 about unrelated matters.",
-     "start": 21,
-     "end": 442,
-     "score": 3.34,
-     "via": "bm25",
-     "source": "appropedia",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": "https://www.appropedia.org/Horta",
-     "license": "CC BY-SA 4.0"
-    }
-   ]
-  },
-  {
-   "pack": "sources",
-   "query": "Como pagar com cartão em Lisboa?",
-   "stems": [
-    {
-     "stem": "como",
-     "idf": 2.9444389791664403
-    }
-   ],
-   "named": [],
-   "terms": [
-    "como"
-   ],
-   "hits": [
-    {
-     "articleId": 8,
-     "chunkId": 8,
-     "title": "Horta comunitária",
-     "section": "",
-     "text": "Como plantar uma horta de verduras e parar de comprar. Como regar uma horta de manhã. Horta filler sentence number 0 about unrelated matters. Horta filler sentence number 1 about unrelated matters. Horta filler sentence number 2 about unrelated matters. Horta filler sentence number 3 about unrelated matters. Horta filler sentence number 4 about unrelated matters. Horta filler sentence number 5 about unrelated matters.",
-     "start": 21,
-     "end": 442,
-     "score": 3.34,
-     "via": "bm25",
-     "source": "appropedia",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": "https://www.appropedia.org/Horta",
-     "license": "CC BY-SA 4.0"
-    }
-   ]
-  },
-  {
-   "pack": "sources",
    "query": "Where did Charles Darwin travel on the Beagle?",
    "stems": [],
    "named": [],
@@ -5535,39 +4933,6 @@
    "named": [],
    "terms": [],
    "hits": []
-  },
-  {
-   "pack": "sources",
-   "query": "Preciso de visto para visitar a Argentina no Natal?",
-   "stems": [
-    {
-     "stem": "de",
-     "idf": 2.9444389791664403
-    }
-   ],
-   "named": [],
-   "terms": [
-    "de"
-   ],
-   "hits": [
-    {
-     "articleId": 8,
-     "chunkId": 8,
-     "title": "Horta comunitária",
-     "section": "",
-     "text": "Como plantar uma horta de verduras e parar de comprar. Como regar uma horta de manhã. Horta filler sentence number 0 about unrelated matters. Horta filler sentence number 1 about unrelated matters. Horta filler sentence number 2 about unrelated matters. Horta filler sentence number 3 about unrelated matters. Horta filler sentence number 4 about unrelated matters. Horta filler sentence number 5 about unrelated matters.",
-     "start": 21,
-     "end": 442,
-     "score": 3.85,
-     "via": "bm25",
-     "source": "appropedia",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": "https://www.appropedia.org/Horta",
-     "license": "CC BY-SA 4.0"
-    }
-   ]
   },
   {
    "pack": "sources",
@@ -6203,116 +5568,6 @@
   },
   {
    "pack": "sources",
-   "query": "O que fazer com uma queimadura?",
-   "stems": [
-    {
-     "stem": "uma",
-     "idf": 2.9444389791664403
-    }
-   ],
-   "named": [
-    {
-     "id": 7,
-     "share": 1
-    }
-   ],
-   "terms": [
-    "uma"
-   ],
-   "hits": [
-    {
-     "articleId": 7,
-     "chunkId": 7,
-     "title": "Burn",
-     "section": "",
-     "text": "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 434,
-     "score": 1,
-     "via": "title",
-     "source": "enwiki",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 8,
-     "chunkId": 8,
-     "title": "Horta comunitária",
-     "section": "",
-     "text": "Como plantar uma horta de verduras e parar de comprar. Como regar uma horta de manhã. Horta filler sentence number 0 about unrelated matters. Horta filler sentence number 1 about unrelated matters. Horta filler sentence number 2 about unrelated matters. Horta filler sentence number 3 about unrelated matters. Horta filler sentence number 4 about unrelated matters. Horta filler sentence number 5 about unrelated matters.",
-     "start": 21,
-     "end": 442,
-     "score": 3.34,
-     "via": "bm25",
-     "source": "appropedia",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": "https://www.appropedia.org/Horta",
-     "license": "CC BY-SA 4.0"
-    }
-   ]
-  },
-  {
-   "pack": "sources",
-   "query": "Como tratar queimaduras?",
-   "stems": [
-    {
-     "stem": "como",
-     "idf": 2.9444389791664403
-    }
-   ],
-   "named": [
-    {
-     "id": 7,
-     "share": 1
-    }
-   ],
-   "terms": [
-    "como"
-   ],
-   "hits": [
-    {
-     "articleId": 7,
-     "chunkId": 7,
-     "title": "Burn",
-     "section": "",
-     "text": "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 434,
-     "score": 1,
-     "via": "title",
-     "source": "enwiki",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 8,
-     "chunkId": 8,
-     "title": "Horta comunitária",
-     "section": "",
-     "text": "Como plantar uma horta de verduras e parar de comprar. Como regar uma horta de manhã. Horta filler sentence number 0 about unrelated matters. Horta filler sentence number 1 about unrelated matters. Horta filler sentence number 2 about unrelated matters. Horta filler sentence number 3 about unrelated matters. Horta filler sentence number 4 about unrelated matters. Horta filler sentence number 5 about unrelated matters.",
-     "start": 21,
-     "end": 442,
-     "score": 3.34,
-     "via": "bm25",
-     "source": "appropedia",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": "https://www.appropedia.org/Horta",
-     "license": "CC BY-SA 4.0"
-    }
-   ]
-  },
-  {
-   "pack": "sources",
    "query": "stop",
    "stems": [],
    "named": [],
@@ -6815,37 +6070,6 @@
   },
   {
    "pack": "sources",
-   "query": "Queimadura: o que fazer?",
-   "stems": [],
-   "named": [
-    {
-     "id": 7,
-     "share": 1
-    }
-   ],
-   "terms": [],
-   "hits": [
-    {
-     "articleId": 7,
-     "chunkId": 7,
-     "title": "Burn",
-     "section": "",
-     "text": "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 434,
-     "score": 1,
-     "via": "title",
-     "source": "enwiki",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
-  },
-  {
-   "pack": "sources",
    "query": "Compare the French Revolution and the Industrial Revolution.",
    "stems": [],
    "named": [],
@@ -6960,86 +6184,6 @@
   },
   {
    "pack": "dest",
-   "query": "O que eu faço?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "dest",
-   "query": "Como tratar uma queimadura?",
-   "stems": [
-    {
-     "stem": "como",
-     "idf": 2.5649493574615367
-    }
-   ],
-   "named": [
-    {
-     "id": 11,
-     "share": 1
-    }
-   ],
-   "terms": [
-    "como"
-   ],
-   "hits": [
-    {
-     "articleId": 11,
-     "chunkId": 23,
-     "title": "Burn",
-     "section": "",
-     "text": "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 434,
-     "score": 1,
-     "via": "title",
-     "source": "enwiki",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 5,
-     "chunkId": 13,
-     "title": "Como",
-     "section": "",
-     "text": "Como is a destination. Como filler sentence number 0 about unrelated matters. Como filler sentence number 1 about unrelated matters. Como filler sentence number 2 about unrelated matters. Como filler sentence number 3 about unrelated matters. Como filler sentence number 4 about unrelated matters. Como filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 360,
-     "score": 4.44,
-     "via": "bm25",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 5,
-     "chunkId": 14,
-     "title": "Como",
-     "section": "Understand",
-     "text": "Como is a lakeside city in Lombardy. Lake filler sentence number 0 about unrelated matters. Lake filler sentence number 1 about unrelated matters. Lake filler sentence number 2 about unrelated matters. Lake filler sentence number 3 about unrelated matters. Lake filler sentence number 4 about unrelated matters. Lake filler sentence number 5 about unrelated matters.",
-     "start": 377,
-     "end": 743,
-     "score": 3.54,
-     "via": "bm25",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
-  },
-  {
-   "pack": "dest",
    "query": "Why do we have seasons?",
    "stems": [],
    "named": [],
@@ -7101,109 +6245,6 @@
    "named": [],
    "terms": [],
    "hits": []
-  },
-  {
-   "pack": "dest",
-   "query": "O que fazer em caso de queimadura?",
-   "stems": [],
-   "named": [
-    {
-     "id": 11,
-     "share": 1
-    }
-   ],
-   "terms": [],
-   "hits": [
-    {
-     "articleId": 11,
-     "chunkId": 23,
-     "title": "Burn",
-     "section": "",
-     "text": "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 434,
-     "score": 1,
-     "via": "title",
-     "source": "enwiki",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
-  },
-  {
-   "pack": "dest",
-   "query": "Como parar de sentir a queimadura?",
-   "stems": [
-    {
-     "stem": "como",
-     "idf": 2.5649493574615367
-    }
-   ],
-   "named": [
-    {
-     "id": 11,
-     "share": 1
-    }
-   ],
-   "terms": [
-    "como"
-   ],
-   "hits": [
-    {
-     "articleId": 11,
-     "chunkId": 23,
-     "title": "Burn",
-     "section": "",
-     "text": "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 434,
-     "score": 1,
-     "via": "title",
-     "source": "enwiki",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 5,
-     "chunkId": 13,
-     "title": "Como",
-     "section": "",
-     "text": "Como is a destination. Como filler sentence number 0 about unrelated matters. Como filler sentence number 1 about unrelated matters. Como filler sentence number 2 about unrelated matters. Como filler sentence number 3 about unrelated matters. Como filler sentence number 4 about unrelated matters. Como filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 360,
-     "score": 4.44,
-     "via": "bm25",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 5,
-     "chunkId": 14,
-     "title": "Como",
-     "section": "Understand",
-     "text": "Como is a lakeside city in Lombardy. Lake filler sentence number 0 about unrelated matters. Lake filler sentence number 1 about unrelated matters. Lake filler sentence number 2 about unrelated matters. Lake filler sentence number 3 about unrelated matters. Lake filler sentence number 4 about unrelated matters. Lake filler sentence number 5 about unrelated matters.",
-     "start": 377,
-     "end": 743,
-     "score": 3.54,
-     "via": "bm25",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
   },
   {
    "pack": "dest",
@@ -7691,14 +6732,6 @@
   },
   {
    "pack": "dest",
-   "query": "Em que época Roma caiu?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "dest",
    "query": "What is the best time complexity of sorting in Rust?",
    "stems": [
     {
@@ -7863,114 +6896,6 @@
   },
   {
    "pack": "dest",
-   "query": "Tenho visto Roma no mapa, onde fica?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "dest",
-   "query": "Como funciona a fotossíntese?",
-   "stems": [
-    {
-     "stem": "como",
-     "idf": 2.5649493574615367
-    }
-   ],
-   "named": [],
-   "terms": [
-    "como"
-   ],
-   "hits": [
-    {
-     "articleId": 5,
-     "chunkId": 13,
-     "title": "Como",
-     "section": "",
-     "text": "Como is a destination. Como filler sentence number 0 about unrelated matters. Como filler sentence number 1 about unrelated matters. Como filler sentence number 2 about unrelated matters. Como filler sentence number 3 about unrelated matters. Como filler sentence number 4 about unrelated matters. Como filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 360,
-     "score": 4.44,
-     "via": "bm25",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 5,
-     "chunkId": 14,
-     "title": "Como",
-     "section": "Understand",
-     "text": "Como is a lakeside city in Lombardy. Lake filler sentence number 0 about unrelated matters. Lake filler sentence number 1 about unrelated matters. Lake filler sentence number 2 about unrelated matters. Lake filler sentence number 3 about unrelated matters. Lake filler sentence number 4 about unrelated matters. Lake filler sentence number 5 about unrelated matters.",
-     "start": 377,
-     "end": 743,
-     "score": 3.54,
-     "via": "bm25",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
-  },
-  {
-   "pack": "dest",
-   "query": "Como pagar com cartão em Lisboa?",
-   "stems": [
-    {
-     "stem": "como",
-     "idf": 2.5649493574615367
-    }
-   ],
-   "named": [],
-   "terms": [
-    "como"
-   ],
-   "hits": [
-    {
-     "articleId": 5,
-     "chunkId": 13,
-     "title": "Como",
-     "section": "",
-     "text": "Como is a destination. Como filler sentence number 0 about unrelated matters. Como filler sentence number 1 about unrelated matters. Como filler sentence number 2 about unrelated matters. Como filler sentence number 3 about unrelated matters. Como filler sentence number 4 about unrelated matters. Como filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 360,
-     "score": 4.44,
-     "via": "bm25",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 5,
-     "chunkId": 14,
-     "title": "Como",
-     "section": "Understand",
-     "text": "Como is a lakeside city in Lombardy. Lake filler sentence number 0 about unrelated matters. Lake filler sentence number 1 about unrelated matters. Lake filler sentence number 2 about unrelated matters. Lake filler sentence number 3 about unrelated matters. Lake filler sentence number 4 about unrelated matters. Lake filler sentence number 5 about unrelated matters.",
-     "start": 377,
-     "end": 743,
-     "score": 3.54,
-     "via": "bm25",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
-  },
-  {
-   "pack": "dest",
    "query": "Where did Charles Darwin travel on the Beagle?",
    "stems": [
     {
@@ -8095,14 +7020,6 @@
   {
    "pack": "dest",
    "query": "How long can Jordan stay in the air when he dunks?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "dest",
-   "query": "Preciso de visto para visitar a Argentina no Natal?",
    "stems": [],
    "named": [],
    "terms": [],
@@ -8708,109 +7625,6 @@
   },
   {
    "pack": "dest",
-   "query": "O que fazer com uma queimadura?",
-   "stems": [],
-   "named": [
-    {
-     "id": 11,
-     "share": 1
-    }
-   ],
-   "terms": [],
-   "hits": [
-    {
-     "articleId": 11,
-     "chunkId": 23,
-     "title": "Burn",
-     "section": "",
-     "text": "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 434,
-     "score": 1,
-     "via": "title",
-     "source": "enwiki",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
-  },
-  {
-   "pack": "dest",
-   "query": "Como tratar queimaduras?",
-   "stems": [
-    {
-     "stem": "como",
-     "idf": 2.5649493574615367
-    }
-   ],
-   "named": [
-    {
-     "id": 11,
-     "share": 1
-    }
-   ],
-   "terms": [
-    "como"
-   ],
-   "hits": [
-    {
-     "articleId": 11,
-     "chunkId": 23,
-     "title": "Burn",
-     "section": "",
-     "text": "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 434,
-     "score": 1,
-     "via": "title",
-     "source": "enwiki",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 5,
-     "chunkId": 13,
-     "title": "Como",
-     "section": "",
-     "text": "Como is a destination. Como filler sentence number 0 about unrelated matters. Como filler sentence number 1 about unrelated matters. Como filler sentence number 2 about unrelated matters. Como filler sentence number 3 about unrelated matters. Como filler sentence number 4 about unrelated matters. Como filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 360,
-     "score": 4.44,
-     "via": "bm25",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 5,
-     "chunkId": 14,
-     "title": "Como",
-     "section": "Understand",
-     "text": "Como is a lakeside city in Lombardy. Lake filler sentence number 0 about unrelated matters. Lake filler sentence number 1 about unrelated matters. Lake filler sentence number 2 about unrelated matters. Lake filler sentence number 3 about unrelated matters. Lake filler sentence number 4 about unrelated matters. Lake filler sentence number 5 about unrelated matters.",
-     "start": 377,
-     "end": 743,
-     "score": 3.54,
-     "via": "bm25",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
-  },
-  {
-   "pack": "dest",
    "query": "stop",
    "stems": [],
    "named": [],
@@ -8964,37 +7778,6 @@
     "burn",
     "water"
    ],
-   "hits": [
-    {
-     "articleId": 11,
-     "chunkId": 23,
-     "title": "Burn",
-     "section": "",
-     "text": "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.",
-     "start": 8,
-     "end": 434,
-     "score": 1,
-     "via": "title",
-     "source": "enwiki",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
-  },
-  {
-   "pack": "dest",
-   "query": "Queimadura: o que fazer?",
-   "stems": [],
-   "named": [
-    {
-     "id": 11,
-     "share": 1
-    }
-   ],
-   "terms": [],
    "hits": [
     {
      "articleId": 11,
@@ -9224,22 +8007,6 @@
   },
   {
    "pack": "voyage",
-   "query": "O que eu faço?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "voyage",
-   "query": "Como tratar uma queimadura?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "voyage",
    "query": "Why do we have seasons?",
    "stems": [],
    "named": [],
@@ -9297,22 +8064,6 @@
   {
    "pack": "voyage",
    "query": "What is ERC20?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "voyage",
-   "query": "O que fazer em caso de queimadura?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "voyage",
-   "query": "Como parar de sentir a queimadura?",
    "stems": [],
    "named": [],
    "terms": [],
@@ -9630,14 +8381,6 @@
   },
   {
    "pack": "voyage",
-   "query": "Em que época Roma caiu?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "voyage",
    "query": "What is the best time complexity of sorting in Rust?",
    "stems": [],
    "named": [],
@@ -9696,30 +8439,6 @@
   {
    "pack": "voyage",
    "query": "How do I say thank you to a colleague?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "voyage",
-   "query": "Tenho visto Roma no mapa, onde fica?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "voyage",
-   "query": "Como funciona a fotossíntese?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "voyage",
-   "query": "Como pagar com cartão em Lisboa?",
    "stems": [],
    "named": [],
    "terms": [],
@@ -9909,104 +8628,6 @@
      "end": 768,
      "score": 0.24,
      "via": "title",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    }
-   ]
-  },
-  {
-   "pack": "voyage",
-   "query": "Preciso de visto para visitar a Argentina no Natal?",
-   "stems": [
-    {
-     "stem": "argentina",
-     "idf": 2.8903717578961645
-    },
-    {
-     "stem": "natal",
-     "idf": 2.8903717578961645
-    }
-   ],
-   "named": [
-    {
-     "id": 5,
-     "share": 1
-    },
-    {
-     "id": 6,
-     "share": 0.5
-    }
-   ],
-   "terms": [
-    "argentina",
-    "natal"
-   ],
-   "hits": [
-    {
-     "articleId": 5,
-     "chunkId": 10,
-     "title": "Argentina",
-     "section": "",
-     "text": "Argentina is a destination. Argentina filler sentence number 0 about unrelated matters. Argentina filler sentence number 1 about unrelated matters. Argentina filler sentence number 2 about unrelated matters. Argentina filler sentence number 3 about unrelated matters. Argentina filler sentence number 4 about unrelated matters. Argentina filler sentence number 5 about unrelated matters.",
-     "start": 13,
-     "end": 400,
-     "score": 1,
-     "via": "title",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 6,
-     "chunkId": 12,
-     "title": "Natal",
-     "section": "",
-     "text": "Natal is a destination. Natal filler sentence number 0 about unrelated matters. Natal filler sentence number 1 about unrelated matters. Natal filler sentence number 2 about unrelated matters. Natal filler sentence number 3 about unrelated matters. Natal filler sentence number 4 about unrelated matters. Natal filler sentence number 5 about unrelated matters.",
-     "start": 9,
-     "end": 368,
-     "score": 1,
-     "via": "title",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": true,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 6,
-     "chunkId": 13,
-     "title": "Natal",
-     "section": "Understand",
-     "text": "Natal is a city on the coast of Rio Grande do Norte. Dunes filler sentence number 0 about unrelated matters. Dunes filler sentence number 1 about unrelated matters. Dunes filler sentence number 2 about unrelated matters. Dunes filler sentence number 3 about unrelated matters. Dunes filler sentence number 4 about unrelated matters. Dunes filler sentence number 5 about unrelated matters.",
-     "start": 385,
-     "end": 773,
-     "score": 0.2,
-     "via": "title",
-     "source": "enwikivoyage",
-     "views": 0,
-     "lead": false,
-     "action": false,
-     "url": null,
-     "license": null
-    },
-    {
-     "articleId": 5,
-     "chunkId": 11,
-     "title": "Argentina",
-     "section": "Get in",
-     "text": "Most visitors need no visa for short stays. Border filler sentence number 0 about unrelated matters. Border filler sentence number 1 about unrelated matters. Border filler sentence number 2 about unrelated matters. Border filler sentence number 3 about unrelated matters. Border filler sentence number 4 about unrelated matters. Border filler sentence number 5 about unrelated matters.",
-     "start": 413,
-     "end": 798,
-     "score": 3.53,
-     "via": "bm25",
      "source": "enwikivoyage",
      "views": 0,
      "lead": false,
@@ -10937,22 +9558,6 @@
   },
   {
    "pack": "voyage",
-   "query": "O que fazer com uma queimadura?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "voyage",
-   "query": "Como tratar queimaduras?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "voyage",
    "query": "stop",
    "stems": [],
    "named": [],
@@ -11214,14 +9819,6 @@
   },
   {
    "pack": "voyage",
-   "query": "Queimadura: o que fazer?",
-   "stems": [],
-   "named": [],
-   "terms": [],
-   "hits": []
-  },
-  {
-   "pack": "voyage",
    "query": "Compare the French Revolution and the Industrial Revolution.",
    "stems": [],
    "named": [],
@@ -11314,30 +9911,6 @@
     "stop",
     "nosebleed"
    ],
-   "O que eu faço?": [
-    "O que eu faço",
-    "O que eu",
-    "que eu faço",
-    "O que",
-    "que eu",
-    "eu faço",
-    "O",
-    "que",
-    "eu",
-    "faço"
-   ],
-   "Como tratar uma queimadura?": [
-    "Como tratar uma queimadura",
-    "Como tratar uma",
-    "tratar uma queimadura",
-    "Como tratar",
-    "tratar uma",
-    "uma queimadura",
-    "Como",
-    "tratar",
-    "uma",
-    "queimadura"
-   ],
    "Why do we have seasons?": [
     "seasons"
    ],
@@ -11402,49 +9975,6 @@
    ],
    "What is ERC20?": [
     "ERC20"
-   ],
-   "O que fazer em caso de queimadura?": [
-    "O que fazer em caso",
-    "que fazer em caso de",
-    "fazer em caso de queimadura",
-    "O que fazer em",
-    "que fazer em caso",
-    "fazer em caso de",
-    "em caso de queimadura",
-    "O que fazer",
-    "que fazer em",
-    "fazer em caso",
-    "em caso de",
-    "caso de queimadura",
-    "O que",
-    "que fazer",
-    "fazer em",
-    "em caso",
-    "caso de",
-    "de queimadura",
-    "O",
-    "que",
-    "fazer",
-    "em",
-    "caso",
-    "de",
-    "queimadura"
-   ],
-   "Como parar de sentir a queimadura?": [
-    "parar de sentir a queimadura",
-    "Como parar de sentir",
-    "de sentir a queimadura",
-    "Como parar de",
-    "parar de sentir",
-    "sentir a queimadura",
-    "Como parar",
-    "parar de",
-    "de sentir",
-    "Como",
-    "parar",
-    "de",
-    "sentir",
-    "queimadura"
    ],
    "My child spilled boiling water. What do I do about the scald?": [
     "child spilled boiling water",
@@ -11552,23 +10082,6 @@
     "publish",
     "theory"
    ],
-   "Em que época Roma caiu?": [
-    "Em que época Roma caiu",
-    "Em que época Roma",
-    "que época Roma caiu",
-    "Em que época",
-    "que época Roma",
-    "época Roma caiu",
-    "Em que",
-    "que época",
-    "época Roma",
-    "Roma caiu",
-    "Em",
-    "que",
-    "época",
-    "Roma",
-    "caiu"
-   ],
    "What is the best time complexity of sorting in Rust?": [
     "best time complexity of sorting",
     "complexity of sorting in Rust",
@@ -11618,56 +10131,6 @@
     "thank",
     "colleague"
    ],
-   "Tenho visto Roma no mapa, onde fica?": [
-    "Tenho visto Roma no mapa",
-    "visto Roma no mapa onde",
-    "Roma no mapa onde fica",
-    "visto Roma no mapa",
-    "Roma no mapa onde",
-    "Tenho visto Roma",
-    "Roma no mapa",
-    "mapa onde fica",
-    "Tenho visto",
-    "visto Roma",
-    "mapa onde",
-    "onde fica",
-    "Tenho",
-    "visto",
-    "Roma",
-    "mapa",
-    "onde",
-    "fica"
-   ],
-   "Como funciona a fotossíntese?": [
-    "Como funciona a fotossíntese",
-    "funciona a fotossíntese",
-    "Como funciona",
-    "Como",
-    "funciona",
-    "fotossíntese"
-   ],
-   "Como pagar com cartão em Lisboa?": [
-    "Como pagar com cartão em",
-    "pagar com cartão em Lisboa",
-    "Como pagar com cartão",
-    "pagar com cartão em",
-    "com cartão em Lisboa",
-    "Como pagar com",
-    "pagar com cartão",
-    "com cartão em",
-    "cartão em Lisboa",
-    "Como pagar",
-    "pagar com",
-    "com cartão",
-    "cartão em",
-    "em Lisboa",
-    "Como",
-    "pagar",
-    "com",
-    "cartão",
-    "em",
-    "Lisboa"
-   ],
    "Where did Charles Darwin travel on the Beagle?": [
     "Darwin travel on the Beagle",
     "travel on the Beagle",
@@ -11713,30 +10176,6 @@
     "stay",
     "air",
     "dunks"
-   ],
-   "Preciso de visto para visitar a Argentina no Natal?": [
-    "Preciso de visto para visitar",
-    "visto para visitar a Argentina",
-    "visitar a Argentina no Natal",
-    "Preciso de visto para",
-    "de visto para visitar",
-    "para visitar a Argentina",
-    "Preciso de visto",
-    "de visto para",
-    "visto para visitar",
-    "visitar a Argentina",
-    "Argentina no Natal",
-    "Preciso de",
-    "de visto",
-    "visto para",
-    "para visitar",
-    "Preciso",
-    "de",
-    "visto",
-    "para",
-    "visitar",
-    "Argentina",
-    "Natal"
    ],
    "Do I need a visa for Japan if I live in the United States?": [
     "need a visa for Japan",
@@ -12262,36 +10701,6 @@
     "treat",
     "burn"
    ],
-   "O que fazer com uma queimadura?": [
-    "O que fazer com uma",
-    "que fazer com uma queimadura",
-    "O que fazer com",
-    "que fazer com uma",
-    "fazer com uma queimadura",
-    "O que fazer",
-    "que fazer com",
-    "fazer com uma",
-    "com uma queimadura",
-    "O que",
-    "que fazer",
-    "fazer com",
-    "com uma",
-    "uma queimadura",
-    "O",
-    "que",
-    "fazer",
-    "com",
-    "uma",
-    "queimadura"
-   ],
-   "Como tratar queimaduras?": [
-    "Como tratar queimaduras",
-    "Como tratar",
-    "tratar queimaduras",
-    "Como",
-    "tratar",
-    "queimaduras"
-   ],
    "stop": [
     "stop"
    ],
@@ -12355,18 +10764,6 @@
     "Burn",
     "boiling",
     "water"
-   ],
-   "Queimadura: o que fazer?": [
-    "Queimadura o que fazer",
-    "Queimadura o que",
-    "o que fazer",
-    "Queimadura o",
-    "o que",
-    "que fazer",
-    "Queimadura",
-    "o",
-    "que",
-    "fazer"
    ]
   },
   "isTravel": {
@@ -12378,8 +10775,6 @@
    "Where do photons stay stuck eternally?": false,
    "What should I do?": false,
    "How do I stop a nosebleed?": false,
-   "O que eu faço?": false,
-   "Como tratar uma queimadura?": false,
    "Why do we have seasons?": false,
    "When did the war stop in 1945?": false,
    "What is Ethereum?": false,
@@ -12388,8 +10783,6 @@
    "What is ML-DSA?": false,
    "How do vaults approve and transferFrom ERC-20 tokens?": false,
    "What is ERC20?": false,
-   "O que fazer em caso de queimadura?": false,
-   "Como parar de sentir a queimadura?": false,
    "My child spilled boiling water. What do I do about the scald?": false,
    "Why do boiling water spills scald children?": false,
    "Why do earthquakes happen near plate boundaries?": false,
@@ -12400,20 +10793,15 @@
    "Why do earthquakes happen at plate boundaries?": false,
    "How does photosynthesis work?": false,
    "When did Darwin publish his theory?": false,
-   "Em que época Roma caiu?": false,
    "What is the best time complexity of sorting in Rust?": false,
    "How do Rust sockets work?": false,
    "Which season does Game of Thrones end?": false,
    "Is cash king in Bitcoin?": false,
    "How do I say thank you to a colleague?": false,
-   "Tenho visto Roma no mapa, onde fica?": false,
-   "Como funciona a fotossíntese?": false,
-   "Como pagar com cartão em Lisboa?": true,
    "Where did Charles Darwin travel on the Beagle?": false,
    "Why are New York taxis yellow?": false,
    "When did Brazil change its currency to the real?": false,
    "How long can Jordan stay in the air when he dunks?": false,
-   "Preciso de visto para visitar a Argentina no Natal?": true,
    "Do I need a visa for Japan if I live in the United States?": true,
    "Do I need a visa for Japan as a citizen of New Zealand?": true,
    "How do I get to Kyoto from Tokyo Station?": true,
@@ -12439,8 +10827,6 @@
    "burn scald what to do": false,
    "Earthquake Plate tectonics": false,
    "How to treat a burn": false,
-   "O que fazer com uma queimadura?": false,
-   "Como tratar queimaduras?": false,
    "stop": false,
    "BIP32 wallets": false,
    "Hotels in Tokyo near Tokyo Station": true,
@@ -12449,8 +10835,7 @@
    "Burn: what should I do?": false,
    "How to treat a Burn": false,
    "Scald first aid": false,
-   "What do I do for a Burn from boiling water?": false,
-   "Queimadura: o que fazer?": false
+   "What do I do for a Burn from boiling water?": false
   },
   "instructionShare": {
    "A black hole is a region of spacetime where gravity is so strong that nothing, not even light, can escape. The boundary is called the event horizon.": 0,
@@ -12564,7 +10949,6 @@
    "Some special and specific algorithms have been developed to aid in attacking some public key encryption algorithms; both RSA and ElGamal encryption have known attacks that are much faster than the brute-force approach. None of these are sufficiently improved to be actually practical, however.": 0,
    "Vaults hold ERC-20 tokens; users approve the vault, which calls transfer and transferFrom on the ERC-20 token. Vaults hold ERC-20 tokens; users approve the vault, which calls transfer and transferFrom on the ERC-20 token. Vaults hold ERC-20 tokens; users approve the vault, which calls transfer and transferFrom on the ERC-20 token. Vaults hold ERC-20 tokens; users approve the vault, which calls transfer and transferFrom on the ERC-20 token.": 0,
    "A burn is an injury to skin caused by heat. Cool the burn with running water for twenty minutes. Burn filler sentence number 0 about unrelated matters. Burn filler sentence number 1 about unrelated matters. Burn filler sentence number 2 about unrelated matters. Burn filler sentence number 3 about unrelated matters. Burn filler sentence number 4 about unrelated matters. Burn filler sentence number 5 about unrelated matters.": 0.125,
-   "Como plantar uma horta de verduras e parar de comprar. Como regar uma horta de manhã. Horta filler sentence number 0 about unrelated matters. Horta filler sentence number 1 about unrelated matters. Horta filler sentence number 2 about unrelated matters. Horta filler sentence number 3 about unrelated matters. Horta filler sentence number 4 about unrelated matters. Horta filler sentence number 5 about unrelated matters.": 0,
    "A standard interface for fungible tokens with transfer and approve functions. Token filler sentence number 0 about unrelated matters. Token filler sentence number 1 about unrelated matters. Token filler sentence number 2 about unrelated matters. Token filler sentence number 3 about unrelated matters. Token filler sentence number 4 about unrelated matters. Token filler sentence number 5 about unrelated matters.": 0,
    "Cool the scald under cool running water for twenty minutes, remove tight clothing, and cover it loosely. Cooling filler sentence number 0 about unrelated matters. Cooling filler sentence number 1 about unrelated matters. Cooling filler sentence number 2 about unrelated matters.": 0.25,
    "To prevent a scald from boiling water, keep children away from boiling water and turn pot handles inward. Boiling water spills cause most child scalds. Prevention filler sentence number 0 about unrelated matters. Prevention filler sentence number 1 about unrelated matters.": 0,
@@ -12853,7 +11237,6 @@
    "aid": "\"aid\"",
    "first": "\"first\"",
    "como": "\"como\"",
-   "uma": "\"uma\"",
    "erc": "\"erc\"",
    "token": "\"token\"",
    "transferfrom": "\"transferfrom\"",
@@ -12899,8 +11282,6 @@
    "Where do photons stay stuck eternally?": false,
    "What should I do?": true,
    "How do I stop a nosebleed?": true,
-   "O que eu faço?": true,
-   "Como tratar uma queimadura?": true,
    "Why do we have seasons?": false,
    "When did the war stop in 1945?": false,
    "What is Ethereum?": false,
@@ -12909,8 +11290,6 @@
    "What is ML-DSA?": false,
    "How do vaults approve and transferFrom ERC-20 tokens?": false,
    "What is ERC20?": false,
-   "O que fazer em caso de queimadura?": true,
-   "Como parar de sentir a queimadura?": true,
    "My child spilled boiling water. What do I do about the scald?": true,
    "Why do boiling water spills scald children?": false,
    "Why do earthquakes happen near plate boundaries?": false,
@@ -12921,20 +11300,15 @@
    "Why do earthquakes happen at plate boundaries?": false,
    "How does photosynthesis work?": false,
    "When did Darwin publish his theory?": false,
-   "Em que época Roma caiu?": false,
    "What is the best time complexity of sorting in Rust?": false,
    "How do Rust sockets work?": false,
    "Which season does Game of Thrones end?": false,
    "Is cash king in Bitcoin?": false,
    "How do I say thank you to a colleague?": false,
-   "Tenho visto Roma no mapa, onde fica?": false,
-   "Como funciona a fotossíntese?": false,
-   "Como pagar com cartão em Lisboa?": false,
    "Where did Charles Darwin travel on the Beagle?": false,
    "Why are New York taxis yellow?": false,
    "When did Brazil change its currency to the real?": false,
    "How long can Jordan stay in the air when he dunks?": false,
-   "Preciso de visto para visitar a Argentina no Natal?": false,
    "Do I need a visa for Japan if I live in the United States?": false,
    "Do I need a visa for Japan as a citizen of New Zealand?": false,
    "How do I get to Kyoto from Tokyo Station?": false,
@@ -12960,8 +11334,6 @@
    "burn scald what to do": true,
    "Earthquake Plate tectonics": false,
    "How to treat a burn": true,
-   "O que fazer com uma queimadura?": true,
-   "Como tratar queimaduras?": true,
    "stop": true,
    "BIP32 wallets": false,
    "Hotels in Tokyo near Tokyo Station": false,
@@ -12970,8 +11342,7 @@
    "Burn: what should I do?": true,
    "How to treat a Burn": true,
    "Scald first aid": true,
-   "What do I do for a Burn from boiling water?": true,
-   "Queimadura: o que fazer?": true
+   "What do I do for a Burn from boiling water?": true
   },
   "article": {
    "title": "black hole",

@@ -39,7 +39,7 @@ class RetrieverGoldenTest {
             val topK = c["topK"]!!.jsonPrimitive.int
             assertEquals(q, c["chunks"]!!.jsonArray.map { lines.chunkLine(it.jsonObject) }, r.retrieve(q, topK, GoldenEmbedding.hashVec(q)).map(lines::chunkLine))
         }
-        assert(cases.size > 100)
+        assert(cases.size > 90)
         tmp.deleteRecursively()
     }
 }

@@ -74,7 +74,7 @@ class WikiPackGoldenTest {
             assertEquals(where, c["hits"]!!.jsonArray.map { hitMap(it.jsonObject) }, p.searchDetailed(q).hits.map(::hitMap))
             n++
         }
-        assert(n > 300) { "only $n cases" }
+        assert(n > 250) { "only $n cases" }
     }
 
     @Test fun `search options - titles, expand, forced action and explain`() {

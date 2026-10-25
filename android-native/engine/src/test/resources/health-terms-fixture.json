@@ -198,15 +198,6 @@
   "exempt": false
  },
  {
-  "set": "probe:h23",
-  "q": "Quantas gotas de dipirona para criança de 15 kg?",
-  "h": [],
-  "js": true,
-  "terms": true,
-  "base": false,
-  "exempt": false
- },
- {
   "set": "probe:h24",
   "q": "¿Cuántas gotas de paracetamol para un niño de 15 kg?",
   "h": [],

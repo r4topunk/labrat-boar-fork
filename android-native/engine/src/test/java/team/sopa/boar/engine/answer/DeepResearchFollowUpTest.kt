@@ -61,7 +61,7 @@ class DeepResearchFollowUpTest {
 
     @Test fun `meta follow-ups are recognized, questions with a subject of their own are not`() {
         for (q in listOf("summary", "Conclusion", "TL;DR", "tldr", "continue", "go on", "tell me more", "a brief summary please",
-            "a executive summary please", "sum it up", "resuma", "um resumo por favor", "continua"))
+            "a executive summary please", "sum it up", "resume"))
             assertTrue(q, DeepResearch.isMetaFollowUp(q))
         for (q in listOf("summary of the causes of war", "What is the conclusion of the Treaty of Versailles?", "continue the history of Rome",
             "How does the greenhouse effect warm the planet?", "more about volcanoes", ""))
@@ -85,7 +85,6 @@ class DeepResearchFollowUpTest {
     @Test fun `a conversation recap is told apart from a summary of a subject`() {
         assertTrue(DeepResearch.isConversationRecap("Summarize our conversation in 3 bullet points"))
         assertTrue(DeepResearch.isConversationRecap("recap what we discussed"))
-        assertTrue(DeepResearch.isConversationRecap("resuma a nossa conversa"))
         assertTrue(DeepResearch.isConversationRecap("TL;DR of this chat"))
         assertFalse(DeepResearch.isConversationRecap("Summarize the causes of the French Revolution"))
         assertFalse(DeepResearch.isConversationRecap("How do vaccines work?"))
@@ -99,12 +98,9 @@ class DeepResearchFollowUpTest {
         assertTrue(DeepResearch.isConversationRecap("Make a report of what we discussed"))
         assertTrue(DeepResearch.isConversationRecap("create notes from this chat"))
         assertTrue(DeepResearch.isConversationRecap("Give me a short document covering everything we talked about so far"))
-        assertTrue(DeepResearch.isConversationRecap("faça um relatório da nossa conversa"))
-        assertTrue(DeepResearch.isConversationRecap("escreva um documento sobre o que conversamos"))
         assertFalse(DeepResearch.isConversationRecap("Write a report about the French Revolution"))
         assertFalse(DeepResearch.isConversationRecap("make notes on photosynthesis"))
         assertFalse(DeepResearch.isConversationRecap("Write a report about the conversation between Kennedy and Khrushchev"))
-        assertFalse(DeepResearch.isConversationRecap("escreva um texto sobre a Revolução Francesa"))
         assertFalse(DeepResearch.isConversationRecap("write"))
         assertFalse(DeepResearch.isConversationRecap("Write a report on Bitcoin's history so far"))
         assertFalse(DeepResearch.isConversationRecap("Make notes on all of this year's Ethereum upgrades"))

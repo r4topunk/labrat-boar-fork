@@ -25,7 +25,7 @@ class ChatExportTest {
     }
 
     @Test fun fileNames() {
-        assertEquals("boar-2026-10-15-por-que-o-ceu-e-azul.md", ChatExport.fileName("Por que o céu é azul?", "2026-10-15"))
+        assertEquals("boar-2026-10-15-por-que-es-azul-el-cielo.md", ChatExport.fileName("¿Por qué es azul el cielo?", "2026-10-15"))
         assertEquals("boar-2026-10-15.md", ChatExport.fileName("💭", "2026-10-15"))
     }
 

@@ -69,11 +69,13 @@ object Classify {
         "i",
     )
 
+    // "e", "são"/"sao" ("São Paulo ...?"), "era", "foi" (FOI), "devo" (Devo), "tem" (TEM), "ha" (hectare) and "vale" are also English
+    // words, names or acronyms that open a yes/no question, so they stay.
     private val YES_NO = JsRegex.re(
-        """^(is|are|was|were|do|does|did|can|could|should|will|would|has|have|é|e|são|sao|era|foi|posso|pode|podem|devo|deve|precisa|preciso|tem|há|ha|existe|vale)(?![\p{L}])[^?]*\?\s*$""",
+        """^(is|are|was|were|do|does|did|can|could|should|will|would|has|have|e|são|sao|era|foi|devo|tem|ha|vale)(?![\p{L}])[^?]*\?\s*$""",
         "iu",
     )
-    private val WH_START = JsRegex.re("""^(who|what|when|where|which|quem|o que|qual|quais|quando|onde|quantos?|quantas?)\s""", "i")
+    private val WH_START = JsRegex.re("""^(who|what|when|where|which)\s""", "i")
     private val RESEARCH_WORDS = JsRegex.re("""\b(research|analyze|analyse|investigate|explore|explain in depth)\b""", "i")
     private val WS_RUN = JsRegex.re("""\s+""")
 

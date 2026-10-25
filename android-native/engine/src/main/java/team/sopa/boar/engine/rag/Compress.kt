@@ -29,7 +29,8 @@ object Compress {
             "when where why how can could should would will shall may might must i you he she we they me him her us them " +
             "my your his our their not no yes so than too very just about into over under between vs versus also " +
             "tell explain describe give me please much many more most some any all each other such only own same " +
-            "o a os as um uma de do da dos das em no na nos nas por para com que qual quais quem como quando onde porque é"
+            // Also English tokens ("OS", "DOS", "Na", "NAS", "EM", ".com", "DA", "DE", "UM", German "Das"): they stay so English retrieval is unchanged.
+            "o os um de da dos das em na nos nas com"
         ).split(Regex("\\s+")).toSet()
 
     private val COMBINING = Regex("[̀-ͯ]")

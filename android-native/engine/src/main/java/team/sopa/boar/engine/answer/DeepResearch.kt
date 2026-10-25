@@ -124,21 +124,20 @@ class DeepResearch(
         /** Characters of the previous answer a meta follow-up is written from (about 1,500 tokens: a 2,048-token answer fits). */
         const val FULL_PREVIOUS_ANSWER_CHARS = 6000
 
-        /** What a meta follow-up asks for (English and Portuguese): summarize, conclude, continue. */
+        /** What a meta follow-up asks for: summarize, conclude, continue. */
         private val META_CORE = setOf(
             "summary", "summarize", "summarise", "sum", "recap", "tldr", "conclusion", "conclude", "continue", "go", "more", "expand",
-            "resumo", "resuma", "resumir", "resume", "conclusão", "conclusao", "concluir", "conclua", "continua", "continuar", "prossiga", "mais",
+            "resume",
         )
-        /** Words that may come with it ("a brief summary please", "go on", "tell me more", "um resumo por favor"). */
+        /** Words that may come with it ("a brief summary please", "go on", "tell me more"). */
         private val META_FILLER = setOf(
             "up", "on", "going", "keep", "a", "an", "the", "please", "pls", "brief", "short", "quick", "executive", "final", "give",
             "me", "can", "you", "could", "write", "make", "now", "it", "this", "that", "of", "so", "and", "just", "tell", "in",
-            "um", "uma", "o", "por", "favor", "faça", "faca", "dê", "de", "isso", "agora", "breve", "curto", "rápido", "executivo", "em",
         )
 
         /**
          * A short message that only asks to summarize, conclude or continue the last answer ("TL;DR", "a brief summary
-         * please", "continue", "resuma"). A question with a subject of its own ("summary of the causes of war") isn't one.
+         * please", "continue"). A question with a subject of its own ("summary of the causes of war") isn't one.
          */
         fun isMetaFollowUp(query: String): Boolean {
             val words = query.lowercase().replace("tl;dr", "tldr").replace("tl dr", "tldr").split(Regex("[^\\p{L}]+")).filter { it.isNotEmpty() }
@@ -147,8 +146,8 @@ class DeepResearch(
             return content.isNotEmpty() && content.all { it in META_CORE }
         }
 
-        /** Words of a meta follow-up that ask for more rather than a summary ("continue", "tell me more", "prossiga"). */
-        private val META_MORE = setOf("continue", "go", "more", "expand", "continua", "continuar", "prossiga", "mais")
+        /** Words of a meta follow-up that ask for more rather than a summary ("continue", "tell me more"). */
+        private val META_MORE = setOf("continue", "go", "more", "expand")
 
         /**
          * A meta follow-up that only asks to summarize or conclude the last answer ("TL;DR", "a brief summary please"):
@@ -162,17 +161,18 @@ class DeepResearch(
         const val RECAP_EXCHANGES = 12
         const val RECAP_ANSWER_CHARS = 600
 
-        private val RECAP_ASK = Regex("\\b(summar(y|ize|ise)|recap|tl;?dr|resum[aoeir]*|resumo)\\b", RegexOption.IGNORE_CASE)
-        // "Write an artifact about our conversation", "faça um relatório da nossa conversa": a write-up of the chat is a
+        private val RECAP_ASK = Regex("\\b(summar(y|ize|ise)|recap|tl;?dr|resume)\\b", RegexOption.IGNORE_CASE)
+        // "Write an artifact about our conversation": a write-up of the chat is a
         // recap too (it searched the library instead and saw only the last exchanges, Oct 18).
         // The verb, then the document later on the same line. Two searches, not one "verb.*document" regex: that one
         // retried ".*" from every verb and took 2.7 s on 20,000 characters of "write," (LabToolsCompoundTest).
+        // "mont..." and "prepar..." also match English words ("a monthly report of our chat", "preparing a document of our chat"), so they stay.
         private val WRITE_UP_VERB = Regex(
-            "\\b(write|make|create|draft|prepare|compile|turn|put|give me|escrev\\p{L}*|fa[çc]a|fazer|cri[ae]\\p{L}*|mont\\p{L}*|ger[ae]\\p{L}*|prepar\\p{L}*)\\b",
+            "\\b(write|make|create|draft|prepare|compile|turn|put|give me|mont\\p{L}*|prepar\\p{L}*)\\b",
             RegexOption.IGNORE_CASE,
         )
         private val WRITE_UP_DOC = Regex(
-            "\\b(report|document|doc|notes|artifact|write-?up|overview|memo|brief|article|outline|relat[óo]rio|documento|notas|artefato|texto|artigo)\\b",
+            "\\b(report|document|doc|notes|artifact|write-?up|overview|memo|brief|article|outline)\\b",
             RegexOption.IGNORE_CASE,
         )
         // The line ends "." stops at.
@@ -184,21 +184,19 @@ class DeepResearch(
         // This chat, not a conversation named in the question ("the conversation between Kennedy and Khrushchev").
         // A write-up must name the chat itself: "a report on Bitcoin's history so far" is about Bitcoin (CodeRabbit, Oct 18).
         private val CHAT_REFERENCE = Regex(
-            "\\b((our|this|my) (whole |entire )?(conversation|chat|discussion|session)|(what )?we('ve| have)? (talked about|discussed|covered)|" +
-                "(nossa|essa|esta) conversa|(o que )?(falamos|conversamos|discutimos))\\b",
+            "\\b((our|this|my) (whole |entire )?(conversation|chat|discussion|session)|(what )?we('ve| have)? (talked about|discussed|covered))\\b",
             RegexOption.IGNORE_CASE,
         )
         private val RECAP_OBJECT = Regex(
             "\\b((our|this|my) (whole |entire )?(conversation|chat|discussion|session)|all (of )?(this|that)|" +
-                "(what )?we('ve| have)? (talked about|discussed|covered)|so far|" +
-                "(nossa|essa|esta) conversa|(o que )?(falamos|conversamos|discutimos))\\b",
+                "(what )?we('ve| have)? (talked about|discussed|covered)|so far)\\b",
             RegexOption.IGNORE_CASE,
         )
 
         /** Citation numbers like [3]: a recap shows no sources, so the earlier answers' numbers would point at nothing. */
         private val CITATION = Regex("\\s*\\[\\d{1,4}\\]")
 
-        /** A request to summarize this conversation ("Summarize our conversation in 3 bullet points", "resuma a nossa conversa"). */
+        /** A request to summarize this conversation ("Summarize our conversation in 3 bullet points"). */
         fun isConversationRecap(query: String): Boolean =
             query.split(Regex("\\s+")).count { it.isNotBlank() } <= 16 &&
                 (RECAP_ASK.containsMatchIn(query) && RECAP_OBJECT.containsMatchIn(query) ||

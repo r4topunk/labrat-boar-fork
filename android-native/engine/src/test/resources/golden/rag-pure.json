@@ -913,39 +913,6 @@
    }
   },
   {
-   "q": "Qual é a diferença entre pandemia e epidemia?",
-   "out": {
-    "match": "\"qual\" OR \"diferenca\" OR \"entre\" OR \"pandemia\" OR \"epidemia\"",
-    "terms": [
-     {
-      "forms": [
-       "qual"
-      ]
-     },
-     {
-      "forms": [
-       "diferenca"
-      ]
-     },
-     {
-      "forms": [
-       "entre"
-      ]
-     },
-     {
-      "forms": [
-       "pandemia"
-      ]
-     },
-     {
-      "forms": [
-       "epidemia"
-      ]
-     }
-    ]
-   }
-  },
-  {
    "q": "Café, naïve résumé — Ångström units",
    "out": {
     "match": "\"cafe\" OR \"naive\" OR \"resume\" OR \"angstrom\" OR \"units\" OR \"unit\"",
@@ -4028,10 +3995,6 @@
   },
   {
    "q": "Medellín travel tips",
-   "out": false
-  },
-  {
-   "q": "o que é",
    "out": false
   },
   {

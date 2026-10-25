@@ -7,7 +7,7 @@ import kotlin.math.roundToLong
 
 /**
  * File and storage sizes in decimal units, as Android shows them:
- * "18.6 MB", "986 MB", "2.5 GB"; "18,6 MB" in Portuguese. RAM is not formatted here.
+ * "18.6 MB", "986 MB", "2.5 GB". RAM is not formatted here.
  */
 object Units {
     private const val KB = 1000.0

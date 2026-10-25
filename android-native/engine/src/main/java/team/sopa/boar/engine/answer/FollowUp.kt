@@ -11,15 +11,15 @@ import team.sopa.boar.engine.rag.Js
  * answer, "What are the side effects?" after a vaccines answer (Pixel 6a, 2026-10-04). The model resolved "he"
  * from the history and answered from memory, uncited: the weaker case for the bounty (Qwen3-4B 0.49 from memory vs 0.61
  * with passages). From the conversation's previous question:
- * - a question that points back ("he", "it", "isso"…) is searched together with the previous question, and with the
+ * - a question that points back ("he", "it", "that"…) is searched together with the previous question, and with the
  *   previous question alone when that finds nothing;
  * - a short question with no name of its own is searched as written first, and with the previous question only when
  *   that finds nothing. A question that finds sources keeps them, and one with a name never borrows another topic.
  */
 object FollowUp {
-    /** Words that only make sense with an earlier subject (English and Portuguese); "there" is checked apart ([thereAsPlace]). */
+    /** Words that only make sense with an earlier subject ; "there" is checked apart ([thereAsPlace]). */
     private val POINTS_BACK = Regex(
-        "(?:^|[^\\p{L}])(he|she|it|its|they|them|their|theirs|him|his|her|hers|this|that|these|those|ele|ela|eles|elas|dele|dela|deles|delas|isso|isto|aquilo|nele|nela|esse|essa|esses|essas)(?![\\p{L}])",
+        "(?:^|[^\\p{L}])(he|she|it|its|they|them|their|theirs|him|his|her|hers|this|that|these|those)(?![\\p{L}])",
         RegexOption.IGNORE_CASE,
     )
 
@@ -40,7 +40,7 @@ object FollowUp {
         return words.withIndex().any { (i, w) -> w == "there" && words.getOrNull(i - 1) !in EXISTENTIAL_BEFORE && words.getOrNull(i + 1) !in EXISTENTIAL_AFTER }
     }
 
-    /** Words a question or request starts with, capitalized only because they open it (English and Portuguese). */
+    /** Words a question or request starts with, capitalized only because they open it. */
     private val OPENERS = setOf(
         "what", "whats", "who", "whos", "whom", "whose", "which", "when", "whens", "where", "wheres", "why",
         "whys", "how", "hows", "is", "are", "was", "were", "am", "be", "do", "does", "did",
@@ -49,13 +49,10 @@ object FollowUp {
         "write", "help", "please", "and", "but", "or", "so", "then", "also", "now", "ok", "okay",
         "i", "you", "we", "they", "he", "she", "it", "there", "theres", "here", "heres", "a",
         "an", "the", "any", "some", "my", "your", "in", "on", "at", "for", "of", "to",
-        "from", "with", "about", "between", "after", "before", "during", "if", "o", "os", "as", "um",
-        "uma", "uns", "umas", "qual", "quais", "quem", "como", "quando", "onde", "por", "porque", "porquê",
-        "que", "quê", "e", "mas", "ou", "então", "também", "agora", "me", "fale", "explique", "descreva",
-        "compare", "liste", "diga", "mostre", "defina", "resuma", "é", "são", "foi", "foram", "era", "há",
-        "tem", "têm", "existe", "existem", "eu", "você", "voce", "nós", "ele", "ela", "isso", "isto",
-        "no", "na", "nos", "nas", "do", "da", "dos", "das", "de", "em", "para", "com",
-        "sobre", "entre", "depois", "antes", "durante", "se",
+        "from", "with", "about", "between", "after", "before", "during", "if",
+        // Also English words, initials or acronyms that open a question ("As of 2020", "O. J. Simpson", "E. coli", "EU law",
+        // "NAS setup", "Na+ channel", "DOS commands"): they stay so an English query is handled as it was.
+        "o", "os", "as", "um", "e", "me", "foi", "era", "tem", "eu", "no", "na", "nos", "nas", "do", "da", "dos", "de", "em", "com", "se",
     )
     private val AFTER_WORD = Regex("[^\\p{L}0-9]+.*$")
 

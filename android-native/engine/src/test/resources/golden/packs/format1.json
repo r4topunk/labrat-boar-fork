@@ -411,30 +411,6 @@
    "semantic": []
   },
   {
-   "query": "O que eu faço?",
-   "limit": 5,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "O que eu faço?",
-   "limit": 12,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Como tratar uma queimadura?",
-   "limit": 5,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Como tratar uma queimadura?",
-   "limit": 12,
-   "lexical": [],
-   "semantic": []
-  },
-  {
    "query": "Why do we have seasons?",
    "limit": 5,
    "lexical": [],
@@ -937,30 +913,6 @@
    "semantic": []
   },
   {
-   "query": "O que fazer em caso de queimadura?",
-   "limit": 5,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "O que fazer em caso de queimadura?",
-   "limit": 12,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Como parar de sentir a queimadura?",
-   "limit": 5,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Como parar de sentir a queimadura?",
-   "limit": 12,
-   "lexical": [],
-   "semantic": []
-  },
-  {
    "query": "My child spilled boiling water. What do I do about the scald?",
    "limit": 5,
    "lexical": [],
@@ -1081,18 +1033,6 @@
    "semantic": []
   },
   {
-   "query": "Em que época Roma caiu?",
-   "limit": 5,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Em que época Roma caiu?",
-   "limit": 12,
-   "lexical": [],
-   "semantic": []
-  },
-  {
    "query": "What is the best time complexity of sorting in Rust?",
    "limit": 5,
    "lexical": [],
@@ -1153,42 +1093,6 @@
    "semantic": []
   },
   {
-   "query": "Tenho visto Roma no mapa, onde fica?",
-   "limit": 5,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Tenho visto Roma no mapa, onde fica?",
-   "limit": 12,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Como funciona a fotossíntese?",
-   "limit": 5,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Como funciona a fotossíntese?",
-   "limit": 12,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Como pagar com cartão em Lisboa?",
-   "limit": 5,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Como pagar com cartão em Lisboa?",
-   "limit": 12,
-   "lexical": [],
-   "semantic": []
-  },
-  {
    "query": "Where did Charles Darwin travel on the Beagle?",
    "limit": 5,
    "lexical": [],
@@ -1232,18 +1136,6 @@
   },
   {
    "query": "How long can Jordan stay in the air when he dunks?",
-   "limit": 12,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Preciso de visto para visitar a Argentina no Natal?",
-   "limit": 5,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Preciso de visto para visitar a Argentina no Natal?",
    "limit": 12,
    "lexical": [],
    "semantic": []
@@ -1911,30 +1803,6 @@
    "semantic": []
   },
   {
-   "query": "O que fazer com uma queimadura?",
-   "limit": 5,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "O que fazer com uma queimadura?",
-   "limit": 12,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Como tratar queimaduras?",
-   "limit": 5,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Como tratar queimaduras?",
-   "limit": 12,
-   "lexical": [],
-   "semantic": []
-  },
-  {
    "query": "stop",
    "limit": 5,
    "lexical": [
@@ -2072,18 +1940,6 @@
   },
   {
    "query": "What do I do for a Burn from boiling water?",
-   "limit": 12,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Queimadura: o que fazer?",
-   "limit": 5,
-   "lexical": [],
-   "semantic": []
-  },
-  {
-   "query": "Queimadura: o que fazer?",
    "limit": 12,
    "lexical": [],
    "semantic": []
