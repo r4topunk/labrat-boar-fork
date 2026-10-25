@@ -62,7 +62,7 @@ import team.sopa.boar.ui.t
 
 /**
  * About BoarLite in the app's own grouped-list style (Settings, Knowledge): the boar and the tagline, why it exists,
- * then groups for how it works, the open source addresses, the official addresses, the core team and the credits. An
+ * then groups for how it works, the BOAR it is based on, the BOAR project's addresses, the core team and the credits. An
  * address is plain text with its own copy button: BoarLite has no network and opens nothing. The model line and the
  * version and build line close the screen (the engine joins it once Developer options are on); seven taps on it turn
  * Developer options on or off.
@@ -91,18 +91,16 @@ fun AboutScreen(onClose: () -> Unit) {
                     IconRow(TourIcons.Book, t("native.about.how.receipt"), t("native.about.post.receipt"))
                     IconRow(TourIcons.Device, t("native.about.how.budget"), t("native.about.post.budget"))
                 }
-                Section(t("native.about.openTitle")) {
-                    Note(t("native.about.post.open"))
-                    CopyRow(t("native.about.codeLabel"), "github.com/rferrari/boar-app")
+                Section("Based on BOAR") {
+                    Note("BoarLite is a fork of BOAR, the open-source offline research app (MIT). The BoarLite repository is private; the BOAR code and the knowledge packs it builds on are public:")
+                    CopyRow("BOAR code (MIT)", "github.com/rferrari/boar-app")
                     CopyRow(t("native.about.packsTitle"), "huggingface.co/datasets/r4topunk/boar-packs")
                 }
-                Section(t("native.about.addressesTitle")) {
-                    Note(t("native.about.post.verify"))
+                Section("BOAR project addresses") {
+                    Note("These belong to the BOAR project, not to BoarLite, which has no network and sends nothing. BoarLite is not published on any store: install it only from the team that gave it to you.")
                     CopyRow(t("native.about.siteLabel"), "boarapp.com")
                     CopyRow("X", "x.com/boar_app")
                     CopyRow("Farcaster", "farcaster.xyz/boarapp")
-                    Text(t("native.about.verify"), style = MaterialTheme.typography.titleSmall, color = scheme.primary,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                 }
                 Section(t("native.about.teamTitle")) {
                     for ((name, handle) in TEAM) CopyRow(name, "@$handle", copy = "x.com/$handle")

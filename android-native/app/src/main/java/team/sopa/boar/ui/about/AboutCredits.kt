@@ -1,7 +1,7 @@
 package team.sopa.boar.ui.about
 
 /**
- * The open work BOAR is built on, for About's credits: the libraries in the app, by name and license (android-native
+ * The open work BoarLite (a fork of BOAR) is built on, for About's credits: the libraries in the app, by name and license (android-native
  * NOTICE has the same list with links). Models and packs come from the catalog, each with its own license.
  */
 object AboutCredits {

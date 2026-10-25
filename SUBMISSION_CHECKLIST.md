@@ -1,21 +1,23 @@
 # Submission checklist
 
-Tracks the bounty's actual requirements against repo state. Code-reachable work
-is done (see `ARCHITECTURE.md` for the detailed status list); everything below
-needs your device/accounts and can't be done from within an agent session.
+Tracks the bounty's requirements against what BoarLite (the closed offline build) must show. Steps that
+need a device or an account can't be done from an agent session.
 
 - [ ] `cd android-native && ./gradlew :app:assembleRelease -Pboar.bundleDir=<out>` (after
-      `bash scripts/stage-bundle.sh <out> --model … --embedding …`), then `adb install` the APK
-      on a connected device — the real unverified step, needs an actual Gradle/NDK compile.
-      The data bundle (model, embedding model, packs) is built into the APK and copied on first launch.
-- [ ] Confirm the first-run wizard downloads and loads all three default models, and
-      the app answers a query end-to-end
-- [ ] Try example queries and capture the responses
-- [ ] Spot-check RAM via the in-app monitor (Settings > Stats & System) stays under 12GB,
-      and storage stays under 50GB
-- [ ] Turn off networking entirely (airplane mode) and re-verify the app still works —
-      the real test of the "zero connectivity" requirement
-- [ ] Post a public demo (X or Farcaster): offline proof, example queries incl. ones
-      a 1B model would fail on, repo link, brief approach explanation
+      `bash scripts/stage-bundle.sh <out> ...`, see `android-native/docs/BUILDING-RELEASE.md`), then
+      `adb install` the APK on a connected device. The data bundle (Qwen3 1.7B, the search model, the 13
+      packs of the K13 kit and the prebuilt index, about 3.0 GB) is built into the APK and unpacked on
+      first launch.
+- [ ] Check the APK has no network permission (`aapt2 dump permissions`: no `INTERNET`; see
+      `scripts/check-release-apk.sh` and `scripts/audit-apk.py` at the repo root)
+- [ ] Confirm first launch unpacks the bundle with no connection and the app answers a query end to end
+- [ ] Try example queries and capture the responses (sources and the "May contain errors; check the
+      source." line shown; a health question takes the lexical gate)
+- [ ] Spot-check RAM (the menu's live memory and storage line) stays under 12 GB and storage under 50 GB
+- [ ] Turn off networking entirely (airplane mode) and re-verify the app works, as the proof of the
+      "zero connectivity" requirement (`scripts/offline-proof.sh`)
+- [ ] Post a public demo (X or Farcaster): offline proof, example queries, a brief approach explanation.
+      The BoarLite repository is private: do not link it as source, and credit BOAR
+      (github.com/rferrari/boar-app, MIT) as the base.
 - [ ] Submit a screenshot + links to poidh
-- [ ] Make sure the GitHub repo's current state matches what's in the demo/claim
+- [ ] Make sure what is claimed matches the APK that was demoed
