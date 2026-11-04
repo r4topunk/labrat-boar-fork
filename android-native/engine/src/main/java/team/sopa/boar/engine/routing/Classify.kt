@@ -30,19 +30,44 @@ enum class TaskType(val value: String) {
  * Heuristic keyword/shape matching, but deterministic and testable: the same input always gives the same plan.
  */
 object Classify {
-    private val PATTERNS: List<Pair<TaskType, Regex>> = listOf(
-        TaskType.COMPARE to """\b(compare|versus|vs\.?|difference between|which is better)\b""",
-        TaskType.SUMMARIZE to """\b(summarize|summarise|summary of|tl;?dr)\b""",
-        TaskType.TRANSLATE to """\btranslate\b""",
-        TaskType.CODE to """```|\b(write (a |some )?code|debug this|refactor|fix this function|regex for)\b""",
-        TaskType.CALCULATE to """\b(calculate|compute|how much is)\b|\d+\s*[+\-*/×÷]\s*\d""",
+    private fun matches(source: String): (String) -> Boolean = JsRegex.re(source, "i").let { re -> { q: String -> re.containsMatchIn(q) } }
+
+    private val PATTERNS: List<Pair<TaskType, (String) -> Boolean>> = listOf(
+        TaskType.COMPARE to matches("""\b(compare|versus|vs\.?|difference between|which is better)\b"""),
+        TaskType.SUMMARIZE to matches("""\b(summarize|summarise|summary of|tl;?dr)\b"""),
+        TaskType.TRANSLATE to matches("""\btranslate\b"""),
+        TaskType.CODE to matches("""```|\b(write (a |some )?code|debug this|refactor|fix this function|regex for)\b"""),
+        // An arithmetic request, not a message that merely holds a digit, an operator and a digit: "how much is a metro ticket
+        // in Tokyo", "the 1914-1918 war" and "the Schengen 90/180-day rule" skipped retrieval (poidh 1520, claim 9310).
+        TaskType.CALCULATE to ::isArithmeticRequest,
         // "15 percent of 240", "15% of 240", "what is 12 times 7": no library page helps (Oct 18, X6: "15 percent of 240"
         // brought "240 (number)", Montana and Jimmy Carter as sources).
-        TaskType.CALCULATE to """\d+(?:[.,]\d+)?\s*(?:%|percent\b|per cent\b)\s*of\s+\d|\b\d+(?:[.,]\d+)?\s+(?:times|plus|minus|divided by|multiplied by)\s+\d""",
-        TaskType.EXTRACT to """\b(extract|list all|pull out|find every)\b""",
+        TaskType.CALCULATE to matches("""\d+(?:[.,]\d+)?\s*(?:%|percent\b|per cent\b)\s*of\s+\d|\b\d+(?:[.,]\d+)?\s+(?:times|plus|minus|divided by|multiplied by)\s+\d"""),
+        TaskType.EXTRACT to matches("""\b(extract|list all|pull out|find every)\b"""),
         // Explanation/reasoning questions: never a one-sentence lookup, even when short and opening with "what".
-        TaskType.RESEARCH to """^(why|how)\b|\b(explain|caused?|causes|effects? of|impacts?|relate[sd]?|relationship|contrast|implications?)\b""",
-    ).map { (t, re) -> t to JsRegex.re(re, "i") }
+        TaskType.RESEARCH to matches("""^(why|how)\b|\b(explain|caused?|causes|effects? of|impacts?|relate[sd]?|relationship|contrast|implications?)\b"""),
+    )
+
+    private val CALC_VERB_RE = JsRegex.re("""\b(calculate|compute)\b""", "i")
+    private val DIGIT_RE = JsRegex.re("""\d""")
+    // A word problem ("... How much is left for the weights?"), only with its numbers in the message.
+    private val HOW_MUCH_WORD_RE = JsRegex.re("""\bhow much is (?:left|remaining|that in)\b""", "i")
+    private val NUMBER_RE = JsRegex.re("""\d+""")
+
+    /**
+     * The whole message is an expression, optionally led by "what is" / "how much is" / "calculate": "3 + 4", "What is 42 * 17?",
+     * "how much is (2 + 3) x 4". A year range, an ISO date or a day/month fraction ("1914-1918", "2016-10-14", "9/11") is not.
+     */
+    private val EXPRESSION_RE = JsRegex.re(
+        """^(?:(?:what(?:'s| is)|how much is|calculate|compute|work out)\s+)?(?![12]\d{3}\s*[-–]\s*[12]\d{3}\s*[?.!]*$)(?![12]\d{3}-\d{1,2}-\d{1,2}\s*[?.!]*$)(?!\d{1,4}/\d{1,2}(?:/\d{1,4})?\s*[?.!]*$)""" +
+            """\(*-?\d[\d\s.,+\-*/x×÷()]*[+\-*/x×÷]\s*[\d(-][\d\s.,+\-*/x×÷()]*(?:=\s*)?[?.!]*$""",
+        "i",
+    )
+
+    private fun isArithmeticRequest(q: String): Boolean =
+        (CALC_VERB_RE.containsMatchIn(q) && DIGIT_RE.containsMatchIn(q)) ||
+            (HOW_MUCH_WORD_RE.containsMatchIn(q) && NUMBER_RE.findAll(q).count() >= 2) ||
+            EXPRESSION_RE.containsMatchIn(q)
 
     // ONE greeting phrase, trailing punctuation only; anchored per segment (see isGreeting), not per query.
     private val GREETING_PHRASE_RE = JsRegex.re(
@@ -84,7 +109,7 @@ object Classify {
         if (trimmed.isEmpty()) return TaskType.UNKNOWN
         if (isGreeting(trimmed)) return TaskType.GREETING
         if (CONVERSATION_RE.containsMatchIn(trimmed)) return TaskType.CONVERSATION
-        for ((type, re) in PATTERNS) if (re.containsMatchIn(trimmed)) return type
+        for ((type, hit) in PATTERNS) if (hit(trimmed)) return type
         val wordCount = WS_RUN.split(trimmed).size
         if (WH_START.containsMatchIn("$trimmed ") && wordCount <= 12) return TaskType.LOOKUP
         if (wordCount > 25 || RESEARCH_WORDS.containsMatchIn(trimmed)) return TaskType.RESEARCH
