@@ -3,6 +3,7 @@ package team.sopa.boar.engine.models
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.io.File
 
 /**
  * The model and corpus catalog, read from assets/boar-data/catalog.json. LabRat has one answer model (Qwen3 1.7B) and
@@ -22,6 +23,19 @@ data class Catalog(
     val corpusCatalog: List<CatalogAsset> get() = models.filter { it.kind == AssetKind.CORPUS }
 
     fun byId(id: String): CatalogAsset? = models.firstOrNull { it.id == id }
+
+    /**
+     * The knowledge-pack files under [filesDir] and the id each opens as: catalog packs first, in catalog order, under
+     * their catalog id (HealthGate.HEALTH_PACKS names those ids), then any other .sqlite file in corpus/ by name as
+     * "local-<name>". Files not on disk are left out. The app (BoarServices) and the device eval runner both open packs
+     * from this list, so the runner measures the ids and order the app ships.
+     */
+    fun packFiles(filesDir: File): List<Pair<String, File>> {
+        val catalogFiles = corpusCatalog.filter { it.format == "sqlite-pack" }.map { it.id to File(filesDir, it.filename) }
+        val local = File(filesDir, "corpus").listFiles { f -> f.name.endsWith(".sqlite") }.orEmpty().sortedBy { it.name }
+            .filter { f -> catalogFiles.none { it.second == f } }.map { "local-${it.name.removeSuffix(".sqlite")}" to it }
+        return (catalogFiles + local).filter { it.second.isFile }
+    }
 
     companion object {
         private val json = Json { ignoreUnknownKeys = true }
