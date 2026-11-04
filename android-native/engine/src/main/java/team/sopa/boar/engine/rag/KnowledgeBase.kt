@@ -73,11 +73,15 @@ class KnowledgeBase(private val db: SqlDatabase) {
     }
 
     private fun insertRows(chunk: Chunk, embedding: FloatArray) {
+        // FTS5 has no conflict target but its rowid, so OR REPLACE never matches chunk_id: drop the old row first (same
+        // transaction). chunk_id is unindexed in chunks_fts, so only scan it when the id exists (seeding writes new ids).
+        val rewrite = db.query("SELECT 1 FROM chunks WHERE chunk_id = ?", listOf(chunk.chunkId)) { it.long(0) }.isNotEmpty()
         db.execute(
             "INSERT OR REPLACE INTO chunks (chunk_id, doc_id, title, body, source, collection_id) VALUES (?, ?, ?, ?, ?, ?)",
             listOf(chunk.chunkId, chunk.docId, chunk.title, chunk.body, chunk.source, chunk.collectionId),
         )
-        db.execute("INSERT OR REPLACE INTO chunks_fts (chunk_id, doc_id, title, body) VALUES (?, ?, ?, ?)", listOf(chunk.chunkId, chunk.docId, chunk.title, chunk.body))
+        if (rewrite) db.execute("DELETE FROM chunks_fts WHERE chunk_id = ?", listOf(chunk.chunkId))
+        db.execute("INSERT INTO chunks_fts (chunk_id, doc_id, title, body) VALUES (?, ?, ?, ?)", listOf(chunk.chunkId, chunk.docId, chunk.title, chunk.body))
         db.execute("INSERT OR REPLACE INTO chunk_embeddings (chunk_id, embedding, dim) VALUES (?, ?, ?)", listOf(chunk.chunkId, toBlob(embedding), embedding.size))
     }
 
