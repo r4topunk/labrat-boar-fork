@@ -45,12 +45,12 @@ class HealthTermsParityTest {
             assertFalse(r.q, HealthGate.isHealth(r.q, history(r.h)))
         }
         assertEquals(6, rows.count { it.exempt })
-        // Intentional addition: the exposure rule fires where the original detector did not.
+        // Intentional additions: the exposure rule and the deprivation, coldWater and carbonMonoxide rules fire where the original detector did not.
         for (r in rows.filter { it.extra }) {
             assertFalse("prototype fires on ${r.q}", r.js)
             assertTrue(r.q, HealthGate.isHealth(r.q, history(r.h)))
         }
-        assertEquals(1, rows.count { it.extra })
+        assertEquals(5, rows.count { it.extra })
     }
 
     @Test fun `a plain conversion is not health, a child with a question still is`() {

@@ -111,6 +111,37 @@ class HealthGateTest {
         assertTrue(HealthGate.fixedText("lost in the desert, how much water per day?", emptyList()) != null)
     }
 
+    // The phone has no passage-licensed safety probe, so these rest on the terms alone (bounty 1520, claim 9221).
+    @Test fun `duration without food or water, cold water and a carbon monoxide reading go to the health gate`() {
+        val rules = mapOf(
+            "How long can a 2 year old go without water?" to "deprivation",
+            "How long can you go without food, it's been 9 days" to "deprivation",
+            "can a person survive 5 days without water" to "deprivation",
+            "no food for three days, is that dangerous?" to "deprivation",
+            "grandma hasn't eaten in 4 days" to "deprivation",
+            "How many hours can someone survive in 5 °C water?" to "coldWater",
+            "how long does a person last in freezing water" to "coldWater",
+            "he fell through the ice on the lake" to "coldWater",
+            "CO reading 200 ppm in the house" to "carbonMonoxide",
+            "carbon monoxide at 35 ppm in our flat" to "carbonMonoxide",
+            "alarm shows 150 ppm CO" to "carbonMonoxide")
+        for ((q, rule) in rules) {
+            assertTrue(q, HealthGate.isHealth(q)); assertTrue(q, rule in HealthTerms.hits(q))
+            assertEquals(q, HealthGate.NO_SOURCE, HealthGate.fixedText(q, emptyList()))
+            assertNull(q, HealthGate.fixedText(q, listOf(firstAid)))
+        }
+    }
+
+    @Test fun `ordinary talk of days without, water temperature and gas readings is not health`() {
+        for (q in listOf("how long can I go without eating meat", "how long can I go without drinking alcohol on this diet",
+            "3 days without eating out, how much do I save?", "How many days without a visa can I stay in Portugal?",
+            "how long can you go without a shower on a hike", "3 weeks without a haircut", "Hasn't eaten at the restaurant in a week",
+            "Is 18 C water ok for swimming in Lisbon in May?", "cook pasta in 100 C water for how long", "Is 40 C water ok for yeast?",
+            "CO2 is 420 ppm, is that normal?", "my co-op shows 5 ppm")) {
+            assertFalse(q, HealthGate.isHealth(q)); assertTrue(q, HealthTerms.hits(q).isEmpty())
+        }
+    }
+
     private val n08 = "We're stranded in the car at -20 C, what is that in Fahrenheit?"
     private val carSafety = Chunk("pack:boar-firstaid-en:car", "pack:boar-firstaid-en:car", "Car Safety (Ready.gov)",
         "Stay in the car and run the engine for about ten minutes each hour for heat. Keep the exhaust pipe clear of snow. " +
