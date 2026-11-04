@@ -32,6 +32,8 @@ import team.sopa.boar.engine.eval.EvalRequestException
 import team.sopa.boar.engine.eval.EvalSets
 import team.sopa.boar.engine.eval.ModelRef
 import team.sopa.boar.engine.eval.Resolved
+import team.sopa.boar.engine.models.Catalog
+import team.sopa.boar.engine.rag.Chunk
 import team.sopa.boar.engine.rag.KnowledgeBase
 import team.sopa.boar.engine.rag.OpenPack
 import team.sopa.boar.engine.rag.Packs
@@ -253,12 +255,11 @@ class DeviceEvalRunner(
         val closeables = mutableListOf<AutoCloseable>(kbDb)
         val sha = Json.parseToJsonElement(asset("catalog.json")).jsonObject["models"]!!.jsonArray.map { it.jsonObject }
             .first { it["kind"]!!.jsonPrimitive.content == "embedding" && it["required"]?.jsonPrimitive?.content == "true" }["sha256"]!!.jsonPrimitive.content
-        // Local pack files in name order (knowledgePacks lists catalog packs first; same files, by name).
-        val packs = File(files, "corpus").listFiles { f -> f.name.endsWith(".sqlite") }.orEmpty().sortedBy { it.name }.mapNotNull { f ->
+        // The app's pack ids and order (Catalog.packFiles, as BoarServices): HealthGate licenses by catalog id.
+        val packs = Catalog.parse(asset("catalog.json")).packFiles(files).mapNotNull { (id, f) ->
             runCatching {
                 val db = NativeSqlite.open(f.absolutePath, readOnly = true)
                 val meta = db.query("SELECT key, value FROM meta") { it.string(0)!! to (it.string(1) ?: "") }.toMap()
-                val id = "local-${f.name.removeSuffix(".sqlite")}"
                 when (Packs.packFormat(meta, sha)) {
                     1 -> OpenPack.Format1(id, db).also { closeables += db }
                     2 -> OpenPack.Format2(id, WikiPack.open(db, NativeSqlite.zstd)).also { closeables += db }
@@ -358,12 +359,14 @@ class DeviceEvalRunner(
         var firstToken = 0L
         var tokens = 0
         var done: AnswerEvent.Done? = null
+        var kept: List<Chunk> = emptyList()
         var error: String? = null
         try {
             pipeline.answer(AnswerRequest(q.query, systemPrompt, styleReminder, maxTokens, seed = overrides["seed"]?.toIntOrNull() ?: -1)).collect { e ->
                 when (e) {
                     is AnswerEvent.Stage -> if (e.stage == team.sopa.boar.engine.answer.AnswerStage.THINKING) genStart = System.nanoTime()
                     is AnswerEvent.Piece -> { tokens++; if (firstToken == 0L) firstToken = System.nanoTime() }
+                    is AnswerEvent.Sources -> kept = e.chunks
                     is AnswerEvent.Done -> done = e
                     else -> {}
                 }
@@ -380,7 +383,8 @@ class DeviceEvalRunner(
         val genLatency = if (genStart > 0 && ttftMs != null) (end - genStart) / 1e6 - ttftMs else null
         val outcome = if (error != null) "failure" else if (answer.isNotBlank()) "success" else "failure"
         val m = d?.metrics
-        val titles = d?.sources?.map { it.title } ?: emptyList()
+        // A fixed health turn's Done lists no sources; log what the search kept (the last Sources event) instead.
+        val titles = (if (d?.healthFixed == true) kept else d?.sources ?: emptyList()).map { it.title }
         val taskType = d?.taskType ?: classify(q.query)
         return json(
             "modelId" to config.modelId, "taskType" to taskType, "adaptiveRoutingUsed" to false,

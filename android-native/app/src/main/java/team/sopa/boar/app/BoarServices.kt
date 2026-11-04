@@ -141,11 +141,7 @@ class BoarServices private constructor(private val context: Context) {
     }
 
     private fun scanPacks(): List<OpenPack> {
-        val dir = File(files, "corpus")
-        val catalogFiles = catalog.corpusCatalog.filter { it.format == "sqlite-pack" }.map { it.id to File(files, it.filename) }
-        val local = dir.listFiles { f -> f.name.endsWith(".sqlite") }.orEmpty().sortedBy { it.name }
-            .filter { f -> catalogFiles.none { it.second == f } }.map { "local-${it.name.removeSuffix(".sqlite")}" to it }
-        return (catalogFiles + local).filter { it.second.isFile }.mapNotNull { (id, f) ->
+        return catalog.packFiles(files).mapNotNull { (id, f) ->
             runCatching {
                 val db = NativeSqlite.open(f.path, readOnly = true)
                 val meta = db.query("SELECT key, value FROM meta") { it.string(0)!! to (it.string(1) ?: "") }.toMap()
