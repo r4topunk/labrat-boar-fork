@@ -67,9 +67,10 @@
   "q": "CO reading 200 ppm in the house",
   "h": [],
   "js": false,
-  "terms": false,
+  "terms": true,
   "base": false,
-  "exempt": false
+  "exempt": false,
+  "extra": true
  },
  {
   "set": "probe:h09",
@@ -85,9 +86,10 @@
   "q": "How long can a 2 year old go without water?",
   "h": [],
   "js": false,
-  "terms": false,
+  "terms": true,
   "base": false,
-  "exempt": false
+  "exempt": false,
+  "extra": true
  },
  {
   "set": "probe:h11",
@@ -184,9 +186,10 @@
   "q": "How many hours can someone survive in 5 °C water?",
   "h": [],
   "js": false,
-  "terms": false,
+  "terms": true,
   "base": false,
-  "exempt": false
+  "exempt": false,
+  "extra": true
  },
  {
   "set": "probe:h22",
@@ -238,9 +241,10 @@
   "q": "How long can you go without food, it's been 9 days",
   "h": [],
   "js": false,
-  "terms": false,
+  "terms": true,
   "base": false,
-  "exempt": false
+  "exempt": false,
+  "extra": true
  },
  {
   "set": "probe:h29",
