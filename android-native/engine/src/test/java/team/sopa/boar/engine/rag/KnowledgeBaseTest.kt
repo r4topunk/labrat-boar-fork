@@ -68,6 +68,20 @@ class KnowledgeBaseTest {
         assertEquals(5L, kb.chunkCount())
     }
 
+    @Test fun `writing a chunk id again replaces its full-text row, not appends one`() {
+        val kb = seeded()
+        kb.insertChunk(Chunk("wiki-1", "season", "Season", "Seasons come from the tilt of Earth's axis toward the Sun."), vec(1f, 0f, 0f))
+        val same = kb.lexicalSearch("Why does the tilt of the axis cause seasons?", vec(1f, 0f, 0f), 5)
+        assertEquals(listOf("wiki-1"), same.map { it.chunkId })
+        // an edited chunk stops matching its old text and matches the new
+        kb.insertChunk(Chunk("wiki-1", "season", "Season", "Orbital eccentricity changes the distance to the Sun."), vec(1f, 0f, 0f))
+        assertTrue(kb.lexicalSearch("Why does the tilt of the axis cause seasons?", vec(1f, 0f, 0f), 5).isEmpty())
+        val hits = kb.lexicalSearch("How does orbital eccentricity change the distance?", vec(1f, 0f, 0f), 5)
+        assertEquals(listOf("wiki-1"), hits.map { it.chunkId })
+        assertTrue(hits.single().body.startsWith("Orbital eccentricity"))
+        assertEquals(3L, kb.chunkCount())
+    }
+
     @Test fun `light sync is NORMAL during the block and the old setting comes back, even after a throw`() = runBlocking {
         val db = JdbcSqlite()
         val kb = KnowledgeBase(db)
