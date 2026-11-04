@@ -12,7 +12,9 @@ object Calculators {
     /** kind: "temperature" | "fuel-economy" | "naismith" | "currency" | "battery" | "water". */
     data class Calculation(val kind: String, val text: String)
 
-    private const val NUM = """(\d{1,3}(?:[.\s]\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?)"""
+    // "50,000.0" (comma thousands, dot decimal) first, bounded so "1,2345" stays one plain number: left to the others, the scan
+    // restarts after the comma and captures "000.0".
+    private const val NUM = """(\d{1,3}(?:,\d{3})+(?:\.\d+)?(?!\d)|\d{1,3}(?:[.\s]\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?)"""
 
     private val WS_ANY = JsRegex.re("""\s""")
     private val COMMA_3_END = JsRegex.re(""",\d{3}$""")
@@ -89,6 +91,23 @@ object Calculators {
     private val SPACE_DOT = JsRegex.re("""\s+\.""")
     private val SPACES_2 = JsRegex.re("""\s{2,}""")
 
+    // A currency word or symbol -> its code, so "dollars" in the amount can be matched to "1 USD = ..." in the rate.
+    private val USD = JsRegex.re("""^(?:(?:u\.?s\.?\s+)?(?:d[óo]lar(?:es)?(?: americanos?)?|dollars?)|dollars? us|us\$|usd)$""", "iu")
+    private val EUR = JsRegex.re("""^(?:euros?|eur|€)$""", "iu")
+    private val GBP = JsRegex.re("""^(?:libras?|pounds?|gbp|£)$""", "iu")
+    private val BRL = JsRegex.re("""^(?:reais|real|brl|r\$)$""", "iu")
+
+    private fun currencyCode(w: String): String? {
+        val s = Js.trim(w)
+        return when {
+            USD.containsMatchIn(s) -> "USD"
+            EUR.containsMatchIn(s) -> "EUR"
+            GBP.containsMatchIn(s) -> "GBP"
+            BRL.containsMatchIn(s) -> "BRL"
+            else -> null
+        }
+    }
+
     private fun currency(q: String): String? {
         val rate = RATE.find(q) ?: return null
         val r = parseNumber(rate.groupValues[2])
@@ -99,13 +118,21 @@ object Calculators {
         val unitFrom = Js.trim(amountM.groups[2]?.value ?: rate.groups[3]?.value ?: "")
         val cur = rate.groupValues[1]
         val unitTo = if (ES_END.replaceFirst(cur, "").lowercase().startsWith("d")) "US dollars" else cur
-        val converted = amount / r
-        var text = "${fmt(amount)} $unitFrom ÷ ${fmt(r)} = ${fmt(converted)} $unitTo."
+        // "1 USD = 0.92 EUR": an amount in the base currency is multiplied by the rate and comes out in the quoted one; an
+        // amount in the quoted (or an unnamed) currency is divided and comes out in the base.
+        val base = currencyCode(cur)
+        val quote = Js.trim(rate.groups[3]?.value ?: "")
+        val inBase = base != null && base == currencyCode(unitFrom)
+        if (inBase && quote.isEmpty()) return null
+        // The quoted currency as typed; "EUR how" (a second word that is not part of the name) keeps just "EUR".
+        val unitOut = if (!inBase) unitTo else quote.takeIf { currencyCode(it) != null } ?: quote.substringBefore(' ').takeIf { currencyCode(it) != null } ?: quote
+        val converted = if (inBase) amount * r else amount / r
+        var text = "${fmt(amount)} $unitFrom ${if (inBase) "×" else "÷"} ${fmt(r)} = ${fmt(converted)} $unitOut."
         val tipM = PERCENT.find(q)
         if (tipM != null && TIP.containsMatchIn(q)) {
             val t = parseNumber(tipM.groupValues[1])
             val total = converted * (1 + t / 100)
-            text += " With a ${fmt(t)}% tip: ${fmt(total)} $unitTo (tip ${fmt(converted * (t / 100))})."
+            text += " With a ${fmt(t)}% tip: ${fmt(total)} $unitOut (tip ${fmt(converted * (t / 100))})."
         }
         return SPACES_2.replace(SPACE_DOT.replace(text, "."), " ")
     }
