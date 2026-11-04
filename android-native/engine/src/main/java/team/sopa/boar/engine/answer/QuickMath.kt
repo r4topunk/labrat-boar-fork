@@ -21,6 +21,9 @@ object QuickMath {
     private val EXPR = JsRegex.re("""^$LEAD([\d\s.,+\-*/x×÷()]+?)\s*(?:=\s*)?[?.!]*$""", "i")
     private val HAS_OP = JsRegex.re("""\d\s*[+\-*/x×÷]\s*[\d(]""", "i")
     private val WORD_LEAD = JsRegex.re("""^(?:what(?:'s| is)|how much is|calculate|compute|work out)\b""", "i")
+    // A year range, an ISO date or a day/month fraction ("1914-1918", "2016-10-14", "9/11") is not a difference or a quotient.
+    private val DATE_SHAPE = JsRegex.re("""^(?:[12]\d{3}\s*[-–]\s*[12]\d{3}|[12]\d{3}-\d{1,2}-\d{1,2}|\d{1,4}/\d{1,2}(?:/\d{1,4})?)$""")
+    private val EXPLICIT_VERB = JsRegex.re("""^(?:calculate|compute|work out)\b""", "i")
 
     private class Unit(val kind: String, val toBase: Double, val label: String)
     private val UNITS: Map<String, Unit> = buildMap {
@@ -96,11 +99,19 @@ object QuickMath {
         return Triple(num(m.groupValues[1]), m.groupValues[2].lowercase(), m.groupValues[3].lowercase())
     }
 
+    /** The expression [q] asks for ("What is 12 * 7?" gives "12 * 7"), or null when [q] isn't a plain expression. */
+    private fun expression(q: String): String? {
+        val body = EXPR.find(q)?.groupValues?.get(1)?.trim() ?: return null
+        if (!HAS_OP.containsMatchIn(body) || !(WORD_LEAD.containsMatchIn(q) || !body.contains('/'))) return null
+        if (DATE_SHAPE.containsMatchIn(body) && !EXPLICIT_VERB.containsMatchIn(q)) return null
+        return body
+    }
+
     /** [q] is a plain conversion or arithmetic question (answered by [answer], or by the model without a search). */
     fun isCalculation(q: String, history: ConversationHistory? = null): Boolean {
         if (healthy(q, history)) return false
         if (PERCENT_OF.containsMatchIn(q)) return true
-        EXPR.find(q)?.let { if (HAS_OP.containsMatchIn(it.groupValues[1]) && (WORD_LEAD.containsMatchIn(q) || !it.groupValues[1].contains('/'))) return true }
+        if (expression(q) != null) return true
         unitsOf(q)?.let { (_, a, b) -> if (a in UNITS && b in UNITS || a in TEMP && b in TEMP) return true }
         // An explicit "convert 5 furlongs to cubits" with units the table lacks: the model, without passages.
         if (CONVERT_WORD.containsMatchIn(q) && unitsOf(q) != null) return true
@@ -118,12 +129,7 @@ object QuickMath {
     /** The computed answer to [q] whether or not the health gate would take it (the exposure answer, [HealthGate.exposureAnswer], uses it). */
     internal fun compute(q: String): String? {
         PERCENT_OF.find(q)?.let { return "${fmt(num(it.groupValues[1]))}% of ${fmt(num(it.groupValues[2]))} = ${fmt(num(it.groupValues[1]) * num(it.groupValues[2]) / 100)}." }
-        EXPR.find(q)?.let { m ->
-            val body = m.groupValues[1].trim()
-            if (HAS_OP.containsMatchIn(body) && (WORD_LEAD.containsMatchIn(q) || !body.contains('/'))) {
-                evaluate(body)?.let { return "$body = ${fmt(it)}." }
-            }
-        }
+        expression(q)?.let { body -> evaluate(body)?.let { return "$body = ${fmt(it)}." } }
         Calculators.calculate(q)?.let { return it.text }
         unitsOf(q)?.let { (v, a, b) ->
             val from = UNITS[a]; val to = UNITS[b]
